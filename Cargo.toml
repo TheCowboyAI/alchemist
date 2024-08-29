@@ -1,0 +1,70 @@
+[package]
+name = "information_alchemy"
+authors = ["CowboyAI"]
+description = "Information alchemy UI"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { version = "0.14.1", features = [
+  "animation",
+  "bevy_asset",
+  "bevy_state",
+  "bevy_audio",
+  "bevy_color",
+  "bevy_gilrs",
+  "bevy_scene",
+  "bevy_winit",
+  "bevy_core_pipeline",
+  "bevy_pbr",
+  "bevy_gltf",
+  "bevy_render",
+  "bevy_sprite",
+  "bevy_text",
+  "bevy_ui",
+  "multi_threaded",
+  "png",
+  "hdr",
+  "vorbis",
+  "bevy_gizmos",
+  "android_shared_stdcxx",
+  "tonemapping_luts",
+  "smaa_luts",
+  "default_font",
+  "webgl2",
+  "sysinfo_plugin",
+  "wayland",
+] }
+bevy_third_person_camera = "0.1.11"
+
+# Wasm does not support dynamic linking.
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+bevy_dylib = { version = "0.14.1", default-features = false, optional = true }
+
+[dev-dependencies]
+rand = "0.8.0"
+rand_chacha = "0.3.1"
+ron = "0.8.0"
+flate2 = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+bytemuck = "1.7"
+bevy_render = { version = "0.14.1", default-features = false }
+# Needed to poll Task examples
+futures-lite = "2.0.1"
+async-std = "1.12"
+crossbeam-channel = "0.5.0"
+argh = "0.1.12"
+thiserror = "1.0"
+event-listener = "5.3.0"
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen = { version = "0.2" }
+web-sys = { version = "0.3", features = ["Window"] }
+
+# Enable a small amount of optimization in the dev profile.
+[profile.dev]
+opt-level = 1
+
+# Enable a large amount of optimization in the dev profile for dependencies.
+[profile.dev.package."*"]
+opt-level = 3
