@@ -1,9 +1,19 @@
-# Alchemist
+# Information Alchemist
+"ia"
+
+A program to visualize Information Architecture and Display it in a 3D World
+
+We use the [WebGPU standard](https://www.w3.org/TR/WGSL/)
+
+
+This World may connect to LIVE Events and Data Streams through the Event System.
+
+Incoming Events will update Observables that the Entities watch.
 
 ![The Alchemist](./alchemist.webp)
 >"a person who transforms or creates something through a seemingly magical process."
 
-This is an experiment for a User Interface and Projection system for a CIM.
+This is an experimental User Interface and Projection system for a CIM.
 
 The idea is that everything in the Information System is Identified.
 It is composed of Entities (identifiable objects), Values (components), Behaviors (systems) and Events. 

@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy::color::palettes::css::*;
 use bevy_third_person_camera::ThirdPersonCameraTarget;
 
-
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {

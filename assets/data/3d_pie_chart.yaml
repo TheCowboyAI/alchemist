@@ -1,0 +1,26 @@
+sectors:
+  - sector:
+    value: 0.15
+    height: 0
+    color: RED
+    label: Section 1
+  - sector:
+    value: 0.25
+    height: 0
+    color: GREEN
+    label: Section 2
+  - sector:
+    value: 0.2
+    height: 0
+    color: BLUE
+    label: Section 3
+  - sector:
+    value: 0.25
+    height: 0
+    color: PURPLE
+    label: Section 4
+  - sector:
+    value: 0.15
+    height: 0
+    color: YELLOW
+    label: Section 5
