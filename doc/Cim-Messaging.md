@@ -9,11 +9,32 @@ So goes it with Messaging in a CIM.
 Everything derives from Msg.
 
 We only have 3 types of messages, Command, Query and Event.
-They all are Msg.
+They are all Messages.
 
-This does not mean they "inherit" message, they ARE a Msg.
+This does not mean they "inherit" message, they ARE a Message.
 
-The only real difference is what is allowed in the payload.
+$$
+(\text{Command}\langle T \rangle \lor \text{Query}\langle T \rangle) \xrightarrow{\text{produces}} \text{EventStream}\langle T \rangle
+$$
+
+**Key Components:**
+- `Command⟨T⟩`: Typed command with payload structure `T`
+- `Query⟨T⟩`: Typed query with payload structure `T` 
+- `EventStream⟨T⟩`: Typed sequence of events sharing schema `T`
+- `∨`: Logical OR (either operation can initiate the stream)
+- `→`: Production relationship with explicit labeling
+
+**Why This Works:**
+1. **Type Safety:** The `⟨T⟩` parameterization ensures payload consistency across commands, queries, and resulting events
+2. **Stream Semantics:** Explicit `EventStream` notation aligns with event-driven design using NATS
+3. **Ad-Hoc Agent Compatibility:** Generic typing allows agents to process any `T`-structured stream through the NATS-based messagee system
+4. **Domain Alignment:** payload types are first-class citizens in the formula to capture intent and preserve structure
+
+This formalization directly supports the CIM architecture's goals of deterministic event flows and context-aware AI agent communication.
+
+**Plain English:**  
+A Command or Query produces a stream of Events.
+
 ALL Messages have a Subject and a Payload
 
 Msg says Content is anything you can put in a Byte Array.

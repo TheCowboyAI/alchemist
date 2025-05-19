@@ -14,5 +14,6 @@ Models are populated by Events.apply() which will project an EventStream of chan
 These Events equate to our Events in Bevy v0.16.0.
 
 Both systems will use Entity Component System (ECS)
+We define several Boundaries and Hierarchies using Domain Driven Design (DDD) Priciples
 Bevy is for human interaction
 Nats is for observing and reporting change
