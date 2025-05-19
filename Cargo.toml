@@ -6,75 +6,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.14.1", features = [
-  "animation",
-  "bevy_asset",
-  "bevy_state",
-  "bevy_audio",
-  "bevy_color",
-  "bevy_gilrs",
-  "bevy_scene",
-  "bevy_winit",
-  "bevy_core_pipeline",
-  "bevy_pbr",
-  "bevy_gltf",
-  "bevy_render",
-  "bevy_sprite",
-  "bevy_text",
-  "bevy_ui",
-  "multi_threaded",
-  "png",
-  "hdr",
-  "vorbis",
-  "bevy_gizmos",
-  "android_shared_stdcxx",
-  "tonemapping_luts",
-  "smaa_luts",
-  "default_font",
-  "webgl2",
-  "sysinfo_plugin",
-  "wayland",
-] }
-bevy-inspector-egui = "0.25.2"
-bevy_asset_loader = { version = "0.21.0", features = ["2d", "3d", "progress_tracking", "standard_dynamic_assets"] }
-bevy_reflect = { version = "0.14.1", features = ["uuid", "petgraph", "bevy"] }
-bevy_shader_utils = { git = "https://github.com/cowboyai/bevy_shader_utils" }
-bevy_third_person_camera = "0.1.11"
-#blenvy = "0.1.0-alpha.1"
-itertools = "0.13.0"
-bevy_basic_camera = { git = "https://github.com/cowboyai/bevy_basic_camera" }
-bevy_flycam = { git = "https://github.com/cowboyai/bevy_flycam" }
-bevy_common_assets = { version = "0.11.0", features = ["csv", "json", "ron", "toml", "yaml"] }
+rand = "0.9"
+egui = "0.31.1"
+eframe = "0.31.1"
+uuid = { version = "1.4", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
-
-# Wasm does not support dynamic linking.
-[target.'cfg(not(target_family = "wasm"))'.dependencies]
-bevy_dylib = { version = "0.14.1", default-features = false, optional = true }
-
-[dev-dependencies]
-rand = "0.8.0"
-rand_chacha = "0.3.1"
-ron = "0.8.0"
-flate2 = "1.0"
-bytemuck = "1.7"
-bevy_render = { version = "0.14.1", default-features = false }
-# Needed to poll Task examples
-futures-lite = "2.0.1"
-async-std = "1.12"
-crossbeam-channel = "0.5.0"
-argh = "0.1.12"
-thiserror = "1.0"
-event-listener = "5.3.0"
-
-[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen = { version = "0.2" }
-web-sys = { version = "0.3", features = ["Window"] }
-
-# Enable a small amount of optimization in the dev profile.
-[profile.dev]
-opt-level = 1
-
-# Enable a large amount of optimization in the dev profile for dependencies.
-[profile.dev.package."*"]
-opt-level = 3
+serde_json = "1.0"
+egui-snarl = "0.7.1"

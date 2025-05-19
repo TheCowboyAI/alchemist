@@ -1,0 +1,5 @@
+# All linking configuration is now handled by flake.nix
+# This file is kept as a placeholder to prevent errors if referenced elsewhere
+
+[env]
+BEVY_ASSET_ROOT = "." 

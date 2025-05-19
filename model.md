@@ -95,7 +95,7 @@ Employee would be a completely different Entity:
     - Supervisor
     - IT Account
 
-Notice we point to Person, that link automatically dictates that we have a Link between EmployeeUid and PersonUid somewhere, but we do not need to Specify it because it Uid is a required Component of any Entity and the name of the field doesn't matter, it is the responsibility of the Component to give it to me.
+Notice we point to Person, that link automatically dictates that we have a relationship between Employee and Person somewhere, but we do not need to Specify it because it Uid is a required Component of any Entity and the name of the field doesn't matter, it is the responsibility of the Component to give it to me.
 
 You may be use to OOP and Inheritance, this works in a similar way, but it operates more like a Dependent Type for us.
 If the underlying Type of Uid changes from say UUIDv4 to UUIDv7, we don't care, we just ask Employee for it's ID and it gives us the right one.

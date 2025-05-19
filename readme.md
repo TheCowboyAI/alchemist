@@ -25,7 +25,7 @@ These equate to our three base Models:
   - Domain Driven Design (DDD)
 
 ## Mathematical Model
-The Matematical Model is our definition of Mathematics and how we apply it.
+The Mathematical Model is our definition of Mathematics and how we apply it.
 
 ### Applied Categories
 These are actual Categories we define using Applied Category Theory.
@@ -57,8 +57,6 @@ Domains are the boundaries we set on collections of ECS Worlds.
 Domains define everything about a given collection of Values, Entities containing these values, and the systems that operate on them.
 
 These are the definitions of meaning we apply to the ECS world.
-
-[Initial Model](model.md)
 
 
 
