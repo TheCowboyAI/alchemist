@@ -15,10 +15,12 @@
         "rust-analyzer.procMacro.enable": true,
         "rust-analyzer.procMacro.attributes.enable": true,
         "rust-analyzer.cargo.buildScripts.enable": true,
-        "rust-analyzer.checkOnSave.command": "clippy",
-        "rust-analyzer.checkOnSave.extraArgs": [
+        "rust-analyzer.check.extraArgs": [
             "--target-dir",
-            ".vscode/ra-target"
+            ".vscode/ra-target",
+            "--workspace",
+            "--exclude",
+            "examples"
         ],
         "rust-analyzer.server.extraEnv": {
             "RUSTFLAGS": "-C target-cpu=native"

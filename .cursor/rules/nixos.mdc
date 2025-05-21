@@ -23,6 +23,7 @@ See the file named `nixos.mdc` in the `.cursor/rules/` directory of your project
     - YOUR SHELL WILL ALWAYS EXECUTE THERE
 - Package management is handled through the Nix store with immutable, atomic operations
 - System configurations are designed to be reproducible and portable
+- NixOS REQUIRES files to be staged to be seen, STAGE NEW FILES WHEN BUILDING
 
 ## Module Structure
 

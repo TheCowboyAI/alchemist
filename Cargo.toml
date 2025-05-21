@@ -6,6 +6,17 @@ version = "0.1.0"
 edition = "2021"
 exclude = ["examples/"]
 
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+
+# The following ensures clippy ignores examples
+# through Cargo's workspace inheritance
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[workspace]
+exclude = ["examples/"]
+
 [dependencies]
 rand = "0.9"
 egui = "0.31.1"
@@ -15,8 +26,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 egui-snarl = "0.7.1"
 bevy = { version = "0.16.0", features = [
-  "dynamic_linking", 
-  "jpeg", 
+  "dynamic_linking",
+  "jpeg",
   "animation",
   "multi_threaded",
   "bevy_render",
@@ -27,4 +38,3 @@ bevy = { version = "0.16.0", features = [
 bevy_egui = "0.34.1"
 rand_chacha = "0.9.0"
 bevy_panorbit_camera = "0.26.0"
-

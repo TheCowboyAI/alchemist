@@ -1,0 +1,12 @@
+# Clippy configuration
+# Exclude examples from linting
+
+# List of paths to exclude from linting
+exclude = ["examples/*"]
+
+# Disable specific lints for example code
+allow-unwrap-in-tests = true
+
+# Ignore all warnings in the examples directory
+[directories]
+"examples" = { lints = { all = "allow" } }

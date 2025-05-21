@@ -13,3 +13,5 @@ IF THE CARGO.TOML FILE SPECIFIES A VERSION, YOU MAY ONLY GO UP, NEVER DOWN.
 DO NOT MAKE TEMPORARY DOWNGRADES, FIX THE PROBLEM AT HAND.
 
 USE `nix run` and `nix build` over `cargo run`
+
+For building Bevy applications on NixOS, always use the Nix build toolchain rather than cargo directly, as Nix handles all the proper library paths and dynamic linking that Bevy requires.
