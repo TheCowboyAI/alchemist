@@ -8,10 +8,10 @@ alwaysApply: false
 
 This comprehensive rule will help the Cursor AI assistant understand and work effectively within a NixOS environment, leveraging the latest features in Cursor 0.50.0.
 
-See the file named `nixos.mdc` in the `.cursor/rules/` directory of your project with the following content:
-
 ```markdown
 # NixOS Environment Guidelines
+
+USE THE NIXOS MCP TOOL TO CLARIFY PACKAGE OPTIONS
 
 ## Core Understanding
 

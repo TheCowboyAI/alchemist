@@ -6,7 +6,6 @@ use egui_snarl::{Snarl, NodeId, InPin, OutPin};
 use uuid::Uuid;
 use egui::Ui;
 use std::collections::HashMap;
-use rand::random;
 
 // A simple viewer implementation for Snarl
 pub struct GraphSnarlViewer;
@@ -329,8 +328,8 @@ impl GraphEditor {
             
             // Default position (can be improved)
             let pos = egui::Pos2::new(
-                rand::random::<f32>() * 500.0, 
-                rand::random::<f32>() * 300.0
+                (id.as_u128() % 1000) as f32 * 0.5, 
+                (id.as_u128() % 500) as f32 * 0.6
             );
             
             // Use insert_node method

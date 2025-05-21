@@ -171,7 +171,7 @@
               echo "===== Dylib successfully patched ====="
               echo "When running your program, ensure environment variables are set:"
               echo "export XDG_RUNTIME_DIR=/run/user/1000"
-              echo "export WAYLAND_DISPLAY=wayland-0"
+              echo "export WAYLAND_DISPLAY=wayland-1"
               echo "export LD_LIBRARY_PATH=$CARGO_TARGET_DIR/lib:\$LD_LIBRARY_PATH"
             else
               echo "No Bevy dylib found. Build the project first with 'cargo build'"
@@ -193,9 +193,6 @@
                 cp -r ${./src} $out/src
                 cp -r ${./assets} $out/assets 2>/dev/null || mkdir -p $out/assets
                 cp -r ${./doc} $out/doc 2>/dev/null || mkdir -p $out/doc
-                
-                # Explicitly exclude examples directory
-                # cp -r ${./examples} $out/examples 2>/dev/null || mkdir -p $out/examples
                 
                 # Copy configuration files
                 cp ${./Cargo.toml} $out/Cargo.toml
@@ -253,7 +250,7 @@ EOF
               BEVY_ASSET_ROOT = toString ./.;
               
               # Configure linker flags for dynamic linking
-              RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld -C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--undefined-version -C link-arg=-Wl,-rpath,$ORIGIN/../lib";
+              RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld -C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--undefined-version -C link-arg=-Wl,--allow-shlib-undefined";
               
               # We need to build bevy_dylib to get the so file
               postBuild = ''
@@ -484,6 +481,19 @@ EOF
             RUST_SRC_PATH = "${rust-toolchain}/lib/rustlib/src/rust/library";
             RUST_BACKTRACE = 1;
             
+            # Use the same rustflags as in the build
+            RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld -C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--undefined-version -C link-arg=-Wl,--allow-shlib-undefined";
+            
+            # The dynamic linker needs to find our libraries
+            NIX_LDFLAGS = "-rpath $PWD/target/debug";
+            
+            # Set proper environment for nix dev shell
+            BEVY_ASSET_ROOT = toString ./.;
+            XDG_RUNTIME_DIR = "/run/user/1000";
+            WAYLAND_DISPLAY = "wayland-1";
+            WINIT_UNIX_BACKEND = "wayland";
+            WLR_NO_HARDWARE_CURSORS = "1";
+            
             # Tell rust-analyzer about our settings
             RUST_ANALYZER_CONFIG = builtins.readFile rust-analyzer-settings;
             
@@ -504,13 +514,14 @@ EOF
                 pkgs.stdenv.cc.cc.lib
                 pkgs.libGL
               ]}"
+              "$PWD/target/debug"
+              "$PWD/target/debug/deps"
               "\"$LD_LIBRARY_PATH\""
             ];
             
             # Make sure vscode and other editors can find rust-analyzer
             shellHook = ''
               export RUST_LOG=info
-              export RUSTFLAGS="-C link-arg=-fuse-ld=lld"
               
               # Create .vscode settings if it doesn't exist
               mkdir -p .vscode
@@ -526,9 +537,52 @@ EOF
                 echo "Created .vscode/settings.json with rust-analyzer settings"
               fi
               
+              # Make sure target/debug exists
+              mkdir -p target/debug target/debug/deps
+              
+              # Find and set up fixedbitset library
+              echo "Setting up fixedbitset libraries..."
+              FIXEDBITSET_LIBS=$(find /nix/store -name "*fixedbitset*.so*" -type f | grep -v "\.a$" || true)
+              if [ -n "$FIXEDBITSET_LIBS" ]; then
+                for LIB_PATH in $FIXEDBITSET_LIBS; do
+                  LIB_NAME=$(basename "$LIB_PATH")
+                  echo "Copying $LIB_PATH to target/debug/deps/$LIB_NAME"
+                  cp "$LIB_PATH" "target/debug/deps/$LIB_NAME" || true
+                  chmod +x "target/debug/deps/$LIB_NAME" || true
+                  
+                  # Create symlink for standard name
+                  ln -sf "target/debug/deps/$LIB_NAME" "target/debug/deps/libfixedbitset.so" || true
+                done
+              else
+                echo "WARNING: Could not find fixedbitset libraries in /nix/store"
+              fi
+              
+              # Auto-build bevy_dylib if it doesn't exist
+              if [ ! -f target/debug/libbevy_dylib.so ]; then
+                echo "Building bevy_dylib..."
+                cargo build --lib
+                
+                # Find the dylib
+                DYLIB_PATH=$(find ./target -name "libbevy_dylib*.so" | head -n 1)
+                if [ -n "$DYLIB_PATH" ]; then
+                  echo "Found Bevy dylib at: $DYLIB_PATH"
+                  
+                  # Create symlink in target/debug if needed
+                  if [[ "$DYLIB_PATH" != "./target/debug/libbevy_dylib.so" ]]; then
+                    ln -sf "$DYLIB_PATH" "target/debug/libbevy_dylib.so" || true
+                    echo "Created symlink: target/debug/libbevy_dylib.so"
+                  fi
+                else
+                  echo "WARNING: Could not find libbevy_dylib*.so after build"
+                fi
+              fi
+              
               # Tell the user about the configuration
               echo "Devshell activated with full Bevy development support"
-              echo "rust-analyzer is configured to properly handle proc macros"
+              echo "Using RUSTFLAGS: $RUSTFLAGS"
+              echo "Using LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+              echo "Using bevy dynamic linking - build with 'cargo build' first, then run with 'cargo run'"
+              echo "For faster iteration, use: RUSTFLAGS='-A warnings' cargo watch -x run"
             '';
           };
 
