@@ -39,6 +39,22 @@
             targets = [ "wasm32-unknown-unknown" ];
           };
           
+          # Configure rust-analyzer to properly resolve proc macros
+          rust-analyzer-settings = pkgs.writeTextFile {
+            name = "rust-analyzer-settings.json";
+            text = builtins.toJSON {
+              "rust-analyzer.check.command" = "clippy";
+              "rust-analyzer.check.features" = "all";
+              "rust-analyzer.cargo.features" = "all";
+              "rust-analyzer.procMacro.enable" = true;
+              "rust-analyzer.procMacro.attributes.enable" = true;
+              "rust-analyzer.cargo.buildScripts.enable" = true;
+              "rust-analyzer.cargo.extraEnv" = {
+                "RUSTFLAGS" = "-C target-cpu=native";
+              };
+            };
+          };
+          
           # Dependencies needed for Bevy and our project
           nonRustDeps = with pkgs; [
             # Audio support
@@ -429,6 +445,7 @@ EOF
             buildInputs = with pkgs; [
               # Rust development
               # rustcVersion
+              rust-toolchain
               pkg-config
               clippy
               rustfmt
@@ -445,125 +462,73 @@ EOF
               xorg.libXrandr
               udev
               alsa-lib
-              vulkan-loader
-              vulkan-tools
-              vulkan-headers
-              vulkan-validation-layers
               
-              # Add udev and systemd explicitly for libudev dependency
-              udev
-              systemd
-              
-              # Use our specific Rust toolchain
-              rust-toolchain
-              
-              # Build tools
-              cmake
-              ninja
-              clang
-              llvmPackages.bintools # Extra linker tools
-              patchelf
-              
-              # Basic utilities
-              libiconv
-              gcc
-              glibc # Provides ldd
-              binutils # Provides additional linker tools
-              
-              # Development tools
+              # Add all nonRustDeps to ensure consistency
+            ] ++ nonRustDeps;
+            
+            nativeBuildInputs = with pkgs; [ 
+              # Developer tools
               cargo-watch
               
-              # Custom tools
+              # Patching and building tools
+              patchelf
+              llvmPackages.clang
+              llvmPackages.bintools
+              lld
+              
+              # Custom scripts
               fix-bevy-linking
             ];
             
-            # Library paths - using makeLibraryPath to create proper LD_LIBRARY_PATH
+            # Environment variables for proper development
+            RUST_SRC_PATH = "${rust-toolchain}/lib/rustlib/src/rust/library";
+            RUST_BACKTRACE = 1;
+            
+            # Tell rust-analyzer about our settings
+            RUST_ANALYZER_CONFIG = builtins.readFile rust-analyzer-settings;
+            
+            # Enable bevy dynamic linking in development
             LD_LIBRARY_PATH = pkgs.lib.concatStringsSep ":" [
               "${pkgs.lib.makeLibraryPath nonRustDeps}"
-              "${pkgs.wayland}/lib"
-              "${pkgs.libGL}/lib"
-              "${pkgs.vulkan-loader}/lib"
-              "${pkgs.alsa-lib}/lib"
-              "${pkgs.systemd}/lib"
-              "${pkgs.udev}/lib"
-              "$LD_LIBRARY_PATH"
+              "${pkgs.lib.makeLibraryPath [
+                pkgs.vulkan-loader
+                pkgs.libxkbcommon
+                pkgs.wayland
+                pkgs.xorg.libX11
+                pkgs.xorg.libXcursor
+                pkgs.xorg.libXrandr
+                pkgs.xorg.libXi
+                pkgs.alsa-lib
+                pkgs.udev
+                pkgs.systemd
+                pkgs.stdenv.cc.cc.lib
+                pkgs.libGL
+              ]}"
+              "\"$LD_LIBRARY_PATH\""
             ];
             
-            # Vulkan configuration
-            VK_LAYER_PATH = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
-            
-            # Special environment variables to help Cargo know we support edition2024
-            RUSTC_BOOTSTRAP = "1";
-            
-            # Environment variables for Bevy and graphics
-            BEVY_ASSET_ROOT = toString ./.;
-            RUST_BACKTRACE = "1";
-            RUST_LOG = "info";
-            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-            
-            # Rust flags for Bevy dynamic linking
-            RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld -C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--undefined-version -C link-arg=-Wl,-rpath,$ORIGIN/../lib";
-            
+            # Make sure vscode and other editors can find rust-analyzer
             shellHook = ''
-              # Force Wayland support (even when using X11)
-              export WINIT_UNIX_BACKEND=wayland
-              export BEVY_WINIT_UNIX_BACKEND=wayland
+              export RUST_LOG=info
+              export RUSTFLAGS="-C link-arg=-fuse-ld=lld"
               
-              # Disable hardware cursor for Wayland compatibility
-              export WLR_NO_HARDWARE_CURSORS=1
-              
-              # Wayland and XDG runtime directories (use /run/user/1000 as requested)
-              export XDG_RUNTIME_DIR=/run/user/1000
-              export WAYLAND_DISPLAY=wayland-1
-              
-              # Setup library paths
-              export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:${pkgs.wayland.dev}/lib/pkgconfig:${pkgs.libxkbcommon.dev}/lib/pkgconfig
-              
-              # Set additional library paths for dynamic linking
-              export LD_RUN_PATH=${pkgs.lib.makeLibraryPath nonRustDeps}
-              
-              # Create ~/.cache/bevy directory to avoid permission issues
-              mkdir -p $HOME/.cache/bevy
-              
-              # Create a .cargo/config.local.toml file with dynamically generated library paths
-              mkdir -p .cargo
-              cat > .cargo/config.local.toml << EOF
-[target.x86_64-unknown-linux-gnu.rustflags]
-# Dynamically generated library paths
-"-L" = [
-  "${pkgs.wayland}/lib",
-  "${pkgs.alsa-lib}/lib",
-  "${pkgs.systemd}/lib",
-  "${pkgs.libxkbcommon}/lib",
-  "${pkgs.libGL}/lib",
-  "${pkgs.vulkan-loader}/lib"
-]
-EOF
-              
-              # Show the rust version information on shell start
-              echo "Rust toolchain information:"
-              rustc --version
-              cargo --version
-              rustfmt --version
-              echo "Using nightly toolchain with edition2024 support"
-              
-              # Instructions for fixing dynamic linking
-              echo ""
-              echo "After building with 'cargo build', you can fix dynamic linking with:"
-              echo "fix-bevy-linking"
-              echo ""
-              
-              # Check that lld is available and properly configured
-              echo "Checking LLD linker configuration..."
-              if command -v ld.lld > /dev/null; then
-                echo "✓ LLD linker is available"
-              else
-                echo "✗ LLD linker not found in path!"
+              # Create .vscode settings if it doesn't exist
+              mkdir -p .vscode
+              if [ ! -f .vscode/settings.json ]; then
+                echo '{
+                  "rust-analyzer.check.command": "clippy",
+                  "rust-analyzer.check.features": "all",
+                  "rust-analyzer.cargo.features": "all", 
+                  "rust-analyzer.procMacro.enable": true,
+                  "rust-analyzer.procMacro.attributes.enable": true,
+                  "rust-analyzer.cargo.buildScripts.enable": true
+                }' > .vscode/settings.json
+                echo "Created .vscode/settings.json with rust-analyzer settings"
               fi
               
-              # Print environment setup confirmation
-              echo "✓ Environment configured for Wayland with XDG_RUNTIME_DIR=/run/user/1000"
-              echo "✓ LD_LIBRARY_PATH includes all required libraries"
+              # Tell the user about the configuration
+              echo "Devshell activated with full Bevy development support"
+              echo "rust-analyzer is configured to properly handle proc macros"
             '';
           };
 

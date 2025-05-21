@@ -1,0 +1,38 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "rust-analyzer.cargo.excludeExamples": true,
+        "rust-analyzer.cargo.extraArgs": [
+            "--exclude=examples"
+        ],
+        "rust-analyzer.check.command": "clippy",
+        "rust-analyzer.check.features": "all",
+        "rust-analyzer.cargo.features": "all",
+        "rust-analyzer.procMacro.enable": true,
+        "rust-analyzer.procMacro.attributes.enable": true,
+        "rust-analyzer.cargo.buildScripts.enable": true,
+        "rust-analyzer.checkOnSave.command": "clippy",
+        "rust-analyzer.checkOnSave.extraArgs": [
+            "--target-dir",
+            ".vscode/ra-target"
+        ],
+        "rust-analyzer.server.extraEnv": {
+            "RUSTFLAGS": "-C target-cpu=native"
+        },
+        "rust-analyzer.diagnostics.disabled": [
+            "unresolved-proc-macro"
+        ],
+        "rust-analyzer.diagnostics.experimental.enable": true,
+        "rust-analyzer.cargo.extraEnv": {
+            "RUSTC_BOOTSTRAP": "1"
+        },
+        "editor.formatOnSave": true,
+        "rust-analyzer.rustfmt.extraArgs": [
+            "+nightly"
+        ]
+    }
+}
