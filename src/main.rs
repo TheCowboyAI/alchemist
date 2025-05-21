@@ -9,8 +9,10 @@ mod graph;
 mod graph_patterns;
 mod models;
 mod workflow_editor;
+mod graph_editor;
 
 use workflow_editor::WorkflowEditor;
+use graph_editor::GraphEditor;
 
 fn main() {
     App::new()
@@ -18,6 +20,7 @@ fn main() {
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(EguiPlugin { enable_multipass_for_primary_context: false })
         .init_resource::<WorkflowEditor>()
+        .init_resource::<GraphEditor>()
         .add_systems(Startup, setup)
         .add_systems(Update, ui_system)
         .run();
@@ -41,7 +44,15 @@ fn setup(mut commands: Commands) {
     ));
 }
 
-fn ui_system(mut contexts: EguiContexts, mut workflow_editor: ResMut<WorkflowEditor>) {
+fn ui_system(mut contexts: EguiContexts, mut workflow_editor: ResMut<WorkflowEditor>, mut graph_editor: ResMut<GraphEditor>) {
     // Call the workflow editor UI
     workflow_editor.ui(contexts.ctx_mut());
+    
+    // Call the graph editor UI
+    graph_editor.ui(contexts.ctx_mut());
+    
+    // Initialize the graph if it's empty
+    if graph_editor.snarl_graph.is_none() {
+        graph_editor.sync_to_snarl();
+    }
 }
