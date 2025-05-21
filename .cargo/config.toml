@@ -1,0 +1,32 @@
+# All linking configuration is now handled by flake.nix
+# This file is kept as a placeholder to prevent errors if referenced elsewhere
+
+# Optimized linker configuration for Bevy on NixOS
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = [
+  # Use LLD linker for faster linking
+  "-Clink-arg=-fuse-ld=lld",
+  
+  # Export dynamic symbols for Bevy dynamic linking
+  "-Clink-arg=-Wl,--export-dynamic",
+  
+  # Handle undefined version symbols in libraries
+  "-Clink-arg=-Wl,--undefined-version",
+  
+  # Allow the linker to find necessary libraries
+  "-Clink-arg=-Wl,-rpath,$ORIGIN",
+  "-Clink-arg=-Wl,-rpath,$ORIGIN/../lib",
+]
+
+# These profiles are already defined in the flake.nix
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (excluding code you're developing locally)
+[profile.dev.package."*"]
+opt-level = 3
+
+# Configure dynamic linking for Bevy
+[build]
+rustflags = ["--cfg", "edition2024_preview"] 

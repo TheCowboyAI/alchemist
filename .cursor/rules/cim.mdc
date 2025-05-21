@@ -1,0 +1,18 @@
+---
+description: Rules for a Composable Information Machine (CIM)
+globs:
+alwaysApply: true
+---
+We are building a world of information.
+
+This information is a sequential, append-only, series of events.
+It follows: 
+>(Command<T>|Query<T>)-produce->[Events<T>]
+Models are populated by Events.apply() which will project an EventStream of changes into a model.
+
+These Events equate to our Events in Bevy v0.16.0.
+
+Both systems will use Entity Component System (ECS)
+We define several Boundaries and Hierarchies using Domain Driven Design (DDD) Priciples
+Bevy is for human interaction
+Nats is for observing and reporting change

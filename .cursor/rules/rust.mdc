@@ -1,0 +1,15 @@
+---
+description: Rules for Rust
+globs: /src/*, *.toml, *.nix
+alwaysApply: false
+---
+When planning to write code, ALWAYS respect the documentation in /doc
+If instructions in /doc are unclear for the propose functionality, ASK FOR CLARITY and add to the documentation before writing code.
+YOU HAVE MANY EXAMPLES TO FOLLOW IN /examples
+
+NEVER, EVER DOWNGRADE A RUST LIBRARY.
+IF THE CARGO.TOML FILE SPECIFIES A VERSION, YOU MAY ONLY GO UP, NEVER DOWN.
+
+DO NOT MAKE TEMPORARY DOWNGRADES, FIX THE PROBLEM AT HAND.
+
+USE `nix run` and `nix build` over `cargo run`

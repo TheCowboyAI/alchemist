@@ -62,7 +62,7 @@ impl GraphEvent {
 }
 
 // Base Event trait using Any for type erasure
-pub trait Event: std::fmt::Debug + 'static {
+pub trait Event: std::fmt::Debug + Send + Sync + 'static {
     fn event_type(&self) -> &str;
     fn entity_id(&self) -> Option<Uuid>;
     fn timestamp(&self) -> u64;

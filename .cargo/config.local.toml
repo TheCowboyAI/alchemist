@@ -1,5 +1,10 @@
-# All linking configuration is now handled by flake.nix
-# This file is kept as a placeholder to prevent errors if referenced elsewhere
-
-[env]
-BEVY_ASSET_ROOT = "." 
+[target.x86_64-unknown-linux-gnu.rustflags]
+# Dynamically generated library paths
+"-L" = [
+  "/nix/store/mxyi7nahmxs41d2xnyfx9kvanqh3p706-wayland-1.23.1/lib",
+  "/nix/store/ap1g7dnwz1pyinx0wlj0m0z9ypzl7pyw-alsa-lib-1.2.13/lib",
+  "/nix/store/if9z6wmzmb07j63c02mvfkhn1mw1w5p4-systemd-257.5/lib",
+  "/nix/store/4di7f8w515xl6grwv13pk6855awav0b1-libxkbcommon-1.8.1/lib",
+  "/nix/store/z88avybj8n2svi9wv1hl937k2k3mbc2d-libglvnd-1.7.0/lib",
+  "/nix/store/nszik1q8ffmvsqk54kbc75dwyxwvi2nm-vulkan-loader-1.4.313.0/lib"
+]

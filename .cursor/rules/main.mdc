@@ -4,16 +4,10 @@ globs:
 alwaysApply: true
 ---
 
-We are building a world of information.
+YOU ARE IN NIXOS USING DIRENV
+ADJUST ANY SHELL ACCESS ACCORDINGLY, YOU ARE ALWAYS IN A DEVSHELL
 
-This information is a sequential, append-only, series of events.
-It follows: 
->(Command<T>|Query<T>)-produce->[Events<T>]
-Models are populated by Events.apply() which will project an EventStream of changes into a model.
+ALWAYS USE THE MCP TOOLS AVAILABLE TO YOU AS WELL AS YOUR BUILT-IN TOOLS FOR WEB AND DOCS
+KEEP YOUR SCOPE AS SMALL AS POSSIBLE TO ADDRESS THE ISSUE AT HAND
 
-These Events equate to our Events in Bevy v0.16.0.
 
-Both systems will use Entity Component System (ECS)
-We define several Boundaries and Hierarchies using Domain Driven Design (DDD) Priciples
-Bevy is for human interaction
-Nats is for observing and reporting change
