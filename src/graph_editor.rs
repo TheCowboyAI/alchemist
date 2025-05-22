@@ -1,11 +1,13 @@
 use crate::graph::{AlchemistGraph};
 use crate::models::GraphNodeData;
 use bevy::prelude::*;
+use bevy_egui::egui;
 use egui_snarl::ui::{SnarlViewer, SnarlStyle, PinInfo};
 use egui_snarl::{Snarl, NodeId, InPin, OutPin};
 use uuid::Uuid;
 use egui::Ui;
 use std::collections::HashMap;
+use crate::dashboard_ui::ToggleStandardGraphEditorEvent;
 
 // A simple viewer implementation for Snarl
 pub struct GraphSnarlViewer;
@@ -21,6 +23,8 @@ pub struct GraphEditor {
     pub node_sizes: HashMap<Uuid, egui::Vec2>,
     pub collapsed_nodes: HashMap<Uuid, bool>,
     pub node_contents: HashMap<Uuid, HashMap<String, String>>,
+    pub visible: bool,
+    pub window_pos: Option<egui::Pos2>,
 }
 
 impl Default for GraphEditor {
@@ -36,6 +40,8 @@ impl Default for GraphEditor {
             node_sizes: HashMap::new(),
             collapsed_nodes: HashMap::new(),
             node_contents: HashMap::new(),
+            visible: false,
+            window_pos: None,
         }
     }
 }
@@ -45,12 +51,26 @@ impl GraphEditor {
         Self::default()
     }
     
-    pub fn ui(&mut self, ui: &mut egui::Context) {
-        egui::Window::new("Graph Editor")
-            .default_size([800.0, 600.0])
-            .show(ui, |ui| {
+    pub fn ui(&mut self, ctx: &mut egui::Context) {
+        if !self.visible {
+            return;
+        }
+        
+        let mut window = egui::Window::new("Graph Editor")
+            .default_size([800.0, 600.0]);
+            
+        if let Some(pos) = self.window_pos {
+            window = window.default_pos(pos);
+        }
+        
+        let response = window.show(ctx, |ui| {
             self.show_editor_content(ui);
         });
+        
+        // Save window position for next frame
+        if let Some(inner_response) = response {
+            self.window_pos = Some(inner_response.response.rect.min);
+        }
     }
 
     fn show_editor_content(&mut self, ui: &mut egui::Ui) {
@@ -354,6 +374,32 @@ impl GraphEditor {
         }
         
         self.snarl_graph = Some(snarl);
+    }
+}
+
+// Add this system to handle toggling the Graph Editor
+pub fn handle_graph_editor_visibility(
+    mut events: EventReader<ToggleStandardGraphEditorEvent>,
+    mut graph_editor: ResMut<GraphEditor>,
+) {
+    for event in events.read() {
+        graph_editor.visible = event.0;
+        
+        // If we're making it visible, initialize it if necessary
+        if graph_editor.visible && graph_editor.snarl_graph.is_none() {
+            graph_editor.sync_to_snarl();
+        }
+    }
+}
+
+// GraphEditorPlugin to manage systems
+#[derive(Default)]
+pub struct GraphEditorPlugin;
+
+impl Plugin for GraphEditorPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<GraphEditor>()
+           .add_systems(Update, handle_graph_editor_visibility);
     }
 }
 

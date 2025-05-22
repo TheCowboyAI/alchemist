@@ -1,11 +1,13 @@
 use crate::graph::{GraphWorkflow};
 use crate::models::GraphNodeData;
 use bevy::prelude::*;
+use bevy_egui::egui;
 use egui_snarl::ui::{SnarlViewer, SnarlStyle, PinInfo};
 use egui_snarl::{Snarl, NodeId, InPin, OutPin};
 use uuid::Uuid;
 use egui::Ui;
 use std::collections::HashMap;
+use crate::dashboard_ui::ToggleWorkflowEditorEvent;
 
 // Helper functions for color manipulation
 fn lighten_color(color: egui::Color32, factor: f32) -> egui::Color32 {
@@ -37,6 +39,8 @@ pub struct WorkflowEditor {
     pub node_sizes: HashMap<Uuid, egui::Vec2>,
     pub collapsed_nodes: HashMap<Uuid, bool>,
     pub node_contents: HashMap<Uuid, HashMap<String, String>>,
+    pub visible: bool,
+    pub window_pos: Option<egui::Pos2>,
 }
 
 impl Default for WorkflowEditor {
@@ -54,6 +58,8 @@ impl Default for WorkflowEditor {
             node_sizes: HashMap::new(),
             collapsed_nodes: HashMap::new(),
             node_contents: HashMap::new(),
+            visible: false,
+            window_pos: None,
         }
     }
 }
@@ -63,12 +69,26 @@ impl WorkflowEditor {
         Self::default()
     }
     
-    pub fn ui(&mut self, ui: &mut egui::Context) {
-        egui::Window::new("Workflow Editor")
-            .default_size([800.0, 600.0])
-            .show(ui, |ui| {
+    pub fn ui(&mut self, ctx: &mut egui::Context) {
+        if !self.visible {
+            return;
+        }
+        
+        let mut window = egui::Window::new("Workflow Editor")
+            .default_size([800.0, 600.0]);
+            
+        if let Some(pos) = self.window_pos {
+            window = window.default_pos(pos);
+        }
+        
+        let response = window.show(ctx, |ui| {
             self.show_editor_content(ui);
         });
+        
+        // Save window position for next frame
+        if let Some(inner_response) = response {
+            self.window_pos = Some(inner_response.response.rect.min);
+        }
     }
 
     fn show_editor_content(&mut self, ui: &mut egui::Ui) {
@@ -537,6 +557,27 @@ impl SnarlViewer<GraphNodeData> for AlchemistSnarlViewer {
         let mut pin_info = PinInfo::circle();
         pin_info.wire_color = Some(pin_color);
         PinInfo::circle().with_wire_color(pin_color)
+    }
+}
+
+// Add this system to handle toggling the Workflow Editor
+pub fn handle_workflow_editor_visibility(
+    mut events: EventReader<ToggleWorkflowEditorEvent>,
+    mut workflow_editor: ResMut<WorkflowEditor>,
+) {
+    for event in events.read() {
+        workflow_editor.visible = event.0;
+    }
+}
+
+// WorkflowEditorPlugin to manage systems
+#[derive(Default)]
+pub struct WorkflowEditorPlugin;
+
+impl Plugin for WorkflowEditorPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<WorkflowEditor>()
+           .add_systems(Update, handle_workflow_editor_visibility);
     }
 }
 

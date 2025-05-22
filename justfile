@@ -561,6 +561,251 @@ c-run:
 c-watch:
     RUSTFLAGS='-A warnings' cargo watch -x run
 
+# Watch for changes and rebuild/run with Nix
+nix-watch:
+    ./nix-watch.sh
+
+# Watch for changes and rebuild/run with content-addressable Nix approach
+nix-pure-watch:
+    ./nix-pure-watch.sh
+
+# Show build status without running a full build
+nix-status:
+    @echo "Current Nix package status:"
+    @echo "--------------------------------------"
+    @echo "Default package path-info:"
+    nix path-info .# 2>/dev/null || echo "Default package is not built"
+    @echo ""
+    @echo "Rust dependencies path-info:"
+    nix path-info .#rustDeps 2>/dev/null || echo "Rust dependencies are not built"
+    @echo ""
+    @echo "Build-time only dependencies:"
+    nix-store -q --references $(nix-instantiate . 2>/dev/null || echo "") 2>/dev/null | grep -v "alchemist" || echo "No build dependencies found"
+
+# Watch for changes using the devShell but build with Nix
+nix-dev-watch:
+    #!/usr/bin/env bash
+    echo "🔎 Starting Nix development watch mode for Alchemist"
+    echo "👀 Watching source files for changes..."
+    echo "🚀 Will rebuild and run using Nix within the devShell"
+    echo ""
+    
+    # Track the last modification time
+    last_mod_time=0
+    
+    # Function to get the latest modification time of project files
+    get_latest_mod_time() {
+        find src -name "*.rs" -o -name "Cargo.toml" -o -name "Cargo.lock" -o -name "*.nix" -type f -exec stat -c %Y {} \; | sort -nr | head -n1
+    }
+    
+    # Function to build and run the application using Nix within the devShell
+    build_and_run() {
+        echo "🔨 Building with Nix in devShell ($(date '+%H:%M:%S'))..."
+        
+        # Use --expr to build directly from source path
+        if nix build --no-warn-dirty --no-link -L; then
+            echo "✅ Build successful, running..."
+            
+            # Get the output path and run it directly
+            OUTPUT_PATH=$(nix eval --raw .#.outPath)
+            if [ -n "$OUTPUT_PATH" ] && [ -d "$OUTPUT_PATH" ]; then
+                "$OUTPUT_PATH/bin/alchemist"
+            else
+                echo "⚠️ Output path not available, falling back to nix run"
+                nix run --no-warn-dirty
+            fi
+        else
+            echo "❌ Build failed"
+        fi
+    }
+    
+    # Initial build and run
+    build_and_run
+    last_mod_time=$(get_latest_mod_time)
+    
+    echo "Watching for changes (Press Ctrl+C to stop)..."
+    
+    # Watch for changes
+    while true; do
+        sleep 2
+        current_mod_time=$(get_latest_mod_time)
+        
+        if [ "$current_mod_time" != "$last_mod_time" ]; then
+            echo "🔄 Changes detected, rebuilding..."
+            last_mod_time=$current_mod_time
+            build_and_run
+        fi
+    done
+
+# Build only Rust dependencies to cache them separately, then add to the cache
+build-deps:
+    #!/usr/bin/env bash
+    echo "Building only Rust dependencies to cache them separately"
+    echo "This allows libraries to be cached independently of your application code"
+    
+    # Use nix build with --no-warn-dirty to ignore git status
+    echo "Building rustDeps package..."
+    nix build --no-warn-dirty --no-link -L ./\#rustDeps
+    
+    # Get the path to the built rustDeps package
+    RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps)
+    
+    # Add the result to the cache explicitly
+    if [ -n "$RUST_DEPS_PATH" ]; then
+        echo "Adding Rust dependencies to cache at path: $RUST_DEPS_PATH"
+        nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
+        
+        echo "✅ Rust dependencies successfully built and cached"
+        echo "You can now build your application with 'just build-after-deps' and it will use the cached dependencies"
+    else
+        echo "❌ Failed to build Rust dependencies"
+        exit 1
+    fi
+
+# Build application after dependencies (more efficient workflow)
+build-after-deps:
+    #!/usr/bin/env bash
+    echo "Building application with pre-cached dependencies"
+    
+    # Get the path for the rustDeps package
+    RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null)
+    
+    if [ -z "$RUST_DEPS_PATH" ]; then
+        echo "❌ Cannot determine path for Rust dependencies"
+        echo "Run 'just build-deps' first to build and cache the dependencies"
+        exit 1
+    fi
+    
+    # Check if the rustDeps package exists in the cache
+    if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
+        echo "✅ Using cached Rust dependencies from: $RUST_DEPS_PATH"
+    else
+        echo "⚠️ Rust dependencies found but not in cache, adding to cache now..."
+        nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
+    fi
+    
+    # Build the main package with dependencies from cache
+    echo "Building application using cached dependencies..."
+    # Use --no-warn-dirty to ignore Git status
+    nix build --no-warn-dirty --option substituters "{{substituters}}" \
+              --option trusted-public-keys "{{trusted-keys}}" \
+              -L -v --log-format bar-with-logs
+
+# Build application after dependencies with detailed diagnostics
+build-after-deps-debug:
+    #!/usr/bin/env bash
+    echo "Building application with pre-cached dependencies (DEBUG MODE)"
+    
+    # Get the path for the rustDeps package
+    RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null)
+    
+    if [ -z "$RUST_DEPS_PATH" ]; then
+        echo "❌ Cannot determine path for Rust dependencies"
+        echo "Run 'just build-deps' first to build and cache the dependencies"
+        exit 1
+    fi
+    
+    # Verify what exists in the rustDeps package
+    echo "=== Examining rustDeps package ==="
+    echo "rustDeps path: $RUST_DEPS_PATH"
+    if [ -d "$RUST_DEPS_PATH/lib" ]; then
+        echo "- lib directory exists"
+        ls -la "$RUST_DEPS_PATH/lib" | head -n 20
+        
+        echo "- Counting library files:"
+        find "$RUST_DEPS_PATH/lib" -name "*.rlib" | wc -l
+        
+        if [ -d "$RUST_DEPS_PATH/lib/deps" ]; then
+            echo "- deps directory exists"
+            ls -la "$RUST_DEPS_PATH/lib/deps" | head -n 20
+        else
+            echo "❌ deps directory missing"
+        fi
+        
+        if [ -d "$RUST_DEPS_PATH/lib/.fingerprint" ]; then
+            echo "- .fingerprint directory exists"
+            ls -la "$RUST_DEPS_PATH/lib/.fingerprint" | head -n 20
+        else
+            echo "❌ .fingerprint directory missing"
+        fi
+    else
+        echo "❌ lib directory missing in rustDeps package"
+    fi
+    
+    # Check if the rustDeps package exists in the cache
+    if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
+        echo "✅ rustDeps exists in cache: $RUST_DEPS_PATH"
+    else
+        echo "❌ rustDeps not in cache, adding now..."
+        nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
+    fi
+    
+    # Build the main package with dependencies from cache and extra verbosity
+    echo "=== Building application with maximum verbosity ==="
+    NIX_DEBUG=10 nix build --no-warn-dirty --option substituters "{{substituters}}" \
+              --option trusted-public-keys "{{trusted-keys}}" \
+              -L --verbose --show-trace
+
+# Display the cache status of the Rust dependencies
+check-deps-cache:
+    #!/usr/bin/env bash
+    echo "Checking if Rust dependencies are cached..."
+    
+    # Check if we can build rustDeps locally
+    if nix build --no-link --dry-run .#rustDeps 2>/dev/null; then
+        # Get the path for the rustDeps package
+        RUST_DEPS_PATH=$(nix eval --raw .#rustDeps.outPath 2>/dev/null)
+        if [ -z "$RUST_DEPS_PATH" ]; then
+            RUST_DEPS_PATH=$(nix build .#rustDeps --no-link --print-out-paths 2>/dev/null)
+        fi
+        
+        if [ -n "$RUST_DEPS_PATH" ]; then
+            echo "✅ Rust dependencies found at: $RUST_DEPS_PATH"
+            
+            # Check if it exists in the cache
+            if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
+                echo "✅ Rust dependencies are cached"
+                
+                # Get information about the package
+                echo ""
+                echo "Package info:"
+                nix path-info --json "$RUST_DEPS_PATH" | jq 2>/dev/null || echo "Could not get package info"
+                
+                # Check narinfo in cache
+                echo ""
+                echo "Cache entry details:"
+                BASENAME=$(basename "$RUST_DEPS_PATH")
+                curl -s "{{local-cache}}/$BASENAME.narinfo" || echo "Failed to fetch narinfo"
+            else
+                echo "❌ Rust dependencies are not cached"
+                echo "To cache dependencies, run 'just build-deps'"
+            fi
+        else
+            echo "❌ Could not determine path for Rust dependencies"
+            echo "Run 'just build-deps' to build and cache dependencies"
+            exit 1
+        fi
+    else
+        echo "❌ Rust dependencies package cannot be built"
+        echo "Run 'just build-deps' to build and cache dependencies"
+        exit 1
+    fi 
+
+# Create a stable hash-based build that doesn't depend on Git state
+build-hash:
+    @echo "Building with content-addressable hash-based approach (Git-state independent)"
+    @echo "This build will create a cache entry based on dependency inputs, not Git hash"
+    nix build -L --no-warn-dirty .#rustDeps
+    @echo "✅ Dependencies built and cached with stable hash"
+    nix build -L --no-warn-dirty
+    @echo "✅ App built using cached dependencies"
+
+# Build only rust dependencies with the hash-based caching approach
+build-deps-hash:
+    @echo "Building Rust dependencies with content-addressable hash approach (Git-state independent)"
+    nix build -L --no-warn-dirty --show-trace .#rustDeps
+    @if [ $? -eq 0 ]; then echo "✅ Rust dependencies built and cached successfully"; else echo "❌ Failed to build Rust dependencies"; exit 1; fi 
+
 # Run from clean checkout, using same approach as build-clean
 run-clean commit_ref="HEAD" target=".#":
     #!/usr/bin/env bash
@@ -832,171 +1077,16 @@ cache-check target=".#":
         echo "2. Use 'just build-clean' to build from a clean checkout"
         echo "3. Once built, add the result to the cache: just add-to-cache \$(readlink -f result)" 
 
-# Build only Rust dependencies to cache them separately, then add to the cache
-build-deps:
+# Run the DDD graph editor quickly using any existing build
+run-ddd-editor:
     #!/usr/bin/env bash
-    echo "Building only Rust dependencies to cache them separately"
-    echo "This allows libraries to be cached independently of your application code"
-    
-    # Use nix build with --no-warn-dirty to ignore git status
-    echo "Building rustDeps package..."
-    nix build --no-warn-dirty --no-link -L ./\#rustDeps
-    
-    # Get the path to the built rustDeps package
-    RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps)
-    
-    # Add the result to the cache explicitly
-    if [ -n "$RUST_DEPS_PATH" ]; then
-        echo "Adding Rust dependencies to cache at path: $RUST_DEPS_PATH"
-        nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
-        
-        echo "✅ Rust dependencies successfully built and cached"
-        echo "You can now build your application with 'just build-after-deps' and it will use the cached dependencies"
+    echo "Running DDD graph editor..."
+    if [ -e result/bin/alchemist ]; then
+        echo "Using existing build..."
+        result/bin/alchemist
     else
-        echo "❌ Failed to build Rust dependencies"
-        exit 1
-    fi
-
-# Build application after dependencies (more efficient workflow)
-build-after-deps:
-    #!/usr/bin/env bash
-    echo "Building application with pre-cached dependencies"
-    
-    # Get the path for the rustDeps package
-    RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null)
-    
-    if [ -z "$RUST_DEPS_PATH" ]; then
-        echo "❌ Cannot determine path for Rust dependencies"
-        echo "Run 'just build-deps' first to build and cache the dependencies"
-        exit 1
-    fi
-    
-    # Check if the rustDeps package exists in the cache
-    if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
-        echo "✅ Using cached Rust dependencies from: $RUST_DEPS_PATH"
-    else
-        echo "⚠️ Rust dependencies found but not in cache, adding to cache now..."
-        nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
-    fi
-    
-    # Build the main package with dependencies from cache
-    echo "Building application using cached dependencies..."
-    # Use --no-warn-dirty to ignore Git status
-    nix build --no-warn-dirty --option substituters "{{substituters}}" \
-              --option trusted-public-keys "{{trusted-keys}}" \
-              -L -v --log-format bar-with-logs
-
-# Build application after dependencies with detailed diagnostics
-build-after-deps-debug:
-    #!/usr/bin/env bash
-    echo "Building application with pre-cached dependencies (DEBUG MODE)"
-    
-    # Get the path for the rustDeps package
-    RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null)
-    
-    if [ -z "$RUST_DEPS_PATH" ]; then
-        echo "❌ Cannot determine path for Rust dependencies"
-        echo "Run 'just build-deps' first to build and cache the dependencies"
-        exit 1
-    fi
-    
-    # Verify what exists in the rustDeps package
-    echo "=== Examining rustDeps package ==="
-    echo "rustDeps path: $RUST_DEPS_PATH"
-    if [ -d "$RUST_DEPS_PATH/lib" ]; then
-        echo "- lib directory exists"
-        ls -la "$RUST_DEPS_PATH/lib" | head -n 20
-        
-        echo "- Counting library files:"
-        find "$RUST_DEPS_PATH/lib" -name "*.rlib" | wc -l
-        
-        if [ -d "$RUST_DEPS_PATH/lib/deps" ]; then
-            echo "- deps directory exists"
-            ls -la "$RUST_DEPS_PATH/lib/deps" | head -n 20
-        else
-            echo "❌ deps directory missing"
-        fi
-        
-        if [ -d "$RUST_DEPS_PATH/lib/.fingerprint" ]; then
-            echo "- .fingerprint directory exists"
-            ls -la "$RUST_DEPS_PATH/lib/.fingerprint" | head -n 20
-        else
-            echo "❌ .fingerprint directory missing"
-        fi
-    else
-        echo "❌ lib directory missing in rustDeps package"
-    fi
-    
-    # Check if the rustDeps package exists in the cache
-    if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
-        echo "✅ rustDeps exists in cache: $RUST_DEPS_PATH"
-    else
-        echo "❌ rustDeps not in cache, adding now..."
-        nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
-    fi
-    
-    # Build the main package with dependencies from cache and extra verbosity
-    echo "=== Building application with maximum verbosity ==="
-    NIX_DEBUG=10 nix build --no-warn-dirty --option substituters "{{substituters}}" \
-              --option trusted-public-keys "{{trusted-keys}}" \
-              -L --verbose --show-trace
-
-# Display the cache status of the Rust dependencies
-check-deps-cache:
-    #!/usr/bin/env bash
-    echo "Checking if Rust dependencies are cached..."
-    
-    # Check if we can build rustDeps locally
-    if nix build --no-link --dry-run .#rustDeps 2>/dev/null; then
-        # Get the path for the rustDeps package
-        RUST_DEPS_PATH=$(nix eval --raw .#rustDeps.outPath 2>/dev/null)
-        if [ -z "$RUST_DEPS_PATH" ]; then
-            RUST_DEPS_PATH=$(nix build .#rustDeps --no-link --print-out-paths 2>/dev/null)
-        fi
-        
-        if [ -n "$RUST_DEPS_PATH" ]; then
-            echo "✅ Rust dependencies found at: $RUST_DEPS_PATH"
-            
-            # Check if it exists in the cache
-            if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
-                echo "✅ Rust dependencies are cached"
-                
-                # Get information about the package
-                echo ""
-                echo "Package info:"
-                nix path-info --json "$RUST_DEPS_PATH" | jq 2>/dev/null || echo "Could not get package info"
-                
-                # Check narinfo in cache
-                echo ""
-                echo "Cache entry details:"
-                BASENAME=$(basename "$RUST_DEPS_PATH")
-                curl -s "{{local-cache}}/$BASENAME.narinfo" || echo "Failed to fetch narinfo"
-            else
-                echo "❌ Rust dependencies are not cached"
-                echo "To cache dependencies, run 'just build-deps'"
-            fi
-        else
-            echo "❌ Could not determine path for Rust dependencies"
-            echo "Run 'just build-deps' to build and cache dependencies"
-            exit 1
-        fi
-    else
-        echo "❌ Rust dependencies package cannot be built"
-        echo "Run 'just build-deps' to build and cache dependencies"
-        exit 1
+        echo "No existing build found, using nix run..."
+        nix run --option substituters "{{substituters}}" \
+                --option trusted-public-keys "{{trusted-keys}}" \
+                --no-write-lock-file
     fi 
-
-# Create a stable hash-based build that doesn't depend on Git state
-build-hash:
-    @echo "Building with content-addressable hash-based approach (Git-state independent)"
-    @echo "This build will create a cache entry based on dependency inputs, not Git hash"
-    nix build -L --no-warn-dirty .#rustDeps
-    @echo "✅ Dependencies built and cached with stable hash"
-    nix build -L --no-warn-dirty
-    @echo "✅ App built using cached dependencies"
-
-# Build only rust dependencies with the hash-based caching approach
-build-deps-hash:
-    @echo "Building Rust dependencies with content-addressable hash approach (Git-state independent)"
-    nix build -L --no-warn-dirty --show-trace .#rustDeps
-    @if [ $? -eq 0 ]; then echo "✅ Rust dependencies built and cached successfully"; else echo "❌ Failed to build Rust dependencies"; exit 1; fi 

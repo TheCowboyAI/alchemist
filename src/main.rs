@@ -15,13 +15,24 @@ mod graph_editor_3d;
 mod graph_editor_ui;
 // Import the new force-directed layout module
 mod graph_layout;
+// Import the DDD editor modules
+mod ddd_editor;
+mod ddd_editor_3d;
+// Import the dashboard UI module
+mod dashboard_ui;
 
-use workflow_editor::WorkflowEditor;
-use graph_editor::GraphEditor;
+use workflow_editor::{WorkflowEditor, WorkflowEditorPlugin};
+use graph_editor::{GraphEditor, GraphEditorPlugin};
 use graph_editor_3d::GraphEditor3DPlugin;
 use graph_editor_ui::{GraphEditorUiPlugin, GraphEditorTheme};
 // Import the new layout plugin
 use graph_layout::GraphLayoutPlugin;
+// Import the DDD editor plugins
+use ddd_editor::DddEditorPlugin;
+use ddd_editor_3d::DddEditor3dPlugin;
+// Import the dashboard UI plugin
+use dashboard_ui::DashboardUiPlugin;
+use ecs::EcsEditorPlugin;
 
 fn main() {
     App::new()
@@ -45,7 +56,19 @@ fn main() {
         .add_plugins(GraphEditorUiPlugin)
         // Add our new force-directed layout plugin
         .add_plugins(GraphLayoutPlugin)
-        .add_systems(Update, toggle_theme_system)
+        // Add the DDD editor plugins
+        .add_plugins(DddEditorPlugin)
+        .add_plugins(DddEditor3dPlugin)
+        // Add the editor plugins for visibility control
+        .add_plugins(GraphEditorPlugin)
+        .add_plugins(WorkflowEditorPlugin)
+        .add_plugins(EcsEditorPlugin)
+        // Add the dashboard UI plugin
+        .add_plugins(DashboardUiPlugin)
+        .add_systems(Update, (
+            toggle_theme_system,
+            ui_editor_system,
+        ))
         .run();
 }
 
@@ -59,4 +82,19 @@ fn toggle_theme_system(
        (keyboard_input.pressed(KeyCode::ControlLeft) || keyboard_input.pressed(KeyCode::ControlRight)) {
         theme.use_custom_theme = !theme.use_custom_theme;
     }
+}
+
+// Main UI system that renders all editor windows
+fn ui_editor_system(
+    mut contexts: EguiContexts,
+    mut graph_editor: ResMut<GraphEditor>,
+    mut workflow_editor: ResMut<WorkflowEditor>,
+) {
+    // Render the standard graph editor if visible
+    graph_editor.ui(contexts.ctx_mut());
+    
+    // Render the workflow editor if visible
+    workflow_editor.ui(contexts.ctx_mut());
+    
+    // The DDD editor and ECS editor are rendered through their own plugin systems
 }

@@ -141,9 +141,8 @@ The Substrate framework (github.com/human-substrate/Substrate) provides a comple
 
 ## References
 - [Knowledge Management](../knowledge_management.md)
-- [Domain Expansion](2024-03-29-domain-expansion.md)
 - [Substrate Framework](https://github.com/human-substrate/Substrate)
-- [Knowledge Graph](../../notes/knowledge_graph.md)
+
 
 ## Research Metrics
 - Analysis Depth: Comprehensive
