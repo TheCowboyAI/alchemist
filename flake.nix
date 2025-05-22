@@ -466,6 +466,7 @@ EOF
             nativeBuildInputs = with pkgs; [ 
               # Developer tools
               cargo-watch
+              just
               
               # Patching and building tools
               patchelf

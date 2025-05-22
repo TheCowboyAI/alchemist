@@ -2,9 +2,10 @@ use bevy::prelude::*;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use crate::graph::{AlchemistGraph, GraphNode, GraphEdge, GraphWorkflow};
 use crate::graph_patterns::{GraphPattern, PatternCatalog, generate_pattern};
+use crate::graph_layout::{apply_initial_layout, LayoutUpdateEvent};
 use uuid::Uuid;
 use std::collections::HashMap;
-use rand::Rng;
+use rand::prelude::*;
 
 // Component to mark an entity as a 3D graph node
 #[derive(Component)]
@@ -54,6 +55,7 @@ pub struct UpdateGraph3DEvent;
 #[derive(Event)]
 pub struct CreatePatternEvent {
     pub pattern: GraphPattern,
+    pub pattern_name: String,
 }
 
 #[derive(Resource, Default)]
@@ -313,13 +315,20 @@ fn handle_create_pattern(
     mut graph_editor: ResMut<GraphEditor3D>,
     mut create_events: EventReader<CreatePatternEvent>,
     mut update_events: EventWriter<UpdateGraph3DEvent>,
+    mut layout_events: EventWriter<LayoutUpdateEvent>,
 ) {
     for event in create_events.read() {
         // Generate pattern and update the graph
         graph_editor.graph = generate_pattern(event.pattern.clone());
         
+        // Apply initial layout based on pattern type
+        apply_initial_layout(&mut graph_editor.graph, &event.pattern_name);
+        
         // Send event to update the 3D visualization
         update_events.write(UpdateGraph3DEvent);
+        
+        // Trigger force-directed layout to refine the positions
+        layout_events.write(LayoutUpdateEvent);
     }
 }
 
@@ -330,7 +339,6 @@ fn update_edge_positions(
     mut materials: ResMut<Assets<StandardMaterial>>,
     edge_query: Query<(Entity, &GraphEdge3D)>,
     node_query: Query<(&GraphNode3D, &Transform)>,
-    entities: Query<Entity>,
 ) {
     // Create map of node IDs to their positions
     let mut node_positions = HashMap::new();
@@ -340,11 +348,6 @@ fn update_edge_positions(
     
     // Update or create cylinder meshes for all edges
     for (entity, edge) in edge_query.iter() {
-        // Skip if entity no longer exists
-        if !entities.contains(entity) {
-            continue;
-        }
-        
         if let (Some(source_pos), Some(target_pos)) = (
             node_positions.get(&edge.source),
             node_positions.get(&edge.target)
@@ -367,34 +370,32 @@ fn update_edge_positions(
             // Add an arrow at the target end to show direction
             let arrow_pos = *target_pos - normalized_dir * 0.3;
             
-            // Create the arrow entity first
-            let arrow_entity = commands.spawn((
-                Mesh3d(meshes.add(Sphere::new(0.1).mesh().uv(8, 8))),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: Color::srgb(0.7, 0.7, 0.7),
-                    ..default()
-                })),
-                Transform::from_translation(arrow_pos),
-            )).id();
+            // Create the arrow entity and connect it safely in one step
+            let arrow_material = materials.add(StandardMaterial {
+                base_color: Color::srgb(0.7, 0.7, 0.7),
+                ..default()
+            });
             
-            // Make sure the entity still exists (it might have been despawned by a concurrent system)
-            if entities.contains(entity) {
-                // Update the edge entity and make the arrow its child
-                commands.entity(entity)
-                    .insert((
-                        Mesh3d(meshes.add(Cylinder::new(0.05, distance - 0.6).mesh())),
-                        MeshMaterial3d(materials.add(StandardMaterial {
-                            base_color: Color::srgb(0.7, 0.7, 0.7),
-                            ..default()
-                        })),
-                        Transform::from_translation(mid_point)
-                            .with_rotation(rotation),
-                    ))
-                    .add_child(arrow_entity);
-            } else {
-                // If the entity was despawned in the meantime, also despawn the arrow
-                commands.entity(arrow_entity).despawn();
-            }
+            let arrow_mesh = meshes.add(Sphere::new(0.1).mesh().uv(8, 8));
+            
+            // Update the edge entity with mesh, material, and transform
+            commands.entity(entity)
+                .insert((
+                    Mesh3d(meshes.add(Cylinder::new(0.05, distance - 0.6).mesh())),
+                    MeshMaterial3d(materials.add(StandardMaterial {
+                        base_color: Color::srgb(0.7, 0.7, 0.7),
+                        ..default()
+                    })),
+                    Transform::from_translation(mid_point)
+                        .with_rotation(rotation),
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        Mesh3d(arrow_mesh),
+                        MeshMaterial3d(arrow_material),
+                        Transform::from_translation(arrow_pos - mid_point),
+                    ));
+                });
         }
     }
 }

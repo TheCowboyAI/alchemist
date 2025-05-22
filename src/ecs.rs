@@ -2,7 +2,7 @@ use crate::graph::{AlchemistGraph, GraphNode, GraphEdge};
 use crate::events::{GraphEvent, GraphEventType, Model};
 use std::collections::HashMap;
 use uuid::Uuid;
-use rand::Rng;
+use rand::prelude::*;
 
 // Components (Values)
 #[derive(Debug, Clone)]

@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use crate::graph_editor_3d::{GraphEditor3D, UpdateGraph3DEvent, CreatePatternEvent, UiInteractionState};
 use crate::graph_patterns::PatternCategory;
+#[allow(non_snake_case)]
 
 // Base16 theme support
 #[derive(Clone, Debug)]
@@ -359,6 +360,7 @@ fn graph_editor_ui_system(
                             if response.clicked() {
                                 create_pattern_events.write(CreatePatternEvent {
                                     pattern: pattern.clone(),
+                                    pattern_name: key.to_string(),
                                 });
                             }
                             

@@ -13,11 +13,15 @@ mod graph_editor;
 // Import the 3D graph editor modules
 mod graph_editor_3d;
 mod graph_editor_ui;
+// Import the new force-directed layout module
+mod graph_layout;
 
 use workflow_editor::WorkflowEditor;
 use graph_editor::GraphEditor;
 use graph_editor_3d::GraphEditor3DPlugin;
 use graph_editor_ui::{GraphEditorUiPlugin, GraphEditorTheme};
+// Import the new layout plugin
+use graph_layout::GraphLayoutPlugin;
 
 fn main() {
     App::new()
@@ -39,6 +43,8 @@ fn main() {
         // Add our 3D graph editor plugins
         .add_plugins(GraphEditor3DPlugin)
         .add_plugins(GraphEditorUiPlugin)
+        // Add our new force-directed layout plugin
+        .add_plugins(GraphLayoutPlugin)
         .add_systems(Update, toggle_theme_system)
         .run();
 }
