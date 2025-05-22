@@ -53,7 +53,7 @@ build-from-commit commit_ref="HEAD" target=".#":
     nix build --option substituters "{{substituters}}" \
               --option trusted-public-keys "{{trusted-keys}}" \
               -L -v --log-format bar-with-logs \
-              git+file://$(pwd)?ref=$COMMIT#{{target}}
+              git+file:///git/thecowboyai/alchemist?ref=$COMMIT#{{target}}
 
 # Run with local cache
 run *args:
@@ -155,7 +155,32 @@ debug-cache *args:
     # Run with maximum verbosity to see all cache activity
     NIX_DEBUG=7 nix build --option substituters "{{substituters}}" \
             --option trusted-public-keys "{{trusted-keys}}" \
-            -v --no-link --log-format bar-with-logs {{args}} 2>&1 | grep -E 'substitute|looking up|warning: Git|download|copy' --color=always
+            -v --no-link --log-format bar-with-logs {{args}} 2>&1
+    
+# Check if a specific path is available from any of the substituters
+check-output-path path:
+    #!/usr/bin/env bash
+    if [ -z "{{path}}" ]; then
+        # First determine the derivation path for the default package
+        DRVPATH=$(nix-instantiate --no-build-output . 2>/dev/null)
+        # Then determine the output path
+        OUTPUT_PATH=$(nix-store -q --outputs $DRVPATH 2>/dev/null)
+        if [ -z "$OUTPUT_PATH" ]; then
+            echo "Error: Could not determine output path for default package"
+            exit 1
+        fi
+        PATH_TO_CHECK="$OUTPUT_PATH"
+        echo "No path specified, using default package output path: $PATH_TO_CHECK"
+    else
+        PATH_TO_CHECK="{{path}}"
+    fi
+    
+    echo "Checking if $PATH_TO_CHECK is available in substituters:"
+    echo "- Checking local cache ({{local-cache}})..."
+    nix path-info --store {{local-cache}} "$PATH_TO_CHECK" 2>/dev/null && echo "✅ Found in local cache" || echo "❌ Not found in local cache"
+    
+    echo "- Checking official cache (https://cache.nixos.org/)..."
+    nix path-info --store https://cache.nixos.org/ "$PATH_TO_CHECK" 2>/dev/null && echo "✅ Found in official cache" || echo "❌ Not found in official cache"
 
 # Standard Cargo commands
 c-build:
