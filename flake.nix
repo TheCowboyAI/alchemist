@@ -21,13 +21,11 @@
       ];
       
       # Configure Nix to use the local cache
-      flake.nixConfig = {
-        extra-substituters = [
-          "http://localhost:5000"
-        ];
-        extra-trusted-public-keys = [
-          "dell-62S6063:F1R/DQVxh0R0YUBXEdVClqDsddJ5VLWVYzPrHC9mmqc="
-        ];
+      flake.nixConfig = let 
+        cacheConfig = import ./cache-config.nix;
+      in {
+        extra-substituters = cacheConfig.allSubstituters;
+        extra-trusted-public-keys = cacheConfig.allTrustedKeys;
       };
       perSystem = { config, self', pkgs, lib, system, ... }:
         let
@@ -105,6 +103,80 @@
             udev
             systemd
           ];
+
+          # IMPORTANT: Create content-addressable source filtering
+          pureSource = let
+            # Function to filter sources based on file patterns that matter for builds
+            filterSource = src: extraFiles:
+              let
+                isRelevantFile = file: type:
+                  let
+                    baseName = builtins.baseNameOf file;
+                    validPath =
+                      # Include Rust project files
+                      (pkgs.lib.hasSuffix ".rs" file) ||
+                      (pkgs.lib.hasSuffix ".toml" file) ||
+                      (pkgs.lib.hasSuffix "Cargo.lock" file) ||
+                      (pkgs.lib.hasSuffix ".cargo/config.toml" file) ||
+                      # Allow assets directory
+                      (pkgs.lib.hasInfix "/assets/" file) ||
+                      # Build-related files
+                      (pkgs.lib.hasSuffix ".nix" file) ||
+                      (pkgs.lib.hasSuffix "justfile" file) ||
+                      # Allow doc files (needed for build)
+                      (pkgs.lib.hasInfix "/doc/" file) ||
+                      # Explicitly included files
+                      (builtins.elem baseName extraFiles);
+                    
+                    # Skip directories that aren't needed
+                    isIgnoredDir = 
+                      (pkgs.lib.hasInfix "/.git/" file) ||
+                      (pkgs.lib.hasInfix "/target/" file) ||
+                      (pkgs.lib.hasInfix "/.direnv/" file) ||
+                      (pkgs.lib.hasInfix "/result" file);
+                    
+                  in
+                    # Ignore Git and other directories that change often
+                    (type == "directory" && !isIgnoredDir) ||
+                    # Only include specific file types
+                    (type == "regular" && validPath);
+              in
+                builtins.filterSource isRelevantFile src;
+
+            # Create a pure source derivation with only the files needed for building
+            pureSource = extraFiles: pkgs.stdenv.mkDerivation {
+              name = "alchemist-pure-source";
+              src = filterSource ./. extraFiles;
+              
+              # Don't need to build anything
+              dontBuild = true;
+              
+              # Just copy the filtered source
+              installPhase = ''
+                cp -r $src $out
+              '';
+              
+              # Don't extract version info from Git
+              CARGO_GIT_DIR = "";
+              GIT_DIR = "";
+            };
+          in {
+            # Source for the main application
+            appSource = pureSource [
+              "README.md"
+              "cache-config.nix"
+              "flake.lock"
+            ];
+            
+            # Source for just the dependencies
+            depsSource = pureSource [
+              "Cargo.toml"
+              "Cargo.lock"
+            ];
+            
+            # The filter function for use in other Nix expressions
+            inherit filterSource;
+          };
 
           # Custom script to fix Bevy dynamic linking
           fix-bevy-linking = pkgs.writeShellScriptBin "fix-bevy-linking" ''
@@ -191,60 +263,86 @@
         {
           # Add packages output to build and cache binaries
           packages = {
+            # Cache management tools
+            cache-tools = (import ./cache-management.nix { inherit pkgs; }).cache-tools;
+            cacheReport = (import ./cache-tools.nix { inherit pkgs; }).cacheReport;
+            cache-monitor = (import ./cache-management.nix { inherit pkgs; }).cache-monitor;
+            
+            # Package containing just the Rust dependencies (useful for caching)
+            rustDeps = pkgs.rustPlatform.buildRustPackage {
+              pname = "alchemist-deps";
+              version = "0.1.0";
+              
+              # Use pure source for dependencies only
+              src = pureSource.depsSource;
+              
+              cargoLock.lockFile = ./Cargo.lock;
+              buildAndTestSubdir = ".";
+              doCheck = false;
+              
+              # Add necessary build inputs for dependencies
+              buildInputs = nonRustDeps;
+              nativeBuildInputs = with pkgs; [
+                pkg-config
+                llvmPackages.clang
+                llvmPackages.bintools
+                lld
+                patchelf
+              ];
+              
+              # Set library paths
+              LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nonRustDeps;
+              
+              # Configure environment variables needed for system dependencies
+              BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
+              
+              # Custom post-build script to ensure proper packaging of all build artifacts
+              postInstall = ''
+                echo "Copying all build artifacts to output..."
+                
+                # Ensure the lib directory exists
+                mkdir -p $out/lib
+                
+                # Copy all build artifacts from the target directory
+                echo "Target directory contents:"
+                find target/release -type f -name "*.rlib" -o -name "*.so" -o -name "*.a" | while read file; do
+                  echo "Copying $file to $out/lib/$(basename $file)"
+                  cp "$file" "$out/lib/"
+                done
+                
+                # Copy deps directory with all the compiled dependencies
+                if [ -d "target/release/deps" ]; then
+                  mkdir -p $out/lib/deps
+                  cp -r target/release/deps/* $out/lib/deps/ || true
+                fi
+                
+                # Copy the fingerprint directory which Cargo uses to detect built dependencies
+                if [ -d "target/release/.fingerprint" ]; then
+                  mkdir -p $out/lib/.fingerprint
+                  cp -r target/release/.fingerprint/* $out/lib/.fingerprint/ || true
+                fi
+                
+                # Create a marker file to show this package was successfully built
+                echo "Alchemist dependencies built successfully" > $out/lib/deps-built.txt
+                echo "This package exists purely to cache Rust dependencies" >> $out/lib/deps-built.txt
+                
+                # List what was copied
+                echo "Contents of $out/lib:"
+                ls -la $out/lib
+                echo "Contents of $out/lib/deps:"
+                ls -la $out/lib/deps || echo "No deps directory"
+                echo "Contents of $out/lib/.fingerprint:"
+                ls -la $out/lib/.fingerprint || echo "No fingerprint directory"
+              '';
+            };
+            
             # Default package builds the bevy_test binary
             default = pkgs.rustPlatform.buildRustPackage {
               pname = "alchemist";
               version = "0.1.0";
               
-              # Create a minimal source directory with only what we need
-              src = pkgs.runCommand "alchemist-source" {} ''
-                # Copy entire project structure except examples
-                mkdir -p $out
-                cp -r ${./src} $out/src
-                cp -r ${./assets} $out/assets 2>/dev/null || mkdir -p $out/assets
-                cp -r ${./doc} $out/doc 2>/dev/null || mkdir -p $out/doc
-                
-                # Copy configuration files
-                cp ${./Cargo.toml} $out/Cargo.toml
-                cp ${./Cargo.lock} $out/Cargo.lock
-                mkdir -p $out/.cargo
-                # Create .cargo/config.toml with correct content
-                cat > $out/.cargo/config.toml << 'EOF'
-# Optimized linker configuration for Bevy on NixOS
-[target.x86_64-unknown-linux-gnu]
-linker = "clang"
-rustflags = [
-  # Use LLD linker for faster linking
-  "-Clink-arg=-fuse-ld=lld",
-  
-  # Export dynamic symbols for Bevy dynamic linking
-  "-Clink-arg=-Wl,--export-dynamic",
-  
-  # Allow the linker to find necessary libraries
-  "-Clink-arg=-Wl,-rpath,$ORIGIN",
-  "-Clink-arg=-Wl,-rpath,$ORIGIN/../lib",
-]
-
-[profile.dev]
-opt-level = 1
-
-# Enable high optimizations for dependencies (excluding code you're developing locally)
-[profile.dev.package."*"]
-opt-level = 3
-
-# Configure dynamic linking for Bevy
-[build]
-rustflags = ["--cfg", "edition2024_preview"]
-EOF
-                
-                # Ensure we have a lib.rs for bevy_dylib if it doesn't exist
-                # Instead of creating it, check if it exists and warn if it doesn't
-                if [ ! -f $out/src/lib.rs ]; then
-                  echo "WARNING: No src/lib.rs file found! This is needed for bevy_dylib."
-                  echo "Creating a minimal lib.rs file..."
-                  echo '//! Minimal library for bevy_dylib\npub fn dummy() -> &'"'"'static str { "Dummy function" }' > $out/src/lib.rs
-                fi
-              '';
+              # Use pure source for application
+              src = pureSource.appSource;
               
               # Use the Cargo lock file
               cargoLock.lockFile = ./Cargo.lock;
@@ -261,6 +359,49 @@ EOF
               
               # Configure linker flags for dynamic linking
               RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld -C link-arg=-Wl,--export-dynamic -C link-arg=-Wl,--undefined-version -C link-arg=-Wl,--allow-shlib-undefined";
+              
+              # Create explicit dependency on rustDeps to ensure it's built first
+              # and make Nix understand we should use the prebuilt dependencies
+              __structuredAttrs = true;
+              passthru = {
+                rustDeps = self'.packages.rustDeps;
+              };
+              
+              # CRITICAL: Replace the standard cargo build with a custom build that 
+              # directly uses the artifacts from rustDeps
+              buildPhase = ''
+                runHook preBuild
+                
+                # Create target directory
+                export CARGO_TARGET_DIR=$NIX_BUILD_TOP/target
+                mkdir -p $CARGO_TARGET_DIR/release
+                mkdir -p $CARGO_TARGET_DIR/release/deps
+                mkdir -p $CARGO_TARGET_DIR/release/build
+                
+                echo "Copying pre-built artifacts from ${self'.packages.rustDeps}..."
+                
+                # Copy all compiled libraries from rustDeps
+                find ${self'.packages.rustDeps}/lib -name "*.rlib" -o -name "*.so" -o -name "*.a" | while read lib; do
+                  echo "Copying $(basename $lib)"
+                  cp -f "$lib" "$CARGO_TARGET_DIR/release/deps/"
+                done
+                
+                # Copy .d files and other build artifacts if they exist
+                if [ -d "${self'.packages.rustDeps}/lib/deps" ]; then
+                  cp -rf ${self'.packages.rustDeps}/lib/deps/* $CARGO_TARGET_DIR/release/deps/ || true
+                fi
+                
+                # Create .fingerprint directory to trick cargo into thinking the dependencies are already built
+                mkdir -p $CARGO_TARGET_DIR/release/.fingerprint
+                if [ -d "${self'.packages.rustDeps}/lib/.fingerprint" ]; then
+                  cp -rf ${self'.packages.rustDeps}/lib/.fingerprint/* $CARGO_TARGET_DIR/release/.fingerprint/ || true
+                fi
+                
+                echo "Building only the main application (skipping dependencies)..."
+                cargo build --release --frozen $cargoExtraArgs
+                
+                runHook postBuild
+              '';
               
               # We need to build bevy_dylib to get the so file
               postBuild = ''
@@ -431,7 +572,7 @@ EOF
               '';
               
               # Extra dependencies and libraries
-              buildInputs = nonRustDeps;
+              buildInputs = nonRustDeps ++ [ self'.packages.rustDeps ];
               nativeBuildInputs = with pkgs; [
                 pkg-config
                 llvmPackages.clang
@@ -533,8 +674,7 @@ EOF
             # Make sure vscode and other editors can find rust-analyzer
             shellHook = ''
               # Configure Nix to use the local cache
-              export NIX_CONFIG="substituters = https://cache.nixos.org/ http://localhost:5000 https://nix-community.cachix.org https://devenv.cachix.org
-              trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= dell-62S6063:F1R/DQVxh0R0YUBXEdVClqDsddJ5VLWVYzPrHC9mmqc= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
+              export NIX_CONFIG="$(nix eval --raw --impure --expr 'with import ./cache-config.nix; nixConfig')"
               export RUST_LOG=info
               
               # Create .vscode settings if it doesn't exist
