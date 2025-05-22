@@ -27,8 +27,24 @@
         extra-substituters = cacheConfig.allSubstituters;
         extra-trusted-public-keys = cacheConfig.allTrustedKeys;
       };
-      perSystem = { config, self', pkgs, lib, system, ... }:
+      
+      perSystem = { config, self', inputs', pkgs, system, ... }: 
         let
+          # Direct inline hash function to create content-addressable identifiers
+          # This avoids needing an external file
+          hashDeps = let
+            # Create a hash string using the Cargo.lock and Cargo.toml files
+            # This is stable even with dirty Git repos
+            deps-hash = builtins.hashString "sha256" (
+              builtins.readFile ./Cargo.lock + 
+              builtins.readFile ./Cargo.toml +
+              (if builtins.pathExists ./.cargo/config.toml 
+                then builtins.readFile ./.cargo/config.toml
+                else "")
+            );
+            hash-string = builtins.substring 0 16 deps-hash;
+          in builtins.trace "Using deps hash: ${hash-string}" hash-string;
+
           # Apply rust-overlay
           pkgsWithRustOverlay = import inputs.nixpkgs {
             inherit system;
@@ -273,12 +289,24 @@
               pname = "alchemist-deps";
               version = "0.1.0";
               
+              # Use a stable name based on the hash of dependency files
+              # This ensures a stable store path regardless of Git state
+              name = "alchemist-deps-${hashDeps}";
+              
               # Use pure source for dependencies only
               src = pureSource.depsSource;
               
               cargoLock.lockFile = ./Cargo.lock;
               buildAndTestSubdir = ".";
               doCheck = false;
+              
+              # Disable Git version extraction completely to avoid cache misses
+              CARGO_GIT_DIR = "";
+              GIT_DIR = "";
+              # Use offline mode to prevent any network access
+              CARGO_NET_OFFLINE = "true";
+              # Don't complain about dirty Git workspace
+              CARGO_TERM_VERBOSE = "false";
               
               # Add necessary build inputs for dependencies
               buildInputs = nonRustDeps;
@@ -303,23 +331,52 @@
                 # Ensure the lib directory exists
                 mkdir -p $out/lib
                 
+                # Print information about the environment
+                echo "Current directory: $(pwd)"
+                echo "Build directory: $NIX_BUILD_TOP"
+                echo "Possible target directories:"
+                find $NIX_BUILD_TOP -type d -name "target" | sort
+
+                # Look for target directory in different locations
+                TARGET_DIR=""
+                for dir in "target" "$NIX_BUILD_TOP/target" "$NIX_BUILD_TOP/build/*/target"; do
+                  if [ -d "$dir/release" ]; then
+                    TARGET_DIR="$dir"
+                    break
+                  fi
+                done
+
+                if [ -z "$TARGET_DIR" ]; then
+                  echo "Error: Could not find target directory with release build"
+                  find $NIX_BUILD_TOP -type d | grep -i target || true
+                  exit 1
+                fi
+
+                echo "Using target directory: $TARGET_DIR"
+                
                 # Copy all build artifacts from the target directory
                 echo "Target directory contents:"
-                find target/release -type f -name "*.rlib" -o -name "*.so" -o -name "*.a" | while read file; do
+                find "$TARGET_DIR/release" -type f -name "*.rlib" -o -name "*.so" -o -name "*.a" | while read file; do
                   echo "Copying $file to $out/lib/$(basename $file)"
                   cp "$file" "$out/lib/"
                 done
                 
                 # Copy deps directory with all the compiled dependencies
-                if [ -d "target/release/deps" ]; then
+                if [ -d "$TARGET_DIR/release/deps" ]; then
                   mkdir -p $out/lib/deps
-                  cp -r target/release/deps/* $out/lib/deps/ || true
+                  cp -r "$TARGET_DIR/release/deps"/* $out/lib/deps/ || true
+                else
+                  echo "Warning: $TARGET_DIR/release/deps directory not found"
+                  find "$TARGET_DIR" -name "deps" || true
                 fi
                 
                 # Copy the fingerprint directory which Cargo uses to detect built dependencies
-                if [ -d "target/release/.fingerprint" ]; then
+                if [ -d "$TARGET_DIR/release/.fingerprint" ]; then
                   mkdir -p $out/lib/.fingerprint
-                  cp -r target/release/.fingerprint/* $out/lib/.fingerprint/ || true
+                  cp -r "$TARGET_DIR/release/.fingerprint"/* $out/lib/.fingerprint/ || true
+                else
+                  echo "Warning: $TARGET_DIR/release/.fingerprint directory not found"
+                  find "$TARGET_DIR" -name ".fingerprint" || true
                 fi
                 
                 # Create a marker file to show this package was successfully built

@@ -985,3 +985,18 @@ check-deps-cache:
         echo "Run 'just build-deps' to build and cache dependencies"
         exit 1
     fi 
+
+# Create a stable hash-based build that doesn't depend on Git state
+build-hash:
+    @echo "Building with content-addressable hash-based approach (Git-state independent)"
+    @echo "This build will create a cache entry based on dependency inputs, not Git hash"
+    nix build -L --no-warn-dirty .#rustDeps
+    @echo "✅ Dependencies built and cached with stable hash"
+    nix build -L --no-warn-dirty
+    @echo "✅ App built using cached dependencies"
+
+# Build only rust dependencies with the hash-based caching approach
+build-deps-hash:
+    @echo "Building Rust dependencies with content-addressable hash approach (Git-state independent)"
+    nix build -L --no-warn-dirty --show-trace .#rustDeps
+    @if [ $? -eq 0 ]; then echo "✅ Rust dependencies built and cached successfully"; else echo "❌ Failed to build Rust dependencies"; exit 1; fi 
