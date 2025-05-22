@@ -19,6 +19,16 @@
       imports = [
         inputs.treefmt-nix.flakeModule
       ];
+      
+      # Configure Nix to use the local cache
+      flake.nixConfig = {
+        extra-substituters = [
+          "http://localhost:5000"
+        ];
+        extra-trusted-public-keys = [
+          "dell-62S6063:F1R/DQVxh0R0YUBXEdVClqDsddJ5VLWVYzPrHC9mmqc="
+        ];
+      };
       perSystem = { config, self', pkgs, lib, system, ... }:
         let
           # Apply rust-overlay
@@ -522,6 +532,9 @@ EOF
             
             # Make sure vscode and other editors can find rust-analyzer
             shellHook = ''
+              # Configure Nix to use the local cache
+              export NIX_CONFIG="substituters = https://cache.nixos.org/ http://localhost:5000 https://nix-community.cachix.org https://devenv.cachix.org
+              trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= dell-62S6063:F1R/DQVxh0R0YUBXEdVClqDsddJ5VLWVYzPrHC9mmqc= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
               export RUST_LOG=info
               
               # Create .vscode settings if it doesn't exist
@@ -584,6 +597,10 @@ EOF
               echo "Using LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
               echo "Using bevy dynamic linking - build with 'cargo build' first, then run with 'cargo run'"
               echo "For faster iteration, use: RUSTFLAGS='-A warnings' cargo watch -x run"
+              echo "" 
+              echo "For builds with local cache, use: just build .#"
+              echo "For running with local cache, use: just run .#"
+              echo "All just commands: just --list"
             '';
           };
 
