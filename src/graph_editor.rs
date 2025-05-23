@@ -386,8 +386,15 @@ pub fn handle_graph_editor_visibility(
         graph_editor.visible = event.0;
         
         // If we're making it visible, initialize it if necessary
-        if graph_editor.visible && graph_editor.snarl_graph.is_none() {
-            graph_editor.sync_to_snarl();
+        if graph_editor.visible {
+            if graph_editor.snarl_graph.is_none() || graph_editor.graph.nodes.is_empty() {
+                // Create example graph if it's empty
+                graph_editor.create_example_graph();
+                graph_editor.sync_to_snarl();
+            } else if graph_editor.snarl_graph.is_none() {
+                // Just sync to snarl if graph exists but snarl doesn't
+                graph_editor.sync_to_snarl();
+            }
         }
     }
 }

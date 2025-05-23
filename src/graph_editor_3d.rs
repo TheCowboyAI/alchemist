@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use crate::graph::{AlchemistGraph, GraphNode, GraphEdge, GraphWorkflow};
+use crate::graph::AlchemistGraph;
 use crate::graph_patterns::{GraphPattern, PatternCatalog, generate_pattern};
 use crate::graph_layout::{apply_initial_layout, LayoutUpdateEvent};
 use uuid::Uuid;
 use std::collections::HashMap;
-use rand::prelude::*;
+use bevy::math::Vec3;
 
 // Component to mark an entity as a 3D graph node
 #[derive(Component)]
@@ -74,7 +74,7 @@ impl Plugin for GraphEditor3DPlugin {
             .init_resource::<UiInteractionState>()
             .add_event::<UpdateGraph3DEvent>()
             .add_event::<CreatePatternEvent>()
-            .add_systems(Startup, setup_3d_editor)
+            .add_systems(Startup, (setup_3d_editor, create_default_graph))
             .add_systems(Update, (
                 update_graph_3d,
                 handle_node_selection,
@@ -154,13 +154,15 @@ fn update_graph_3d(
     let node_data: Vec<(Uuid, String, Vec3, Color)> = graph_editor.graph.nodes.iter().map(|(id, node)| {
         // Determine position
         let position = if let Some(pos) = graph_editor.graph.node_positions.get(id) {
-            Vec3::new(pos.x, 0.0, pos.y) // Convert 2D egui pos to 3D
+            Vec3::new(pos.x, 1.0, pos.y) // Elevate to y=1.0 instead of y=0.0
         } else {
-            // Assign a default position if none exists
-            let mut rng = rand::rng();
-            let x = rng.random_range(-5.0..5.0);
-            let z = rng.random_range(-5.0..5.0);
-            Vec3::new(x, 0.0, z)
+            // Use a deterministic initial position based on node id hash
+            // This will create a more consistent layout without randomness
+            let id_hash = id.as_u128() as u32;
+            let x_factor = ((id_hash & 0xFF0000) >> 16) as f32 / 128.0 - 1.0;
+            let z_factor = ((id_hash & 0x00FF00) >> 8) as f32 / 128.0 - 1.0;
+            let y_factor = ((id_hash & 0x0000FF) as f32 / 255.0) * 2.0; // Add some vertical variation
+            Vec3::new(x_factor * 5.0, 1.0 + y_factor, z_factor * 5.0) // Elevate base height to y=1.0
         };
 
         // Generate a more diverse color palette based on node type/labels
@@ -203,47 +205,95 @@ fn update_graph_3d(
     }).collect();
 
     // Create node entities
-    for (id, name, position, color) in node_data {
+    for (id, name, position, color) in &node_data {
         // Create the node entity with mesh and material
         let node_entity = commands.spawn((
             Mesh3d(meshes.add(Sphere::new(0.3).mesh().uv(16, 16))),
             MeshMaterial3d(materials.add(StandardMaterial {
-                base_color: color,
+                base_color: *color,
                 ..default()
             })),
-            Transform::from_translation(position),
-            GraphNode3D { id },
-            OriginalPosition(position),
+            Transform::from_translation(*position),
+            GraphNode3D { id: *id },
+            OriginalPosition(*position),
             Name::new(name.clone()),
         ));
 
         // Store the entity
-        graph_editor.node_entities.insert(id, node_entity.id());
+        graph_editor.node_entities.insert(*id, node_entity.id());
         
         // Add text for the node name as a separate entity with better styling
         commands.spawn((
             // Simpler Text component to avoid dependency issues
             Text::new(name.clone()),
             // Position the text above the node
-            Transform::from_translation(position + Vec3::new(0.0, 0.5, 0.0)),
+            Transform::from_translation(*position + Vec3::new(0.0, 0.5, 0.0)),
         ));
     }
 
     // Collect edge data to avoid borrowing issues
-    let edge_data: Vec<(Uuid, Uuid, Uuid)> = graph_editor.graph.edges.iter()
-        .map(|(id, edge)| (*id, edge.source, edge.target))
+    let edge_data: Vec<(Uuid, Uuid, Uuid, f32)> = graph_editor.graph.edges.iter()
+        .map(|(id, edge)| (*id, edge.source, edge.target, edge.weight)) // Use the actual edge weight
         .collect();
 
-    // Create edge entities
-    for (id, source, target) in edge_data {
-        let edge_entity = commands.spawn((
-            GraphEdge3D {
-                id,
-                source,
-                target,
-            },
-            Name::new(format!("Edge {}", id)),
-        ));
+    // Create edge entities with proper meshes and materials
+    for (id, source, target, weight) in edge_data {
+        // Calculate initial edge geometry if both nodes have positions
+        let source_pos = node_data.iter().find(|(node_id, _, _, _)| *node_id == source).map(|(_, _, pos, _)| *pos);
+        let target_pos = node_data.iter().find(|(node_id, _, _, _)| *node_id == target).map(|(_, _, pos, _)| *pos);
+        
+        let edge_entity = if let (Some(source_pos), Some(target_pos)) = (source_pos, target_pos) {
+            // Calculate edge geometry
+            let direction = target_pos - source_pos;
+            let distance = direction.length();
+            
+            if distance > 0.01 {
+                let normalized_dir = direction / distance;
+                let mid_point = source_pos + direction * 0.5;
+                
+                // Get rotation to align cylinder with direction
+                let default_dir = Vec3::Y;
+                let rotation = Quat::from_rotation_arc(default_dir, normalized_dir);
+                
+                // Create edge with proper mesh and transform
+                commands.spawn((
+                    Mesh3d(meshes.add(Cylinder::new(0.05, distance - 0.6).mesh())),
+                    MeshMaterial3d(materials.add(StandardMaterial {
+                        base_color: Color::srgb(0.7, 0.7, 0.7),
+                        ..default()
+                    })),
+                    Transform::from_translation(mid_point).with_rotation(rotation),
+                    GraphEdge3D {
+                        id,
+                        source,
+                        target,
+                    },
+                    Name::new(format!("Edge {} (weight: {})", id, weight)),
+                ))
+            } else {
+                // Fallback for very close nodes
+                commands.spawn((
+                    GraphEdge3D {
+                        id,
+                        source,
+                        target,
+                    },
+                    Transform::default(),
+                    Name::new(format!("Edge {} (weight: {})", id, weight)),
+                ))
+            }
+        } else {
+            // No positions available yet
+            commands.spawn((
+                GraphEdge3D {
+                    id,
+                    source,
+                    target,
+                },
+                Transform::default(),
+                Name::new(format!("Edge {} (weight: {})", id, weight)),
+            ))
+        };
 
         graph_editor.edge_entities.insert(id, edge_entity.id());
     }
@@ -332,22 +382,28 @@ fn handle_create_pattern(
     }
 }
 
-// System to update edge positions
+// System to update edge positions (only when graph updates)
 fn update_edge_positions(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    edge_query: Query<(Entity, &GraphEdge3D)>,
+    edge_query: Query<(Entity, &GraphEdge3D, Option<&Mesh3d>)>,
     node_query: Query<(&GraphNode3D, &Transform)>,
+    mut update_events: EventReader<UpdateGraph3DEvent>,
 ) {
+    // Only update when graph update events occur
+    if update_events.read().next().is_none() {
+        return;
+    }
+    
     // Create map of node IDs to their positions
     let mut node_positions = HashMap::new();
     for (node, transform) in node_query.iter() {
         node_positions.insert(node.id, transform.translation);
     }
     
-    // Update or create cylinder meshes for all edges
-    for (entity, edge) in edge_query.iter() {
+    // Update edge transforms and add meshes if missing
+    for (entity, edge, mesh_opt) in edge_query.iter() {
         if let (Some(source_pos), Some(target_pos)) = (
             node_positions.get(&edge.source),
             node_positions.get(&edge.target)
@@ -367,35 +423,19 @@ fn update_edge_positions(
             let default_dir = Vec3::Y;
             let rotation = Quat::from_rotation_arc(default_dir, normalized_dir);
             
-            // Add an arrow at the target end to show direction
-            let arrow_pos = *target_pos - normalized_dir * 0.3;
+            // Update transform
+            commands.entity(entity).insert(Transform::from_translation(mid_point).with_rotation(rotation));
             
-            // Create the arrow entity and connect it safely in one step
-            let arrow_material = materials.add(StandardMaterial {
-                base_color: Color::srgb(0.7, 0.7, 0.7),
-                ..default()
-            });
-            
-            let arrow_mesh = meshes.add(Sphere::new(0.1).mesh().uv(8, 8));
-            
-            // Update the edge entity with mesh, material, and transform
-            commands.entity(entity)
-                .insert((
+            // Add mesh and material if missing
+            if mesh_opt.is_none() {
+                commands.entity(entity).insert((
                     Mesh3d(meshes.add(Cylinder::new(0.05, distance - 0.6).mesh())),
                     MeshMaterial3d(materials.add(StandardMaterial {
                         base_color: Color::srgb(0.7, 0.7, 0.7),
                         ..default()
                     })),
-                    Transform::from_translation(mid_point)
-                        .with_rotation(rotation),
-                ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        Mesh3d(arrow_mesh),
-                        MeshMaterial3d(arrow_material),
-                        Transform::from_translation(arrow_pos - mid_point),
-                    ));
-                });
+                ));
+            }
         }
     }
 }
@@ -419,5 +459,24 @@ fn block_camera_input_on_ui(
             camera.orbit_sensitivity = 1.0;
             camera.zoom_sensitivity = 1.0;
         }
+    }
+}
+
+// System to create a default graph for initial visualization
+fn create_default_graph(
+    mut graph_editor: ResMut<GraphEditor3D>,
+    mut update_events: EventWriter<UpdateGraph3DEvent>,
+) {
+    // Only create if the graph is empty
+    if graph_editor.graph.nodes.is_empty() {
+        // Create a simple example graph
+        let pattern = GraphPattern::Star { points: 6 };
+        graph_editor.graph = generate_pattern(pattern);
+        
+        // Apply initial layout
+        apply_initial_layout(&mut graph_editor.graph, "small_star");
+        
+        // Trigger 3D update
+        update_events.write(UpdateGraph3DEvent);
     }
 } 

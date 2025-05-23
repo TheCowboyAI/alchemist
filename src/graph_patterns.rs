@@ -1,6 +1,6 @@
 use crate::graph::AlchemistGraph;
 use uuid::Uuid;
-use rand::Rng;
+use rand::prelude::*;
 use std::collections::HashMap;
 
 /// Represents catalog categories for organizing graph patterns
@@ -143,10 +143,10 @@ impl PatternCatalog {
         let key_owned = key.to_string();
         
         // Add to categories map
-        self.categories.entry(category).or_insert_with(Vec::new).push(key_owned.clone());
+        self.categories.entry(category).or_default().push(key_owned.clone());
         
         // Add to patterns map
-        self.patterns.insert(key_owned, pattern);
+        self.patterns.insert(key_owned.clone(), pattern);
     }
     
     /// Get a pattern by key
@@ -232,8 +232,8 @@ fn build_tree_recursive(graph: &mut AlchemistGraph, parent_id: Uuid, branch_fact
     
     for i in 0..branch_factor {
         let child_id = graph.add_node(
-            &format!("Node {}-{}", current_depth, i), 
-            vec!["tree".to_string()]
+            &format!("Node {current_depth}-{i}"), 
+            vec!["tree_node".to_string()]
         );
         
         // Connect child to parent
@@ -255,8 +255,8 @@ fn generate_star(graph: &mut AlchemistGraph, points: usize) {
     // Create and connect all the points
     for i in 0..points {
         let point_id = graph.add_node(
-            &format!("Point {}", i),
-            vec!["star".to_string(), "point".to_string()]
+            &format!("Point {i}"),
+            vec!["mesh_node".to_string()]
         );
         
         // Connect point to center
@@ -274,8 +274,8 @@ fn generate_cycle(graph: &mut AlchemistGraph, nodes: usize) {
     // Create all nodes
     for i in 0..nodes {
         let node_id = graph.add_node(
-            &format!("Node {}", i),
-            vec!["cycle".to_string()]
+            &format!("Node {i}"),
+            vec!["wheel_node".to_string()]
         );
         node_ids.push(node_id);
     }
@@ -297,8 +297,8 @@ fn generate_complete(graph: &mut AlchemistGraph, nodes: usize) {
     // Create all nodes
     for i in 0..nodes {
         let node_id = graph.add_node(
-            &format!("Node {}", i),
-            vec!["complete".to_string()]
+            &format!("Node {i}"),
+            vec!["star_node".to_string()]
         );
         node_ids.push(node_id);
     }
@@ -324,8 +324,8 @@ fn generate_grid(graph: &mut AlchemistGraph, width: usize, height: usize) {
     for y in 0..height {
         for x in 0..width {
             let node_id = graph.add_node(
-                &format!("Node ({},{})", x, y),
-                vec!["grid".to_string()]
+                &format!("Node ({x},{y})"),
+                vec!["grid_node".to_string()]
             );
             node_grid[y][x] = node_id;
         }
@@ -361,20 +361,18 @@ fn generate_random(graph: &mut AlchemistGraph, nodes: usize, edge_probability: f
     
     let mut node_ids = Vec::with_capacity(nodes);
     
-    // Create all nodes
+    // Create random nodes
+    let mut rng = rand::rng();
     for i in 0..nodes {
-        let node_id = graph.add_node(
-            &format!("Node {}", i),
-            vec!["random".to_string()]
-        );
+        let node_id = graph.add_node(&format!("Node_{i}"), vec!["random_node".to_string()]);
         node_ids.push(node_id);
     }
-    
+
     // Create edges with probability
-    let mut rng = rand::rng();
     for i in 0..nodes {
         for j in 0..nodes {
             if i != j && rng.random::<f32>() < edge_probability {
+                // All edges created by add_edge will have weight 1.0 by default
                 graph.add_edge(node_ids[i], node_ids[j], vec!["random_edge".to_string()]);
             }
         }
@@ -392,8 +390,8 @@ fn generate_regular_polygon(graph: &mut AlchemistGraph, sides: usize) {
     // Create polygon nodes
     for i in 0..sides {
         let node_id = graph.add_node(
-            &format!("Node {}", i),
-            vec!["polygon".to_string()]
+            &format!("Node {i}"),
+            vec!["circular_node".to_string()]
         );
         
         // Calculate position for this node in a regular polygon shape
@@ -495,8 +493,8 @@ fn generate_finite_automaton(graph: &mut AlchemistGraph, states: usize, alphabet
         }
         
         let state_id = graph.add_node(
-            &format!("q{}", i),
-            labels
+            &format!("q{i}"),
+            vec!["qbert_node".to_string()]
         );
         state_ids.push(state_id);
     }
@@ -506,7 +504,7 @@ fn generate_finite_automaton(graph: &mut AlchemistGraph, states: usize, alphabet
         .map(|i| format!("{}", (97 + i) as u8 as char))  // 'a', 'b', etc.
         .collect();
     
-    // Create transitions
+    // Create random transitions
     let mut rng = rand::rng();
     
     if is_deterministic {
@@ -568,8 +566,8 @@ fn generate_dag(graph: &mut AlchemistGraph, levels: usize, nodes_per_level: usiz
         
         for node in 0..nodes_per_level {
             let node_id = graph.add_node(
-                &format!("L{}-{}", level, node),
-                vec!["dag".to_string(), format!("level={}", level)]
+                &format!("L{level}-{node}"),
+                vec!["binary_tree_node".to_string()]
             );
             nodes_at_this_level.push(node_id);
         }
@@ -602,8 +600,8 @@ fn generate_bipartite(graph: &mut AlchemistGraph, left_nodes: usize, right_nodes
     // Create left set nodes
     for i in 0..left_nodes {
         let node_id = graph.add_node(
-            &format!("L{}", i),
-            vec!["bipartite".to_string(), "left_set".to_string()]
+            &format!("L{i}"),
+            vec!["balanced_tree_node".to_string(), "left".to_string()]
         );
         left_set.push(node_id);
     }
@@ -611,8 +609,8 @@ fn generate_bipartite(graph: &mut AlchemistGraph, left_nodes: usize, right_nodes
     // Create right set nodes
     for i in 0..right_nodes {
         let node_id = graph.add_node(
-            &format!("R{}", i),
-            vec!["bipartite".to_string(), "right_set".to_string()]
+            &format!("R{i}"),
+            vec!["balanced_tree_node".to_string(), "right".to_string()]
         );
         right_set.push(node_id);
     }
@@ -622,6 +620,7 @@ fn generate_bipartite(graph: &mut AlchemistGraph, left_nodes: usize, right_nodes
     for &left in &left_set {
         for &right in &right_set {
             if rng.random::<f32>() < edge_density {
+                // All edges created have a consistent weight of 1.0
                 graph.add_edge(left, right, vec!["bipartite_edge".to_string()]);
             }
         }

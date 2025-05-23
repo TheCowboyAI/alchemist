@@ -291,23 +291,26 @@ fn handle_ddd_editor_ui(
         // Pattern selection
         ui.heading("DDD Patterns");
         ui.horizontal(|ui| {
-            if ui.button("Bounded Context").clicked() {
-                pattern_event.send(CreateDDDPatternEvent {
-                    pattern: GraphPattern::Complete { nodes: 3 },
-                });
-            }
-            
-            if ui.button("Aggregate").clicked() {
-                pattern_event.send(CreateDDDPatternEvent {
-                    pattern: GraphPattern::Star { points: 5 },
-                });
-            }
-            
-            if ui.button("Entity-ValueObject").clicked() {
-                pattern_event.send(CreateDDDPatternEvent {
-                    pattern: GraphPattern::Tree { branch_factor: 2, depth: 2 },
-                });
-            }
+            // Patterns menu
+            ui.menu_button("Patterns", |ui| {
+                if ui.button("Aggregate").clicked() {
+                    pattern_event.write(CreateDDDPatternEvent {
+                        pattern: GraphPattern::Star { points: 5 },
+                    });
+                }
+                
+                if ui.button("Bounded Context").clicked() {
+                    pattern_event.write(CreateDDDPatternEvent {
+                        pattern: GraphPattern::Complete { nodes: 3 },
+                    });
+                }
+                
+                if ui.button("Entity-ValueObject").clicked() {
+                    pattern_event.write(CreateDDDPatternEvent {
+                        pattern: GraphPattern::Tree { branch_factor: 2, depth: 2 },
+                    });
+                }
+            });
         });
         
         // Graph statistics
@@ -353,5 +356,10 @@ fn handle_ddd_editor_visibility(
 ) {
     for event in events.read() {
         ddd_editor.visible = event.0;
+        
+        // If we're making it visible and it has no content, create default graph
+        if ddd_editor.visible && ddd_editor.graph.nodes.is_empty() {
+            ddd_editor.create_default_graph();
+        }
     }
 } 

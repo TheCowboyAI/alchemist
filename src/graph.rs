@@ -2,7 +2,6 @@ use egui_snarl::Snarl;
 use std::collections::HashMap;
 use uuid::Uuid;
 use crate::events::{GraphEvent, GraphEventType, Model};
-use egui;
 
 use crate::models::GraphNodeData;
 
@@ -68,6 +67,13 @@ impl AlchemistGraph {
         id
     }
 
+    /// Set the weight of an edge
+    pub fn set_edge_weight(&mut self, edge_id: Uuid, weight: f32) {
+        if let Some(edge) = self.edges.get_mut(&edge_id) {
+            edge.weight = weight;
+        }
+    }
+
     pub fn to_snarl_graph(&self) -> Snarl<GraphNodeData> {
         let mut graph = Snarl::default();
         
@@ -101,7 +107,7 @@ impl AlchemistGraph {
         }
         
         // Add all edges as wires between nodes
-        for (_, edge) in &self.edges {
+        for edge in self.edges.values() {
             if let (Some(source_id), Some(target_id)) = (
                 node_id_map.get(&edge.source), 
                 node_id_map.get(&edge.target)
@@ -121,6 +127,11 @@ impl AlchemistGraph {
     // Get a specific node by ID
     pub fn get_node(&self, id: Uuid) -> Option<&GraphNode> {
         self.nodes.get(&id)
+    }
+    
+    // Get a specific edge by ID
+    pub fn get_edge(&self, id: Uuid) -> Option<&GraphEdge> {
+        self.edges.get(&id)
     }
     
     // Add a property to a node
@@ -143,7 +154,7 @@ impl Model for AlchemistGraph {
                     
                     let labels = event.payload.get("labels")
                         .map(|s| s.split(',').map(|label| label.trim().to_string()).collect())
-                        .unwrap_or_else(Vec::new);
+                        .unwrap_or_default();
                     
                     let node = GraphNode {
                         id: entity_id,
@@ -203,7 +214,7 @@ impl Model for AlchemistGraph {
                             
                             let labels = event.payload.get("labels")
                                 .map(|s| s.split(',').map(|label| label.trim().to_string()).collect())
-                                .unwrap_or_else(Vec::new);
+                                .unwrap_or_default();
                             
                             let edge = GraphEdge {
                                 id: entity_id,

@@ -118,18 +118,20 @@ impl EventStream {
     }
     
     // Get events related to a specific entity
-    pub fn entity_events(&self, entity_id: Uuid) -> Vec<&Box<dyn Event>> {
+    pub fn entity_events(&self, entity_id: Uuid) -> Vec<&dyn Event> {
         self.events
             .iter()
             .filter(|event| event.entity_id() == Some(entity_id))
+            .map(|boxed| boxed.as_ref())
             .collect()
     }
     
     // Get events of a specific type
-    pub fn events_by_type(&self, event_type: &str) -> Vec<&Box<dyn Event>> {
+    pub fn events_by_type(&self, event_type: &str) -> Vec<&dyn Event> {
         self.events
             .iter()
             .filter(|event| event.event_type() == event_type)
+            .map(|boxed| boxed.as_ref())
             .collect()
     }
 }

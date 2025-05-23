@@ -114,8 +114,10 @@ impl WorkflowEditor {
                 self.workflow.create_example_workflow();
                 
                 // Setup default sizes and collapsed states for example nodes
-                for (id, _) in &self.workflow.graph.nodes {
-                    self.node_sizes.insert(*id, egui::vec2(200.0, 120.0));
+                for id in self.workflow.graph.nodes.keys() {
+                    if !self.node_sizes.contains_key(id) {
+                        self.node_sizes.insert(*id, egui::vec2(200.0, 120.0));
+                    }
                     self.collapsed_nodes.insert(*id, false);
                 }
                 
@@ -135,7 +137,6 @@ impl WorkflowEditor {
                     } else {
                         self.node_sizes.insert(*id, egui::vec2(200.0, 120.0));
                     }
-                    self.collapsed_nodes.insert(*id, false);
                 }
                 
                 self.workflow.sync_to_snarl();
@@ -188,8 +189,8 @@ impl WorkflowEditor {
                             
                             // Simple box check (could be more sophisticated)
                             let default_size = egui::vec2(200.0, 120.0); // Wider default size
-                            let node_size = self.node_sizes.entry(node_data.value.uuid).or_insert(default_size).clone();
-                            let rect = egui::Rect::from_center_size(node_pos, node_size);
+                            let size = *self.node_sizes.entry(node_data.value.uuid).or_insert(default_size);
+                            let rect = egui::Rect::from_center_size(node_pos, size);
                             
                             if rect.contains(pos) {
                                 self.selected_node = Some(node_data.value.uuid);

@@ -55,54 +55,58 @@ fn dashboard_ui_system(
             // Add some spacing
             ui.add_space(20.0);
             
-            // Create toggle buttons for each editor
-            if ui.selectable_label(dashboard_state.standard_graph_editor_active, "Graph Editor").clicked() {
-                dashboard_state.standard_graph_editor_active = !dashboard_state.standard_graph_editor_active;
-                std_graph_events.send(ToggleStandardGraphEditorEvent(dashboard_state.standard_graph_editor_active));
-            }
-            
-            if ui.selectable_label(dashboard_state.workflow_editor_active, "Workflow Editor").clicked() {
-                dashboard_state.workflow_editor_active = !dashboard_state.workflow_editor_active;
-                workflow_events.send(ToggleWorkflowEditorEvent(dashboard_state.workflow_editor_active));
-            }
-            
-            if ui.selectable_label(dashboard_state.ddd_editor_active, "DDD Editor").clicked() {
-                dashboard_state.ddd_editor_active = !dashboard_state.ddd_editor_active;
-                ddd_events.send(ToggleDddEditorEvent(dashboard_state.ddd_editor_active));
-            }
-            
-            if ui.selectable_label(dashboard_state.ecs_editor_active, "ECS Editor").clicked() {
-                dashboard_state.ecs_editor_active = !dashboard_state.ecs_editor_active;
-                ecs_events.send(ToggleEcsEditorEvent(dashboard_state.ecs_editor_active));
-            }
-            
-            // Add a new editor button
-            ui.add_space(20.0);
-            if ui.button("➕ New Editor").clicked() {
-                // Open a menu to select which type to create
-                ui.menu_button("New Editor", |ui| {
-                    if ui.button("Standard Graph").clicked() {
+            // Top bar menu
+            ui.horizontal(|ui| {
+                // Toggle active editor buttons
+                if ui.button("Graph Editor").clicked() {
+                    dashboard_state.standard_graph_editor_active = !dashboard_state.standard_graph_editor_active;
+                    std_graph_events.write(ToggleStandardGraphEditorEvent(dashboard_state.standard_graph_editor_active));
+                }
+                
+                if ui.button("Workflow Editor").clicked() {
+                    dashboard_state.workflow_editor_active = !dashboard_state.workflow_editor_active;
+                    workflow_events.write(ToggleWorkflowEditorEvent(dashboard_state.workflow_editor_active));
+                }
+                
+                if ui.button("DDD Editor").clicked() {
+                    dashboard_state.ddd_editor_active = !dashboard_state.ddd_editor_active;
+                    ddd_events.write(ToggleDddEditorEvent(dashboard_state.ddd_editor_active));
+                }
+                
+                if ui.button("ECS Editor").clicked() {
+                    dashboard_state.ecs_editor_active = !dashboard_state.ecs_editor_active;
+                    ecs_events.write(ToggleEcsEditorEvent(dashboard_state.ecs_editor_active));
+                }
+                
+                ui.separator();
+                
+                // Create new editors from templates
+                ui.menu_button("New", |ui| {
+                    if ui.button("Graph").clicked() {
                         dashboard_state.standard_graph_editor_active = true;
-                        std_graph_events.send(ToggleStandardGraphEditorEvent(true));
+                        std_graph_events.write(ToggleStandardGraphEditorEvent(true));
                         ui.close_menu();
                     }
+                    
                     if ui.button("Workflow").clicked() {
                         dashboard_state.workflow_editor_active = true;
-                        workflow_events.send(ToggleWorkflowEditorEvent(true));
+                        workflow_events.write(ToggleWorkflowEditorEvent(true));
                         ui.close_menu();
                     }
+                    
                     if ui.button("DDD").clicked() {
                         dashboard_state.ddd_editor_active = true;
-                        ddd_events.send(ToggleDddEditorEvent(true));
+                        ddd_events.write(ToggleDddEditorEvent(true));
                         ui.close_menu();
                     }
+                    
                     if ui.button("ECS").clicked() {
                         dashboard_state.ecs_editor_active = true;
-                        ecs_events.send(ToggleEcsEditorEvent(true));
+                        ecs_events.write(ToggleEcsEditorEvent(true));
                         ui.close_menu();
                     }
                 });
-            }
+            });
         });
     });
 } 

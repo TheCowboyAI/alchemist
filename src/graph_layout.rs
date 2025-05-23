@@ -1,6 +1,6 @@
 use bevy::prelude::*;
-use crate::graph::{AlchemistGraph, GraphNode, GraphEdge};
-use crate::graph_editor_3d::{GraphEditor3D, UpdateGraph3DEvent};
+use crate::graph::AlchemistGraph;
+use crate::unified_graph_editor::{BaseGraphResource, VisualNodeComponent};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
@@ -74,7 +74,7 @@ impl Plugin for GraphLayoutPlugin {
             .add_event::<LayoutUpdateEvent>()
             .add_systems(Update, (
                 handle_layout_update,
-                apply_force_directed_layout.run_if(|res: Option<Res<GraphEditor3D>>| res.is_some()),
+                apply_force_directed_layout,
             ));
     }
 }
@@ -93,9 +93,9 @@ fn handle_layout_update(
 
 /// System that applies the force-directed layout algorithm
 fn apply_force_directed_layout(
-    mut graph_editor: ResMut<GraphEditor3D>,
+    mut base_graph: ResMut<BaseGraphResource>,
+    mut node_query: Query<&mut Transform, With<VisualNodeComponent>>,
     mut controller: ResMut<GraphLayoutController>,
-    mut update_events: EventWriter<UpdateGraph3DEvent>,
     _time: Res<Time>,
 ) {
     if !controller.enabled || 
@@ -106,140 +106,117 @@ fn apply_force_directed_layout(
 
     // Process multiple iterations per frame
     let mut total_movement = 0.0;
-    for _ in 0..controller.iterations_per_update {
-        // Skip if we've reached max iterations
-        if controller.iteration_count >= controller.max_iterations {
-            break;
-        }
-
-        total_movement += force_directed_iteration(&mut graph_editor.graph, &controller.params, controller.temperature);
-        
-        // Cool down the system
-        controller.temperature *= 0.99;
-        controller.iteration_count += 1;
-
-        // If movement is very small, consider the layout stable
-        if total_movement < controller.stabilization_threshold {
-            break;
-        }
-    }
-
-    // Update the visualization
-    update_events.write(UpdateGraph3DEvent);
-}
-
-/// A single iteration of the force-directed layout algorithm
-fn force_directed_iteration(
-    graph: &mut AlchemistGraph,
-    params: &ForceDirectedParams,
-    temperature: f32,
-) -> f32 {
-    let node_ids: Vec<Uuid> = graph.nodes.keys().cloned().collect();
-    let node_count = node_ids.len();
+    let graph = &mut base_graph.graph;
     
-    // Initialize a map to store the forces for each node
-    let mut forces: HashMap<Uuid, Vec3> = HashMap::new();
-    for id in &node_ids {
-        forces.insert(*id, Vec3::ZERO);
+    // Calculate forces and update positions
+    let mut forces: HashMap<Uuid, (f32, f32)> = HashMap::new();
+    
+    // Initialize forces to zero
+    for node_id in graph.nodes.keys() {
+        forces.insert(*node_id, (0.0, 0.0));
     }
-
-    // Calculate repulsive forces (Coulomb's law) between all pairs of nodes
-    for i in 0..node_count {
-        for j in i+1..node_count {
-            let id1 = node_ids[i];
-            let id2 = node_ids[j];
+    
+    // Calculate repulsive forces between all nodes
+    let nodes: Vec<_> = graph.nodes.keys().cloned().collect();
+    for i in 0..nodes.len() {
+        for j in (i + 1)..nodes.len() {
+            let node1 = nodes[i];
+            let node2 = nodes[j];
             
-            let pos1 = get_node_position(graph, id1);
-            let pos2 = get_node_position(graph, id2);
-            
-            let direction = pos1 - pos2;
-            let distance = direction.length().max(params.min_distance);
-            let normalized_direction = direction.normalize_or_zero();
-            
-            // Coulomb's law: F = k * q1 * q2 / r^2
-            // We simplify by assuming all nodes have the same charge (q1 = q2 = 1)
-            let repulsion_force = params.repulsion_constant / (distance * distance);
-            let force = normalized_direction * repulsion_force;
-            
-            // Apply repulsive force to both nodes (equal and opposite)
-            if let Some(f) = forces.get_mut(&id1) {
-                *f += force;
+            if let (Some(pos1), Some(pos2)) = (
+                graph.node_positions.get(&node1),
+                graph.node_positions.get(&node2)
+            ) {
+                let dx = pos2.x - pos1.x;
+                let dy = pos2.y - pos1.y;
+                let distance = (dx * dx + dy * dy).sqrt().max(0.1);
+                
+                let repulsive_force = controller.params.repulsion_constant / (distance * distance);
+                let fx = (dx / distance) * repulsive_force;
+                let fy = (dy / distance) * repulsive_force;
+                
+                if let Some(force1) = forces.get_mut(&node1) {
+                    force1.0 -= fx;
+                    force1.1 -= fy;
+                }
+                if let Some(force2) = forces.get_mut(&node2) {
+                    force2.0 += fx;
+                    force2.1 += fy;
+                }
             }
-            if let Some(f) = forces.get_mut(&id2) {
-                *f -= force;
+        }
+    }
+    
+    // Calculate attractive forces between connected nodes
+    for edge in graph.edges.values() {
+        if let (Some(pos1), Some(pos2)) = (
+            graph.node_positions.get(&edge.source),
+            graph.node_positions.get(&edge.target)
+        ) {
+            let dx = pos2.x - pos1.x;
+            let dy = pos2.y - pos1.y;
+            let distance = (dx * dx + dy * dy).sqrt().max(0.1);
+            
+            let attractive_force = controller.params.spring_constant * edge.weight * distance;
+            let fx = (dx / distance) * attractive_force;
+            let fy = (dy / distance) * attractive_force;
+            
+            if let Some(force1) = forces.get_mut(&edge.source) {
+                force1.0 += fx;
+                force1.1 += fy;
+            }
+            if let Some(force2) = forces.get_mut(&edge.target) {
+                force2.0 -= fx;
+                force2.1 -= fy;
             }
         }
     }
-
-    // Calculate attractive forces (Hooke's law) between connected nodes
-    for (_, edge) in &graph.edges {
-        let source_id = edge.source;
-        let target_id = edge.target;
-        
-        let source_pos = get_node_position(graph, source_id);
-        let target_pos = get_node_position(graph, target_id);
-        
-        let direction = source_pos - target_pos;
-        let distance = direction.length().max(params.min_distance);
-        let normalized_direction = direction.normalize_or_zero();
-        
-        // Hooke's law: F = -k * (x - r)
-        // Where k is spring constant, x is current distance, r is optimal distance
-        let displacement = distance - params.optimal_distance;
-        let spring_force = params.spring_constant * edge.weight * displacement;
-        let force = normalized_direction * spring_force;
-        
-        // Apply attractive force (spring pulls nodes together if they're too far apart,
-        // or pushes them away if they're too close)
-        if let Some(f) = forces.get_mut(&source_id) {
-            *f -= force;
-        }
-        if let Some(f) = forces.get_mut(&target_id) {
-            *f += force;
+    
+    // Apply forces to update positions
+    for (node_id, (fx, fy)) in forces {
+        if let Some(pos) = graph.node_positions.get_mut(&node_id) {
+            pos.x += fx * controller.params.damping * controller.temperature;
+            pos.y += fy * controller.params.damping * controller.temperature;
+            
+            // Apply bounds to keep nodes in a reasonable area
+            pos.x = pos.x.clamp(-20.0, 20.0);
+            pos.y = pos.y.clamp(-20.0, 20.0);
+            
+            total_movement += (fx * fx + fy * fy).sqrt();
         }
     }
 
-    // Apply forces to update node positions
-    let mut total_movement = 0.0;
-    for id in &node_ids {
-        if let Some(force) = forces.get(id) {
-            // Limit force to prevent extreme movements
-            let clamped_force = if force.length() > params.max_force {
-                force.normalize() * params.max_force
-            } else {
-                *force
-            };
-            
-            // Apply damping and temperature
-            let movement = clamped_force * params.damping * temperature;
-            total_movement += movement.length();
-            
-            // Update position
-            let current_pos = get_node_position(graph, *id);
-            let new_pos = current_pos + movement;
-            
-            // Store new position in graph
-            set_node_position(graph, *id, new_pos);
-        }
+    // Cool down the system
+    controller.temperature *= 0.99;
+    controller.iteration_count += 1;
+
+    // If movement is very small, consider the layout stable
+    if total_movement < controller.stabilization_threshold {
+        return;
     }
 
-    total_movement / node_count as f32
+    // Update visual node positions
+    for _transform in node_query.iter_mut() {
+        // TODO: Sync positions from graph data to visual transforms
+        // This would require additional component linking
+    }
 }
 
 /// Helper function to get a node's 3D position
 fn get_node_position(graph: &AlchemistGraph, id: Uuid) -> Vec3 {
     if let Some(pos) = graph.node_positions.get(&id) {
-        // Convert 2D position to 3D
-        Vec3::new(pos.x, 0.0, pos.y)
+        // Convert 2D position to 3D, maintain elevation at y=1.0
+        Vec3::new(pos.x, 1.0, pos.y)
     } else {
-        // Default position if none exists
-        Vec3::ZERO
+        // Default elevated position if none exists
+        Vec3::new(0.0, 1.0, 0.0)
     }
 }
 
 /// Helper function to set a node's position in the graph
 fn set_node_position(graph: &mut AlchemistGraph, id: Uuid, position: Vec3) {
-    // Convert 3D position back to 2D for storage
+    // Convert 3D position back to 2D for storage, preserving X and Z coordinates
+    // Note: Y coordinate is maintained by the 3D renderer
     graph.node_positions.insert(id, egui::Pos2::new(position.x, position.z));
 }
 
@@ -321,7 +298,7 @@ fn apply_star_layout(graph: &mut AlchemistGraph) {
         graph.node_positions.insert(*center_id, egui::Pos2::ZERO);
         
         // Position other nodes in a circle around the center
-        let mut peripheral_nodes: Vec<Uuid> = graph.nodes.keys()
+        let peripheral_nodes: Vec<Uuid> = graph.nodes.keys()
             .filter(|id| *id != center_id)
             .cloned()
             .collect();
@@ -388,7 +365,6 @@ fn apply_grid_layout(graph: &mut AlchemistGraph) {
 fn apply_automaton_layout(graph: &mut AlchemistGraph) {
     // Similar to circular layout but with starting state at the left
     let nodes: Vec<Uuid> = graph.nodes.keys().cloned().collect();
-    let count = nodes.len() as f32;
     let radius = 5.0;
     
     // Find start state (typically has a label indicating it's the start)

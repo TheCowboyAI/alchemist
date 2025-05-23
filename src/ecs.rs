@@ -222,7 +222,7 @@ impl GraphSystem {
                     pos.x += (rng.random::<f32>() - 0.5) * 0.1;
                     pos.y += (rng.random::<f32>() - 0.5) * 0.1;
                     
-                    // Update the position
+                    // Update the position by removing and re-adding
                     self.registry.add_component(entity_id, "position", pos);
                 }
             }
@@ -281,11 +281,12 @@ impl Model for GraphSystem {
                     
                     // Add position component with random position
                     let mut rng = rand::rng();
-                    self.registry.add_component(entity_id, "position", PositionComponent {
+                    let component = PositionComponent {
                         x: rng.random_range(-5.0..5.0),
                         y: rng.random_range(-5.0..5.0),
                         z: 0.0,
-                    });
+                    };
+                    self.registry.add_component(entity_id, "position", component);
                     
                     // Add visibility component
                     self.registry.add_component(entity_id, "visibility", VisibilityComponent {
@@ -606,34 +607,70 @@ fn handle_ecs_editor_ui(
             ui.vertical(|ui| {
                 ui.group(|ui| {
                     ui.heading("Entity List");
-                    for (id, node) in &ecs_editor.graph.nodes {
-                        if node.labels.contains(&"entity".to_string()) {
-                            if ui.selectable_label(ecs_editor.selected_node == Some(*id), &node.name).clicked() {
-                                ecs_editor.selected_node = Some(*id);
-                            }
+                    // Collect entity IDs first to avoid borrowing conflict
+                    let entity_nodes: Vec<(Uuid, &str)> = ecs_editor.graph.nodes.iter()
+                        .filter(|(_, node)| node.labels.contains(&"entity".to_string()))
+                        .map(|(id, node)| (*id, node.name.as_str()))
+                        .collect();
+                    
+                    // Store ID to select after the loop if needed
+                    let mut entity_to_select = None;
+                    
+                    for (id, name) in entity_nodes {
+                        if ui.selectable_label(ecs_editor.selected_node == Some(id), name).clicked() {
+                            entity_to_select = Some(id);
                         }
+                    }
+                    
+                    // Update selection outside the iteration
+                    if let Some(id) = entity_to_select {
+                        ecs_editor.selected_node = Some(id);
                     }
                 });
                 
                 ui.group(|ui| {
                     ui.heading("Component List");
-                    for (id, node) in &ecs_editor.graph.nodes {
-                        if node.labels.contains(&"component".to_string()) {
-                            if ui.selectable_label(ecs_editor.selected_node == Some(*id), &node.name).clicked() {
-                                ecs_editor.selected_node = Some(*id);
-                            }
+                    // Collect component IDs first to avoid borrowing conflict
+                    let component_nodes: Vec<(Uuid, &str)> = ecs_editor.graph.nodes.iter()
+                        .filter(|(_, node)| node.labels.contains(&"component".to_string()))
+                        .map(|(id, node)| (*id, node.name.as_str()))
+                        .collect();
+                    
+                    // Store ID to select after the loop if needed
+                    let mut component_to_select = None;
+                    
+                    for (id, name) in component_nodes {
+                        if ui.selectable_label(ecs_editor.selected_node == Some(id), name).clicked() {
+                            component_to_select = Some(id);
                         }
+                    }
+                    
+                    // Update selection outside the iteration
+                    if let Some(id) = component_to_select {
+                        ecs_editor.selected_node = Some(id);
                     }
                 });
                 
                 ui.group(|ui| {
                     ui.heading("System List");
-                    for (id, node) in &ecs_editor.graph.nodes {
-                        if node.labels.contains(&"system".to_string()) {
-                            if ui.selectable_label(ecs_editor.selected_node == Some(*id), &node.name).clicked() {
-                                ecs_editor.selected_node = Some(*id);
-                            }
+                    // Collect system IDs first to avoid borrowing conflict
+                    let system_nodes: Vec<(Uuid, &str)> = ecs_editor.graph.nodes.iter()
+                        .filter(|(_, node)| node.labels.contains(&"system".to_string()))
+                        .map(|(id, node)| (*id, node.name.as_str()))
+                        .collect();
+                    
+                    // Store ID to select after the loop if needed
+                    let mut system_to_select = None;
+                    
+                    for (id, name) in system_nodes {
+                        if ui.selectable_label(ecs_editor.selected_node == Some(id), name).clicked() {
+                            system_to_select = Some(id);
                         }
+                    }
+                    
+                    // Update selection outside the iteration
+                    if let Some(id) = system_to_select {
+                        ecs_editor.selected_node = Some(id);
                     }
                 });
             });
@@ -653,5 +690,10 @@ fn handle_ecs_editor_visibility(
 ) {
     for event in events.read() {
         ecs_editor.visible = event.0;
+        
+        // If we're making it visible and it has no content, create default graph
+        if ecs_editor.visible && ecs_editor.graph.nodes.is_empty() {
+            ecs_editor.create_default_graph();
+        }
     }
 } 
