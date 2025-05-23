@@ -1,4 +1,4 @@
-# Marketing Brief: CID-Driven NixOS Architecture for AI-Centric Development  
+# CID-Driven NixOS Architecture for AI-Centric Development  
 
 ## **Overview**  
 We are transitioning our NixOS infrastructure to use **IPLD Content-Addressed IDs (CIDs)** with a **NATS-based object store**, replacing traditional Git-style hashes. This strategic shift directly addresses critical pain points in large-scale Rust application development while unlocking new capabilities for AI agent ecosystems.  

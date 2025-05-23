@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use crate::graph::AlchemistGraph;
 use crate::graph_patterns::{GraphPattern, generate_pattern};
+use crate::theming::AlchemistTheme;
 
 /// Plugin for the unified graph editor system
 pub struct UnifiedGraphEditorPlugin;
@@ -198,6 +199,7 @@ fn handle_add_pattern_events(
     mut events: EventReader<AddPatternToBaseGraphEvent>,
     mut base_graph: ResMut<BaseGraphResource>,
     mut editor_state: ResMut<EditorState>,
+    theme: Res<AlchemistTheme>,
 ) {
     for event in events.read() {
         info!("Adding pattern {:?} to base graph", event.pattern);
@@ -222,7 +224,7 @@ fn handle_add_pattern_events(
         
         // Create subgraph info
         let subgraph_id = Uuid::new_v4();
-        let color = get_color_for_subgraph(base_graph.next_subgraph_id);
+        let color = get_color_for_subgraph(base_graph.next_subgraph_id, &theme);
         
         // Calculate offset for new subgraph to avoid overlaps
         let offset = calculate_subgraph_offset(&base_graph.subgraphs);
@@ -384,7 +386,7 @@ fn update_visual_representation(
         return;
     }
     
-    // Clear the dirty flag
+    // Clear the dirty flag early to prevent multiple updates
     base_graph.visual_dirty = false;
     
     // Clear existing visual entities more safely
@@ -405,14 +407,15 @@ fn update_visual_representation(
     info!("Updating visual representation for {} nodes, {} edges", 
           base_graph.graph.nodes.len(), base_graph.graph.edges.len());
     
-    // Create visual nodes with better positioning
+    // Create visual nodes with consistent positioning
     let mut nodes_created = 0;
     for (node_id, node) in &base_graph.graph.nodes {
-        // Get position from graph with fallback
+        // Ensure node has a position - this should be set when the node is created
         let graph_pos = base_graph.graph.node_positions.get(node_id)
             .copied()
             .unwrap_or_else(|| {
-                // Generate a deterministic position if none exists
+                // Only generate fallback position if absolutely necessary
+                warn!("Node {} missing position, generating fallback", node_id);
                 use std::collections::hash_map::DefaultHasher;
                 use std::hash::{Hash, Hasher};
                 let mut hasher = DefaultHasher::new();
@@ -420,13 +423,11 @@ fn update_visual_representation(
                 let hash = hasher.finish();
                 let angle = (hash as f32 / u64::MAX as f32) * 2.0 * std::f32::consts::PI;
                 let radius = 5.0 + (hash % 5) as f32;
-                let pos = egui::Pos2::new(radius * angle.cos(), radius * angle.sin());
-                info!("Generated fallback position for node {}: ({}, {})", node_id, pos.x, pos.y);
-                pos
+                egui::Pos2::new(radius * angle.cos(), radius * angle.sin())
             });
         
         let position = match editor_mode.mode {
-            ViewMode::Mode3D => Vec3::new(graph_pos.x * 2.0, 0.5, graph_pos.y * 2.0), // Slightly above ground
+            ViewMode::Mode3D => Vec3::new(graph_pos.x * 2.0, 0.5, graph_pos.y * 2.0),
             ViewMode::Mode2D => Vec3::new(graph_pos.x * 100.0, graph_pos.y * 100.0, 0.0),
         };
         
@@ -434,16 +435,16 @@ fn update_visual_representation(
         let color = base_graph.subgraphs.values()
             .find(|subgraph| subgraph.nodes.contains(node_id))
             .map(|subgraph| subgraph.color)
-            .unwrap_or(Color::srgb(0.8, 0.8, 0.8)); // Lighter default color
+            .unwrap_or(Color::srgb(0.8, 0.8, 0.8));
         
         let subgraph_id = base_graph.subgraphs.values()
             .find(|subgraph| subgraph.nodes.contains(node_id))
             .map(|subgraph| subgraph.id);
         
-        // Create visual representation with larger size for visibility
+        // Create visual representation with appropriate sizing
         let mesh = match editor_mode.mode {
-            ViewMode::Mode3D => meshes.add(Sphere::new(0.8).mesh().uv(16, 16)), // Larger sphere
-            ViewMode::Mode2D => meshes.add(Circle::new(30.0)), // Larger circle
+            ViewMode::Mode3D => meshes.add(Sphere::new(0.8).mesh().uv(16, 16)),
+            ViewMode::Mode2D => meshes.add(Circle::new(30.0)),
         };
         
         commands.spawn((
@@ -463,11 +464,9 @@ fn update_visual_representation(
         ));
         
         nodes_created += 1;
-        info!("Created visual node {} at position ({}, {}, {})", 
-              node.name, position.x, position.y, position.z);
     }
     
-    // Create visual edges with better positioning
+    // Create visual edges
     let mut edges_created = 0;
     for (edge_id, edge) in &base_graph.graph.edges {
         if let (Some(source_pos), Some(target_pos)) = (
@@ -496,7 +495,7 @@ fn update_visual_representation(
                 };
                 
                 let mesh = match editor_mode.mode {
-                    ViewMode::Mode3D => meshes.add(Cylinder::new(0.1, distance)), // Thicker cylinder
+                    ViewMode::Mode3D => meshes.add(Cylinder::new(0.1, distance)),
                     ViewMode::Mode2D => meshes.add(Cuboid::new(distance, 3.0, 1.0)),
                 };
                 
@@ -556,23 +555,21 @@ fn handle_camera_controls(
 }
 
 /// Helper functions
-fn get_color_for_subgraph(index: u32) -> Color {
-    let colors = [
-        Color::srgb(0.8, 0.2, 0.2), // Red
-        Color::srgb(0.2, 0.8, 0.2), // Green  
-        Color::srgb(0.2, 0.2, 0.8), // Blue
-        Color::srgb(0.8, 0.8, 0.2), // Yellow
-        Color::srgb(0.8, 0.2, 0.8), // Magenta
-        Color::srgb(0.2, 0.8, 0.8), // Cyan
-        Color::srgb(0.8, 0.5, 0.2), // Orange
-        Color::srgb(0.5, 0.2, 0.8), // Purple
-    ];
-    colors[(index as usize - 1) % colors.len()]
+fn get_color_for_subgraph(index: u32, theme: &AlchemistTheme) -> Color {
+    let theme_colors = theme.current_theme.get_subgraph_colors();
+    theme_colors[(index as usize - 1) % theme_colors.len()]
 }
 
 fn calculate_subgraph_offset(existing_subgraphs: &HashMap<Uuid, SubgraphInfo>) -> egui::Pos2 {
     let count = existing_subgraphs.len() as f32;
-    let radius = 3.0 + count;
-    let angle = count * 2.0 * std::f32::consts::PI / 6.0; // Distribute around circle
-    egui::Pos2::new(radius * angle.cos(), radius * angle.sin())
+    if count == 0.0 {
+        return egui::Pos2::ZERO;
+    }
+    
+    // Use a more predictable grid-based layout instead of circular
+    let grid_size = (count.sqrt().ceil() as i32).max(1);
+    let x_offset = (count as i32 % grid_size) as f32 * 8.0; // 8.0 units apart
+    let y_offset = (count as i32 / grid_size) as f32 * 8.0;
+    
+    egui::Pos2::new(x_offset, y_offset)
 } 
