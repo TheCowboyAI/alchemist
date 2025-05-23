@@ -1,31 +1,34 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> { } }:
 
-let 
+let
   # Import our cache configuration
   cacheConfig = import ./cache-config.nix;
-  
+
   # Default package for testing cache
-  dummyPackage = pkgs.runCommand "alchemist-dummy" {} ''
+  dummyPackage = pkgs.runCommand "alchemist-dummy" { } ''
     echo "Alchemist cache test package"
     date > $out
   '';
-  
+
   # Check if a path exists in the cache
   # Returns true if it exists, false otherwise
-  pathExistsInCache = path: let
-    basename = builtins.baseNameOf path;
-    result = builtins.tryEval (
-      builtins.fetchurl {
-        url = "${cacheConfig.localCache}/${basename}.narinfo";
-        name = "check-${basename}";
-      }
-    );
-  in result.success;
-  
+  pathExistsInCache = path:
+    let
+      basename = builtins.baseNameOf path;
+      result = builtins.tryEval (
+        builtins.fetchurl {
+          url = "${cacheConfig.localCache}/${basename}.narinfo";
+          name = "check-${basename}";
+        }
+      );
+    in
+    result.success;
+
   # Get git repo information
-  getGitInfo = pkgs.runCommand "git-info" {
-    buildInputs = [ pkgs.git ];
-  } ''
+  getGitInfo = pkgs.runCommand "git-info"
+    {
+      buildInputs = [ pkgs.git ];
+    } ''
     cd ${toString ./.}
     echo "Git Status:" > $out
     git status --porcelain >> $out
@@ -42,9 +45,10 @@ let
   '';
 
   # Function to create a checksum of all source files, useful for cache invalidation
-  getSourceChecksum = pkgs.runCommand "source-checksum" {
-    buildInputs = [ pkgs.nix ];
-  } ''
+  getSourceChecksum = pkgs.runCommand "source-checksum"
+    {
+      buildInputs = [ pkgs.nix ];
+    } ''
     cd ${toString ./.}
     echo "Source Files Hash:" > $out
     find ./src -type f -name "*.rs" | sort | xargs sha256sum | sha256sum | cut -d ' ' -f 1 >> $out
@@ -55,9 +59,10 @@ let
   '';
 
   # Analyze derivation for cacheability issues
-  analyzeCacheability = pkg: pkgs.runCommand "cache-analysis" {
-    buildInputs = [ pkgs.nix ];
-  } ''
+  analyzeCacheability = pkg: pkgs.runCommand "cache-analysis"
+    {
+      buildInputs = [ pkgs.nix ];
+    } ''
     echo "Cache Analysis for ${pkg.name}:" > $out
     echo "\nDerivation Path:" >> $out
     nix show-derivation ${pkg.drvPath} | head -20 >> $out
@@ -98,11 +103,12 @@ let
       echo "Derivation looks cacheable. If not in cache, add with: nix copy --to ${cacheConfig.localCache} ${pkg.outPath}" >> $out
     fi
   '';
-  
+
   # Get all build dependencies of a derivation
-  getDeps = pkg: pkgs.runCommand "build-deps" {
-    buildInputs = [ pkgs.nix ];
-  } ''
+  getDeps = pkg: pkgs.runCommand "build-deps"
+    {
+      buildInputs = [ pkgs.nix ];
+    } ''
     echo "Build Dependencies:" > $out
     nix-store -qR ${pkg.drvPath} >> $out
     
@@ -112,7 +118,7 @@ let
     echo "\nRuntime Dependencies:" >> $out
     nix-store -q --references ${pkg.outPath} >> $out
   '';
-  
+
   # Create a script that can be used to verify all deps are in cache
   verifyDepsScript = pkg: pkgs.writeScriptBin "verify-deps" ''
     #!/bin/sh
@@ -134,7 +140,7 @@ let
       echo "❌ $MISSING/$TOTAL dependencies missing from cache"
     fi
   '';
-  
+
   # Create a local cache report
   cacheReport = pkgs.writeScriptBin "cache-report" ''
     #!/bin/sh
@@ -175,7 +181,7 @@ let
     echo "------------------------"
     nix show-config | grep -E 'substituter|key'
   '';
-  
+
   # Create an environment for cache testing
   cacheEnv = pkgs.buildEnv {
     name = "alchemist-cache-env";
@@ -185,7 +191,8 @@ let
       (verifyDepsScript dummyPackage)
     ];
   };
-  
-in {
+
+in
+{
   inherit dummyPackage cacheReport pathExistsInCache getGitInfo getSourceChecksum analyzeCacheability getDeps verifyDepsScript cacheEnv;
-} 
+}

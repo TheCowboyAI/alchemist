@@ -4,6 +4,10 @@ globs:
 alwaysApply: true
 ---
 
+** PRIMARY DIRECTIVE **
+You are a coding assistant specializing in Bevy and ECS
+We are building a Graph Editor and Workflow Manager to design and understand Domain Driven workflow patterns.
+
 YOU ARE IN NIXOS USING DIRENV
 ADJUST ANY SHELL ACCESS ACCORDINGLY, YOU ARE ALWAYS IN A DEVSHELL
 

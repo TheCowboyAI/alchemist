@@ -1,0 +1,564 @@
+{
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": -143.1791394784828,
+        "y": -836.2689203456689
+      },
+      "caption": "Organization",
+      "labels": [],
+      "properties": {
+        "orgid": "uuid"
+      },
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n1",
+      "position": {
+        "x": -143.1791394784828,
+        "y": -306.4264601829459
+      },
+      "caption": "Certify Key",
+      "labels": [],
+      "properties": {
+        "publickey": "ed25519",
+        "privatekey": "ed25519",
+        "passphrase": "text"
+      },
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": -143.1791394784828,
+        "y": 142.13571449685898
+      },
+      "caption": "Key Policy",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fda1ff"
+      }
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 818.3440341197488,
+        "y": -124.9032309686095
+      },
+      "caption": "Org Auth Key",
+      "labels": [],
+      "properties": {
+        "publickey": "ed25519",
+        "privatekey": "ed25519"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": 811.9921578856192,
+        "y": 168.0176277693272
+      },
+      "caption": "Org Encrypt Key",
+      "labels": [],
+      "properties": {
+        "publickey": "cv25519",
+        "privatekey": "cv25519"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": -143.1791394784828,
+        "y": 1140.0518491302882
+      },
+      "caption": "Org Signing Key",
+      "labels": [],
+      "properties": {
+        "publickey": "ed25519",
+        "privatekey": "ed25519"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": 1767.1634552497212,
+        "y": 700.2456886136517
+      },
+      "caption": "Root CA",
+      "labels": [],
+      "properties": {
+        "privatekey": "ECC-prime256v1",
+        "certificate": "crt"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 1767.1634552497212,
+        "y": 1140.0518491302882
+      },
+      "caption": "Domain SSL Certificate",
+      "labels": [],
+      "properties": {
+        "privatekey": "ECC-prime256v1",
+        "certificate": "crt"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": 1767.1634552497212,
+        "y": -306.4264601829459
+      },
+      "caption": "CertifyKeyCreated",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n14",
+      "position": {
+        "x": 1767.1634552497212,
+        "y": -157.0197626535674
+      },
+      "caption": "AuthKeyCreated",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n17",
+      "position": {
+        "x": 1767.1634552497212,
+        "y": -7.44202407835418
+      },
+      "caption": "EncryptKeyCreated",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n20",
+      "position": {
+        "x": 1767.1634552497212,
+        "y": 142.13571449685898
+      },
+      "caption": "SigningKeyCreated",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n22",
+      "position": {
+        "x": 1154.781260233808,
+        "y": 786.4928239909166
+      },
+      "caption": "Yubikey",
+      "labels": [],
+      "properties": {
+        "serial": "number"
+      },
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n23",
+      "position": {
+        "x": 1767.1634552497212,
+        "y": 320.70750511045236
+      },
+      "caption": "RootCACreated",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n26",
+      "position": {
+        "x": 2285.0196892552044,
+        "y": -306.4264601829459
+      },
+      "caption": "Event Store",
+      "labels": [],
+      "properties": {
+        "orgid": "uuid",
+        "esid": "uuid"
+      },
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n27",
+      "position": {
+        "x": 2285.0196892552044,
+        "y": -756.8500806202401
+      },
+      "caption": "SD Card",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n28",
+      "position": {
+        "x": 1154.781260233808,
+        "y": 1404.918665246998
+      },
+      "caption": "Org Authority",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fda1ff"
+      }
+    },
+    {
+      "id": "n29",
+      "position": {
+        "x": 2285.0196892552044,
+        "y": 1140.0518491302882
+      },
+      "caption": "CertificateCreated",
+      "style": {
+        "node-color": "#68ccca"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n30",
+      "position": {
+        "x": -143.1791394784828,
+        "y": 1404.918665246998
+      },
+      "caption": "Personal Keys",
+      "style": {
+        "node-color": "#68bc00"
+      },
+      "labels": [],
+      "properties": {}
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n0",
+      "fromId": "n0",
+      "toId": "n1",
+      "type": "createCertKey",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n1",
+      "fromId": "n1",
+      "toId": "n2",
+      "type": "applies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n2",
+      "fromId": "n2",
+      "toId": "n3",
+      "type": "createAuthKey",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n4",
+      "fromId": "n2",
+      "toId": "n5",
+      "type": "createEncrKey",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n5",
+      "fromId": "n2",
+      "toId": "n6",
+      "type": "createSignKey",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n6",
+      "fromId": "n2",
+      "toId": "n7",
+      "type": "createRootCA",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n7",
+      "fromId": "n7",
+      "toId": "n8",
+      "type": "createCertificate",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n8",
+      "fromId": "n6",
+      "toId": "n8",
+      "type": "signs",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n14",
+      "fromId": "n1",
+      "toId": "n11",
+      "type": "event",
+      "properties": {},
+      "style": {
+        "attachment-start": "normal"
+      }
+    },
+    {
+      "id": "n16",
+      "fromId": "n3",
+      "toId": "n14",
+      "type": "event",
+      "properties": {},
+      "style": {
+        "attachment-start": "normal"
+      }
+    },
+    {
+      "id": "n19",
+      "fromId": "n5",
+      "toId": "n17",
+      "type": "event",
+      "properties": {},
+      "style": {
+        "attachment-start": "normal"
+      }
+    },
+    {
+      "id": "n22",
+      "fromId": "n6",
+      "toId": "n20",
+      "type": "event",
+      "properties": {},
+      "style": {
+        "attachment-start": "normal"
+      }
+    },
+    {
+      "id": "n25",
+      "fromId": "n3",
+      "toId": "n22",
+      "type": "assignTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n26",
+      "fromId": "n5",
+      "toId": "n22",
+      "type": "assignTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n27",
+      "fromId": "n6",
+      "toId": "n22",
+      "type": "assignTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n28",
+      "fromId": "n8",
+      "toId": "n22",
+      "type": "assignTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n29",
+      "fromId": "n7",
+      "toId": "n23",
+      "type": "event",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n30",
+      "fromId": "n7",
+      "toId": "n22",
+      "type": "copyTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n33",
+      "fromId": "n23",
+      "toId": "n26",
+      "type": "saveTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n34",
+      "fromId": "n20",
+      "toId": "n26",
+      "type": "saveTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n35",
+      "fromId": "n17",
+      "toId": "n26",
+      "type": "saveTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n36",
+      "fromId": "n14",
+      "toId": "n26",
+      "type": "saveTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n37",
+      "fromId": "n11",
+      "toId": "n26",
+      "type": "saveTo",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n38",
+      "fromId": "n26",
+      "toId": "n27",
+      "type": "persisted to",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n39",
+      "type": "authorizedAs",
+      "style": {},
+      "properties": {},
+      "fromId": "n22",
+      "toId": "n28"
+    },
+    {
+      "id": "n40",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n8",
+      "toId": "n29"
+    },
+    {
+      "id": "n41",
+      "type": "saveTo",
+      "style": {},
+      "properties": {},
+      "fromId": "n29",
+      "toId": "n26"
+    },
+    {
+      "id": "n42",
+      "type": "signs",
+      "style": {},
+      "properties": {},
+      "fromId": "n28",
+      "toId": "n30"
+    }
+  ]
+}

@@ -4,4 +4,4 @@ let
   };
   pkgs = import <nixpkgs> { overlays = [ (import rust-overlay) ]; };
 in
-  builtins.attrNames pkgs.rust-bin.nightly 
+builtins.attrNames pkgs.rust-bin.nightly

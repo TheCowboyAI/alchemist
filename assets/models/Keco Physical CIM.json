@@ -1,0 +1,256 @@
+{
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "caption": "x86 Workstation",
+      "style": {
+        "node-color": "#a4dd00"
+      },
+      "labels": [],
+      "properties": {
+        "RAM": "512G",
+        "Disk": "4 TB ssd",
+        "Cores": "48"
+      }
+    },
+    {
+      "id": "n1",
+      "position": {
+        "x": 285.5,
+        "y": 0
+      },
+      "caption": "Asus Flashstor 12",
+      "style": {
+        "node-color": "#f44e3b"
+      },
+      "labels": [],
+      "properties": {
+        "RAM": "16G",
+        "Disk": "24 TB (raidz2)",
+        "eMMC": "8G"
+      }
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 0,
+        "y": 285.5
+      },
+      "caption": "Edge Router",
+      "style": {
+        "node-color": "#f44e3b"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": -443.5,
+        "y": 285.5
+      },
+      "caption": "Cloud",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n4",
+      "position": {
+        "x": 285.5,
+        "y": 285.5
+      },
+      "caption": "Wifi AP",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": 285.5,
+        "y": -285.49999999999994
+      },
+      "caption": "Yubikeys",
+      "style": {
+        "node-color": "#68ccca"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": -285.5,
+        "y": 0
+      },
+      "caption": "Pods / Containers",
+      "style": {
+        "node-color": "#73d8ff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": -443.5,
+        "y": 122.5
+      },
+      "caption": "Portal",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 467.7833342552185,
+        "y": 122.5
+      },
+      "caption": "S3 Buckets",
+      "style": {
+        "node-color": "#73d8ff"
+      },
+      "labels": [],
+      "properties": {}
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n0",
+      "type": "10Gb",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n1"
+    },
+    {
+      "id": "n1",
+      "type": "20Gb",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n2"
+    },
+    {
+      "id": "n2",
+      "type": "1Gb",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n3"
+    },
+    {
+      "id": "n3",
+      "type": "10Gb",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n4"
+    },
+    {
+      "id": "n4",
+      "type": "usbc",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n5"
+    },
+    {
+      "id": "n5",
+      "type": "k8s / Nix",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n6"
+    },
+    {
+      "id": "n6",
+      "type": "1Gb",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n7"
+    },
+    {
+      "id": "n7",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n8"
+    },
+    {
+      "id": "n8",
+      "type": "20Gb",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n0"
+    }
+  ]
+}

@@ -1,11 +1,11 @@
+use crate::graph::AlchemistGraph;
+use crate::graph_layout::{LayoutUpdateEvent, apply_initial_layout};
+use crate::graph_patterns::{GraphPattern, PatternCatalog, generate_pattern};
+use bevy::math::Vec3;
 use bevy::prelude::*;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use crate::graph::AlchemistGraph;
-use crate::graph_patterns::{GraphPattern, PatternCatalog, generate_pattern};
-use crate::graph_layout::{apply_initial_layout, LayoutUpdateEvent};
-use uuid::Uuid;
 use std::collections::HashMap;
-use bevy::math::Vec3;
+use uuid::Uuid;
 
 // Component to mark an entity as a 3D graph node
 #[derive(Component)]
@@ -68,20 +68,22 @@ pub struct GraphEditor3DPlugin;
 
 impl Plugin for GraphEditor3DPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_plugins(PanOrbitCameraPlugin)
+        app.add_plugins(PanOrbitCameraPlugin)
             .init_resource::<GraphEditor3D>()
             .init_resource::<UiInteractionState>()
             .add_event::<UpdateGraph3DEvent>()
             .add_event::<CreatePatternEvent>()
             .add_systems(Startup, (setup_3d_editor, create_default_graph))
-            .add_systems(Update, (
-                update_graph_3d,
-                handle_node_selection,
-                handle_create_pattern,
-                update_edge_positions,
-                block_camera_input_on_ui,
-            ));
+            .add_systems(
+                Update,
+                (
+                    update_graph_3d,
+                    handle_node_selection,
+                    handle_create_pattern,
+                    update_edge_positions,
+                    block_camera_input_on_ui,
+                ),
+            );
     }
 }
 
@@ -146,63 +148,68 @@ fn update_graph_3d(
     for entity in edge_query.iter() {
         commands.entity(entity).despawn();
     }
-    
+
     graph_editor.node_entities.clear();
     graph_editor.edge_entities.clear();
 
     // Collect node data first to avoid borrowing issues
-    let node_data: Vec<(Uuid, String, Vec3, Color)> = graph_editor.graph.nodes.iter().map(|(id, node)| {
-        // Determine position
-        let position = if let Some(pos) = graph_editor.graph.node_positions.get(id) {
-            Vec3::new(pos.x, 1.0, pos.y) // Elevate to y=1.0 instead of y=0.0
-        } else {
-            // Use a deterministic initial position based on node id hash
-            // This will create a more consistent layout without randomness
-            let id_hash = id.as_u128() as u32;
-            let x_factor = ((id_hash & 0xFF0000) >> 16) as f32 / 128.0 - 1.0;
-            let z_factor = ((id_hash & 0x00FF00) >> 8) as f32 / 128.0 - 1.0;
-            let y_factor = ((id_hash & 0x0000FF) as f32 / 255.0) * 2.0; // Add some vertical variation
-            Vec3::new(x_factor * 5.0, 1.0 + y_factor, z_factor * 5.0) // Elevate base height to y=1.0
-        };
+    let node_data: Vec<(Uuid, String, Vec3, Color)> = graph_editor
+        .graph
+        .nodes
+        .iter()
+        .map(|(id, node)| {
+            // Determine position
+            let position = if let Some(pos) = graph_editor.graph.node_positions.get(id) {
+                Vec3::new(pos.x, 1.0, pos.y) // Elevate to y=1.0 instead of y=0.0
+            } else {
+                // Use a deterministic initial position based on node id hash
+                // This will create a more consistent layout without randomness
+                let id_hash = id.as_u128() as u32;
+                let x_factor = ((id_hash & 0xFF0000) >> 16) as f32 / 128.0 - 1.0;
+                let z_factor = ((id_hash & 0x00FF00) >> 8) as f32 / 128.0 - 1.0;
+                let y_factor = ((id_hash & 0x0000FF) as f32 / 255.0) * 2.0; // Add some vertical variation
+                Vec3::new(x_factor * 5.0, 1.0 + y_factor, z_factor * 5.0) // Elevate base height to y=1.0
+            };
 
-        // Generate a more diverse color palette based on node type/labels
-        let color = if node.labels.contains(&"start".to_string()) {
-            Color::srgb(0.1, 0.7, 0.3) // Green
-        } else if node.labels.contains(&"end".to_string()) {
-            Color::srgb(0.8, 0.2, 0.2) // Red
-        } else if node.labels.contains(&"decision".to_string()) {
-            Color::srgb(0.95, 0.75, 0.1) // Gold
-        } else if node.labels.contains(&"process".to_string()) {
-            Color::srgb(0.2, 0.4, 0.8) // Royal Blue
-        } else if node.labels.contains(&"input".to_string()) {
-            Color::srgb(0.4, 0.7, 0.9) // Light Blue
-        } else if node.labels.contains(&"output".to_string()) {
-            Color::srgb(0.9, 0.5, 0.1) // Orange
-        } else if node.labels.contains(&"storage".to_string()) {
-            Color::srgb(0.5, 0.3, 0.8) // Purple
-        } else if node.labels.contains(&"compute".to_string()) {
-            Color::srgb(0.3, 0.7, 0.5) // Teal
-        } else if node.labels.contains(&"conditional".to_string()) {
-            Color::srgb(0.9, 0.3, 0.5) // Pink
-        } else if node.labels.contains(&"loop".to_string()) {
-            Color::srgb(0.5, 0.8, 0.2) // Lime Green
-        } else {
-            // Generate a color based on the node ID hash for variety
-            let id_hash = id.as_u128() as u32;
-            let r = ((id_hash & 0xFF0000) >> 16) as f32 / 255.0;
-            let g = ((id_hash & 0x00FF00) >> 8) as f32 / 255.0;
-            let b = (id_hash & 0x0000FF) as f32 / 255.0;
-            // Ensure reasonable brightness
-            let min_component = 0.3;
-            Color::srgb(
-                r.max(min_component),
-                g.max(min_component),
-                b.max(min_component)
-            )
-        };
+            // Generate a more diverse color palette based on node type/labels
+            let color = if node.labels.contains(&"start".to_string()) {
+                Color::srgb(0.1, 0.7, 0.3) // Green
+            } else if node.labels.contains(&"end".to_string()) {
+                Color::srgb(0.8, 0.2, 0.2) // Red
+            } else if node.labels.contains(&"decision".to_string()) {
+                Color::srgb(0.95, 0.75, 0.1) // Gold
+            } else if node.labels.contains(&"process".to_string()) {
+                Color::srgb(0.2, 0.4, 0.8) // Royal Blue
+            } else if node.labels.contains(&"input".to_string()) {
+                Color::srgb(0.4, 0.7, 0.9) // Light Blue
+            } else if node.labels.contains(&"output".to_string()) {
+                Color::srgb(0.9, 0.5, 0.1) // Orange
+            } else if node.labels.contains(&"storage".to_string()) {
+                Color::srgb(0.5, 0.3, 0.8) // Purple
+            } else if node.labels.contains(&"compute".to_string()) {
+                Color::srgb(0.3, 0.7, 0.5) // Teal
+            } else if node.labels.contains(&"conditional".to_string()) {
+                Color::srgb(0.9, 0.3, 0.5) // Pink
+            } else if node.labels.contains(&"loop".to_string()) {
+                Color::srgb(0.5, 0.8, 0.2) // Lime Green
+            } else {
+                // Generate a color based on the node ID hash for variety
+                let id_hash = id.as_u128() as u32;
+                let r = ((id_hash & 0xFF0000) >> 16) as f32 / 255.0;
+                let g = ((id_hash & 0x00FF00) >> 8) as f32 / 255.0;
+                let b = (id_hash & 0x0000FF) as f32 / 255.0;
+                // Ensure reasonable brightness
+                let min_component = 0.3;
+                Color::srgb(
+                    r.max(min_component),
+                    g.max(min_component),
+                    b.max(min_component),
+                )
+            };
 
-        (*id, node.name.clone(), position, color)
-    }).collect();
+            (*id, node.name.clone(), position, color)
+        })
+        .collect();
 
     // Create node entities
     for (id, name, position, color) in &node_data {
@@ -221,7 +228,7 @@ fn update_graph_3d(
 
         // Store the entity
         graph_editor.node_entities.insert(*id, node_entity.id());
-        
+
         // Add text for the node name as a separate entity with better styling
         commands.spawn((
             // Simpler Text component to avoid dependency issues
@@ -232,29 +239,38 @@ fn update_graph_3d(
     }
 
     // Collect edge data to avoid borrowing issues
-    let edge_data: Vec<(Uuid, Uuid, Uuid, f32)> = graph_editor.graph.edges.iter()
+    let edge_data: Vec<(Uuid, Uuid, Uuid, f32)> = graph_editor
+        .graph
+        .edges
+        .iter()
         .map(|(id, edge)| (*id, edge.source, edge.target, edge.weight)) // Use the actual edge weight
         .collect();
 
     // Create edge entities with proper meshes and materials
     for (id, source, target, weight) in edge_data {
         // Calculate initial edge geometry if both nodes have positions
-        let source_pos = node_data.iter().find(|(node_id, _, _, _)| *node_id == source).map(|(_, _, pos, _)| *pos);
-        let target_pos = node_data.iter().find(|(node_id, _, _, _)| *node_id == target).map(|(_, _, pos, _)| *pos);
-        
+        let source_pos = node_data
+            .iter()
+            .find(|(node_id, _, _, _)| *node_id == source)
+            .map(|(_, _, pos, _)| *pos);
+        let target_pos = node_data
+            .iter()
+            .find(|(node_id, _, _, _)| *node_id == target)
+            .map(|(_, _, pos, _)| *pos);
+
         let edge_entity = if let (Some(source_pos), Some(target_pos)) = (source_pos, target_pos) {
             // Calculate edge geometry
             let direction = target_pos - source_pos;
             let distance = direction.length();
-            
+
             if distance > 0.01 {
                 let normalized_dir = direction / distance;
                 let mid_point = source_pos + direction * 0.5;
-                
+
                 // Get rotation to align cylinder with direction
                 let default_dir = Vec3::Y;
                 let rotation = Quat::from_rotation_arc(default_dir, normalized_dir);
-                
+
                 // Create edge with proper mesh and transform
                 commands.spawn((
                     Mesh3d(meshes.add(Cylinder::new(0.05, distance - 0.6).mesh())),
@@ -263,21 +279,13 @@ fn update_graph_3d(
                         ..default()
                     })),
                     Transform::from_translation(mid_point).with_rotation(rotation),
-                    GraphEdge3D {
-                        id,
-                        source,
-                        target,
-                    },
+                    GraphEdge3D { id, source, target },
                     Name::new(format!("Edge {} (weight: {})", id, weight)),
                 ))
             } else {
                 // Fallback for very close nodes
                 commands.spawn((
-                    GraphEdge3D {
-                        id,
-                        source,
-                        target,
-                    },
+                    GraphEdge3D { id, source, target },
                     Transform::default(),
                     Name::new(format!("Edge {} (weight: {})", id, weight)),
                 ))
@@ -285,11 +293,7 @@ fn update_graph_3d(
         } else {
             // No positions available yet
             commands.spawn((
-                GraphEdge3D {
-                    id,
-                    source,
-                    target,
-                },
+                GraphEdge3D { id, source, target },
                 Transform::default(),
                 Name::new(format!("Edge {} (weight: {})", id, weight)),
             ))
@@ -321,7 +325,7 @@ fn handle_node_selection(
     let Ok(window) = windows.single() else {
         return;
     };
-    
+
     let Some(cursor_position) = window.cursor_position() else {
         return;
     };
@@ -339,14 +343,14 @@ fn handle_node_selection(
     // Check for intersections with node entities
     let mut closest_node = None;
     let mut closest_distance = f32::MAX;
-    
+
     for (_, node, transform) in node_query.iter() {
         let node_position = transform.translation();
         // Simple sphere intersection check
         let to_node = node_position - ray.origin;
         let closest_point_on_ray = ray.origin + ray.direction * to_node.dot(*ray.direction);
         let distance_squared = (node_position - closest_point_on_ray).length_squared();
-        
+
         if distance_squared < 0.3 * 0.3 && to_node.dot(*ray.direction) > 0.0 {
             let distance = to_node.length();
             if distance < closest_distance {
@@ -355,7 +359,7 @@ fn handle_node_selection(
             }
         }
     }
-    
+
     // Update selected node
     graph_editor.selected_node = closest_node;
 }
@@ -370,13 +374,13 @@ fn handle_create_pattern(
     for event in create_events.read() {
         // Generate pattern and update the graph
         graph_editor.graph = generate_pattern(event.pattern.clone());
-        
+
         // Apply initial layout based on pattern type
         apply_initial_layout(&mut graph_editor.graph, &event.pattern_name);
-        
+
         // Send event to update the 3D visualization
         update_events.write(UpdateGraph3DEvent);
-        
+
         // Trigger force-directed layout to refine the positions
         layout_events.write(LayoutUpdateEvent);
     }
@@ -395,37 +399,39 @@ fn update_edge_positions(
     if update_events.read().next().is_none() {
         return;
     }
-    
+
     // Create map of node IDs to their positions
     let mut node_positions = HashMap::new();
     for (node, transform) in node_query.iter() {
         node_positions.insert(node.id, transform.translation);
     }
-    
+
     // Update edge transforms and add meshes if missing
     for (entity, edge, mesh_opt) in edge_query.iter() {
         if let (Some(source_pos), Some(target_pos)) = (
             node_positions.get(&edge.source),
-            node_positions.get(&edge.target)
+            node_positions.get(&edge.target),
         ) {
             // Calculate edge geometry
             let direction = *target_pos - *source_pos;
             let distance = direction.length();
-            
+
             if distance < 0.01 {
-                continue;  // Skip if nodes are too close
+                continue; // Skip if nodes are too close
             }
-            
+
             let normalized_dir = direction / distance;
             let mid_point = *source_pos + direction * 0.5;
-            
+
             // Get rotation to align cylinder with direction
             let default_dir = Vec3::Y;
             let rotation = Quat::from_rotation_arc(default_dir, normalized_dir);
-            
+
             // Update transform
-            commands.entity(entity).insert(Transform::from_translation(mid_point).with_rotation(rotation));
-            
+            commands
+                .entity(entity)
+                .insert(Transform::from_translation(mid_point).with_rotation(rotation));
+
             // Add mesh and material if missing
             if mesh_opt.is_none() {
                 commands.entity(entity).insert((
@@ -472,11 +478,11 @@ fn create_default_graph(
         // Create a simple example graph
         let pattern = GraphPattern::Star { points: 6 };
         graph_editor.graph = generate_pattern(pattern);
-        
+
         // Apply initial layout
         apply_initial_layout(&mut graph_editor.graph, "small_star");
-        
+
         // Trigger 3D update
         update_events.write(UpdateGraph3DEvent);
     }
-} 
+}

@@ -1,0 +1,1053 @@
+{
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": 115.38098023006175,
+        "y": -884.175752134352
+      },
+      "caption": "CIM Domain",
+      "style": {
+        "node-color": "#a4dd00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n1",
+      "position": {
+        "x": 535.9247675097305,
+        "y": 243.99999999999997
+      },
+      "caption": "Account",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 535.9247675097305,
+        "y": -345.4612667106773
+      },
+      "caption": "Owner",
+      "style": {
+        "node-color": "#68bc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 535.9247675097305,
+        "y": 833.4612667106774
+      },
+      "caption": "User",
+      "style": {
+        "node-color": "#f44e3b"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n4",
+      "position": {
+        "x": -291.9084957065066,
+        "y": 833.4612667106774
+      },
+      "caption": "Service",
+      "style": {
+        "node-color": "#aea1ff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": -643.3445427782566,
+        "y": -48.84191851097512
+      },
+      "caption": "Language Service",
+      "style": {
+        "node-color": "#73d8ff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": -533.8977835430248,
+        "y": -884.175752134352
+      },
+      "caption": "External Domain",
+      "style": {
+        "node-color": "#9f0500"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": 983.1377396810208,
+        "y": -345.4612667106773
+      },
+      "caption": "Organization",
+      "style": {
+        "node-color": "#dbdf00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 1662.8319733904323,
+        "y": 243.99999999999997
+      },
+      "caption": "Person",
+      "style": {
+        "node-color": "#0062b1",
+        "caption-color": "#ffffff",
+        "caption-font-weight": "bold"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n9",
+      "position": {
+        "x": 1273.9816776973398,
+        "y": 243.99999999999997
+      },
+      "caption": "Agent",
+      "style": {
+        "node-color": "#7b64ff",
+        "caption-color": "#ffffff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n10",
+      "position": {
+        "x": 885.131382004247,
+        "y": 243.99999999999997
+      },
+      "caption": "User",
+      "style": {
+        "node-color": "#f44e3b"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": 1520.9354515828445,
+        "y": -427.3220401015299
+      },
+      "caption": "External Organization",
+      "style": {
+        "node-color": "#9f0500"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n12",
+      "position": {
+        "x": -1564.9619561295724,
+        "y": -512.4493284276954
+      },
+      "caption": "Collaborative Language",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n13",
+      "position": {
+        "x": -1564.9619561295724,
+        "y": 393.2079458495516
+      },
+      "caption": "General Language",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n14",
+      "position": {
+        "x": -1042.6931371994528,
+        "y": 902.3842308645951
+      },
+      "caption": "Domain Language",
+      "style": {
+        "node-color": "#194d33",
+        "border-color": "#68bc00",
+        "caption-color": "#ffffff",
+        "caption-font-weight": "bold"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n15",
+      "position": {
+        "x": -1852.6894880432885,
+        "y": 329.63424530607125
+      },
+      "caption": "LLM",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n16",
+      "position": {
+        "x": -1820.151221218193,
+        "y": 540.5415367427697
+      },
+      "caption": "Knowledge Graphs",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n17",
+      "position": {
+        "x": -1282.9762263767464,
+        "y": 1142.6673200418886
+      },
+      "caption": "Business Model",
+      "style": {
+        "node-color": "#194d33",
+        "border-color": "#68bc00",
+        "caption-color": "#ffffff",
+        "caption-font-weight": "bold"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n18",
+      "position": {
+        "x": -857.1175838656707,
+        "y": 1187.048313414584
+      },
+      "caption": "Dialects",
+      "style": {
+        "node-color": "#194d33",
+        "border-color": "#68bc00",
+        "caption-color": "#ffffff",
+        "caption-font-weight": "bold"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n19",
+      "position": {
+        "x": -1853.1178834415737,
+        "y": -506.4031396004548
+      },
+      "caption": "Nix",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n20",
+      "position": {
+        "x": -1853.1178834415737,
+        "y": -339.5723400157242
+      },
+      "caption": "NATS",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n21",
+      "position": {
+        "x": -1705.2534167826987,
+        "y": -207.09936914287
+      },
+      "caption": "Graphs",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n22",
+      "position": {
+        "x": -478.6639774554558,
+        "y": 1879.7136087138654
+      },
+      "caption": "Configuration",
+      "style": {
+        "node-color": "#f44e3b"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n23",
+      "position": {
+        "x": -134.10213389110254,
+        "y": 1225.5837866118284
+      },
+      "caption": "Resource",
+      "style": {
+        "node-color": "#f44e3b"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n25",
+      "position": {
+        "x": -134.10213389110254,
+        "y": 1552.6486976628469
+      },
+      "caption": "Metal",
+      "style": {
+        "node-color": "#653294",
+        "caption-color": "#ffffff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n26",
+      "position": {
+        "x": -478.6639774554558,
+        "y": 2206.7785197648836
+      },
+      "caption": "git",
+      "style": {
+        "node-color": "#f44e3b",
+        "caption-color": "#ffffff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n27",
+      "position": {
+        "x": -1799.9806258429326,
+        "y": -679.2924275673856
+      },
+      "caption": "git",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n28",
+      "position": {
+        "x": -1632.4316474996645,
+        "y": 680.0469054913254
+      },
+      "caption": "ML",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n29",
+      "position": {
+        "x": -1381.6572344331305,
+        "y": 623.9201627470117
+      },
+      "caption": "Agents",
+      "style": {
+        "node-color": "#7b64ff",
+        "caption-color": "#ffffff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n32",
+      "position": {
+        "x": 46.021677327204436,
+        "y": -345.4612667106773
+      },
+      "caption": "Message Bus",
+      "style": {
+        "node-color": "#b0bc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n34",
+      "position": {
+        "x": 1463.7935119184829,
+        "y": -600.2113280684607
+      },
+      "caption": "External Organization",
+      "style": {
+        "node-color": "#9f0500"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n35",
+      "position": {
+        "x": 210.45970967325127,
+        "y": 1552.6486976628469
+      },
+      "caption": "Container",
+      "style": {
+        "node-color": "#653294",
+        "caption-color": "#ffffff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n36",
+      "position": {
+        "x": -291.9084957065066,
+        "y": 357.60385428107105
+      },
+      "caption": "API",
+      "style": {
+        "node-color": "#b0bc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n37",
+      "position": {
+        "x": -206.83875236291794,
+        "y": -48.84191851097512
+      },
+      "caption": "Messages",
+      "style": {
+        "node-color": "#b0bc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n38",
+      "position": {
+        "x": -1649.6221232938433,
+        "y": -787.9544117566454
+      },
+      "caption": "Rust",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n39",
+      "position": {
+        "x": -1464.1898903190652,
+        "y": -782.4778187702086
+      },
+      "caption": "JavaScript",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n40",
+      "position": {
+        "x": -1315.3566754697267,
+        "y": -656.5590044078094
+      },
+      "caption": "Benthos",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n41",
+      "position": {
+        "x": -1076.7783105429032,
+        "y": 1229.4491419156136
+      },
+      "caption": "Domain Model",
+      "style": {
+        "node-color": "#194d33",
+        "caption-color": "#ffffff",
+        "caption-font-weight": "bold"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n42",
+      "position": {
+        "x": -134.10213389110254,
+        "y": 1879.7136087138654
+      },
+      "caption": "Configuration",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n43",
+      "position": {
+        "x": -134.10213389110254,
+        "y": 2206.7785197648836
+      },
+      "caption": "git",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b",
+        "caption-color": "#ffffff"
+      }
+    },
+    {
+      "id": "n44",
+      "position": {
+        "x": 210.45970967325127,
+        "y": 1879.7136087138654
+      },
+      "caption": "Configuration",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n45",
+      "position": {
+        "x": 210.45970967325127,
+        "y": 2206.7785197648836
+      },
+      "caption": "git",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b",
+        "caption-color": "#ffffff"
+      }
+    },
+    {
+      "id": "n46",
+      "position": {
+        "x": -1381.6572344331305,
+        "y": -230.81184766346513
+      },
+      "caption": "Business Domain",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n47",
+      "position": {
+        "x": -478.6639774554558,
+        "y": 2533.843430815902
+      },
+      "caption": "https://github.com/TheCowboyAI/cim-start",
+      "style": {
+        "node-color": "#68bc00",
+        "caption-color": "#ffffff",
+        "caption-font-weight": "bold"
+      },
+      "labels": [],
+      "properties": {}
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n0",
+      "type": "HAS_AN",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n2"
+    },
+    {
+      "id": "n1",
+      "type": "OWNS",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n1"
+    },
+    {
+      "id": "n2",
+      "type": "OWNS",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n3"
+    },
+    {
+      "id": "n4",
+      "type": "COMMUNICATES_WITH",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n5"
+    },
+    {
+      "id": "n5",
+      "type": "SUPPLIES_RESOURCE",
+      "style": {},
+      "properties": {},
+      "fromId": "n6",
+      "toId": "n0"
+    },
+    {
+      "id": "n6",
+      "type": "IS_AN",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n7"
+    },
+    {
+      "id": "n7",
+      "type": "IS_AN",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n7"
+    },
+    {
+      "id": "n8",
+      "type": "WORKS_FOR",
+      "style": {},
+      "properties": {},
+      "fromId": "n8",
+      "toId": "n7"
+    },
+    {
+      "id": "n9",
+      "type": "OPERATED_BY",
+      "style": {},
+      "properties": {},
+      "fromId": "n3",
+      "toId": "n8"
+    },
+    {
+      "id": "n10",
+      "type": "OPERATED_BY",
+      "style": {},
+      "properties": {},
+      "fromId": "n9",
+      "toId": "n8"
+    },
+    {
+      "id": "n12",
+      "type": "OWNS",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n10"
+    },
+    {
+      "id": "n13",
+      "type": "OPERATED_BY",
+      "style": {},
+      "properties": {},
+      "fromId": "n10",
+      "toId": "n9"
+    },
+    {
+      "id": "n14",
+      "type": "OPERATED_BY",
+      "style": {},
+      "properties": {},
+      "toId": "n3",
+      "fromId": "n4"
+    },
+    {
+      "id": "n15",
+      "type": "SUPPLIES_COMPUTE",
+      "style": {},
+      "properties": {},
+      "fromId": "n11",
+      "toId": "n7"
+    },
+    {
+      "id": "n16",
+      "type": "CONSUMES",
+      "style": {},
+      "properties": {},
+      "fromId": "n5",
+      "toId": "n12"
+    },
+    {
+      "id": "n17",
+      "type": "QUERY",
+      "style": {},
+      "properties": {},
+      "fromId": "n5",
+      "toId": "n13"
+    },
+    {
+      "id": "n18",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n14",
+      "toId": "n5"
+    },
+    {
+      "id": "n19",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n15",
+      "toId": "n13"
+    },
+    {
+      "id": "n20",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n16",
+      "toId": "n13"
+    },
+    {
+      "id": "n21",
+      "type": "AGGREGATES",
+      "style": {},
+      "properties": {},
+      "fromId": "n17",
+      "toId": "n14"
+    },
+    {
+      "id": "n22",
+      "type": "ABSTRACTS_TO",
+      "style": {},
+      "properties": {},
+      "fromId": "n18",
+      "toId": "n14"
+    },
+    {
+      "id": "n23",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n19",
+      "toId": "n12"
+    },
+    {
+      "id": "n24",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n20",
+      "toId": "n12"
+    },
+    {
+      "id": "n25",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n21",
+      "toId": "n12"
+    },
+    {
+      "id": "n26",
+      "type": "IS_DESCRIBED_BY",
+      "style": {},
+      "properties": {},
+      "fromId": "n4",
+      "toId": "n22"
+    },
+    {
+      "id": "n27",
+      "type": "DEPLOYS_TO",
+      "style": {},
+      "properties": {},
+      "fromId": "n4",
+      "toId": "n23"
+    },
+    {
+      "id": "n29",
+      "type": "INVENTORY",
+      "style": {},
+      "properties": {},
+      "fromId": "n25",
+      "toId": "n23"
+    },
+    {
+      "id": "n30",
+      "type": "CONTAINS",
+      "style": {},
+      "properties": {},
+      "fromId": "n26",
+      "toId": "n22"
+    },
+    {
+      "id": "n31",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n27",
+      "toId": "n12"
+    },
+    {
+      "id": "n32",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n28",
+      "toId": "n13"
+    },
+    {
+      "id": "n33",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n29",
+      "toId": "n13"
+    },
+    {
+      "id": "n34",
+      "type": "DERIVES_FROM",
+      "style": {},
+      "properties": {},
+      "fromId": "n12",
+      "toId": "n13"
+    },
+    {
+      "id": "n38",
+      "type": "COMMUNICATES_TO",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n32"
+    },
+    {
+      "id": "n40",
+      "type": "SUPPLIES_STORAGE",
+      "style": {},
+      "properties": {},
+      "fromId": "n34",
+      "toId": "n7"
+    },
+    {
+      "id": "n41",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n13",
+      "toId": "n5"
+    },
+    {
+      "id": "n42",
+      "type": "VIRTUALIZES",
+      "style": {},
+      "properties": {},
+      "fromId": "n35",
+      "toId": "n23"
+    },
+    {
+      "id": "n43",
+      "type": "OWNED_BY",
+      "style": {},
+      "properties": {},
+      "toId": "n2",
+      "fromId": "n4"
+    },
+    {
+      "id": "n44",
+      "type": "COMMUNICATES_BY",
+      "style": {},
+      "properties": {},
+      "fromId": "n4",
+      "toId": "n36"
+    },
+    {
+      "id": "n45",
+      "type": "CHANNELS",
+      "style": {},
+      "properties": {},
+      "fromId": "n36",
+      "toId": "n37"
+    },
+    {
+      "id": "n46",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n38",
+      "toId": "n12"
+    },
+    {
+      "id": "n47",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n39",
+      "toId": "n12"
+    },
+    {
+      "id": "n48",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n40",
+      "toId": "n12"
+    },
+    {
+      "id": "n49",
+      "type": "COMMUNICATES_TO",
+      "style": {},
+      "properties": {},
+      "fromId": "n37",
+      "toId": "n32"
+    },
+    {
+      "id": "n50",
+      "type": "AGGREGATES",
+      "style": {},
+      "properties": {},
+      "fromId": "n41",
+      "toId": "n14"
+    },
+    {
+      "id": "n51",
+      "fromId": "n43",
+      "toId": "n42",
+      "type": "CONTAINS",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n52",
+      "fromId": "n45",
+      "toId": "n44",
+      "type": "CONTAINS",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n53",
+      "type": "IS_DESCRIBED_BY",
+      "style": {},
+      "properties": {},
+      "fromId": "n25",
+      "toId": "n42"
+    },
+    {
+      "id": "n54",
+      "type": "IS_DESCRIBED_BY",
+      "style": {},
+      "properties": {},
+      "fromId": "n35",
+      "toId": "n44"
+    },
+    {
+      "id": "n55",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "toId": "n12",
+      "fromId": "n46"
+    },
+    {
+      "id": "n56",
+      "type": "PROVIDES",
+      "style": {},
+      "properties": {},
+      "fromId": "n47",
+      "toId": "n26"
+    }
+  ]
+}

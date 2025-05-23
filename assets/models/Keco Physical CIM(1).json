@@ -1,0 +1,256 @@
+{
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "caption": "x86 Workstation",
+      "labels": [],
+      "properties": {
+        "RAM": "512G",
+        "Disk": "4 TB ssd",
+        "Cores": "48"
+      },
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n1",
+      "position": {
+        "x": 285.5,
+        "y": 0
+      },
+      "caption": "Asus Flashstor 12",
+      "labels": [],
+      "properties": {
+        "RAM": "16G",
+        "Disk": "24 TB (raidz2)",
+        "eMMC": "8G"
+      },
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 0,
+        "y": 285.5
+      },
+      "caption": "Edge Router",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": -443.5,
+        "y": 285.5
+      },
+      "caption": "Cloud",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n4",
+      "position": {
+        "x": 285.5,
+        "y": 285.5
+      },
+      "caption": "Wifi AP",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": 285.5,
+        "y": -285.49999999999994
+      },
+      "caption": "Yubikeys",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": -285.5,
+        "y": 0
+      },
+      "caption": "Pods / Containers",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": -443.5,
+        "y": 122.5
+      },
+      "caption": "Portal",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 467.7833342552185,
+        "y": 122.5
+      },
+      "caption": "S3 Buckets",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n0",
+      "fromId": "n0",
+      "toId": "n1",
+      "type": "10Gb",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n1",
+      "fromId": "n0",
+      "toId": "n2",
+      "type": "20Gb",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n2",
+      "fromId": "n2",
+      "toId": "n3",
+      "type": "1Gb",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n3",
+      "fromId": "n2",
+      "toId": "n4",
+      "type": "10Gb",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n4",
+      "fromId": "n0",
+      "toId": "n5",
+      "type": "usbc",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n5",
+      "fromId": "n0",
+      "toId": "n6",
+      "type": "k8s / Nix",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n6",
+      "fromId": "n2",
+      "toId": "n7",
+      "type": "1Gb",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n7",
+      "fromId": "n1",
+      "toId": "n8",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n8",
+      "fromId": "n2",
+      "toId": "n0",
+      "type": "20Gb",
+      "properties": {},
+      "style": {}
+    }
+  ],
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  }
+}

@@ -9,4 +9,4 @@ pub struct GraphNodeData {
     pub properties: HashMap<String, String>,
     pub labels: Vec<String>,
     pub radius: f32,
-} 
+}

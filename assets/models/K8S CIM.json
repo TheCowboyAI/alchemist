@@ -1,0 +1,462 @@
+{
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": 448.5635888074724,
+        "y": -835.9842316095634
+      },
+      "caption": "NATS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#aea1ff"
+      }
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 872.1071805868703,
+        "y": -835.9842316095635
+      },
+      "caption": "Policy",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 798.031023127272,
+        "y": -580.7498503265816
+      },
+      "caption": "git",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": 577.4388689941077,
+        "y": -1239.4446835676317
+      },
+      "caption": "NS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": 25.0199970280745,
+        "y": -835.9842316095634
+      },
+      "caption": "Mail",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 798.031023127272,
+        "y": -1091.2186128925446
+      },
+      "caption": "Feeds",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n10",
+      "position": {
+        "x": 562.8967940910068,
+        "y": -428.16430528547306
+      },
+      "caption": "docs",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": 295.92201352321615,
+        "y": -1231.0661517630087
+      },
+      "caption": "Web",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n13",
+      "position": {
+        "x": 262.027219641142,
+        "y": -445.50214493052954
+      },
+      "caption": "Notes",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n14",
+      "position": {
+        "x": 110.56272379602535,
+        "y": -1091.2186128925446
+      },
+      "caption": "Search",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n15",
+      "position": {
+        "x": 90.29360471213448,
+        "y": -610.0820566892683
+      },
+      "caption": "Vault",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n51",
+      "position": {
+        "x": 1332.1210572417128,
+        "y": -1067.0724159652866
+      },
+      "caption": "cluster0",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n52",
+      "position": {
+        "x": 1659.8583678485356,
+        "y": -499.41474245828726
+      },
+      "caption": "cluster2",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n53",
+      "position": {
+        "x": 1987.5956784553584,
+        "y": -1067.0724159652866
+      },
+      "caption": "cluster1",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n54",
+      "position": {
+        "x": 1659.8583678485356,
+        "y": -835.9842316095634
+      },
+      "caption": "NATS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#aea1ff"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n1",
+      "fromId": "n0",
+      "toId": "n2",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n2",
+      "fromId": "n0",
+      "toId": "n3",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n5",
+      "fromId": "n0",
+      "toId": "n6",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n6",
+      "fromId": "n0",
+      "toId": "n7",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n7",
+      "fromId": "n0",
+      "toId": "n8",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n9",
+      "fromId": "n0",
+      "toId": "n10",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n10",
+      "fromId": "n0",
+      "toId": "n11",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n12",
+      "fromId": "n0",
+      "toId": "n13",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n13",
+      "fromId": "n0",
+      "toId": "n14",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n14",
+      "fromId": "n0",
+      "toId": "n15",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n47",
+      "fromId": "n10",
+      "toId": "n3",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n48",
+      "fromId": "n3",
+      "toId": "n2",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n53",
+      "fromId": "n6",
+      "toId": "n11",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n54",
+      "fromId": "n11",
+      "toId": "n14",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n57",
+      "fromId": "n7",
+      "toId": "n15",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n58",
+      "fromId": "n15",
+      "toId": "n13",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n74",
+      "fromId": "n52",
+      "toId": "n51",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n75",
+      "fromId": "n51",
+      "toId": "n53",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n76",
+      "fromId": "n53",
+      "toId": "n52",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n77",
+      "fromId": "n54",
+      "toId": "n51",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n78",
+      "fromId": "n54",
+      "toId": "n53",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n79",
+      "fromId": "n54",
+      "toId": "n52",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n80",
+      "fromId": "n13",
+      "toId": "n10",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n81",
+      "fromId": "n14",
+      "toId": "n7",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n84",
+      "fromId": "n8",
+      "toId": "n6",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n85",
+      "fromId": "n2",
+      "toId": "n8",
+      "type": "K8S",
+      "properties": {},
+      "style": {}
+    }
+  ],
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  }
+}

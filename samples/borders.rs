@@ -144,11 +144,7 @@ fn setup(mut commands: Commands) {
 
     let non_zero = |x, y| x != Val::Px(0.) && y != Val::Px(0.);
     let border_size = move |x, y| {
-        if non_zero(x, y) {
-            f32::MAX
-        } else {
-            0.
-        }
+        if non_zero(x, y) { f32::MAX } else { 0. }
     };
 
     let borders_examples_rounded = (

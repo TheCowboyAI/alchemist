@@ -1,0 +1,530 @@
+{
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": -325.84611105208785,
+        "y": -435.52479006333965
+      },
+      "caption": "Org",
+      "style": {},
+      "labels": [
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      }
+    },
+    {
+      "id": "n1",
+      "position": {
+        "x": 249.50000000000009,
+        "y": -74.72596474969959
+      },
+      "caption": "Person",
+      "style": {},
+      "labels": [
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      }
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 1267.0267414423643,
+        "y": 852.6592002264955
+      },
+      "caption": "Capability",
+      "style": {},
+      "labels": [
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      }
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 1267.0267414423643,
+        "y": -435.52479006333965
+      },
+      "caption": "Claim",
+      "style": {},
+      "labels": [
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      }
+    },
+    {
+      "id": "n4",
+      "position": {
+        "x": 527.9188816491354,
+        "y": 852.6592002264955
+      },
+      "caption": "Location",
+      "style": {},
+      "labels": [
+        "Component",
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      }
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": 249.5,
+        "y": 852.6592002264955
+      },
+      "caption": "Agent",
+      "labels": [
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      },
+      "style": {}
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": 402.6675106145029,
+        "y": 218.51760097844343
+      },
+      "caption": "Home",
+      "style": {},
+      "labels": [
+        "Value",
+        "Address"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": 527.9188816491354,
+        "y": 475.312736201143
+      },
+      "caption": "Address",
+      "style": {},
+      "labels": [
+        "Value"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 1609.36539493159,
+        "y": 852.6592002264955
+      },
+      "caption": "service",
+      "style": {},
+      "labels": [
+        "Provider"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n9",
+      "position": {
+        "x": 1574.753026277303,
+        "y": 1002.6601578717791
+      },
+      "caption": "behavior",
+      "style": {},
+      "labels": [
+        "Provider"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n10",
+      "position": {
+        "x": 1477.9149316831536,
+        "y": 1122.3292298734325
+      },
+      "caption": "transform",
+      "style": {},
+      "labels": [
+        "Provider"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": -325.84611105208785,
+        "y": 852.6592002264955
+      },
+      "caption": "User",
+      "style": {},
+      "labels": [
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      }
+    },
+    {
+      "id": "n12",
+      "position": {
+        "x": -325.84611105208785,
+        "y": -92.88029717402924
+      },
+      "caption": "Account",
+      "style": {},
+      "labels": [
+        "Entity"
+      ],
+      "properties": {
+        "id": "",
+        "cn": ""
+      }
+    },
+    {
+      "id": "n13",
+      "position": {
+        "x": 1661.3193582662336,
+        "y": -435.52479006333965
+      },
+      "caption": "can_read",
+      "style": {},
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n14",
+      "position": {
+        "x": 1630.4443369497073,
+        "y": -282.5727748511305
+      },
+      "caption": "can_write",
+      "style": {},
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n15",
+      "position": {
+        "x": 1542.6546003718388,
+        "y": -153.57452660581384
+      },
+      "caption": "can_delete",
+      "style": {},
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n16",
+      "position": {
+        "x": 757.4127548338074,
+        "y": 218.51760097844343
+      },
+      "caption": "Office",
+      "style": {},
+      "labels": [
+        "Value",
+        "Address"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n17",
+      "position": {
+        "x": 928.6162933183566,
+        "y": -74.72596474969959
+      },
+      "caption": "Team",
+      "style": {},
+      "labels": [
+        "Entity"
+      ],
+      "properties": {}
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n0",
+      "type": "asserts",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n3"
+    },
+    {
+      "id": "n1",
+      "type": "employs",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n1"
+    },
+    {
+      "id": "n2",
+      "type": "volunteers",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n0"
+    },
+    {
+      "id": "n3",
+      "type": "interns",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n0"
+    },
+    {
+      "id": "n4",
+      "type": "provides",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n4"
+    },
+    {
+      "id": "n5",
+      "type": "operates",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n5"
+    },
+    {
+      "id": "n6",
+      "type": "reports_to",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n1"
+    },
+    {
+      "id": "n7",
+      "type": "requires",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n3"
+    },
+    {
+      "id": "n8",
+      "type": "describes",
+      "style": {},
+      "properties": {},
+      "fromId": "n6",
+      "toId": "n1"
+    },
+    {
+      "id": "n9",
+      "type": "has_value",
+      "style": {},
+      "properties": {},
+      "fromId": "n6",
+      "toId": "n7"
+    },
+    {
+      "id": "n10",
+      "type": "provides",
+      "style": {},
+      "properties": {},
+      "fromId": "n4",
+      "toId": "n7"
+    },
+    {
+      "id": "n11",
+      "type": "provides",
+      "style": {},
+      "properties": {},
+      "fromId": "n8",
+      "toId": "n2"
+    },
+    {
+      "id": "n12",
+      "type": "provides",
+      "style": {},
+      "properties": {},
+      "fromId": "n9",
+      "toId": "n2"
+    },
+    {
+      "id": "n13",
+      "type": "provides",
+      "style": {},
+      "properties": {},
+      "fromId": "n10",
+      "toId": "n2"
+    },
+    {
+      "id": "n14",
+      "type": "authenticates",
+      "style": {},
+      "properties": {},
+      "fromId": "n5",
+      "toId": "n11"
+    },
+    {
+      "id": "n15",
+      "type": "operates",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n12"
+    },
+    {
+      "id": "n16",
+      "type": "athenticates",
+      "style": {},
+      "properties": {},
+      "fromId": "n12",
+      "toId": "n11"
+    },
+    {
+      "id": "n17",
+      "type": "asserts",
+      "style": {},
+      "properties": {},
+      "fromId": "n0",
+      "toId": "n3"
+    },
+    {
+      "id": "n18",
+      "type": "describes",
+      "style": {},
+      "properties": {},
+      "fromId": "n13",
+      "toId": "n3"
+    },
+    {
+      "id": "n19",
+      "type": "describes",
+      "style": {},
+      "properties": {},
+      "fromId": "n14",
+      "toId": "n3"
+    },
+    {
+      "id": "n20",
+      "type": "describes",
+      "style": {},
+      "properties": {},
+      "fromId": "n15",
+      "toId": "n3"
+    },
+    {
+      "id": "n21",
+      "type": "describes",
+      "style": {},
+      "properties": {},
+      "fromId": "n16",
+      "toId": "n1"
+    },
+    {
+      "id": "n22",
+      "type": "has_value",
+      "style": {},
+      "properties": {},
+      "fromId": "n16",
+      "toId": "n7"
+    },
+    {
+      "id": "n23",
+      "type": "member_of",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n17"
+    },
+    {
+      "id": "n24",
+      "type": "leads",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n17"
+    },
+    {
+      "id": "n25",
+      "type": "requires",
+      "style": {},
+      "properties": {},
+      "fromId": "n17",
+      "toId": "n3"
+    },
+    {
+      "id": "n26",
+      "type": "operates",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n11"
+    }
+  ]
+}

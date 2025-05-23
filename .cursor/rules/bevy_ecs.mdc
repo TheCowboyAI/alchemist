@@ -1,0 +1,275 @@
+---
+description: Bevy ECS and Refactoring
+globs: /src/*, *.toml, *.nix
+alwaysApply: false
+---
+
+## Component Design Principles
+**Atomic data containers**
+```rust
+#[derive(Component)]
+struct Health(f32);
+
+#[derive(Component)]
+struct Damage(f32);
+```
+Keep components focused on single responsibilities[1][2]. Avoid complex logic in component definitions.
+
+**State management**
+```rust
+#[derive(Component, Default)]
+enum MovementState {
+    #[default]
+    Idle,
+    Walking,
+    Jumping,
+}
+```
+Use component composition instead of inheritance for state management[6].
+
+## System Organization
+**Pure function patterns**
+```rust
+fn apply_damage(
+    mut query: Query,
+) {
+    for (mut health, damage) in &mut query {
+        health.0 -= damage.0;
+    }
+}
+```
+Design systems as pure functions when possible, avoiding external state[4].
+
+**Event-driven communication**
+```rust
+#[derive(Event)]
+struct CollisionEvent(Entity, Entity);
+
+fn detect_collisions(
+    mut events: EventWriter,
+    // ...
+) {
+    events.send(CollisionEvent(a, b));
+}
+```
+Use events for cross-system communication to decouple logic[4][6].
+
+## Entity Relationships
+**Relational components**
+```rust
+#[derive(Component)]
+struct TeamAffiliation(Team);
+
+#[derive(Component)]
+struct Inventory {
+    items: Vec,
+}
+```
+Model relationships explicitly rather than using implicit hierarchies[2][6].
+
+**Archetype-aware queries**
+```rust
+fn optimize_rendering(
+    query: Query), With>,
+) {
+    // Batch rendering calls
+}
+```
+Structure queries to match archetype patterns for better cache utilization[3].
+
+## Project Structure
+**Modular plugins**
+```rust
+pub struct PhysicsPlugin;
+
+impl Plugin for PhysicsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (
+            apply_gravity,
+            detect_collisions,
+            resolve_collisions,
+        ));
+    }
+}
+```
+Group related systems into plugins with clear responsibilities[5].
+
+**Separation of concerns**
+```
+src/
+  physics/
+    components.rs
+    systems.rs
+    plugin.rs
+  ai/
+    components.rs
+    systems.rs
+    plugin.rs
+```
+Organize by domain rather than technical layer[5][6].
+
+## Performance Patterns
+**Parallel execution**
+```rust
+fn parallel_pathfinding(
+    mut query: Parallel,
+) {
+    query.par_for_each_mut(|(mut vel, target, profile)| {
+        // Compute path
+    });
+}
+```
+Leverage Bevy's automatic parallelism for expensive computations[2][3].
+
+**Batch operations**
+```rust
+fn bulk_spawn_enemies(
+    mut commands: Commands,
+    templates: Res,
+) {
+    commands.spawn_batch(
+        templates.standard_enemies.iter().cloned()
+    );
+}
+```
+Use batch spawning/despawning for entity management[3][6].
+
+## Key Principles Checklist
+1. Compose functionality through component combinations
+2. Maintain system purity through event-driven communication
+3. Design queries around archetype boundaries
+4. Encapsulate domains in plugins with clear interfaces
+5. Prefer explicit relationships over implicit hierarchies
+6. Leverage parallel execution through disjoint data access
+7. Use batch operations for entity lifecycle management
+
+These patterns align with Bevy's data-oriented design philosophy while maintaining flexibility for complex game logic[1][2][3]. The architecture scales well for distributed systems through its explicit data relationships and parallel execution model[3][6].
+
+Citations:
+[1] https://bevyengine.org/learn/quick-start/getting-started/ecs/
+[2] https://docs.rs/bevy_ecs/
+[3] https://taintedcoders.com/bevy/ecs
+[4] https://www.reddit.com/r/gamedev/comments/175jrih/best_practices_of_ecs_usage_that_your_team/
+[5] https://www.reddit.com/r/bevy/comments/sikrv1/recommended_bevyecs_project_structureconventions/
+[6] https://bevy-cheatbook.github.io/programming/ecs-intro.html
+[7] https://github.com/bevyengine/bevy/discussions/8141
+[8] https://forums.factorio.com/viewtopic.php?t=109274
+[9] https://github.com/bevyengine/bevy/discussions/10212
+[10] https://developer.espressif.com/blog/2025/04/bevy-ecs-on-esp32-with-rust-no-std/
+
+
+---
+# Refactoring
+
+## Error Handling Modernization
+**Replace panicking queries** with new `Result`-based patterns:
+```rust
+// 0.15 (deprecated)
+let player = query.single();
+
+// 0.16+ (recommended)
+let player = query.single().expect("Unique player required");
+// OR handle errors properly
+match query.get_single() {
+    Ok(entity) => { /* ... */ },
+    Err(e) => error!("Query failed: {e}"),
+}
+```
+
+**System error propagation** now uses unified `BevyError`:
+```rust
+fn load_assets(asset_server: Res) -> Result {
+    let texture: Handle = asset_server.load("missing.png")?;
+    Ok(())
+}
+```
+
+## Component & Relationship Refactoring
+**Migrate parent-child hierarchies** to relationship components:
+```rust
+// Old hierarchy
+commands.entity(parent).push_children(&[child]);
+
+// New one-to-many relationships
+#[derive(Component)]
+struct ParentEntity(Entity);
+
+commands.entity(child).insert(Relation::::new(parent));
+```
+
+**Update component registration** for queued components:
+```rust
+// Before
+world.register_component::();
+
+// After (queued registration)
+world.registry().queue_component::();
+world.flush_component_registrations();
+```
+
+## ECS Pattern Updates
+**Required component syntax** uses new expression style:
+```rust
+// Legacy syntax (remove)
+Query, Without)>
+
+// Modern equivalent
+Query.has::().without::()
+```
+
+**System ordering** leverages new dependency tracking:
+```rust
+app.add_systems(
+    Update,
+    (
+        apply_velocity,
+        detect_collisions,
+    )
+    .chain()
+    .before(update_score)
+);
+```
+
+## Performance Optimization
+**Batch entity despawning** with new clear relationships API:
+```rust
+fn clear_entities(mut commands: Commands, query: Query) {
+    commands.entity(query.single()).despawn_children_and_clear_relationships();
+}
+```
+
+**Parallel system execution** using fine-grained archetype filtering:
+```rust
+fn parallel_movement(
+    mut transforms: Parallel>,
+    velocities: Query,
+) {
+    transforms.par_for_each_mut(|mut transform| {
+        if let Ok(velocity) = velocities.get(transform.entity()) {
+            transform.translation += velocity.0;
+        }
+    });
+}
+```
+
+## Migration Checklist
+1. Replace all `Query::single()` calls with error-handled variants
+2. Convert parent-child hierarchies to relationship components
+3. Update component registration to use queued system
+4. Migrate system parameters to new required component syntax
+5. Audit error handling using `BevyError` propagation
+6. Optimize despawning with relationship-aware methods
+
+Key changes in Bevy 0.16 emphasize type-safe error handling [1][4] and flexible entity relationships [5][6]. The new ECS patterns enable safer concurrency models while maintaining Bevy's signature performance characteristics [2][3].
+
+Citations:
+[1] https://bevyengine.org/learn/migration-guides/0-15-to-0-16/
+[2] https://docs.rs/bevy/latest/bevy/ecs/index.html
+[3] https://bevyengine.org/learn/quick-start/getting-started/ecs/
+[4] https://bevyengine.org/news/bevy-0-16/
+[5] https://www.youtube.com/watch?v=l13mPxDvKLQ
+[6] https://www.youtube.com/watch?v=L6sBHp1AaGM
+[7] https://www.reddit.com/r/rust/comments/1k721w1/bevy_016/
+[8] https://www.reddit.com/r/bevy/comments/19f732s/my_bevy_code_tends_to_be_messy_need_help/
+[9] https://www.youtube.com/watch?v=c-UyCggqF-Q
+[10] https://www.reddit.com/r/gamedev/comments/1k722ae/bevy_016_ecsdriven_game_engine_built_in_rust/

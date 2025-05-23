@@ -1,7 +1,7 @@
-use uuid::Uuid;
+use std::any::Any;
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::any::Any;
+use uuid::Uuid;
 
 // Event types for graph operations
 #[derive(Debug, Clone)]
@@ -32,7 +32,7 @@ impl GraphEvent {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
-            
+
         Self {
             event_type,
             entity_id,
@@ -40,12 +40,12 @@ impl GraphEvent {
             timestamp,
         }
     }
-    
+
     pub fn with_payload(mut self, key: &str, value: &str) -> Self {
         self.payload.insert(key.to_string(), value.to_string());
         self
     }
-    
+
     pub fn event_type_str(&self) -> &str {
         match self.event_type {
             GraphEventType::NodeCreated => "NodeCreated",
@@ -74,15 +74,15 @@ impl Event for GraphEvent {
     fn event_type(&self) -> &str {
         self.event_type_str()
     }
-    
+
     fn entity_id(&self) -> Option<Uuid> {
         self.entity_id
     }
-    
+
     fn timestamp(&self) -> u64 {
         self.timestamp
     }
-    
+
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -96,27 +96,25 @@ pub struct EventStream {
 
 impl EventStream {
     pub fn new() -> Self {
-        Self {
-            events: Vec::new(),
-        }
+        Self { events: Vec::new() }
     }
-    
+
     pub fn append<T: Event + 'static>(&mut self, event: T) {
         self.events.push(Box::new(event));
     }
-    
+
     pub fn get_events(&self) -> &[Box<dyn Event>] {
         &self.events
     }
-    
+
     pub fn len(&self) -> usize {
         self.events.len()
     }
-    
+
     pub fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
-    
+
     // Get events related to a specific entity
     pub fn entity_events(&self, entity_id: Uuid) -> Vec<&dyn Event> {
         self.events
@@ -125,7 +123,7 @@ impl EventStream {
             .map(|boxed| boxed.as_ref())
             .collect()
     }
-    
+
     // Get events of a specific type
     pub fn events_by_type(&self, event_type: &str) -> Vec<&dyn Event> {
         self.events
@@ -165,14 +163,14 @@ impl Command for CreateNodeCommand {
         let node_id = Uuid::new_v4();
         let event = GraphEvent::new(GraphEventType::NodeCreated, Some(node_id))
             .with_payload("name", &self.name);
-            
+
         // Add labels to payload
         let labels_str = self.labels.join(",");
         let event = event.with_payload("labels", &labels_str);
-        
+
         vec![Box::new(event)]
     }
-    
+
     fn undo(&self) -> Option<Vec<Box<dyn Event>>> {
         // Undo would require the node ID which we don't have until execute()
         // In a real implementation, you would store the node ID after execute()
@@ -192,11 +190,11 @@ impl Command for CreateEdgeCommand {
         let event = GraphEvent::new(GraphEventType::EdgeCreated, Some(edge_id))
             .with_payload("source", &self.source.to_string())
             .with_payload("target", &self.target.to_string());
-            
+
         // Add labels to payload
         let labels_str = self.labels.join(",");
         let event = event.with_payload("labels", &labels_str);
-        
+
         vec![Box::new(event)]
     }
 }
@@ -220,12 +218,12 @@ pub struct UpdateNodeCommand {
 impl Command for UpdateNodeCommand {
     fn execute(&self) -> Vec<Box<dyn Event>> {
         let mut event = GraphEvent::new(GraphEventType::NodeUpdated, Some(self.node_id));
-        
+
         // Add all properties to the payload
         for (key, value) in &self.properties {
             event = event.with_payload(key, value);
         }
-        
+
         vec![Box::new(event)]
     }
 }
@@ -241,7 +239,7 @@ impl Command for WorkflowStepCommand {
         let event = GraphEvent::new(GraphEventType::WorkflowStepExecuted, Some(self.step_id))
             .with_payload("workflow_id", &self.workflow_id.to_string())
             .with_payload("action", &self.action);
-            
+
         vec![Box::new(event)]
     }
-} 
+}

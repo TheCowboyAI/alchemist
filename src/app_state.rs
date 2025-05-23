@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use bevy::ecs::resource::Resource;
 use crate::ecs::GraphSystem;
 use crate::events::EventStream;
 use crate::graph::AlchemistGraph;
+use bevy::ecs::resource::Resource;
+use bevy::prelude::*;
 
 // Define a struct for graph settings
 #[derive(Clone, Debug)]
@@ -76,4 +76,4 @@ impl Plugin for AppStatePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<AlchemistAppState>();
     }
-} 
+}

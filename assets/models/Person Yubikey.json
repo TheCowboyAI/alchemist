@@ -1,0 +1,585 @@
+{
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": 1154.781260233808,
+        "y": -1192.7599879931793
+      },
+      "caption": "Organization",
+      "labels": [],
+      "properties": {
+        "id": "uuid",
+        "name": "Example, Inc."
+      },
+      "style": {
+        "node-color": "#aea1ff"
+      }
+    },
+    {
+      "id": "n1",
+      "position": {
+        "x": 1154.781260233808,
+        "y": -823.5227106537728
+      },
+      "caption": "Certify Key",
+      "labels": [],
+      "properties": {
+        "publickey": "text",
+        "privatekey": "text",
+        "fingerprint": "text",
+        "keytype": "ed25519"
+      },
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 1636.1315328845913,
+        "y": -658.5706288116927
+      },
+      "caption": "Org Auth Key",
+      "labels": [],
+      "properties": {
+        "publickey": "ed25519",
+        "privatekey": "ed25519",
+        "name": "example.org.auth.pub"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": 1636.1315328845913,
+        "y": -402.6528671457585
+      },
+      "caption": "Org Encrypt Key",
+      "labels": [],
+      "properties": {
+        "publickey": "cv25519",
+        "privatekey": "cv25519",
+        "name": "example.org.encr.pub"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": 1636.1315328845913,
+        "y": -124.74515765632907
+      },
+      "caption": "Org Signing Key",
+      "labels": [],
+      "properties": {
+        "publickey": "ed25519",
+        "privatekey": "ed25519",
+        "name": "example.org.sign.pub"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": 1636.1315328845913,
+        "y": 704.1724339057337
+      },
+      "caption": "Root CA",
+      "labels": [],
+      "properties": {
+        "privatekey": "ECC-prime256v1",
+        "certificate": "crt"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 1636.1315328845913,
+        "y": 1179.300420187386
+      },
+      "caption": "Domain SSL Certificate",
+      "labels": [],
+      "properties": {
+        "privatekey": "ECC-prime256v1",
+        "certificate": "crt"
+      },
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n22",
+      "position": {
+        "x": 2786.404591978835,
+        "y": 707.1885267832199
+      },
+      "caption": "Yubikey",
+      "labels": [],
+      "properties": {
+        "serial": "number"
+      },
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n32",
+      "position": {
+        "x": 1154.781260233808,
+        "y": -402.6528671457585
+      },
+      "caption": "Organization Sub Keys",
+      "labels": [],
+      "properties": {
+        "expiration": "1y"
+      },
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n33",
+      "position": {
+        "x": 2545.7294556534434,
+        "y": 477.69816132964013
+      },
+      "caption": "Fido2",
+      "labels": [],
+      "properties": {
+        "pin": "123456",
+        "retries": "3"
+      },
+      "style": {
+        "node-color": "#dbdf00"
+      }
+    },
+    {
+      "id": "n34",
+      "position": {
+        "x": 2453.853319118148,
+        "y": 707.1885267832199
+      },
+      "caption": "PIV",
+      "labels": [],
+      "properties": {
+        "pin": "123456",
+        "puk": "12345678",
+        "key": "012345678012345678012345678012345678",
+        "touch_slot": "9a"
+      },
+      "style": {
+        "node-color": "#dbdf00"
+      }
+    },
+    {
+      "id": "n35",
+      "position": {
+        "x": 2786.404591978835,
+        "y": 374.6372539225324
+      },
+      "caption": "PGP",
+      "labels": [],
+      "properties": {
+        "identity": "John Q. Public <john@example.org>",
+        "user_pin": "123456",
+        "admin_pin": "12345678",
+        "reset_code": ""
+      },
+      "style": {
+        "node-color": "#dbdf00"
+      }
+    },
+    {
+      "id": "n36",
+      "position": {
+        "x": 3118.955864839522,
+        "y": 707.18852678322
+      },
+      "caption": "OAUTH",
+      "labels": [],
+      "properties": {
+        "password": "af30d8200"
+      },
+      "style": {
+        "node-color": "#dbdf00"
+      }
+    },
+    {
+      "id": "n37",
+      "position": {
+        "x": 2543.253536882294,
+        "y": -1192.7599879931793
+      },
+      "caption": "Person",
+      "style": {
+        "node-color": "#a4dd00"
+      },
+      "labels": [],
+      "properties": {
+        "id": "",
+        "name": ""
+      }
+    },
+    {
+      "id": "n38",
+      "position": {
+        "x": 2944.3498514105363,
+        "y": -124.74515765632907
+      },
+      "caption": "Personal Signing Key",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {
+        "publickey": "ed25519",
+        "privatekey": "ed25519",
+        "name": "username.example.org.sign.pub"
+      }
+    },
+    {
+      "id": "n39",
+      "position": {
+        "x": 2225.785933803034,
+        "y": -658.5706288116926
+      },
+      "caption": "Personal Auth Key",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {
+        "publickey": "ed25519",
+        "privatekey": "ed25519",
+        "name": "username.example.org.auth.pub"
+      }
+    },
+    {
+      "id": "n40",
+      "position": {
+        "x": 2545.7294556534434,
+        "y": -402.6528671457585
+      },
+      "caption": "Personal Encrypt Key",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {
+        "publickey": "cv25519",
+        "privatekey": "cv25519",
+        "name": "username.example.org.encr.pub"
+      }
+    },
+    {
+      "id": "n41",
+      "position": {
+        "x": 2543.253536882294,
+        "y": -976.0382318909528
+      },
+      "caption": "Personal Sub Keys",
+      "style": {
+        "node-color": "#a4dd00"
+      },
+      "labels": [],
+      "properties": {
+        "expiration": "1y"
+      }
+    },
+    {
+      "id": "n42",
+      "position": {
+        "x": 2453.853319118148,
+        "y": 1182.3165130648722
+      },
+      "caption": "Client Certificate",
+      "style": {
+        "node-color": "#73d8ff"
+      },
+      "labels": [],
+      "properties": {
+        "privatekey": "",
+        "certificate": "crt"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n0",
+      "fromId": "n0",
+      "toId": "n1",
+      "type": "createCertfyKey",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n44",
+      "fromId": "n1",
+      "toId": "n32",
+      "type": "quick-generate-key",
+      "properties": {
+        "passphrase": "text"
+      },
+      "style": {}
+    },
+    {
+      "id": "n45",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n32",
+      "toId": "n5"
+    },
+    {
+      "id": "n47",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n32",
+      "toId": "n6"
+    },
+    {
+      "id": "n48",
+      "fromId": "n33",
+      "toId": "n22",
+      "type": "enable",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n49",
+      "fromId": "n6",
+      "toId": "n7",
+      "type": "signCertificate",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n50",
+      "fromId": "n7",
+      "toId": "n8",
+      "type": "signCertificate",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n51",
+      "fromId": "n34",
+      "toId": "n22",
+      "type": "enable",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n52",
+      "fromId": "n35",
+      "toId": "n22",
+      "type": "enable",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n53",
+      "fromId": "n36",
+      "toId": "n22",
+      "type": "enable",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n58",
+      "fromId": "n8",
+      "toId": "n34",
+      "type": "import",
+      "properties": {
+        "slot": "83"
+      },
+      "style": {}
+    },
+    {
+      "id": "n59",
+      "fromId": "n7",
+      "toId": "n34",
+      "type": "import",
+      "properties": {
+        "slot": "82"
+      },
+      "style": {}
+    },
+    {
+      "id": "n60",
+      "type": "add-key",
+      "style": {},
+      "properties": {},
+      "fromId": "n6",
+      "toId": "n38"
+    },
+    {
+      "id": "n61",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n32",
+      "toId": "n3"
+    },
+    {
+      "id": "n62",
+      "type": "add-key",
+      "style": {},
+      "properties": {},
+      "fromId": "n5",
+      "toId": "n40"
+    },
+    {
+      "id": "n63",
+      "type": "add-key",
+      "style": {},
+      "properties": {},
+      "fromId": "n3",
+      "toId": "n39"
+    },
+    {
+      "id": "n64",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n41",
+      "toId": "n39"
+    },
+    {
+      "id": "n65",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n41",
+      "toId": "n40"
+    },
+    {
+      "id": "n66",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n41",
+      "toId": "n38"
+    },
+    {
+      "id": "n67",
+      "type": "keytocard",
+      "style": {},
+      "properties": {
+        "item": "2"
+      },
+      "fromId": "n38",
+      "toId": "n35"
+    },
+    {
+      "id": "n68",
+      "type": "keytocard",
+      "style": {},
+      "properties": {
+        "item": "3"
+      },
+      "fromId": "n40",
+      "toId": "n35"
+    },
+    {
+      "id": "n69",
+      "type": "keytocard",
+      "style": {},
+      "properties": {
+        "item": "1"
+      },
+      "fromId": "n39",
+      "toId": "n35"
+    },
+    {
+      "id": "n70",
+      "type": "signCertificate",
+      "style": {},
+      "properties": {},
+      "fromId": "n8",
+      "toId": "n42"
+    },
+    {
+      "id": "n71",
+      "type": "import",
+      "style": {},
+      "properties": {
+        "slot": "84"
+      },
+      "fromId": "n42",
+      "toId": "n34"
+    },
+    {
+      "id": "n72",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n37",
+      "toId": "n41"
+    }
+  ]
+}

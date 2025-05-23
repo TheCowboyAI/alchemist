@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/default";
-    
+
     # Add rust-overlay for nightly Rust support
     rust-overlay.url = "github:oxalica/rust-overlay";
 
@@ -19,8 +19,8 @@
       imports = [
         inputs.treefmt-nix.flakeModule
       ];
-      
-      perSystem = { config, self', inputs', pkgs, system, ... }: 
+
+      perSystem = { config, self', inputs', pkgs, system, ... }:
         let
           # Apply rust-overlay
           pkgsWithRustOverlay = import inputs.nixpkgs {
@@ -28,45 +28,45 @@
             overlays = [ inputs.rust-overlay.overlays.default ];
             config.allowUnfree = true;
           };
-          
+
           # Use the latest nightly toolchain with specific extensions
           rust-toolchain = pkgsWithRustOverlay.rust-bin.nightly.latest.default.override {
-            extensions = [ 
-              "rust-src" 
-              "clippy" 
-              "rustfmt" 
+            extensions = [
+              "rust-src"
+              "clippy"
+              "rustfmt"
               "rust-analyzer"
             ];
             targets = [ "wasm32-unknown-unknown" ];
           };
-          
+
           # Dependencies needed for Bevy and our project
           nonRustDeps = with pkgs; [
             # Audio support
             alsa-lib
             alsa-utils
-            
+
             # Wayland support
             wayland
             wayland-protocols
             wayland-scanner
             libxkbcommon
-            
+
             # X11 support (fallback)
             xorg.libX11
             xorg.libXcursor
             xorg.libXrandr
             xorg.libXi
-            
+
             # Vulkan
             vulkan-headers
             vulkan-loader
             vulkan-validation-layers
-            
+
             # Graphics
             libGL
             freetype
-            
+
             # System libraries
             udev
             systemd
@@ -80,7 +80,7 @@
             default = pkgs.rustPlatform.buildRustPackage {
               pname = "alchemist";
               version = "0.1.0";
-              
+
               # Use current directory as source
               src = pkgs.lib.cleanSourceWith {
                 src = ./.;
@@ -89,25 +89,25 @@
                     baseName = builtins.baseNameOf path;
                     relativePath = pkgs.lib.removePrefix (toString ./.) (toString path);
                   in
-                    # Include Rust project files
-                    (pkgs.lib.hasSuffix ".rs" path) ||
-                    (pkgs.lib.hasSuffix ".toml" path) ||
-                    (pkgs.lib.hasSuffix "Cargo.lock" path) ||
-                    # Include assets if they exist
-                    (pkgs.lib.hasInfix "/assets/" path) ||
-                    # Include directories but exclude problematic ones
-                    (type == "directory" && 
-                      !(baseName == ".git") &&
-                      !(baseName == "target") &&
-                      !(baseName == ".direnv") &&
-                      !(baseName == "result") &&
-                      !(baseName == ".cache")
-                    );
+                  # Include Rust project files
+                  (pkgs.lib.hasSuffix ".rs" path) ||
+                  (pkgs.lib.hasSuffix ".toml" path) ||
+                  (pkgs.lib.hasSuffix "Cargo.lock" path) ||
+                  # Include assets if they exist
+                  (pkgs.lib.hasInfix "/assets/" path) ||
+                  # Include directories but exclude problematic ones
+                  (type == "directory" &&
+                  !(baseName == ".git") &&
+                  !(baseName == "target") &&
+                  !(baseName == ".direnv") &&
+                  !(baseName == "result") &&
+                  !(baseName == ".cache")
+                  );
               };
-              
+
               # Use the Cargo lock file
               cargoLock.lockFile = ./Cargo.lock;
-              
+
               # Build inputs for compilation
               buildInputs = nonRustDeps;
               nativeBuildInputs = with pkgs; [
@@ -117,18 +117,18 @@
                 lld
                 patchelf
               ];
-              
+
               # Environment for build - configure dynamic linking properly
               LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nonRustDeps;
               BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
               BEVY_ASSET_ROOT = toString ./.;
-              
+
               # Rust flags for dynamic linking
               RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld";
-              
+
               # Skip tests (may require graphics)
               doCheck = false;
-              
+
               # Simple postInstall - set up library paths properly
               postInstall = ''
                 # Set up the binary to find both system libraries and its own dylibs
@@ -172,14 +172,14 @@
               pkgs.just
               pkgs.git
             ];
-            
+
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nonRustDeps;
             BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
             BEVY_ASSET_ROOT = toString ./.;
-            
+
             # Rust flags for development
             RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld";
-            
+
             shellHook = ''
               echo "Entering Alchemist development environment"
               echo "Available commands:"

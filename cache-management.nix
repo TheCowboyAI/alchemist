@@ -1,19 +1,19 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> { } }:
 
 let
   # Import our cache configuration
   cacheConfig = import ./cache-config.nix;
-  
+
   # Generate a unique hash from derivation
   hashForAttr = attr: pkgs.lib.substring 0 8 (builtins.hashString "sha256" (builtins.toJSON attr));
-  
+
   # Write config to a file
   writeConfig = pkgs.writeTextFile {
     name = "nix-cache-config";
     text = cacheConfig.nixConfig;
     destination = "/share/nix-cache-config.conf";
   };
-  
+
   # Create a script to push a derivation to the cache
   push-to-cache = pkgs.writeScriptBin "push-to-cache" ''
     #!/usr/bin/env bash
@@ -69,7 +69,7 @@ let
       exit 1
     fi
   '';
-  
+
   # Push rustDeps to the cache specifically
   push-rust-deps = pkgs.writeScriptBin "push-rust-deps" ''
     #!/usr/bin/env bash
@@ -84,7 +84,7 @@ let
     # Use our push-to-cache script
     ${push-to-cache}/bin/push-to-cache "$RUST_DEPS"
   '';
-  
+
   # Push the main package to the cache
   push-main-package = pkgs.writeScriptBin "push-main-package" ''
     #!/usr/bin/env bash
@@ -99,7 +99,7 @@ let
     # Use our push-to-cache script
     ${push-to-cache}/bin/push-to-cache "$MAIN_PKG"
   '';
-  
+
   # Create a script to poll the cache periodically and check for missing dependencies
   cache-monitor = pkgs.writeScriptBin "cache-monitor" ''
     #!/usr/bin/env bash
@@ -151,7 +151,7 @@ let
       sleep $INTERVAL
     done
   '';
-  
+
   # Put everything together in one environment
   cache-tools = pkgs.buildEnv {
     name = "alchemist-cache-tools";
@@ -163,7 +163,8 @@ let
       writeConfig
     ];
   };
-  
-in {
+
+in
+{
   inherit push-to-cache push-rust-deps push-main-package cache-monitor cache-tools;
-} 
+}

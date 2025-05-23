@@ -1,0 +1,596 @@
+{
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  },
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": 328.5451328388533,
+        "y": -488.43123153025607
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#68bc00"
+      },
+      "labels": [
+        "Domain"
+      ],
+      "properties": {
+        "id": "uuid",
+        "name": "String"
+      }
+    },
+    {
+      "id": "n1",
+      "position": {
+        "x": 143.89579339901968,
+        "y": 152.51286689817448
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#7b64ff"
+      },
+      "labels": [
+        "Owner"
+      ],
+      "properties": {
+        "id": "uuid",
+        "name": "String"
+      }
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 143.89579339901968,
+        "y": 599.9999999999999
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [
+        "Account"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": -244.379007409086,
+        "y": 822.4576664201902
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#d33115"
+      },
+      "labels": [
+        "DomainUser"
+      ],
+      "properties": {
+        "id": "uuid",
+        "name": "String"
+      }
+    },
+    {
+      "id": "n4",
+      "position": {
+        "x": -475.30908594433856,
+        "y": 1099.6571218104555
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#f44e3b"
+      },
+      "labels": [
+        "Agent"
+      ],
+      "properties": {
+        "id": "uuid",
+        "name": "String"
+      }
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": -605.1673653711433,
+        "y": 822.4576664201902
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#9f0500"
+      },
+      "labels": [
+        "Person"
+      ],
+      "properties": {
+        "id": "uuid",
+        "name": "String"
+      }
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": 143.89579339901968,
+        "y": -252.46401243654918
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#73d8ff"
+      },
+      "labels": [
+        "Organization"
+      ],
+      "properties": {
+        "id": "uuid",
+        "name": "String"
+      }
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": 477.19770851502864,
+        "y": 822.4576664201902
+      },
+      "caption": "Behaviors",
+      "style": {
+        "node-color": "#a4dd00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n12",
+      "position": {
+        "x": 862.5056892880071,
+        "y": 599.9999999999999
+      },
+      "caption": "Policies",
+      "style": {
+        "node-color": "#73d8ff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n13",
+      "position": {
+        "x": 1932.8805699454006,
+        "y": 19.87390332860899
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#ab149e"
+      },
+      "labels": [
+        "Domain Event Store"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n14",
+      "position": {
+        "x": 143.89579339901968,
+        "y": 1044.9153328403804
+      },
+      "caption": "Cmd",
+      "style": {
+        "node-color": "#e27300"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n15",
+      "position": {
+        "x": 143.89579339901968,
+        "y": 822.4576664201902
+      },
+      "caption": "Qry",
+      "style": {
+        "node-color": "#e27300"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n16",
+      "position": {
+        "x": 1130.3903238882658,
+        "y": 1184.152118125387
+      },
+      "caption": "READ MODELS",
+      "style": {
+        "node-color": "#68bc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n17",
+      "position": {
+        "x": 1139.5346812819516,
+        "y": 599.9999999999999
+      },
+      "caption": "Aggregate",
+      "style": {
+        "node-color": "#d33115"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n18",
+      "position": {
+        "x": 1932.8805699454006,
+        "y": 599.9999999999999
+      },
+      "caption": "Projection",
+      "style": {
+        "node-color": "#7b64ff"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n19",
+      "position": {
+        "x": 1130.3903238882658,
+        "y": 19.204145729331575
+      },
+      "caption": "Transactional State Machine",
+      "style": {
+        "node-color": "#fcdc00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n20",
+      "position": {
+        "x": 1350.5016802683951,
+        "y": 389.03300101355626
+      },
+      "caption": "Entities",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n21",
+      "position": {
+        "x": 1437.8870724617325,
+        "y": 599.9999999999999
+      },
+      "caption": "Values",
+      "style": {
+        "node-color": "#009ce0"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n22",
+      "position": {
+        "x": 1531.8624603938558,
+        "y": -252.46401243654918
+      },
+      "caption": "State Change",
+      "style": {
+        "node-color": "#dbdf00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n23",
+      "position": {
+        "x": 477.19770851502864,
+        "y": -77.52214386256185
+      },
+      "caption": "",
+      "style": {
+        "node-color": "#68bc00"
+      },
+      "labels": [
+        "COMMS"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "n24",
+      "position": {
+        "x": 828.9695400674584,
+        "y": -252.46401243654918
+      },
+      "caption": "ALL Message Traffic",
+      "style": {},
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n25",
+      "position": {
+        "x": 328.5451328388533,
+        "y": 1611.3590320191167
+      },
+      "caption": "Query Results",
+      "style": {
+        "node-color": "#194d33",
+        "caption-color": "#ffffff"
+      },
+      "labels": [],
+      "properties": {}
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n0",
+      "type": "TENANT_OF",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n2"
+    },
+    {
+      "id": "n1",
+      "type": "TENANT_OF",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n3"
+    },
+    {
+      "id": "n2",
+      "type": "IS_AN",
+      "style": {},
+      "properties": {},
+      "fromId": "n3",
+      "toId": "n4"
+    },
+    {
+      "id": "n3",
+      "type": "IS_A",
+      "style": {},
+      "properties": {},
+      "fromId": "n3",
+      "toId": "n5"
+    },
+    {
+      "id": "n5",
+      "type": "TENANT_OF",
+      "style": {},
+      "properties": {},
+      "fromId": "n6",
+      "toId": "n1"
+    },
+    {
+      "id": "n6",
+      "type": "OWNS",
+      "style": {},
+      "properties": {},
+      "fromId": "n6",
+      "toId": "n0"
+    },
+    {
+      "id": "n22",
+      "type": "GRANTS",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n11"
+    },
+    {
+      "id": "n28",
+      "type": "ESTABLISHES",
+      "style": {},
+      "properties": {},
+      "fromId": "n2",
+      "toId": "n12"
+    },
+    {
+      "id": "n33",
+      "type": "REQUESTS",
+      "style": {},
+      "properties": {},
+      "fromId": "n3",
+      "toId": "n15"
+    },
+    {
+      "id": "n34",
+      "type": "INVOKES",
+      "style": {},
+      "properties": {},
+      "fromId": "n3",
+      "toId": "n14"
+    },
+    {
+      "id": "n35",
+      "type": "PERFORMS",
+      "style": {},
+      "properties": {},
+      "fromId": "n15",
+      "toId": "n11"
+    },
+    {
+      "id": "n37",
+      "type": "PERFORMS",
+      "style": {},
+      "properties": {},
+      "fromId": "n14",
+      "toId": "n11"
+    },
+    {
+      "id": "n38",
+      "type": "APPLIES",
+      "style": {},
+      "properties": {},
+      "fromId": "n11",
+      "toId": "n12"
+    },
+    {
+      "id": "n39",
+      "type": "QRY",
+      "style": {},
+      "properties": {},
+      "fromId": "n12",
+      "toId": "n16"
+    },
+    {
+      "id": "n40",
+      "type": "CMD",
+      "style": {},
+      "properties": {},
+      "fromId": "n12",
+      "toId": "n17"
+    },
+    {
+      "id": "n42",
+      "type": "CMD",
+      "style": {},
+      "properties": {},
+      "fromId": "n17",
+      "toId": "n19"
+    },
+    {
+      "id": "n43",
+      "type": "Part_OF",
+      "style": {},
+      "properties": {},
+      "fromId": "n20",
+      "toId": "n17"
+    },
+    {
+      "id": "n44",
+      "type": "PART_OF",
+      "style": {},
+      "properties": {},
+      "fromId": "n21",
+      "toId": "n17"
+    },
+    {
+      "id": "n45",
+      "type": "EVT",
+      "style": {},
+      "properties": {},
+      "fromId": "n19",
+      "toId": "n22"
+    },
+    {
+      "id": "n47",
+      "type": "UPSERT",
+      "style": {},
+      "properties": {},
+      "fromId": "n18",
+      "toId": "n16"
+    },
+    {
+      "id": "n48",
+      "type": "EVT",
+      "style": {},
+      "properties": {},
+      "fromId": "n22",
+      "toId": "n13"
+    },
+    {
+      "id": "n49",
+      "type": "EVT",
+      "style": {},
+      "properties": {},
+      "fromId": "n13",
+      "toId": "n18"
+    },
+    {
+      "id": "n50",
+      "type": "OWNS",
+      "style": {},
+      "properties": {},
+      "fromId": "n1",
+      "toId": "n23"
+    },
+    {
+      "id": "n51",
+      "type": "CONTROLS",
+      "style": {},
+      "properties": {},
+      "fromId": "n23",
+      "toId": "n24"
+    },
+    {
+      "id": "n52",
+      "type": "EVT",
+      "style": {},
+      "properties": {},
+      "fromId": "n16",
+      "toId": "n25"
+    },
+    {
+      "id": "n53",
+      "type": "EVT",
+      "style": {},
+      "properties": {},
+      "fromId": "n25",
+      "toId": "n3"
+    },
+    {
+      "id": "n54",
+      "type": "EVT",
+      "style": {},
+      "properties": {},
+      "fromId": "n16",
+      "toId": "n17"
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  },
+  "nodes": [
+    {
+      "id": "n2",
+      "position": {
+        "x": 160.828240239903,
+        "y": -95.282032302755
+      },
+      "caption": "Organization Certify Key (Root)",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#009ce0"
+      }
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 698.0917449448298,
+        "y": -95.28203230275497
+      },
+      "caption": "Organization Signing Key",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n4",
+      "position": {
+        "x": 672.0518336629667,
+        "y": 69.95268261947552
+      },
+      "caption": "Organization Encryption Key",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n5",
+      "position": {
+        "x": 672.0518336629667,
+        "y": -260.51674722498547
+      },
+      "caption": "Organization Authorization Key",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n6",
+      "position": {
+        "x": 77.84300425477933,
+        "y": 202.71468848482175
+      },
+      "caption": "Person A Certify Key",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": 77.84300425477933,
+        "y": 467.0531144895383
+      },
+      "caption": "Person A Subordinate Keys (Sign, Encrypt)",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#aea1ff"
+      }
+    },
+    {
+      "id": "n8",
+      "position": {
+        "x": 243.8134762250267,
+        "y": 202.71468848482175
+      },
+      "caption": "Person B Certify Key",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n9",
+      "position": {
+        "x": 243.8134762250267,
+        "y": 467.0531144895383
+      },
+      "caption": "Person B Subordinate Keys (Sign, Encrypt)",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#aea1ff"
+      }
+    },
+    {
+      "id": "n10",
+      "position": {
+        "x": 514.7712527300998,
+        "y": 310.61556928531184
+      },
+      "caption": "encryption",
+      "style": {
+        "node-color": "#a4dd00"
+      },
+      "labels": [],
+      "properties": {}
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": 672.0518336629667,
+        "y": 467.0531144895383
+      },
+      "caption": "encrypted message",
+      "style": {
+        "node-color": "#a4dd00"
+      },
+      "labels": [],
+      "properties": {}
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n1",
+      "fromId": "n2",
+      "toId": "n3",
+      "type": "certifies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n2",
+      "fromId": "n2",
+      "toId": "n4",
+      "type": "certifies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n3",
+      "fromId": "n2",
+      "toId": "n5",
+      "type": "certifies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n4",
+      "fromId": "n2",
+      "toId": "n6",
+      "type": "certifies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n5",
+      "fromId": "n6",
+      "toId": "n7",
+      "type": "certifies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n6",
+      "fromId": "n2",
+      "toId": "n8",
+      "type": "certifies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n7",
+      "fromId": "n8",
+      "toId": "n9",
+      "type": "certifies",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n8",
+      "type": "privatekey",
+      "style": {},
+      "properties": {},
+      "fromId": "n9",
+      "toId": "n10"
+    },
+    {
+      "id": "n9",
+      "type": "publickey",
+      "style": {},
+      "properties": {},
+      "fromId": "n4",
+      "toId": "n10"
+    },
+    {
+      "id": "n10",
+      "type": "",
+      "style": {},
+      "properties": {},
+      "fromId": "n10",
+      "toId": "n11"
+    }
+  ]
+}

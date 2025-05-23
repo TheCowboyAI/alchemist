@@ -1,6 +1,6 @@
-use bevy::prelude::*;
 use crate::graph::AlchemistGraph;
 use crate::unified_graph_editor::{BaseGraphResource, VisualNodeComponent};
+use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
@@ -69,13 +69,9 @@ pub struct GraphLayoutPlugin;
 
 impl Plugin for GraphLayoutPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<GraphLayoutController>()
+        app.init_resource::<GraphLayoutController>()
             .add_event::<LayoutUpdateEvent>()
-            .add_systems(Update, (
-                handle_layout_update,
-                apply_force_directed_layout,
-            ));
+            .add_systems(Update, (handle_layout_update, apply_force_directed_layout));
     }
 }
 
@@ -98,43 +94,44 @@ fn apply_force_directed_layout(
     mut controller: ResMut<GraphLayoutController>,
     _time: Res<Time>,
 ) {
-    if !controller.enabled || 
-       controller.iteration_count >= controller.max_iterations ||
-       controller.temperature < controller.stabilization_threshold {
+    if !controller.enabled
+        || controller.iteration_count >= controller.max_iterations
+        || controller.temperature < controller.stabilization_threshold
+    {
         return;
     }
 
     // Process multiple iterations per frame
     let mut total_movement = 0.0;
     let graph = &mut base_graph.graph;
-    
+
     // Calculate forces and update positions
     let mut forces: HashMap<Uuid, (f32, f32)> = HashMap::new();
-    
+
     // Initialize forces to zero
     for node_id in graph.nodes.keys() {
         forces.insert(*node_id, (0.0, 0.0));
     }
-    
+
     // Calculate repulsive forces between all nodes
     let nodes: Vec<_> = graph.nodes.keys().cloned().collect();
     for i in 0..nodes.len() {
         for j in (i + 1)..nodes.len() {
             let node1 = nodes[i];
             let node2 = nodes[j];
-            
+
             if let (Some(pos1), Some(pos2)) = (
                 graph.node_positions.get(&node1),
-                graph.node_positions.get(&node2)
+                graph.node_positions.get(&node2),
             ) {
                 let dx = pos2.x - pos1.x;
                 let dy = pos2.y - pos1.y;
                 let distance = (dx * dx + dy * dy).sqrt().max(0.1);
-                
+
                 let repulsive_force = controller.params.repulsion_constant / (distance * distance);
                 let fx = (dx / distance) * repulsive_force;
                 let fy = (dy / distance) * repulsive_force;
-                
+
                 if let Some(force1) = forces.get_mut(&node1) {
                     force1.0 -= fx;
                     force1.1 -= fy;
@@ -146,21 +143,21 @@ fn apply_force_directed_layout(
             }
         }
     }
-    
+
     // Calculate attractive forces between connected nodes
     for edge in graph.edges.values() {
         if let (Some(pos1), Some(pos2)) = (
             graph.node_positions.get(&edge.source),
-            graph.node_positions.get(&edge.target)
+            graph.node_positions.get(&edge.target),
         ) {
             let dx = pos2.x - pos1.x;
             let dy = pos2.y - pos1.y;
             let distance = (dx * dx + dy * dy).sqrt().max(0.1);
-            
+
             let attractive_force = controller.params.spring_constant * edge.weight * distance;
             let fx = (dx / distance) * attractive_force;
             let fy = (dy / distance) * attractive_force;
-            
+
             if let Some(force1) = forces.get_mut(&edge.source) {
                 force1.0 += fx;
                 force1.1 += fy;
@@ -171,17 +168,17 @@ fn apply_force_directed_layout(
             }
         }
     }
-    
+
     // Apply forces to update positions
     for (node_id, (fx, fy)) in forces {
         if let Some(pos) = graph.node_positions.get_mut(&node_id) {
             pos.x += fx * controller.params.damping * controller.temperature;
             pos.y += fy * controller.params.damping * controller.temperature;
-            
+
             // Apply bounds to keep nodes in a reasonable area
             pos.x = pos.x.clamp(-20.0, 20.0);
             pos.y = pos.y.clamp(-20.0, 20.0);
-            
+
             total_movement += (fx * fx + fy * fy).sqrt();
         }
     }
@@ -217,7 +214,9 @@ fn get_node_position(graph: &AlchemistGraph, id: Uuid) -> Vec3 {
 fn set_node_position(graph: &mut AlchemistGraph, id: Uuid, position: Vec3) {
     // Convert 3D position back to 2D for storage, preserving X and Z coordinates
     // Note: Y coordinate is maintained by the 3D renderer
-    graph.node_positions.insert(id, egui::Pos2::new(position.x, position.z));
+    graph
+        .node_positions
+        .insert(id, egui::Pos2::new(position.x, position.z));
 }
 
 /// Function to apply an initial layout to a specific graph pattern
@@ -243,32 +242,34 @@ fn apply_tree_layout(graph: &mut AlchemistGraph) {
     for (_, edge) in &graph.edges {
         *incoming_edges.entry(edge.target).or_insert(0) += 1;
     }
-    
-    let root_candidates: Vec<Uuid> = graph.nodes.keys()
+
+    let root_candidates: Vec<Uuid> = graph
+        .nodes
+        .keys()
         .filter(|id| !incoming_edges.contains_key(id))
         .cloned()
         .collect();
-    
+
     if let Some(root_id) = root_candidates.first() {
         // Map each node to its level in the tree
         let mut node_levels: HashMap<Uuid, usize> = HashMap::new();
         node_levels.insert(*root_id, 0);
-        
+
         // Position based on level (breadth-first assignment)
         let mut current_level = 0;
         let mut current_level_nodes = vec![*root_id];
-        
+
         while !current_level_nodes.is_empty() {
             let mut next_level_nodes = Vec::new();
             let level_width = current_level_nodes.len() as f32;
-            
+
             for (i, node_id) in current_level_nodes.iter().enumerate() {
                 // Position horizontally based on position in level
                 let x = (i as f32 - (level_width - 1.0) / 2.0) * 3.0;
                 let y = current_level as f32 * -3.0; // Negative y to go downward
-                
+
                 graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
-                
+
                 // Find children
                 for (_, edge) in &graph.edges {
                     if edge.source == *node_id {
@@ -277,7 +278,7 @@ fn apply_tree_layout(graph: &mut AlchemistGraph) {
                     }
                 }
             }
-            
+
             current_level_nodes = next_level_nodes;
             current_level += 1;
         }
@@ -292,25 +293,27 @@ fn apply_star_layout(graph: &mut AlchemistGraph) {
         *connection_count.entry(edge.source).or_insert(0) += 1;
         *connection_count.entry(edge.target).or_insert(0) += 1;
     }
-    
+
     if let Some((center_id, _)) = connection_count.iter().max_by_key(|(_, count)| *count) {
         // Position center node at origin
         graph.node_positions.insert(*center_id, egui::Pos2::ZERO);
-        
+
         // Position other nodes in a circle around the center
-        let peripheral_nodes: Vec<Uuid> = graph.nodes.keys()
+        let peripheral_nodes: Vec<Uuid> = graph
+            .nodes
+            .keys()
             .filter(|id| *id != center_id)
             .cloned()
             .collect();
-            
+
         let count = peripheral_nodes.len() as f32;
         let radius = 5.0;
-        
+
         for (i, node_id) in peripheral_nodes.iter().enumerate() {
             let angle = (i as f32 / count) * std::f32::consts::TAU;
             let x = radius * angle.cos();
             let y = radius * angle.sin();
-            
+
             graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
         }
     }
@@ -321,12 +324,12 @@ fn apply_polygon_layout(graph: &mut AlchemistGraph) {
     let nodes: Vec<Uuid> = graph.nodes.keys().cloned().collect();
     let count = nodes.len() as f32;
     let radius = 5.0;
-    
+
     for (i, node_id) in nodes.iter().enumerate() {
         let angle = (i as f32 / count) * std::f32::consts::TAU;
         let x = radius * angle.cos();
         let y = radius * angle.sin();
-        
+
         graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
     }
 }
@@ -340,23 +343,23 @@ fn apply_cycle_layout(graph: &mut AlchemistGraph) {
 /// Apply a grid layout pattern
 fn apply_grid_layout(graph: &mut AlchemistGraph) {
     let nodes: Vec<Uuid> = graph.nodes.keys().cloned().collect();
-    
+
     // Try to determine grid dimensions from the pattern
     let node_count = nodes.len();
     let width = (node_count as f32).sqrt().round() as usize;
     let height = (node_count + width - 1) / width;
-    
+
     let cell_size = 3.0;
     let x_offset = (width as f32 - 1.0) * cell_size / 2.0;
     let y_offset = (height as f32 - 1.0) * cell_size / 2.0;
-    
+
     for (i, node_id) in nodes.iter().enumerate() {
         let row = i / width;
         let col = i % width;
-        
+
         let x = (col as f32 * cell_size) - x_offset;
         let y = (row as f32 * cell_size) - y_offset;
-        
+
         graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
     }
 }
@@ -366,7 +369,7 @@ fn apply_automaton_layout(graph: &mut AlchemistGraph) {
     // Similar to circular layout but with starting state at the left
     let nodes: Vec<Uuid> = graph.nodes.keys().cloned().collect();
     let radius = 5.0;
-    
+
     // Find start state (typically has a label indicating it's the start)
     let mut start_state = nodes[0];
     for (id, node) in &graph.nodes {
@@ -375,23 +378,23 @@ fn apply_automaton_layout(graph: &mut AlchemistGraph) {
             break;
         }
     }
-    
+
     // Position start state at the left
-    graph.node_positions.insert(start_state, egui::Pos2::new(-radius, 0.0));
-    
+    graph
+        .node_positions
+        .insert(start_state, egui::Pos2::new(-radius, 0.0));
+
     // Position other states in a semicircle
-    let other_nodes: Vec<Uuid> = nodes.into_iter()
-        .filter(|id| *id != start_state)
-        .collect();
-    
+    let other_nodes: Vec<Uuid> = nodes.into_iter().filter(|id| *id != start_state).collect();
+
     let other_count = other_nodes.len() as f32;
     for (i, node_id) in other_nodes.iter().enumerate() {
         // Distribute in 3/4 of a circle
-        let angle = std::f32::consts::PI * 0.25 + 
-                    (i as f32 / other_count) * std::f32::consts::PI * 1.5;
+        let angle =
+            std::f32::consts::PI * 0.25 + (i as f32 / other_count) * std::f32::consts::PI * 1.5;
         let x = radius * angle.cos();
         let y = radius * angle.sin();
-        
+
         graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
     }
 }
@@ -403,31 +406,33 @@ fn apply_dag_layout(graph: &mut AlchemistGraph) {
     for (_, edge) in &graph.edges {
         *incoming_edges.entry(edge.target).or_insert(0) += 1;
     }
-    
-    let sources: Vec<Uuid> = graph.nodes.keys()
+
+    let sources: Vec<Uuid> = graph
+        .nodes
+        .keys()
         .filter(|id| !incoming_edges.contains_key(id))
         .cloned()
         .collect();
-    
+
     if !sources.is_empty() {
         // Assign each node to a layer based on longest path from a source
         let mut layers: HashMap<Uuid, usize> = HashMap::new();
         let mut visited = HashSet::new();
-        
+
         let mut current_layer = 0;
         let mut current_nodes = sources.clone();
-        
+
         while !current_nodes.is_empty() {
             let mut next_nodes = Vec::new();
-            
+
             for node_id in &current_nodes {
                 if visited.contains(node_id) {
                     continue;
                 }
-                
+
                 visited.insert(*node_id);
                 layers.insert(*node_id, current_layer);
-                
+
                 // Find successors
                 for (_, edge) in &graph.edges {
                     if edge.source == *node_id {
@@ -435,17 +440,17 @@ fn apply_dag_layout(graph: &mut AlchemistGraph) {
                     }
                 }
             }
-            
+
             current_nodes = next_nodes;
             current_layer += 1;
         }
-        
+
         // Count nodes in each layer
         let mut layer_counts: HashMap<usize, usize> = HashMap::new();
         for &layer in layers.values() {
             *layer_counts.entry(layer).or_insert(0) += 1;
         }
-        
+
         // Position nodes by layer
         let mut layer_positions: HashMap<usize, usize> = HashMap::new();
         for (node_id, layer) in &layers {
@@ -453,9 +458,9 @@ fn apply_dag_layout(graph: &mut AlchemistGraph) {
             let count = *layer_counts.get(layer).unwrap_or(&1) as f32;
             let x = (position as f32 - (count - 1.0) / 2.0) * 3.0;
             let y = *layer as f32 * 3.0;
-            
+
             graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
-            
+
             *layer_positions.entry(*layer).or_insert(0) += 1;
         }
     }
@@ -466,17 +471,17 @@ fn apply_bipartite_layout(graph: &mut AlchemistGraph) {
     // Try to identify the two sets of nodes
     let mut left_nodes = Vec::new();
     let mut right_nodes = Vec::new();
-    
+
     // Use a simple heuristic: nodes that only have outgoing edges are left nodes,
     // nodes that only have incoming edges are right nodes
     let mut incoming = HashSet::new();
     let mut outgoing = HashSet::new();
-    
+
     for (_, edge) in &graph.edges {
         incoming.insert(edge.target);
         outgoing.insert(edge.source);
     }
-    
+
     for node_id in graph.nodes.keys() {
         if outgoing.contains(node_id) && !incoming.contains(node_id) {
             left_nodes.push(*node_id);
@@ -489,19 +494,23 @@ fn apply_bipartite_layout(graph: &mut AlchemistGraph) {
             right_nodes.push(*node_id);
         }
     }
-    
+
     // Position nodes in two columns
     let left_count = left_nodes.len() as f32;
     let right_count = right_nodes.len() as f32;
-    
+
     for (i, node_id) in left_nodes.iter().enumerate() {
         let y = (i as f32 - (left_count - 1.0) / 2.0) * 2.0;
-        graph.node_positions.insert(*node_id, egui::Pos2::new(-4.0, y));
+        graph
+            .node_positions
+            .insert(*node_id, egui::Pos2::new(-4.0, y));
     }
-    
+
     for (i, node_id) in right_nodes.iter().enumerate() {
         let y = (i as f32 - (right_count - 1.0) / 2.0) * 2.0;
-        graph.node_positions.insert(*node_id, egui::Pos2::new(4.0, y));
+        graph
+            .node_positions
+            .insert(*node_id, egui::Pos2::new(4.0, y));
     }
 }
 
@@ -510,12 +519,12 @@ fn apply_circular_layout(graph: &mut AlchemistGraph) {
     let nodes: Vec<Uuid> = graph.nodes.keys().cloned().collect();
     let count = nodes.len() as f32;
     let radius = count.sqrt() * 1.5; // Scale radius based on node count
-    
+
     for (i, node_id) in nodes.iter().enumerate() {
         let angle = (i as f32 / count) * std::f32::consts::TAU;
         let x = radius * angle.cos();
         let y = radius * angle.sin();
-        
+
         graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
     }
-} 
+}

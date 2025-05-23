@@ -1,24 +1,27 @@
-{ pkgs ? import <nixpkgs> {}, drvPath ? null }:
+{ pkgs ? import <nixpkgs> { }, drvPath ? null }:
 
 let
   cacheConfig = import ./cache-config.nix;
-  
+
   # Function to check if a path exists in the cache
-  checkInCache = path: 
-    let 
+  checkInCache = path:
+    let
       result = builtins.tryEval (
-        builtins.exec ["nix" "path-info" "--store" cacheConfig.localCache path]
+        builtins.exec [ "nix" "path-info" "--store" cacheConfig.localCache path ]
       );
-    in result.success;
-  
+    in
+    result.success;
+
   # Determine the derivation to analyze
-  drv = if drvPath != null 
-        then drvPath
-        else builtins.toString (pkgs.writeText "usage" ''
-          Please provide a derivation path to analyze.
-          Usage: nix-build analyze-cache-miss.nix --argstr drvPath /nix/store/hash-name.drv
-        '');
-  
+  drv =
+    if drvPath != null
+    then drvPath
+    else
+      builtins.toString (pkgs.writeText "usage" ''
+        Please provide a derivation path to analyze.
+        Usage: nix-build analyze-cache-miss.nix --argstr drvPath /nix/store/hash-name.drv
+      '');
+
   # Create the analysis script
   analysis = pkgs.writeScriptBin "analyze-cache-miss" ''
     #!/usr/bin/env bash
@@ -116,5 +119,6 @@ let
     echo "For more detailed analysis of the derivation content:"
     echo "nix show-derivation $DRV | less"
   '';
-  
-in analysis 
+
+in
+analysis
