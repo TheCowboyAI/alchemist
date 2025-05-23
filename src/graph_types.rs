@@ -176,7 +176,7 @@ impl GraphBundle {
         (bundle, domain_model)
     }
     
-    pub fn star(name: String, description: String, points: usize) -> (Self, StarGraph) {
+    pub fn new_star(name: String, description: String, _points: usize) -> (Self, StarGraph) {
         let bundle = Self {
             graph: Graph {
                 name: name.clone(),
