@@ -56,7 +56,7 @@ impl Default for TwoDState {
     fn default() -> Self {
         Self {
             center: Vec2::ZERO,
-            zoom_level: 1.0,
+            zoom_level: 0.1, // Changed from 1.0 to 0.1 for closer view
             fixed_height: 100.0,
         }
     }

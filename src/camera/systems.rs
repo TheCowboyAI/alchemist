@@ -266,11 +266,14 @@ pub fn switch_view_mode(
 }
 
 fn calculate_zoom_from_orbit(orbit_radius: f32) -> f32 {
-    orbit_radius / 15.0
+    // Scale down from orbit radius to orthographic zoom
+    // Smaller values = more zoomed in
+    orbit_radius / 150.0 // Changed from 15.0 to 150.0
 }
 
 fn calculate_orbit_from_zoom(zoom_level: f32) -> f32 {
-    zoom_level * 15.0
+    // Scale up from orthographic zoom to orbit radius
+    zoom_level * 150.0 // Changed from 15.0 to 150.0
 }
 
 /// Update viewport based on window size and UI panels

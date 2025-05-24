@@ -1,0 +1,104 @@
+{
+    "nodes": [
+        {
+            "id": "n1",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "caption": "Start Node",
+            "labels": [
+                "event"
+            ],
+            "properties": {},
+            "style": {}
+        },
+        {
+            "id": "n2",
+            "position": {
+                "x": 200,
+                "y": 0
+            },
+            "caption": "Process A",
+            "labels": [
+                "process"
+            ],
+            "properties": {},
+            "style": {}
+        },
+        {
+            "id": "n3",
+            "position": {
+                "x": 400,
+                "y": 0
+            },
+            "caption": "Decision Point",
+            "labels": [
+                "decision"
+            ],
+            "properties": {},
+            "style": {}
+        },
+        {
+            "id": "n4",
+            "position": {
+                "x": 600,
+                "y": -100
+            },
+            "caption": "Process B",
+            "labels": [
+                "process"
+            ],
+            "properties": {},
+            "style": {}
+        },
+        {
+            "id": "n5",
+            "position": {
+                "x": 600,
+                "y": 100
+            },
+            "caption": "Process C",
+            "labels": [
+                "process"
+            ],
+            "properties": {},
+            "style": {}
+        }
+    ],
+    "relationships": [
+        {
+            "id": "r1",
+            "fromId": "n1",
+            "toId": "n2",
+            "type": "triggers",
+            "properties": {},
+            "style": {}
+        },
+        {
+            "id": "r2",
+            "fromId": "n2",
+            "toId": "n3",
+            "type": "flows_to",
+            "properties": {},
+            "style": {}
+        },
+        {
+            "id": "r3",
+            "fromId": "n3",
+            "toId": "n4",
+            "type": "if_true",
+            "properties": {},
+            "style": {}
+        },
+        {
+            "id": "r4",
+            "fromId": "n3",
+            "toId": "n5",
+            "type": "if_false",
+            "properties": {},
+            "style": {}
+        }
+    ],
+    "style": {}
+}

@@ -1,664 +1,688 @@
 use bevy::prelude::*;
 use bevy_egui::{EguiContexts, EguiPlugin};
+use std::collections::HashMap;
+use uuid::Uuid;
 
-// Import your existing modules
-mod ecs;
+// Import the new modules
+mod camera;
 mod events;
 mod graph;
+mod graph_core;
 mod graph_patterns;
 mod models;
-
-// Import the new unified graph editor system
-mod graph_types;
 mod json_loader;
-mod theming;
-mod unified_graph_editor;
 
-// Keep some useful modules
-mod graph_layout;
+use camera::CameraViewportPlugin;
+use graph_core::{CreateEdgeEvent, CreateNodeEvent, DomainNodeType, GraphPlugin};
+use graph_patterns::{GraphPattern, generate_pattern};
+use json_loader::{load_json_file, save_json_file, json_to_base_graph, base_graph_to_json, FileOperationState, JsonGraphData, JsonNode, JsonRelationship, JsonPosition};
 
-// Import the new camera system
-mod camera;
-
-// Import the new graph core module
-mod graph_core;
-
-// Import the new unified system
-use camera::{CameraViewportPlugin, GraphViewCamera, ViewMode as CameraViewMode};
-use ecs::{EcsEditor, EcsEditorPlugin};
-use graph_core::{CreateNodeEvent, DomainNodeType, GraphPlugin as GraphCorePlugin};
-use graph_layout::GraphLayoutPlugin;
-use graph_patterns::GraphPattern;
-use json_loader::{
-    FileOperationState, JsonFileLoadedEvent, JsonFileSavedEvent, LoadJsonFileEvent,
-    SaveJsonFileEvent, handle_json_file_loading, handle_json_file_saving,
-};
-use theming::{AlchemistTheme, ThemingPlugin, theme_selector_ui};
-use unified_graph_editor::{
-    AddNodeToBaseGraphEvent, AddPatternToBaseGraphEvent, BaseGraphResource, EditorMode,
-    EditorState, ResetBaseGraphEvent, SwitchEditorModeEvent, UnifiedGraphEditorPlugin, ViewMode,
-};
-
-/// Different editor contexts/focus areas
-#[derive(Resource, Default, PartialEq, Eq, Clone, Copy, Debug)]
-pub enum EditorContext {
-    #[default]
-    GraphEditor,
-    WorkflowEditor,
-    DddEditor,
-    EcsEditor,
-}
-
-/// Resource to track the current active context
 #[derive(Resource, Default)]
-pub struct AppState {
-    pub current_context: EditorContext,
+struct NodeCounter(u32);
+
+#[derive(Event)]
+pub struct LoadJsonFileEvent {
+    pub file_path: String,
 }
+
+#[derive(Event)]
+pub struct SaveJsonFileEvent {
+    pub file_path: String,
+}
+
+#[derive(Event)]
+pub struct ClearGraphEvent;
 
 fn main() {
     App::new()
-        .add_plugins(
-            DefaultPlugins
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        title: "Alchemist Graph Editor".to_string(),
-                        fit_canvas_to_parent: true,
-                        prevent_default_event_handling: false,
-                        ..default()
-                    }),
-                    ..default()
-                })
-                .set(ImagePlugin::default_nearest()),
-        )
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Alchemist Graph Editor".to_string(),
+                ..default()
+            }),
+            ..default()
+        }))
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: false,
         })
-        // Add the new unified graph editor system
-        .add_plugins(UnifiedGraphEditorPlugin)
-        .add_plugins(ThemingPlugin)
-        .add_plugins(GraphLayoutPlugin)
-        .add_plugins(EcsEditorPlugin)
-        .init_resource::<AppState>()
+        // Add our custom plugins
+        .add_plugins(CameraViewportPlugin)
+        .add_plugins(GraphPlugin)
+        // Resources
+        .init_resource::<NodeCounter>()
         .init_resource::<FileOperationState>()
+        // Events
         .add_event::<LoadJsonFileEvent>()
         .add_event::<SaveJsonFileEvent>()
-        .add_event::<JsonFileLoadedEvent>()
-        .add_event::<JsonFileSavedEvent>()
-        .add_systems(Startup, setup_file_scanner)
-        .add_systems(
-            Update,
-            (
-                unified_ui_system,
-                handle_json_file_loading,
-                handle_json_file_saving,
-            ),
-        )
+        .add_event::<ClearGraphEvent>()
+        // Setup systems
+        .add_systems(Startup, (setup, setup_file_scanner))
+        .add_systems(Update, (
+            ui_system,
+            debug_camera_system,
+            keyboard_commands_system,
+            handle_load_json_file,
+            handle_save_json_file,
+            handle_clear_graph,
+        ))
         .run();
 }
 
-/// Setup system to scan for available files
+/// Debug system to log camera state
+fn debug_camera_system(
+    camera_query: Query<&camera::GraphViewCamera>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mouse_input: Res<ButtonInput<MouseButton>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::KeyD) {
+        if let Ok(camera) = camera_query.single() {
+            info!("Camera Debug Info:");
+            info!("  View Mode: {:?}", camera.view_mode);
+            info!("  Transition Active: {}", camera.transition.active);
+        }
+    }
+
+    // Log input state when mouse buttons are pressed
+    if mouse_input.just_pressed(MouseButton::Left) {
+        info!("Left mouse button pressed");
+    }
+    if mouse_input.just_pressed(MouseButton::Right) {
+        info!("Right mouse button pressed");
+    }
+    if mouse_input.just_pressed(MouseButton::Middle) {
+        info!("Middle mouse button pressed");
+    }
+}
+
+/// Setup the scene with camera, lights, and initial graph nodes
+fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeEvent>) {
+    // Spawn camera with our GraphViewCamera component
+    commands.spawn((Camera3d::default(), camera::GraphViewCamera::default()));
+
+    // Add lighting
+    commands.spawn((
+        DirectionalLight {
+            illuminance: 10000.0,
+            shadows_enabled: true,
+            affects_lightmapped_mesh_diffuse: true,
+            ..default()
+        },
+        Transform::from_xyz(4.0, 8.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
+
+    // Ambient light for better visibility
+    commands.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: 0.3,
+        affects_lightmapped_meshes: true,
+    });
+
+    // Create some initial test nodes
+    create_node_events.send(CreateNodeEvent {
+        id: Uuid::new_v4(),
+        position: Vec3::new(0.0, 0.0, 0.0),
+        domain_type: DomainNodeType::Process,
+        name: "Central Node".to_string(),
+        subgraph_id: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: Uuid::new_v4(),
+        position: Vec3::new(5.0, 0.0, 0.0),
+        domain_type: DomainNodeType::Decision,
+        name: "Decision Node".to_string(),
+        subgraph_id: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: Uuid::new_v4(),
+        position: Vec3::new(-5.0, 0.0, 0.0),
+        domain_type: DomainNodeType::Event,
+        name: "Event Node".to_string(),
+        subgraph_id: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: Uuid::new_v4(),
+        position: Vec3::new(0.0, 0.0, 5.0),
+        domain_type: DomainNodeType::Storage,
+        name: "Storage Node".to_string(),
+        subgraph_id: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: Uuid::new_v4(),
+        position: Vec3::new(0.0, 0.0, -5.0),
+        domain_type: DomainNodeType::Interface,
+        name: "Interface Node".to_string(),
+        subgraph_id: None,
+    });
+}
+
+/// Setup file scanner
 fn setup_file_scanner(mut file_state: ResMut<FileOperationState>) {
     file_state.scan_models_directory();
 }
 
-/// Unified UI system for the new graph editor with contextual focus areas
-fn unified_ui_system(
+/// Enhanced UI system with graph patterns and file loading
+fn ui_system(
     mut contexts: EguiContexts,
-    mut app_state: ResMut<AppState>,
-    mut add_pattern_events: EventWriter<AddPatternToBaseGraphEvent>,
-    mut add_node_events: EventWriter<AddNodeToBaseGraphEvent>,
-    mut switch_mode_events: EventWriter<SwitchEditorModeEvent>,
-    mut reset_base_graph_events: EventWriter<ResetBaseGraphEvent>,
+    graph_state: Res<graph_core::GraphState>,
+    camera_query: Query<&camera::GraphViewCamera>,
+    mut create_node_events: EventWriter<CreateNodeEvent>,
+    mut create_edge_events: EventWriter<CreateEdgeEvent>,
     mut load_json_events: EventWriter<LoadJsonFileEvent>,
     mut save_json_events: EventWriter<SaveJsonFileEvent>,
-    base_graph: Res<BaseGraphResource>,
-    editor_state: Res<EditorState>,
-    editor_mode: Res<EditorMode>,
-    mut theme: ResMut<AlchemistTheme>,
-    mut ecs_editor: ResMut<EcsEditor>,
+    mut file_state: ResMut<FileOperationState>,
+    node_query: Query<(Entity, &graph_core::GraphNode)>,
+    mut clear_events: EventWriter<ClearGraphEvent>,
+) {
+    // Left panel with controls
+    egui::SidePanel::left("controls")
+        .default_width(300.0)
+        .show(contexts.ctx_mut(), |ui| {
+            ui.heading("Graph Editor Controls");
+
+            ui.separator();
+
+            // View mode info
+            if let Ok(camera) = camera_query.single() {
+                ui.label("View Mode:");
+                match camera.view_mode {
+                    camera::ViewMode::ThreeD(_) => {
+                        ui.label("🎲 3D View");
+                        ui.label("Controls:");
+                        ui.label("• Right Mouse: Orbit");
+                        ui.label("• Middle Mouse: Pan (with Shift)");
+                        ui.label("• Scroll: Zoom");
+                        ui.label("• Tab/V: Switch to 2D");
+                    }
+                    camera::ViewMode::TwoD(_) => {
+                        ui.label("📄 2D View");
+                        ui.label("Controls:");
+                        ui.label("• Middle Mouse: Pan");
+                        ui.label("• Scroll: Zoom");
+                        ui.label("• Tab/V: Switch to 3D");
+                    }
+                }
+            }
+
+            ui.separator();
+
+            // Graph stats
+            ui.label(format!("Nodes: {}", graph_state.node_count));
+            ui.label(format!("Edges: {}", graph_state.edge_count));
+
+            ui.separator();
+
+            // Graph Patterns section
+            ui.heading("📐 Graph Patterns");
+
+            ui.horizontal(|ui| {
+                if ui.button("⭐ Star").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::Star { points: 6 },
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+                if ui.button("🌳 Tree").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::Tree {
+                            branch_factor: 3,
+                            depth: 3,
+                        },
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+            });
+
+            ui.horizontal(|ui| {
+                if ui.button("🔄 Cycle").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::Cycle { nodes: 5 },
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+                if ui.button("🔗 Complete").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::Complete { nodes: 4 },
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+            });
+
+            ui.horizontal(|ui| {
+                if ui.button("📊 DAG").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::DirectedAcyclicGraph {
+                            levels: 3,
+                            nodes_per_level: 2,
+                        },
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+                if ui.button("🤖 Moore").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::MooreMachine,
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+            });
+
+            ui.horizontal(|ui| {
+                if ui.button("🔷 Grid").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::Grid {
+                            width: 3,
+                            height: 3,
+                        },
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+                if ui.button("🎭 Bipartite").clicked() {
+                    add_pattern_to_graph(
+                        GraphPattern::Bipartite {
+                            left_nodes: 3,
+                            right_nodes: 3,
+                            edge_density: 0.7,
+                        },
+                        &mut create_node_events,
+                        &mut create_edge_events,
+                        &node_query,
+                    );
+                }
+            });
+
+            ui.separator();
+
+            // File operations
+            ui.heading("📁 File Operations");
+
+            if let Some(current_file) = &file_state.current_file_path {
+                ui.label(format!(
+                    "Current: {}",
+                    current_file.split('/').last().unwrap_or("unknown")
+                ));
+            } else {
+                ui.label("No file loaded");
+            }
+
+            ui.separator();
+
+            // Available files
+            ui.label("Available JSON files:");
+            egui::ScrollArea::vertical()
+                .max_height(150.0)
+                .show(ui, |ui| {
+                    if file_state.available_files.is_empty() {
+                        ui.label("No JSON files found");
+                        if ui.button("🔄 Refresh").clicked() {
+                            file_state.scan_models_directory();
+                        }
+                    } else {
+                        for file_path in file_state.available_files.clone() {
+                            let file_name = file_path.split('/').last().unwrap_or("unknown");
+                            if ui.button(format!("📂 {}", file_name)).clicked() {
+                                load_json_events.send(LoadJsonFileEvent {
+                                    file_path: file_path.clone(),
+                                });
+                            }
+                        }
+                    }
+                });
+
+            ui.separator();
+
+            // Save options
+            ui.horizontal(|ui| {
+                if ui.button("💾 Save").clicked() {
+                    if let Some(current_file) = &file_state.current_file_path {
+                        save_json_events.send(SaveJsonFileEvent {
+                            file_path: current_file.clone(),
+                        });
+                    }
+                }
+
+                if ui.button("💾 Save As...").clicked() {
+                    let timestamp = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    let new_file = format!("assets/models/graph_{}.json", timestamp);
+                    save_json_events.send(SaveJsonFileEvent {
+                        file_path: new_file,
+                    });
+                }
+            });
+
+            ui.separator();
+
+            // Add node button
+            if ui.button("Add Random Node").clicked() {
+                let counter = graph_state.node_count as f32;
+                let angle = counter * 0.618; // Golden ratio for nice distribution
+                let radius = 5.0 + (counter * 0.5).min(10.0);
+                let x = angle.cos() * radius;
+                let z = angle.sin() * radius;
+
+                create_node_events.send(CreateNodeEvent {
+                    id: Uuid::new_v4(),
+                    position: Vec3::new(x, 0.0, z),
+                    domain_type: match (counter as u32) % 5 {
+                        0 => DomainNodeType::Process,
+                        1 => DomainNodeType::Decision,
+                        2 => DomainNodeType::Event,
+                        3 => DomainNodeType::Storage,
+                        _ => DomainNodeType::Interface,
+                    },
+                    name: format!("Node {}", graph_state.node_count + 1),
+                    subgraph_id: None,
+                });
+            }
+
+            // Clear graph button
+            if ui.button("🗑️ Clear Graph").clicked() {
+                clear_events.send(ClearGraphEvent);
+            }
+
+            ui.separator();
+
+            // Help text
+            ui.label("Keyboard shortcuts:");
+            ui.label("• H: Show help");
+            ui.label("• Ctrl+K: Clear graph");
+            ui.label("• Ctrl+N: Add node");
+        });
+}
+
+/// Helper function to add a pattern to the graph
+fn add_pattern_to_graph(
+    pattern: GraphPattern,
+    create_node_events: &mut EventWriter<CreateNodeEvent>,
+    create_edge_events: &mut EventWriter<CreateEdgeEvent>,
+    existing_nodes: &Query<(Entity, &graph_core::GraphNode)>,
+) {
+    let pattern_graph = generate_pattern(pattern);
+
+    // Calculate offset to avoid overlapping with existing nodes
+    let offset = Vec3::new(10.0, 0.0, 10.0);
+
+    // Map old UUIDs to new entities
+    let mut id_to_entity: std::collections::HashMap<Uuid, Entity> =
+        std::collections::HashMap::new();
+
+    // First pass: create all nodes
+    for (old_id, node) in &pattern_graph.nodes {
+        let new_id = Uuid::new_v4();
+
+        // Calculate position with offset
+        let pos = if let (Some(x_str), Some(y_str)) =
+            (node.properties.get("x_pos"), node.properties.get("y_pos"))
+        {
+            if let (Ok(x), Ok(y)) = (x_str.parse::<f32>(), y_str.parse::<f32>()) {
+                Vec3::new(x / 20.0 + offset.x, 0.0, y / 20.0 + offset.z)
+            } else {
+                offset
+            }
+        } else {
+            offset
+        };
+
+        create_node_events.send(CreateNodeEvent {
+            id: new_id,
+            position: pos,
+            domain_type: DomainNodeType::Process, // Default type
+            name: node.name.clone(),
+            subgraph_id: None,
+        });
+
+        // We'll need to wait for nodes to be created before we can get their entities
+        // For now, just track the mapping
+        id_to_entity.insert(*old_id, Entity::PLACEHOLDER);
+    }
+
+    // Note: Edge creation would need to happen after nodes are created
+    // This is a limitation we'd need to address with a better event system
+}
+
+/// Keyboard commands system for clear controls
+fn keyboard_commands_system(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut clear_events: EventWriter<ClearGraphEvent>,
+    mut create_node_events: EventWriter<CreateNodeEvent>,
+) {
+    // Clear graph with Ctrl+K
+    if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyK) {
+        clear_events.send(ClearGraphEvent);
+        info!("Clear graph command triggered");
+    }
+
+    // Add node at origin with Ctrl+N
+    if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyN) {
+        create_node_events.send(CreateNodeEvent {
+            id: Uuid::new_v4(),
+            position: Vec3::ZERO,
+            domain_type: DomainNodeType::Process,
+            name: "New Node".to_string(),
+            subgraph_id: None,
+        });
+        info!("Add node command triggered");
+    }
+
+    // Print help with H
+    if keyboard.just_pressed(KeyCode::KeyH) {
+        info!("=== Keyboard Commands ===");
+        info!("Tab/V: Switch between 2D/3D view");
+        info!("Ctrl+K: Clear graph");
+        info!("Ctrl+N: Add new node at origin");
+        info!("D: Debug camera info");
+        info!("H: Show this help");
+        info!("=== Mouse Controls ===");
+        info!("3D: Right-click drag to orbit, Middle+Shift to pan, Scroll to zoom");
+        info!("2D: Middle-click drag to pan, Scroll to zoom");
+    }
+}
+
+/// Handle file loading
+fn handle_load_json_file(
+    mut events: EventReader<LoadJsonFileEvent>,
+    mut commands: Commands,
+    mut clear_events: EventWriter<ClearGraphEvent>,
+    mut create_node_events: EventWriter<CreateNodeEvent>,
     mut file_state: ResMut<FileOperationState>,
 ) {
-    // Top menu bar for context switching
-    egui::TopBottomPanel::top("top_menu")
-        .exact_height(60.0)
-        .show(contexts.ctx_mut(), |ui| {
-            ui.horizontal(|ui| {
-                ui.heading("🧪 Alchemist Editor Dashboard");
+    for event in events.read() {
+        info!("Loading file: {}", event.file_path);
 
-                ui.add_space(40.0);
+        // First clear the graph
+        clear_events.send(ClearGraphEvent);
 
-                // Context switching buttons
-                ui.horizontal(|ui| {
-                    if ui
-                        .selectable_label(
-                            app_state.current_context == EditorContext::GraphEditor,
-                            "📊 Graph Editor",
-                        )
-                        .clicked()
-                    {
-                        app_state.current_context = EditorContext::GraphEditor;
-                    }
-
-                    if ui
-                        .selectable_label(
-                            app_state.current_context == EditorContext::WorkflowEditor,
-                            "🔄 Workflow Editor",
-                        )
-                        .clicked()
-                    {
-                        app_state.current_context = EditorContext::WorkflowEditor;
-                    }
-
-                    if ui
-                        .selectable_label(
-                            app_state.current_context == EditorContext::DddEditor,
-                            "🏗️ DDD Editor",
-                        )
-                        .clicked()
-                    {
-                        app_state.current_context = EditorContext::DddEditor;
-                    }
-
-                    if ui
-                        .selectable_label(
-                            app_state.current_context == EditorContext::EcsEditor,
-                            "⚙️ ECS Editor",
-                        )
-                        .clicked()
-                    {
-                        app_state.current_context = EditorContext::EcsEditor;
-                    }
-                });
-
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.label(format!("Active: {:?}", app_state.current_context));
-                });
-            });
-        });
-
-    // Main content area - changes based on current context
-    egui::CentralPanel::default().show(contexts.ctx_mut(), |ui| match app_state.current_context {
-        EditorContext::GraphEditor => {
-            show_graph_editor_content(
-                ui,
-                &mut add_pattern_events,
-                &mut add_node_events,
-                &mut switch_mode_events,
-                &mut reset_base_graph_events,
-                &mut load_json_events,
-                &mut save_json_events,
-                &base_graph,
-                &editor_state,
-                &editor_mode,
-                &mut theme,
-                &mut file_state,
-            );
-        }
-        EditorContext::WorkflowEditor => {
-            show_workflow_editor_content(ui);
-        }
-        EditorContext::DddEditor => {
-            show_ddd_editor_content(ui);
-        }
-        EditorContext::EcsEditor => {
-            show_ecs_editor_content(ui, &mut ecs_editor);
-        }
-    });
-
-    // Status bar with fixed height
-    egui::TopBottomPanel::bottom("status_bar")
-        .exact_height(25.0)
-        .show(contexts.ctx_mut(), |ui| {
-            ui.horizontal(|ui| {
-                ui.label(format!("Context: {:?}", app_state.current_context));
-                ui.separator();
-                ui.label(format!("Mode: {:?}", editor_mode.mode));
-                ui.separator();
-                ui.label(format!(
-                    "Base Graph: {} nodes, {} edges",
-                    base_graph.graph.nodes.len(),
-                    base_graph.graph.edges.len()
-                ));
-                ui.separator();
-                ui.label(format!("Subgraphs: {}", base_graph.subgraphs.len()));
-                if let Some(_) = editor_state.selected_subgraph {
-                    ui.separator();
-                    ui.label("Subgraph Selected");
+        // Try to load the JSON file
+        match load_graph_from_json(&event.file_path) {
+            Ok((nodes, _edges)) => {
+                // Create nodes from loaded data
+                for node_data in nodes {
+                    create_node_events.send(node_data);
                 }
-            });
-        });
-}
 
-/// Show content for the Graph Editor context
-fn show_graph_editor_content(
-    ui: &mut egui::Ui,
-    add_pattern_events: &mut EventWriter<AddPatternToBaseGraphEvent>,
-    add_node_events: &mut EventWriter<AddNodeToBaseGraphEvent>,
-    switch_mode_events: &mut EventWriter<SwitchEditorModeEvent>,
-    reset_base_graph_events: &mut EventWriter<ResetBaseGraphEvent>,
-    load_json_events: &mut EventWriter<LoadJsonFileEvent>,
-    save_json_events: &mut EventWriter<SaveJsonFileEvent>,
-    base_graph: &Res<BaseGraphResource>,
-    editor_state: &Res<EditorState>,
-    editor_mode: &Res<EditorMode>,
-    theme: &mut ResMut<AlchemistTheme>,
-    file_state: &mut ResMut<FileOperationState>,
-) {
-    ui.horizontal(|ui| {
-        // Left control panel
-        ui.vertical(|ui| {
-            ui.set_min_width(300.0);
-            ui.set_max_width(300.0);
-            ui.set_min_height(600.0);
-
-            egui::ScrollArea::vertical()
-                .min_scrolled_height(400.0)
-                .show(ui, |ui| {
-                    ui.heading("Graph Editor Controls");
-
-                    ui.separator();
-
-                    // View mode controls
-                    ui.label("View Mode:");
-                    ui.horizontal(|ui| {
-                        if ui
-                            .selectable_label(
-                                matches!(editor_mode.mode, ViewMode::Mode3D),
-                                "🎲 3D View",
-                            )
-                            .clicked()
-                        {
-                            switch_mode_events.write(SwitchEditorModeEvent {
-                                mode: ViewMode::Mode3D,
-                            });
-                        }
-
-                        if ui
-                            .selectable_label(
-                                matches!(editor_mode.mode, ViewMode::Mode2D),
-                                "📄 2D View",
-                            )
-                            .clicked()
-                        {
-                            switch_mode_events.write(SwitchEditorModeEvent {
-                                mode: ViewMode::Mode2D,
-                            });
-                        }
-                    });
-
-                    ui.separator();
-
-                    // Pattern generation controls
-                    ui.label("📐 Add Graph Patterns to Base Graph:");
-
-                    ui.horizontal(|ui| {
-                        if ui.button("⭐ Star Pattern").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::Star { points: 6 },
-                                name: format!("Star-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-
-                        if ui.button("🌳 Tree Pattern").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::Tree {
-                                    branch_factor: 3,
-                                    depth: 3,
-                                },
-                                name: format!("Tree-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-                    });
-
-                    ui.horizontal(|ui| {
-                        if ui.button("🔄 Cycle Pattern").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::Cycle { nodes: 5 },
-                                name: format!("Cycle-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-
-                        if ui.button("🔗 Complete Graph").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::Complete { nodes: 4 },
-                                name: format!("Complete-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-                    });
-
-                    ui.horizontal(|ui| {
-                        if ui.button("📊 DAG Pattern").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::DirectedAcyclicGraph {
-                                    levels: 3,
-                                    nodes_per_level: 2,
-                                },
-                                name: format!("DAG-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-
-                        if ui.button("🤖 Moore Machine").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::MooreMachine,
-                                name: format!("Moore-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-                    });
-
-                    ui.horizontal(|ui| {
-                        if ui.button("🔷 Grid Pattern").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::Grid {
-                                    width: 3,
-                                    height: 3,
-                                },
-                                name: format!("Grid-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-
-                        if ui.button("🎭 Bipartite").clicked() {
-                            add_pattern_events.write(AddPatternToBaseGraphEvent {
-                                pattern: GraphPattern::Bipartite {
-                                    left_nodes: 3,
-                                    right_nodes: 3,
-                                    edge_density: 0.7,
-                                },
-                                name: format!("Bipartite-{}", base_graph.next_subgraph_id),
-                            });
-                        }
-                    });
-
-                    ui.separator();
-
-                    // Theme settings
-                    theme_selector_ui(ui, theme);
-
-                    ui.separator();
-
-                    // File operations section
-                    ui.group(|ui| {
-                        ui.label("📁 File Operations:");
-
-                        // Current file display
-                        if let Some(current_file) = &file_state.current_file_path {
-                            ui.label(format!(
-                                "Current: {}",
-                                current_file.split('/').last().unwrap_or("unknown")
-                            ));
-                        } else {
-                            ui.label("No file loaded");
-                        }
-
-                        ui.separator();
-
-                        // Available files dropdown
-                        ui.label("Available JSON files:");
-                        if file_state.available_files.is_empty() {
-                            ui.label("No JSON files found in assets/models/");
-                            if ui.button("🔄 Refresh").clicked() {
-                                file_state.scan_models_directory();
-                            }
-                        } else {
-                            for file_path in &file_state.available_files.clone() {
-                                let file_name = file_path.split('/').last().unwrap_or("unknown");
-                                if ui.button(format!("📂 Load {}", file_name)).clicked() {
-                                    load_json_events.write(LoadJsonFileEvent {
-                                        file_path: file_path.clone(),
-                                    });
-                                }
-                            }
-                        }
-
-                        ui.separator();
-
-                        // Save options
-                        ui.horizontal(|ui| {
-                            if ui.button("💾 Save Current").clicked() {
-                                if let Some(current_file) = &file_state.current_file_path {
-                                    save_json_events.write(SaveJsonFileEvent {
-                                        file_path: current_file.clone(),
-                                    });
-                                }
-                            }
-
-                            if ui.button("💾 Save As...").clicked() {
-                                let timestamp = std::time::SystemTime::now()
-                                    .duration_since(std::time::UNIX_EPOCH)
-                                    .unwrap()
-                                    .as_secs();
-                                let new_file =
-                                    format!("assets/models/graph_export_{}.json", timestamp);
-                                save_json_events.write(SaveJsonFileEvent {
-                                    file_path: new_file,
-                                });
-                            }
-                        });
-
-                        // Show last operation message
-                        if !file_state.last_operation_message.is_empty() {
-                            ui.separator();
-                            ui.label(&file_state.last_operation_message);
-                        }
-                    });
-
-                    ui.separator();
-
-                    // Base graph status - fixed height section
-                    ui.group(|ui| {
-                        ui.label("📈 Base Graph Status:");
-                        ui.label(format!("  Nodes: {}", base_graph.graph.nodes.len()));
-                        ui.label(format!("  Edges: {}", base_graph.graph.edges.len()));
-                        ui.label(format!("  Subgraphs: {}", base_graph.subgraphs.len()));
-                    });
-
-                    // Reset controls
-                    ui.horizontal(|ui| {
-                        if ui.button("🗑 Reset Base Graph").clicked() {
-                            reset_base_graph_events.write(ResetBaseGraphEvent);
-                        }
-                    });
-
-                    ui.separator();
-
-                    // Subgraph information - constrained height
-                    if !base_graph.subgraphs.is_empty() {
-                        ui.label("🎨 Subgraphs in Base Graph:");
-
-                        // Limit the height of subgraph list to prevent jumping
-                        egui::ScrollArea::vertical()
-                            .max_height(200.0)
-                            .show(ui, |ui| {
-                                for (id, subgraph) in &base_graph.subgraphs {
-                                    let selected = editor_state.selected_subgraph == Some(*id);
-                                    let color_circle = "🔴"; // Simple colored circle emoji
-
-                                    let text = format!(
-                                        "{} {} ({} nodes)",
-                                        color_circle,
-                                        subgraph.name,
-                                        subgraph.nodes.len()
-                                    );
-
-                                    ui.selectable_label(selected, &text);
-                                }
-                            });
-                    }
-
-                    ui.separator();
-
-                    // Manual node addition - fixed height section
-                    ui.group(|ui| {
-                        if let Some(selected_subgraph) = editor_state.selected_subgraph {
-                            ui.label("➕ Add Node to Selected Subgraph:");
-
-                            if ui.button("Add Node").clicked() {
-                                add_node_events.write(AddNodeToBaseGraphEvent {
-                                    name: format!("Node-{}", base_graph.graph.nodes.len() + 1),
-                                    labels: vec!["manual".to_string()],
-                                    position: Some(Vec3::new(0.0, 0.0, 0.0)),
-                                    subgraph_id: Some(selected_subgraph),
-                                });
-                            }
-                        } else {
-                            ui.label("➕ Add Standalone Node:");
-
-                            if ui.button("Add Node").clicked() {
-                                add_node_events.write(AddNodeToBaseGraphEvent {
-                                    name: format!("Node-{}", base_graph.graph.nodes.len() + 1),
-                                    labels: vec!["standalone".to_string()],
-                                    position: Some(Vec3::new(0.0, 0.0, 0.0)),
-                                    subgraph_id: None,
-                                });
-                            }
-                        }
-                    });
-
-                    ui.separator();
-
-                    // Instructions - collapsible to save space
-                    ui.collapsing("📋 Instructions", |ui| {
-                        ui.label("• Click pattern buttons to ADD to base graph");
-                        ui.label("• Each pattern becomes a colored subgraph");
-                        ui.label("• Switch between 2D and 3D projections");
-                        ui.label("• Reset clears the entire base graph");
-                        if matches!(editor_mode.mode, ViewMode::Mode2D) {
-                            ui.label("• Use WASD or arrows to navigate in 2D");
-                        } else {
-                            ui.label("• Mouse to orbit/pan/zoom in 3D");
-                        }
-                    });
-                });
-        });
-
-        ui.separator();
-
-        // Right side - visualization area (this is where the 3D/2D scene renders)
-        ui.vertical(|ui| {
-            ui.heading("Graph Visualization");
-            ui.label("The 3D/2D graph visualization renders in the background");
-            ui.label(format!("Current view mode: {:?}", editor_mode.mode));
-
-            // Add some visual feedback about what's in the scene
-            if base_graph.graph.nodes.is_empty() {
-                ui.colored_label(
-                    ui.visuals().warn_fg_color,
-                    "⚠ No graph data loaded. Add some patterns to see visualization!",
-                );
-            } else {
-                ui.colored_label(
-                    ui.visuals().selection.stroke.color,
-                    format!(
-                        "✓ Displaying {} nodes and {} edges",
-                        base_graph.graph.nodes.len(),
-                        base_graph.graph.edges.len()
-                    ),
-                );
+                file_state.current_file_path = Some(event.file_path.clone());
+                info!("Successfully loaded graph from {}", event.file_path);
             }
-        });
-    });
+            Err(e) => {
+                warn!("Failed to load file {}: {}", event.file_path, e);
+            }
+        }
+    }
 }
 
-/// Show content for the Workflow Editor context
-fn show_workflow_editor_content(ui: &mut egui::Ui) {
-    ui.heading("🔄 Workflow Editor");
-    ui.separator();
+/// Handle file saving
+fn handle_save_json_file(
+    mut events: EventReader<SaveJsonFileEvent>,
+    node_query: Query<(&graph_core::GraphNode, &Transform)>,
+    edge_query: Query<&graph_core::GraphEdge>,
+    mut file_state: ResMut<FileOperationState>,
+) {
+    for event in events.read() {
+        info!("Saving file: {}", event.file_path);
 
-    ui.label("Workflow editor content will be implemented here.");
-    ui.label("This will allow creating and editing workflow graphs.");
+        // Collect graph data
+        let nodes: Vec<_> = node_query.iter()
+            .map(|(node, transform)| (node.clone(), transform.translation))
+            .collect();
 
-    // Placeholder content
-    ui.group(|ui| {
-        ui.label("Future features:");
-        ui.label("• Step-by-step workflow creation");
-        ui.label("• Process flow visualization");
-        ui.label("• Conditional branching");
-        ui.label("• Workflow execution simulation");
-    });
+        let edges: Vec<_> = edge_query.iter().cloned().collect();
+
+        match save_graph_to_json(&event.file_path, nodes, edges) {
+            Ok(_) => {
+                file_state.current_file_path = Some(event.file_path.clone());
+                info!("Successfully saved graph to {}", event.file_path);
+            }
+            Err(e) => {
+                warn!("Failed to save file {}: {}", event.file_path, e);
+            }
+        }
+    }
 }
 
-/// Show content for the DDD Editor context
-fn show_ddd_editor_content(ui: &mut egui::Ui) {
-    ui.heading("🏗️ Domain-Driven Design Editor");
-    ui.separator();
+/// Handle clearing the graph
+fn handle_clear_graph(
+    mut events: EventReader<ClearGraphEvent>,
+    mut commands: Commands,
+    node_query: Query<Entity, With<graph_core::GraphNode>>,
+    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
+    mut graph_state: ResMut<graph_core::GraphState>,
+) {
+    for _ in events.read() {
+        // Despawn all nodes
+        for entity in &node_query {
+            commands.entity(entity).despawn_recursive();
+        }
 
-    ui.label("DDD editor content will be implemented here.");
-    ui.label("This will help with domain modeling and bounded contexts.");
+        // Despawn all edges
+        for entity in &edge_query {
+            commands.entity(entity).despawn_recursive();
+        }
 
-    // Placeholder content
-    ui.group(|ui| {
-        ui.label("Future features:");
-        ui.label("• Bounded context mapping");
-        ui.label("• Aggregate design");
-        ui.label("• Entity relationship modeling");
-        ui.label("• Event storming support");
-    });
+        // Reset graph state
+        graph_state.node_count = 0;
+        graph_state.edge_count = 0;
+        graph_state.selected_nodes.clear();
+        graph_state.selected_edges.clear();
+        graph_state.hovered_entity = None;
+
+        info!("Graph cleared");
+    }
 }
 
-/// Show content for the ECS Editor context
-fn show_ecs_editor_content(ui: &mut egui::Ui, ecs_editor: &mut ResMut<EcsEditor>) {
-    ui.heading("⚙️ Entity Component System Editor");
-    ui.separator();
+// Simple JSON load/save functions
+fn load_graph_from_json(path: &str) -> Result<(Vec<CreateNodeEvent>, Vec<graph_core::CreateEdgeEvent>), String> {
+    // Load the JSON file
+    let json_data = load_json_file(path)?;
 
-    // Show ECS editor content inline instead of as a separate window
-    ui.horizontal(|ui| {
-        // Left panel - ECS controls
-        ui.vertical(|ui| {
-            ui.set_min_width(300.0);
-            ui.set_max_width(300.0);
+    // Convert to base graph
+    let base_graph = json_to_base_graph(json_data)?;
 
-            ui.group(|ui| {
-                ui.label("📦 Entities:");
-                for entity in &ecs_editor.entities {
-                    ui.label(format!("• {}", entity));
-                }
+    // Convert to events
+    let mut node_events = Vec::new();
+    let mut edge_events = Vec::new();
 
-                if ui.button("Add Entity").clicked() {
-                    let entity_name = format!("Entity_{}", ecs_editor.entities.len() + 1);
-                    ecs_editor.add_entity(entity_name);
-                }
-            });
+    // Create node events
+    for (uuid, node) in &base_graph.graph.nodes {
+        let position = base_graph.node_positions.get(uuid)
+            .copied()
+            .unwrap_or(Vec3::ZERO);
 
-            ui.separator();
+        // Determine domain type from labels
+        let domain_type = if node.labels.contains(&"decision".to_string()) {
+            DomainNodeType::Decision
+        } else if node.labels.contains(&"event".to_string()) {
+            DomainNodeType::Event
+        } else if node.labels.contains(&"storage".to_string()) {
+            DomainNodeType::Storage
+        } else if node.labels.contains(&"interface".to_string()) {
+            DomainNodeType::Interface
+        } else {
+            DomainNodeType::Process
+        };
 
-            ui.group(|ui| {
-                ui.label("🧩 Components:");
-                for component in &ecs_editor.components {
-                    ui.label(format!("• {}", component));
-                }
-
-                if ui.button("Add Component").clicked() {
-                    let component_name = format!("Component_{}", ecs_editor.components.len() + 1);
-                    ecs_editor.add_component(component_name);
-                }
-            });
-
-            ui.separator();
-
-            ui.group(|ui| {
-                ui.label("⚙️ Systems:");
-                for system in &ecs_editor.systems {
-                    ui.label(format!("• {}", system));
-                }
-
-                if ui.button("Add System").clicked() {
-                    let system_name = format!("System_{}", ecs_editor.systems.len() + 1);
-                    ecs_editor.add_system(system_name);
-                }
-            });
+        node_events.push(CreateNodeEvent {
+            id: *uuid,
+            position,
+            domain_type,
+            name: node.name.clone(),
+            subgraph_id: None,
         });
+    }
 
-        ui.separator();
-
-        // Right panel - ECS visualization
-        ui.vertical(|ui| {
-            ui.heading("ECS Graph Visualization");
-            ui.label("ECS relationship graph visualization will be shown here.");
-            ui.label(format!(
-                "Entities: {}, Components: {}, Systems: {}",
-                ecs_editor.entities.len(),
-                ecs_editor.components.len(),
-                ecs_editor.systems.len()
-            ));
+    // Create edge events
+    for (_, edge) in &base_graph.graph.edges {
+        edge_events.push(graph_core::CreateEdgeEvent {
+            id: edge.id,
+            source: Entity::PLACEHOLDER, // Will need to map UUIDs to entities
+            target: Entity::PLACEHOLDER, // Will need to map UUIDs to entities
+            edge_type: graph_core::DomainEdgeType::DataFlow,
         });
-    });
+    }
+
+    Ok((node_events, edge_events))
+}
+
+fn save_graph_to_json(
+    path: &str,
+    nodes: Vec<(graph_core::GraphNode, Vec3)>,
+    edges: Vec<graph_core::GraphEdge>
+) -> Result<(), String> {
+    // Create JSON data structure directly
+    let mut json_nodes = Vec::new();
+    let mut json_relationships = Vec::new();
+    let mut id_counter = 1;
+    let mut uuid_to_string = std::collections::HashMap::new();
+
+    // Convert nodes
+    for (node, position) in nodes {
+        let string_id = format!("n{}", id_counter);
+        uuid_to_string.insert(node.id, string_id.clone());
+        id_counter += 1;
+
+        let json_node = JsonNode {
+            id: string_id,
+            position: JsonPosition {
+                x: position.x * 100.0,
+                y: position.z * 100.0, // Use Z as Y for 2D representation
+            },
+            caption: node.name.clone(),
+            labels: vec![format!("{:?}", node.domain_type).to_lowercase()],
+            properties: std::collections::HashMap::new(),
+            style: std::collections::HashMap::new(),
+        };
+
+        json_nodes.push(json_node);
+    }
+
+    // Note: Edge saving would require entity-to-UUID mapping
+    // For now, we'll skip edges
+
+    let json_data = JsonGraphData {
+        nodes: json_nodes,
+        relationships: json_relationships,
+        style: Default::default(),
+    };
+
+    save_json_file(path, &json_data)?;
+
+    Ok(())
 }
