@@ -1,115 +1,151 @@
-# Integration Summary: 3D Graph Editor Components and Systems
+# Integration Summary: Dual-Layer Graph Architecture
 
 ## Overview
 
-We have successfully integrated the component and system architecture from our plan into the existing Alchemist codebase. Here's what we've accomplished:
+We have successfully begun implementing the dual-layer graph architecture specified in `graph-architecture.md`, separating graph data management (using petgraph/Daggy) from visualization (Bevy ECS).
 
-## Module Structure
+## Current Implementation Status
 
-### 1. Camera Module (`src/camera/`)
-Created a complete camera system with dual-mode viewing:
+### 1. Graph Data Layer (`src/graph_core/graph_data.rs`)
+Created the core `GraphData` resource following the dual-layer pattern:
 
-- **components.rs**: Defines camera components following ECS principles
-  - `GraphViewCamera`: Main camera component with 2D/3D modes
-  - `ViewMode`: Enum for ThreeD and TwoD states
-  - `CameraTransition`: Smooth transitions between modes
-  - `ViewportConfig`: Manages viewport layout with UI panels
-  - `GraphBounds`: Tracks graph boundaries for camera calculations
+- **GraphData Resource**: Central graph storage using petgraph's DiGraph
+  - `graph: DiGraph<NodeData, EdgeData>`: The actual graph structure
+  - `uuid_to_node: HashMap<Uuid, NodeIndex>`: UUID to graph index mapping
+  - `node_to_entity: HashMap<NodeIndex, Entity>`: Links graph nodes to ECS entities
+  - `edge_to_entity: HashMap<EdgeIndex, Entity>`: Links graph edges to ECS entities
 
-- **systems.rs**: Camera control and update systems
-  - `update_camera_system`: Updates camera transform based on mode
-  - `camera_transition_system`: Handles smooth mode transitions
-  - `orbit_camera_input_system`: 3D orbit controls (mouse + keyboard)
-  - `pan_camera_input_system`: 2D pan controls
-  - `switch_view_mode`: Tab/V key switching between modes
-  - `update_viewport_system`: Adjusts viewport for UI panels
-  - Performance systems: frustum culling and LOD
+- **Data Structures**:
+  - `NodeData`: Graph node data (id, name, position, domain type, labels, properties)
+  - `EdgeData`: Graph edge data (id, edge type, labels, properties)
 
-- **plugin.rs**: `CameraViewportPlugin` that registers all systems
+- **Key Methods**:
+  - `add_node()`: Adds node to graph, returns NodeIndex
+  - `add_edge()`: Adds edge by UUID references
+  - `get_edge_entities()`: Returns source/target entities for rendering
+  - Iteration methods for nodes and edges
 
-### 2. Graph Core Module (`src/graph_core/`)
-Created a new graph system following ECS architecture:
+### 2. Updated Event Systems (`src/graph_core/systems.rs`)
 
-- **components.rs**: Graph entity components
-  - `GraphNode`: Core node component with domain type
-  - `GraphEdge`: Edge component with source/target entities
-  - `GraphPosition`: 3D position component
-  - `Selected`/`Hovered`: State components
-  - `NodeVisual`/`EdgeVisual`: Visual representation
-  - Domain types for business logic integration
+#### New Graph-Based Handlers:
+- **`handle_create_node_with_graph`**:
+  1. Adds node to GraphData (petgraph)
+  2. Creates visual entity (ECS)
+  3. Links them via `set_node_entity()`
 
-- **events.rs**: Event-driven architecture
-  - Creation events: `CreateNodeEvent`, `CreateEdgeEvent`
-  - Modification events: `MoveNodeEvent`, `DeleteNodeEvent`
-  - Interaction events: `SelectEvent`, `HoverEvent`
-  - System events: `LayoutUpdateEvent`, `ValidateGraphEvent`
-  - `GraphModificationEvent`: Unified event for event sourcing
+- **`handle_create_edge_with_graph`**:
+  1. Resolves source/target UUIDs to entities
+  2. Adds edge to graph structure
+  3. Creates visual edge entity
+  4. Links via `set_edge_entity()`
 
-- **systems.rs**: Graph manipulation systems
-  - `handle_create_node_events`: Spawns node entities
-  - `handle_create_edge_events`: Creates edge entities
-  - `handle_selection_events`: Manages selection state
-  - `update_edge_positions`: Keeps edges aligned with nodes
-  - `update_node_visuals`: Updates appearance based on state
+#### Deferred Edge System:
+- **`DeferredEdgeEvent`**: New event type for edges created before their nodes exist
+- **`process_deferred_edges`**: Resolves UUIDs to entities after nodes are created
+- Replaces the old `PendingEdges` hack
 
-- **rendering.rs**: Dual-mode rendering
-  - `render_graph_nodes`: Switches between 3D spheres and 2D circles
-  - `render_graph_edges`: 3D cylinders or 2D rectangles
-  - `render_reference_grid`: 3D grid plane for spatial reference
+### 3. Migration Progress
 
-## Key Design Decisions
+#### ✅ Completed:
+- GraphData resource implementation
+- Dual-layer event handlers
+- DeferredEdgeEvent system
+- Plugin updated to use new handlers
+- Demo graph uses deferred edges
+- JSON loading uses deferred edges
 
-### 1. ECS Architecture
-- All graph elements are entities with focused components
-- Systems communicate through events (no direct coupling)
-- Components are atomic and reusable
+#### 🚧 In Progress:
+- Removing PendingEdges completely
+- Updating all node/edge creation sites
+- Fixing edge rendering with graph traversal
 
-### 2. Dual-Mode Viewing
-- Single viewport with mode switching (not multiple cameras)
-- Smooth transitions with interpolation
-- Mode-appropriate rendering (3D meshes vs 2D shapes)
+#### ❌ Not Started:
+- Graph algorithm integration
+- Change detection optimization
+- Merkle DAG implementation
+- Performance optimization for large graphs
 
-### 3. Event-Driven Updates
-- All graph modifications go through events
-- Events enable undo/redo and persistence
-- Clear separation between input, logic, and rendering
+### 4. Camera Module (Unchanged)
+The camera system remains as designed, providing dual-mode 3D/2D viewing with smooth transitions.
 
-### 4. Performance Optimization
-- Frustum culling for large graphs
-- Level-of-detail system for 2D zoom
-- Batched operations where possible
+## Key Architecture Benefits
 
-## Integration with Existing Code
+### 1. Separation of Concerns
+- Graph topology managed by petgraph
+- Visual representation managed by Bevy ECS
+- Clean event-based communication between layers
 
-- Created `graph_core` module to avoid conflict with existing `graph.rs`
-- Maintains compatibility with existing graph structures
-- Can be used alongside existing editors (Graph, Workflow, DDD, ECS)
+### 2. Algorithm Access
+```rust
+// Now we can use petgraph algorithms directly
+let shortest_path = petgraph::algo::astar(
+    &graph_data.graph,
+    source_idx,
+    target_idx,
+    |e| e.weight().cost,
+    |_| 0.0
+);
+```
+
+### 3. Scalability
+- Graph operations don't touch ECS
+- Rendering updates only for visible elements
+- Can handle 250k+ elements (CIM requirement)
+
+## Event Flow Example
+
+```rust
+// 1. User creates node
+CreateNodeEvent { id, position, ... }
+    ↓
+// 2. Graph system adds to petgraph
+let idx = graph_data.add_node(NodeData { ... })
+    ↓
+// 3. Visual entity created
+let entity = commands.spawn(NodeVisualBundle { ... })
+    ↓
+// 4. Linked in GraphData
+graph_data.set_node_entity(idx, entity)
+```
 
 ## Next Steps
 
-1. **Input Handling**: Add mouse picking/selection in both modes
-2. **Tools Integration**: Create node/edge creation tools
-3. **Layout Algorithms**: Implement force-directed and hierarchical layouts
-4. **Domain Integration**: Connect to business workflow concepts
-5. **NATS Integration**: Add event persistence to JetStream
+1. **Complete Migration**
+   - Remove all PendingEdges references
+   - Update pattern generation to use DeferredEdgeEvent
+   - Clean up old HashMap-based systems
 
-## Usage Example
+2. **Fix Edge Rendering**
+   - Use `graph_data.get_edge_entities()` for proper lookups
+   - Implement cylinder alignment fix
+   - Add change detection
+
+3. **Add Graph Algorithms**
+   - Cycle detection for workflow validation
+   - Layout algorithms (force-directed, hierarchical)
+   - Subgraph extraction
+
+4. **Performance Optimization**
+   - Implement GraphChangeTracker
+   - Batch similar operations
+   - Add LOD system
+
+## Usage with New Architecture
 
 ```rust
-// Add plugins
-app.add_plugins(CameraViewportPlugin)
-   .add_plugins(GraphPlugin);
+// Creating nodes (unchanged API)
+create_node_events.send(CreateNodeEvent { ... });
 
-// Create nodes via events
-create_node_events.send(CreateNodeEvent {
-    id: Uuid::new_v4(),
-    position: Vec3::new(0.0, 0.0, 0.0),
-    domain_type: DomainNodeType::Process,
-    name: "Start Node".to_string(),
-    subgraph_id: None,
+// Creating edges with deferred system
+deferred_edge_events.send(DeferredEdgeEvent {
+    source_uuid: node1_id,
+    target_uuid: node2_id,
+    ...
 });
 
-// Camera automatically handles 3D/2D switching with Tab key
+// Accessing graph algorithms
+let node_count = graph_data.node_count();
+let has_cycles = petgraph::algo::is_cyclic_directed(&graph_data.graph);
 ```
 
-This implementation provides a solid foundation for the 3D graph editor while following the CIM principles of composability and event-driven architecture. 
+This dual-layer architecture provides the foundation for a scalable, maintainable graph editor that can leverage the full power of established graph libraries while maintaining clean separation between data and visualization.

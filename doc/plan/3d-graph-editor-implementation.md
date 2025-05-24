@@ -2,218 +2,336 @@
 
 ## Executive Summary
 
-This document outlines the implementation plan for a 3D-enabled graph editor built using Bevy v0.16.0, following CIM (Composable Information Machine) principles and ECS architecture. The system will support both 3D and 2D viewing modes within a single viewport, with tools for creating and manipulating domain-driven workflow graphs.
+This document outlines the implementation plan for a 3D-enabled graph editor built using Bevy v0.16.0, following CIM (Composable Information Machine) principles and a **dual-layer architecture** that separates graph data (Daggy/Petgraph) from visualization (Bevy ECS).
 
 ## Architecture Overview
 
 ### Core Principles
-- **ECS-Driven Design**: All graph elements are entities with components
-- **Event-Sourced State**: Graph modifications produce events in an append-only log
-- **Domain-Driven Boundaries**: Clear separation between graph domain, UI domain, and camera systems
-- **Composable Modules**: Each system is a reusable "Lego block" following CIM architecture
+- **Dual-Layer Design**: Daggy manages graph topology, Bevy handles visualization
+- **Event-Sourced State**: Graph modifications flow through events
+- **Decoupled Systems**: Graph algorithms run independently of rendering
+- **Composable Modules**: Each system is a reusable "Lego block"
+
+### Layer Separation
+```
+Layer 1: Computational Graph (Daggy)
+  - Graph topology and relationships
+  - Node/edge data storage
+  - Graph algorithms (traversal, shortest path, etc.)
+  - Serialization/deserialization
+
+Layer 2: Visualization (Bevy ECS)
+  - Spatial positioning
+  - Visual properties
+  - User interaction
+  - Animation and rendering
+```
 
 ## Phase 1: Foundation Components (Week 1-2)
 
-### 1.1 Graph Core Components
+### 1.1 Graph Data Layer
 ```rust
-// Components for graph entities
-#[derive(Component)]
-struct GraphNode {
-    id: Uuid,
-    domain_type: DomainNodeType,
-    position: Vec3,
+use petgraph::graph::{DiGraph, NodeIndex, EdgeIndex};
+use daggy::Dag;
+
+#[derive(Resource)]
+pub struct GraphData {
+    /// The petgraph directed graph
+    graph: DiGraph<NodeData, EdgeData>,
+    /// Map from UUID to petgraph NodeIndex
+    uuid_to_node: HashMap<Uuid, NodeIndex>,
+    /// Map from NodeIndex to ECS Entity
+    node_to_entity: HashMap<NodeIndex, Entity>,
+    /// Map from EdgeIndex to ECS Entity
+    edge_to_entity: HashMap<EdgeIndex, Entity>,
 }
 
-#[derive(Component)]
-struct GraphEdge {
-    id: Uuid,
-    source: Entity,
-    target: Entity,
-    edge_type: DomainEdgeType,
+#[derive(Debug, Clone)]
+pub struct NodeData {
+    pub id: Uuid,
+    pub name: String,
+    pub domain_type: DomainNodeType,
+    pub position: Vec3,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
 }
 
-#[derive(Component)]
-struct GraphContainer {
-    nodes: Vec<Entity>,
-    edges: Vec<Entity>,
+#[derive(Debug, Clone)]
+pub struct EdgeData {
+    pub id: Uuid,
+    pub edge_type: DomainEdgeType,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
 }
 ```
 
-### 1.2 Camera System Components
+### 1.2 Visualization Components
 ```rust
+// Reference to graph data
 #[derive(Component)]
-enum CameraMode {
-    ThreeD { orbit_state: OrbitState },
-    TwoD { fixed_height: f32 },
+struct GraphNodeRef {
+    dag_index: NodeIndex,
+    version: u64
 }
 
 #[derive(Component)]
-struct GraphCamera {
-    mode: CameraMode,
-    transition_state: Option<TransitionState>,
+struct GraphEdgeRef {
+    dag_index: EdgeIndex,
+    source_entity: Entity,
+    target_entity: Entity
+}
+
+// Visual components only
+#[derive(Component)]
+struct NodeVisual {
+    base_color: Color,
+    current_color: Color,
+}
+
+#[derive(Component)]
+struct EdgeVisual {
+    width: f32,
+    color: Color,
 }
 ```
 
-### 1.3 Event Definitions
+### 1.3 Event Flow Architecture
 ```rust
 #[derive(Event)]
 enum GraphEvent {
+    // User input events
     NodeCreated { id: Uuid, position: Vec3, domain_type: DomainNodeType },
     NodeMoved { id: Uuid, from: Vec3, to: Vec3 },
     EdgeCreated { id: Uuid, source: Uuid, target: Uuid },
-    EdgeDeleted { id: Uuid },
+
+    // Graph data events (after Daggy update)
+    GraphNodeAdded { index: NodeIndex, data: NodeData },
+    GraphEdgeAdded { index: EdgeIndex, data: EdgeData },
+    GraphTopologyChanged,
 }
 ```
 
 ## Phase 2: Core Systems Implementation (Week 2-3)
 
-### 2.1 Graph Management Systems
-- **GraphSpawnSystem**: Handles node/edge entity creation from events
-- **GraphLayoutSystem**: Manages automatic layout algorithms
-- **GraphValidationSystem**: Ensures domain constraints are met
-- **GraphPersistenceSystem**: Serializes graph state to NATS JetStream
-
-### 2.2 Camera Control Systems
-- **CameraTransitionSystem**: Smoothly transitions between 2D/3D modes
-- **OrbitCameraSystem**: Handles 3D pan/orbit controls
-- **FixedCameraSystem**: Manages 2D top-down view
-- **CameraInputSystem**: Processes user input for camera control
-
-### 2.3 Rendering Systems
-- **NodeRenderSystem**: Draws graph nodes with domain-specific visuals
-- **EdgeRenderSystem**: Renders connections with appropriate styling
-- **GridRenderSystem**: Shows reference grid in both view modes
-- **SelectionRenderSystem**: Highlights selected elements
-
-## Phase 3: UI and Tools Integration (Week 3-4)
-
-### 3.1 Egui Integration
+### 2.1 Graph Data Management
 ```rust
-pub struct GraphToolsPlugin;
+/// Handles graph events and updates Daggy
+fn process_graph_events(
+    mut events: EventReader<GraphEvent>,
+    mut graph_data: ResMut<GraphData>,
+    mut sync_events: EventWriter<GraphSyncEvent>,
+) {
+    for event in events.read() {
+        match event {
+            GraphEvent::NodeCreated { id, position, domain_type } => {
+                // Add to Daggy first
+                let node_data = NodeData { id, position, domain_type, ... };
+                let index = graph_data.graph.add_node(node_data);
+                graph_data.uuid_to_node.insert(id, index);
 
-impl Plugin for GraphToolsPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(EguiPlugin)
-           .add_systems(Update, (
-               render_tools_panel,
-               handle_tool_interactions,
-           ).chain());
+                // Trigger sync to ECS
+                sync_events.send(GraphSyncEvent::CreateNodeEntity { index });
+            }
+            // ... other events
+        }
+    }
+}
+
+/// Syncs graph changes to ECS entities
+fn sync_graph_to_ecs(
+    mut commands: Commands,
+    mut sync_events: EventReader<GraphSyncEvent>,
+    mut graph_data: ResMut<GraphData>,
+) {
+    for event in sync_events.read() {
+        match event {
+            GraphSyncEvent::CreateNodeEntity { index } => {
+                let node = graph_data.graph.node_weight(index).unwrap();
+                let entity = commands.spawn(NodeVisualBundle {
+                    // Only visual components
+                    transform: Transform::from_translation(node.position),
+                    visual: NodeVisual { ... },
+                }).id();
+
+                graph_data.node_to_entity.insert(index, entity);
+            }
+            // ... other sync events
+        }
     }
 }
 ```
 
-### 3.2 Tool Components
-- **NodeCreationTool**: Click-to-place nodes with domain type selection
-- **EdgeCreationTool**: Drag between nodes to create edges
-- **SelectionTool**: Box select, multi-select with modifiers
-- **LayoutTool**: Apply force-directed or hierarchical layouts
+### 2.2 Graph Algorithm Systems
+```rust
+/// Runs graph algorithms on Daggy structure
+fn graph_algorithm_system(
+    graph_data: Res<GraphData>,
+    algorithm_requests: EventReader<AlgorithmRequest>,
+    mut results: EventWriter<AlgorithmResult>,
+) {
+    for request in algorithm_requests.read() {
+        match request {
+            AlgorithmRequest::ShortestPath { source, target } => {
+                // Use petgraph algorithms directly
+                let path = petgraph::algo::astar(&graph_data.graph, source, target, ...);
+                results.send(AlgorithmResult::Path(path));
+            }
+            AlgorithmRequest::TopologicalSort => {
+                let sorted = petgraph::algo::toposort(&graph_data.graph, None);
+                results.send(AlgorithmResult::Ordering(sorted));
+            }
+        }
+    }
+}
+```
 
-### 3.3 Property Panels
-- Node properties editor (domain-specific fields)
-- Edge properties editor (relationship types)
-- Graph metadata panel
-- View settings panel
+### 2.3 Rendering Systems
+```rust
+/// Updates visual entities based on graph state
+fn update_node_visuals(
+    graph_data: Res<GraphData>,
+    mut nodes: Query<(&GraphNodeRef, &mut Transform, &mut NodeVisual)>,
+) {
+    for (node_ref, mut transform, mut visual) in nodes.iter_mut() {
+        if let Some(node_data) = graph_data.graph.node_weight(node_ref.dag_index) {
+            transform.translation = node_data.position;
+            // Update other visual properties
+        }
+    }
+}
+```
 
-## Phase 4: Domain Integration (Week 4-5)
+## Phase 3: Performance Optimization (Week 3-4)
 
-### 4.1 Domain Model Mapping
-- Map business workflows to graph structures
-- Define node types for domain concepts
-- Establish edge types for relationships
-- Create validation rules for domain constraints
+### 3.1 Change Detection
+```rust
+#[derive(Resource)]
+struct GraphChangeTracker {
+    modified_nodes: HashSet<NodeIndex>,
+    modified_edges: HashSet<EdgeIndex>,
+    last_update: u64,
+}
 
-### 4.2 Conceptual Space Integration
-- Implement spatial representation of domain concepts
-- Create similarity-based node positioning
-- Enable semantic clustering visualization
-- Support concept navigation
+/// Only update visuals for changed elements
+fn selective_visual_update(
+    changes: Res<GraphChangeTracker>,
+    graph_data: Res<GraphData>,
+    mut visuals: Query<(&GraphNodeRef, &mut Transform)>,
+) {
+    for (node_ref, mut transform) in visuals.iter_mut() {
+        if changes.modified_nodes.contains(&node_ref.dag_index) {
+            // Update only changed nodes
+        }
+    }
+}
+```
 
-### 4.3 Event Stream Processing
-- Connect to NATS JetStream for event persistence
-- Implement event replay for graph reconstruction
-- Enable collaborative editing through event sharing
-- Support undo/redo via event sourcing
+### 3.2 Batched Rendering
+```rust
+/// Batch mesh generation for performance
+fn batch_node_meshes(
+    graph_data: Res<GraphData>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    changed: Res<GraphChangeTracker>,
+) -> Vec<InstanceData> {
+    graph_data.graph.node_indices()
+        .filter(|idx| changed.modified_nodes.contains(idx))
+        .map(|idx| {
+            let node = graph_data.graph.node_weight(idx).unwrap();
+            InstanceData {
+                position: node.position,
+                color: get_color_for_type(&node.domain_type),
+            }
+        })
+        .collect()
+}
+```
 
-## Phase 5: Advanced Features (Week 5-6)
+## Phase 4: Advanced Features (Week 4-5)
 
-### 5.1 AI Agent Integration
-- Create AI-assisted layout suggestions
-- Implement pattern recognition for common workflows
-- Enable natural language graph queries
-- Support automated graph optimization
+### 4.1 Merkle DAG Support
+```rust
+use daggy::Dag;
 
-### 5.2 Performance Optimization
-- Implement frustum culling for large graphs
-- Use GPU instancing for node rendering
-- Create level-of-detail system for zoomed-out views
-- Optimize edge rendering with batching
+#[derive(Resource)]
+pub struct MerkleDag {
+    dag: Dag<MerkleNode, MerkleEdge>,
+    cid_to_node: HashMap<Cid, NodeIndex>,
+}
 
-### 5.3 Persistence and Serialization
-- Graph format specification (compatible with common formats)
-- NATS JetStream integration for distributed state
-- Local caching with Nix-managed storage
-- Import/export capabilities
+#[derive(Clone)]
+struct MerkleNode {
+    cid: Cid,
+    links: Vec<Cid>,
+    data: NodeData,
+}
+```
+
+### 4.2 Graph Layout Algorithms
+```rust
+/// Apply force-directed layout using graph structure
+fn force_directed_layout(
+    mut graph_data: ResMut<GraphData>,
+    time: Res<Time>,
+) {
+    // Run layout algorithm on Daggy structure
+    let positions = calculate_force_layout(&graph_data.graph, time.delta_seconds());
+
+    // Update node positions in graph data
+    for (idx, pos) in positions {
+        if let Some(node) = graph_data.graph.node_weight_mut(idx) {
+            node.position = pos;
+        }
+    }
+}
+```
 
 ## Implementation Guidelines
 
-### ECS Best Practices
-1. Keep components atomic and focused
-2. Use events for cross-system communication
-3. Leverage Bevy's parallel execution
-4. Design queries around archetype boundaries
-
-### Code Organization
+### Event Flow Pattern
 ```
-src/
-  graph/
-    components.rs    // Graph-specific components
-    systems.rs       // Graph manipulation systems
-    events.rs        // Graph event definitions
-    plugin.rs        // GraphPlugin definition
-  camera/
-    components.rs    // Camera components
-    systems.rs       // Camera control systems
-    plugin.rs        // CameraPlugin definition
-  ui/
-    tools/          // Tool implementations
-    panels/         // UI panel systems
-    plugin.rs       // UIPlugin definition
-  domain/
-    models.rs       // Domain type definitions
-    validation.rs   // Domain constraint systems
-    plugin.rs       // DomainPlugin definition
+1. User Input → CreateNodeEvent
+2. Event Handler → Update Daggy/Petgraph
+3. Sync System → Create/Update ECS Entity
+4. Render System → Draw Visual Representation
+```
+
+### System Ordering
+```rust
+app.add_systems(Update, (
+    // Input handling
+    handle_mouse_input,
+    handle_keyboard_input,
+    // Graph data updates
+    process_graph_events,
+    validate_graph_constraints,
+    // Sync to visualization
+    sync_graph_to_ecs,
+    update_graph_bounds,
+    // Visual updates
+    update_node_visuals,
+    update_edge_visuals,
+    // Algorithms (can run in parallel)
+    graph_algorithm_system,
+).chain());
 ```
 
 ### Testing Strategy
-1. Unit tests for each component
-2. Integration tests for system interactions
-3. Property-based tests for graph algorithms
-4. Performance benchmarks for rendering
-
-### Deployment Considerations
-- Use Nix flakes for reproducible builds
-- Package as composable Bevy plugin
-- Document domain configuration options
-- Provide example domain implementations
+1. **Graph Data Tests**: Test Daggy operations independently
+2. **Sync Tests**: Verify entity creation matches graph data
+3. **Visual Tests**: Ensure rendering reflects graph state
+4. **Performance Tests**: Benchmark with large graphs (10k+ nodes)
 
 ## Success Metrics
-- Smooth 60 FPS with 1000+ nodes
-- Sub-100ms camera mode transitions
-- Intuitive tool interactions
-- Domain expert approval of workflow representation
-- Successful integration with CIM event streams
+- Graph operations complete in < 16ms (60 FPS)
+- Support 250k+ elements as per CIM requirements
+- Zero tight coupling between graph data and rendering
+- All graph algorithms available from petgraph
 
-## Risk Mitigation
-- **Performance**: Early profiling and optimization
-- **Complexity**: Incremental feature addition
-- **Domain Alignment**: Regular stakeholder feedback
-- **Technical Debt**: Continuous refactoring cycles
+## Migration Path
+1. Keep existing HashMap implementation temporarily
+2. Add GraphData resource alongside
+3. Gradually migrate systems to use GraphData
+4. Remove old implementation once complete
 
-## Timeline Summary
-- Week 1-2: Foundation components and basic systems
-- Week 2-3: Core functionality implementation
-- Week 3-4: UI and tools integration
-- Week 4-5: Domain-specific features
-- Week 5-6: Polish and optimization
-
-This plan provides a structured approach to building a robust 3D graph editor that aligns with CIM principles while leveraging Bevy's ECS architecture for maximum performance and maintainability. 
+This plan ensures strict separation between graph computation and visualization, enabling maximum performance and flexibility while leveraging the full power of established graph libraries.

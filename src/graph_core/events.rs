@@ -35,6 +35,17 @@ pub struct CreateEdgeEvent {
     pub properties: HashMap<String, String>,
 }
 
+/// Event for deferred edge creation - sent along with node creation
+#[derive(Event)]
+pub struct DeferredEdgeEvent {
+    pub id: Uuid,
+    pub source_uuid: Uuid,
+    pub target_uuid: Uuid,
+    pub edge_type: DomainEdgeType,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
+}
+
 /// Event for deleting nodes
 #[derive(Event)]
 pub struct DeleteNodeEvent {

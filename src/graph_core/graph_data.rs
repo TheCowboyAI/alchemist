@@ -1,21 +1,22 @@
-use petgraph::graph::{DiGraph, NodeIndex as PetNodeIndex, EdgeIndex as PetEdgeIndex};
-use petgraph::Direction;
+use super::components::{DomainEdgeType, DomainNodeType};
 use bevy::prelude::*;
-use uuid::Uuid;
+use petgraph::Direction;
+use petgraph::graph::{DiGraph, EdgeIndex as PetEdgeIndex, NodeIndex as PetNodeIndex};
+use petgraph::visit::EdgeRef;
 use std::collections::HashMap;
-use super::components::{DomainNodeType, DomainEdgeType};
+use uuid::Uuid;
 
 /// The actual graph data structure using petgraph
 #[derive(Resource)]
 pub struct GraphData {
     /// The petgraph directed graph
-    graph: DiGraph<NodeData, EdgeData>,
+    pub(super) graph: DiGraph<NodeData, EdgeData>,
     /// Map from UUID to petgraph NodeIndex
-    uuid_to_node: HashMap<Uuid, PetNodeIndex>,
+    pub(super) uuid_to_node: HashMap<Uuid, PetNodeIndex>,
     /// Map from petgraph NodeIndex to ECS Entity
-    node_to_entity: HashMap<PetNodeIndex, Entity>,
+    pub(super) node_to_entity: HashMap<PetNodeIndex, Entity>,
     /// Map from petgraph EdgeIndex to ECS Entity
-    edge_to_entity: HashMap<PetEdgeIndex, Entity>,
+    pub(super) edge_to_entity: HashMap<PetEdgeIndex, Entity>,
 }
 
 #[derive(Debug, Clone)]
@@ -61,10 +62,19 @@ impl GraphData {
     }
 
     /// Add an edge between two nodes
-    pub fn add_edge(&mut self, source_id: Uuid, target_id: Uuid, data: EdgeData) -> Result<PetEdgeIndex, String> {
-        let source = self.uuid_to_node.get(&source_id)
+    pub fn add_edge(
+        &mut self,
+        source_id: Uuid,
+        target_id: Uuid,
+        data: EdgeData,
+    ) -> Result<PetEdgeIndex, String> {
+        let source = self
+            .uuid_to_node
+            .get(&source_id)
             .ok_or_else(|| format!("Source node {} not found", source_id))?;
-        let target = self.uuid_to_node.get(&target_id)
+        let target = self
+            .uuid_to_node
+            .get(&target_id)
             .ok_or_else(|| format!("Target node {} not found", target_id))?;
 
         Ok(self.graph.add_edge(*source, *target, data))
@@ -72,14 +82,20 @@ impl GraphData {
 
     /// Get node data by UUID
     pub fn get_node(&self, id: Uuid) -> Option<&NodeData> {
-        self.uuid_to_node.get(&id)
+        self.uuid_to_node
+            .get(&id)
             .and_then(|idx| self.graph.node_weight(*idx))
     }
 
     /// Get all edges for a node
-    pub fn get_edges(&self, id: Uuid, direction: Direction) -> Vec<(PetEdgeIndex, &EdgeData, PetNodeIndex)> {
+    pub fn get_edges(
+        &self,
+        id: Uuid,
+        direction: Direction,
+    ) -> Vec<(PetEdgeIndex, &EdgeData, PetNodeIndex)> {
         if let Some(&node_idx) = self.uuid_to_node.get(&id) {
-            self.graph.edges_directed(node_idx, direction)
+            self.graph
+                .edges_directed(node_idx, direction)
                 .map(|edge| (edge.id(), edge.weight(), edge.target()))
                 .collect()
         } else {
@@ -117,18 +133,20 @@ impl GraphData {
 
     /// Iterate over all nodes
     pub fn nodes(&self) -> impl Iterator<Item = (PetNodeIndex, &NodeData)> {
-        self.graph.node_indices()
+        self.graph
+            .node_indices()
             .filter_map(move |idx| self.graph.node_weight(idx).map(|data| (idx, data)))
     }
 
     /// Iterate over all edges
-    pub fn edges(&self) -> impl Iterator<Item = (PetEdgeIndex, &EdgeData, PetNodeIndex, PetNodeIndex)> {
-        self.graph.edge_indices()
-            .filter_map(move |idx| {
-                let (source, target) = self.graph.edge_endpoints(idx)?;
-                let data = self.graph.edge_weight(idx)?;
-                Some((idx, data, source, target))
-            })
+    pub fn edges(
+        &self,
+    ) -> impl Iterator<Item = (PetEdgeIndex, &EdgeData, PetNodeIndex, PetNodeIndex)> {
+        self.graph.edge_indices().filter_map(move |idx| {
+            let (source, target) = self.graph.edge_endpoints(idx)?;
+            let data = self.graph.edge_weight(idx)?;
+            Some((idx, data, source, target))
+        })
     }
 
     /// Get total node count

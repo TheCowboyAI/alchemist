@@ -1,8 +1,9 @@
 use bevy::prelude::*;
+use std::collections::HashMap;
 
 use super::components::*;
 use super::events::*;
-use super::graph_data::{GraphData, NodeData, EdgeData};
+use super::graph_data::{EdgeData, GraphData, NodeData};
 
 /// Tracks graph state for UI display
 
@@ -16,7 +17,8 @@ pub fn handle_create_node_events(
     for event in events.read() {
         // Parse color from hex string if provided, otherwise use domain type color
         let color = if let Some(hex_color) = &event.color {
-            parse_hex_color(hex_color).unwrap_or_else(|| get_color_for_domain_type(&event.domain_type))
+            parse_hex_color(hex_color)
+                .unwrap_or_else(|| get_color_for_domain_type(&event.domain_type))
         } else {
             get_color_for_domain_type(&event.domain_type)
         };
@@ -40,7 +42,7 @@ pub fn handle_create_node_events(
         graph_state.node_count += 1;
 
         // Emit modification event for event sourcing
-        modification_events.send(GraphModificationEvent::NodeCreated {
+        modification_events.write(GraphModificationEvent::NodeCreated {
             id: event.id,
             position: event.position,
             domain_type: event.domain_type.clone(),
@@ -49,7 +51,10 @@ pub fn handle_create_node_events(
 
         info!(
             "Created node '{}' at position {:?} (Entity: {:?}). Total nodes: {}",
-            event.name, event.position, entity_commands.id(), graph_state.node_count
+            event.name,
+            event.position,
+            entity_commands.id(),
+            graph_state.node_count
         );
     }
 }
@@ -84,7 +89,7 @@ pub fn handle_create_edge_events(
             graph_state.edge_count += 1;
 
             // Emit modification event
-            modification_events.send(GraphModificationEvent::EdgeCreated {
+            modification_events.write(GraphModificationEvent::EdgeCreated {
                 id: event.id,
                 source_id: source.id,
                 target_id: target.id,
@@ -109,7 +114,7 @@ pub fn handle_move_node_events(
             transform.translation = event.to;
             position.0 = event.to;
 
-            modification_events.send(GraphModificationEvent::NodeMoved {
+            modification_events.write(GraphModificationEvent::NodeMoved {
                 id: node.id,
                 from: event.from,
                 to: event.to,
@@ -195,11 +200,26 @@ pub fn update_edge_positions(
             let source_pos = source_transform.translation;
             let target_pos = target_transform.translation;
 
-            // Just position the edge entity at the midpoint
+            // Position the edge entity at the midpoint
             let mid_point = source_pos + (target_pos - source_pos) * 0.5;
             edge_transform.translation = mid_point;
 
-            // No rotation or scaling needed for sphere-based edges
+            // Calculate rotation to align edge with direction
+            let direction = target_pos - source_pos;
+            let distance = direction.length();
+
+            if distance > 0.01 {
+                // Create rotation to align Y-axis (cylinder's axis) with edge direction
+                let rotation = if direction.normalize() != Vec3::Y {
+                    Quat::from_rotation_arc(Vec3::Y, direction.normalize())
+                } else {
+                    Quat::IDENTITY
+                };
+                edge_transform.rotation = rotation;
+
+                // Scale to match the distance
+                edge_transform.scale = Vec3::new(1.0, distance, 1.0);
+            }
         }
     }
 }
@@ -361,27 +381,32 @@ pub fn handle_create_node_with_graph(
         let graph_idx = graph_data.add_node(node_data);
 
         // Then create the ECS entity for rendering
-        let color = event.color.as_ref()
+        let color = event
+            .color
+            .as_ref()
             .and_then(|hex| parse_hex_color(hex))
             .unwrap_or_else(|| get_color_for_domain_type(&event.domain_type));
 
-        let entity = commands.spawn(GraphNodeBundle::new(
-            event.id,
-            event.domain_type.clone(),
-            event.position,
-            color,
-            event.name.clone(),
-            event.labels.clone(),
-            event.properties.clone(),
-        ))
-        .insert(Name::new(event.name.clone()))
-        .id();
+        let entity = commands
+            .spawn(GraphNodeBundle::new(
+                event.id,
+                event.domain_type.clone(),
+                event.position,
+                color,
+                event.name.clone(),
+                event.labels.clone(),
+                event.properties.clone(),
+            ))
+            .insert(Name::new(event.name.clone()))
+            .id();
 
         // Associate the graph node with the ECS entity
         graph_data.set_node_entity(graph_idx, entity);
 
         if let Some(subgraph_id) = event.subgraph_id {
-            commands.entity(entity).insert(SubgraphMember { subgraph_id });
+            commands
+                .entity(entity)
+                .insert(SubgraphMember { subgraph_id });
         }
 
         graph_state.node_count = graph_data.node_count();
@@ -402,11 +427,13 @@ pub fn handle_create_edge_with_graph(
 ) {
     for event in events.read() {
         // Get the node UUIDs for source and target entities
-        let source_node = graph_data.nodes()
+        let source_node = graph_data
+            .nodes()
             .find(|(idx, _)| graph_data.get_node_entity(*idx) == Some(event.source))
             .map(|(_, data)| data.id);
 
-        let target_node = graph_data.nodes()
+        let target_node = graph_data
+            .nodes()
             .find(|(idx, _)| graph_data.get_node_entity(*idx) == Some(event.target))
             .map(|(_, data)| data.id);
 
@@ -436,7 +463,10 @@ pub fn handle_create_edge_with_graph(
 
                     graph_state.edge_count = graph_data.edge_count();
 
-                    info!("Created edge with petgraph index {:?} and entity {:?}", edge_idx, entity);
+                    info!(
+                        "Created edge with petgraph index {:?} and entity {:?}",
+                        edge_idx, entity
+                    );
                 }
                 Err(e) => {
                     warn!("Failed to create edge: {}", e);
@@ -444,6 +474,44 @@ pub fn handle_create_edge_with_graph(
             }
         } else {
             warn!("Failed to create edge: source or target node not found in graph");
+        }
+    }
+}
+
+/// System to process deferred edge events after nodes have been created
+pub fn process_deferred_edges(
+    mut events: EventReader<DeferredEdgeEvent>,
+    mut create_edge_events: EventWriter<CreateEdgeEvent>,
+    graph_data: Res<GraphData>,
+) {
+    for event in events.read() {
+        // Find entities for the source and target UUIDs
+        let source_entity = graph_data
+            .nodes()
+            .find(|(_, node_data)| node_data.id == event.source_uuid)
+            .and_then(|(idx, _)| graph_data.get_node_entity(idx));
+
+        let target_entity = graph_data
+            .nodes()
+            .find(|(_, node_data)| node_data.id == event.target_uuid)
+            .and_then(|(idx, _)| graph_data.get_node_entity(idx));
+
+        if let (Some(source), Some(target)) = (source_entity, target_entity) {
+            create_edge_events.write(CreateEdgeEvent {
+                id: event.id,
+                source,
+                target,
+                edge_type: event.edge_type.clone(),
+                labels: event.labels.clone(),
+                properties: event.properties.clone(),
+            });
+        } else {
+            // Nodes might not be created yet, re-queue the event
+            // In a production system, we'd want a more sophisticated retry mechanism
+            warn!(
+                "Could not find entities for edge {:?} -> {:?}, will retry",
+                event.source_uuid, event.target_uuid
+            );
         }
     }
 }

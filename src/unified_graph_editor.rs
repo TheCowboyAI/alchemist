@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy::sprite::ColorMaterial;
-use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+// use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use std::collections::HashMap;
 use uuid::Uuid;
 

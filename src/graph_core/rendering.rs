@@ -84,7 +84,10 @@ fn render_nodes_3d(
             Name::new(format!("DebugCube_{}", node.name)),
         ));
 
-        info!("Created node '{}' at {:?} with debug cube", node.name, world_pos);
+        info!(
+            "Created node '{}' at {:?} with debug cube",
+            node.name, world_pos
+        );
     }
 }
 
@@ -118,7 +121,7 @@ fn render_nodes_2d(
                     },
                     TextColor(Color::WHITE),
                     Transform::from_xyz(0.0, 30.0, 0.1), // Position above the node
-                    bevy::sprite::Anchor::Center, // Center the text
+                    bevy::sprite::Anchor::Center,        // Center the text
                 ));
             });
     }
@@ -146,7 +149,13 @@ pub fn render_graph_edges(
     // Render edges based on current view mode
     match camera.view_mode {
         ViewMode::ThreeD(_) => {
-            render_edges_3d(&mut commands, &mut meshes, &mut materials_3d, &edge_query, &node_query);
+            render_edges_3d(
+                &mut commands,
+                &mut meshes,
+                &mut materials_3d,
+                &edge_query,
+                &node_query,
+            );
         }
         ViewMode::TwoD(_) => {
             render_edges_2d(&mut commands, &mut meshes, &mut materials_2d, &edge_query);
@@ -162,55 +171,33 @@ fn render_edges_3d(
     node_query: &Query<&Transform, With<GraphNode>>,
 ) {
     for (entity, edge, visual) in edge_query {
-        // Get source and target positions
+        // Create a simple cylinder mesh
+        let cylinder = Cylinder::new(0.05, 1.0); // Unit height, will be scaled by parent
+        let mesh = meshes.add(cylinder.mesh());
+
+        let material = materials.add(StandardMaterial {
+            base_color: visual.color,
+            ..default()
+        });
+
+        commands
+            .entity(entity)
+            .insert(EdgeRendered)
+            .with_children(|parent| {
+                parent.spawn((
+                    Mesh3d(mesh),
+                    MeshMaterial3d(material),
+                    Transform::default(), // Use default transform, parent handles positioning
+                    Name::new("EdgeCylinder"),
+                ));
+            });
+
+        // Log for debugging
         if let (Ok(source_transform), Ok(target_transform)) =
             (node_query.get(edge.source), node_query.get(edge.target))
         {
             let source_pos = source_transform.translation;
             let target_pos = target_transform.translation;
-            let direction = target_pos - source_pos;
-            let distance = direction.length();
-
-            if distance < 0.01 {
-                continue;
-            }
-
-            // Create a simple cylinder
-            let cylinder = Cylinder::new(0.05, distance);
-            let mesh = meshes.add(cylinder.mesh());
-
-            let material = materials.add(StandardMaterial {
-                base_color: visual.color,
-                ..default()
-            });
-
-            // Position at midpoint
-            let midpoint = source_pos + direction * 0.5;
-
-            // Create rotation to align cylinder (Y-axis) with edge direction
-            let rotation = if direction.normalize() != Vec3::Y {
-                Quat::from_rotation_arc(Vec3::Y, direction.normalize())
-            } else {
-                Quat::IDENTITY
-            };
-
-            commands
-                .entity(entity)
-                .insert(EdgeRendered)
-                .insert(Transform {
-                    translation: midpoint,
-                    rotation,
-                    scale: Vec3::ONE,
-                })
-                .with_children(|parent| {
-                    parent.spawn((
-                        Mesh3d(mesh),
-                        MeshMaterial3d(material),
-                        Transform::default(),
-                        Name::new("EdgeCylinder"),
-                    ));
-                });
-
             info!("Rendered edge from {:?} to {:?}", source_pos, target_pos);
         }
     }
@@ -304,7 +291,7 @@ pub fn clear_rendering_on_view_change(
         commands.entity(entity).remove::<NodeRendered>();
         if let Ok(children) = children_query.get(entity) {
             for child in children {
-                commands.entity(*child).despawn_recursive();
+                commands.entity(*child).despawn();
             }
         }
     }
@@ -314,7 +301,7 @@ pub fn clear_rendering_on_view_change(
         commands.entity(entity).remove::<EdgeRendered>();
         if let Ok(children) = children_query.get(entity) {
             for child in children {
-                commands.entity(*child).despawn_recursive();
+                commands.entity(*child).despawn();
             }
         }
     }

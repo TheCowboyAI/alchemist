@@ -2,7 +2,16 @@
 
 ## Overview
 
-This document specifies the implementation details for the dual-mode camera system that enables seamless switching between 3D orbital and 2D top-down views within a single Bevy viewport.
+This document specifies the implementation details for the dual-mode camera system that enables seamless switching between 3D orbital and 2D top-down views within a single Bevy viewport. The camera system is designed to work with the dual-layer graph architecture, operating on the visualization layer while being independent of the graph data layer.
+
+## Integration with Dual-Layer Architecture
+
+The camera system operates exclusively on the **Visualization Layer** (Bevy ECS), rendering entities that are linked to graph nodes/edges via the GraphData resource. This separation ensures:
+
+- Camera controls work independently of graph topology
+- Rendering performance is not affected by graph complexity
+- View transformations don't require graph data updates
+- Multiple camera views could render the same graph data
 
 ## Camera Architecture
 
@@ -100,7 +109,7 @@ fn camera_transition_system(
         if view_camera.transition.active {
             // Update transition progress
             view_camera.transition.progress += time.delta_seconds() / view_camera.transition.duration;
-            
+
             if view_camera.transition.progress >= 1.0 {
                 // Complete transition
                 view_camera.view_mode = view_camera.transition.to_mode;
@@ -136,7 +145,7 @@ fn orbit_camera_input_system(
                     // Update focus point based on motion
                 }
             }
-            
+
             // Orbit with right mouse
             if mouse_input.pressed(MouseButton::Right) {
                 for motion in mouse_motion.read() {
@@ -145,7 +154,7 @@ fn orbit_camera_input_system(
                         .clamp(-PI / 2.0 + 0.1, PI / 2.0 - 0.1);
                 }
             }
-            
+
             camera.view_mode = ViewMode::ThreeD(state);
         }
     }
@@ -165,7 +174,7 @@ fn pan_camera_input_system(
                     state.center.y += motion.delta.y * state.zoom_level;
                 }
             }
-            
+
             camera.view_mode = ViewMode::TwoD(state);
         }
     }
@@ -203,7 +212,7 @@ fn switch_view_mode(
                     })
                 }
             };
-            
+
             // Start transition
             camera.transition = CameraTransition {
                 active: true,
@@ -226,21 +235,21 @@ fn interpolate_camera_modes(
     transition: &CameraTransition,
 ) {
     let t = smooth_step(transition.progress);
-    
+
     match (transition.from_mode, transition.to_mode) {
         (ViewMode::ThreeD(from_3d), ViewMode::TwoD(to_2d)) => {
             // Calculate intermediate position
             let from_pos = calculate_3d_position(from_3d);
             let to_pos = Vec3::new(to_2d.center.x, to_2d.fixed_height, to_2d.center.y);
-            
+
             transform.translation = from_pos.lerp(to_pos, t);
-            
+
             // Smoothly transition to looking down
             let from_rot = calculate_3d_rotation(from_3d);
             let to_rot = Quat::from_rotation_x(-PI / 2.0);
-            
+
             transform.rotation = from_rot.slerp(to_rot, t);
-            
+
             // Transition projection
             transition_to_orthographic(projection, t, to_2d.zoom_level);
         }
@@ -268,7 +277,7 @@ fn update_viewport_system(
     viewport_config: Res<ViewportConfig>,
 ) {
     let window = windows.single();
-    
+
     for mut camera in &mut cameras {
         // Account for tools panel
         camera.viewport = Some(Viewport {
@@ -365,4 +374,4 @@ impl Plugin for CameraViewportPlugin {
 }
 ```
 
-This specification provides a complete technical foundation for implementing the dual-mode camera system with smooth transitions and proper viewport management. 
+This specification provides a complete technical foundation for implementing the dual-mode camera system with smooth transitions and proper viewport management.

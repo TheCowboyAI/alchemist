@@ -40,3 +40,7 @@ rand_chacha = "0.9.0"
 bevy_panorbit_camera = "0.26.0"
 petgraph = { version = "0.6", features = ["serde-1"] }
 daggy = { version = "0.8", features = ["serde-1"] }
+
+[[example]]
+name = "graph_algorithms_demo"
+path = "examples/graph_algorithms_demo.rs"

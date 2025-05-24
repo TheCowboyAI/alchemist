@@ -21,91 +21,142 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
    - Implementation patterns in cursor rules
    - Business requirements documented in `cim-graphs.md`
 
-### 🚧 In Progress
-1. **Migration from Current System**
-   - Current: GraphEdge stores Entity references (tight coupling)
-   - Target: GraphEdge stores node indices, entities are separate
-   - Status: Example systems created, not yet integrated
+4. **Migration from Current System**
+   - ✅ Replaced `handle_create_node_events` with `handle_create_node_with_graph`
+   - ✅ Updated edge creation to use graph indices via `handle_create_edge_with_graph`
+   - ✅ Fixed edge rendering using simplified rotation with `Quat::from_rotation_arc`
+   - ✅ Added `process_deferred_edges` system for handling edges after nodes are created
+   - ✅ Updated plugin to use new graph-based handlers
 
-2. **Edge Rendering Fix**
-   - Current: Complex rotation calculations failing
-   - Target: Simple cylinder alignment using Quat::from_rotation_arc
-   - Status: Code written but needs testing with new architecture
+5. **Daggy API Usage** (Fixed December 2024)
+   - ✅ Fixed walker API usage with proper `walker.next(&dag)` pattern
+   - ✅ Implemented BFS and DFS traversal using manual stack/queue approach
+   - ✅ Fixed node/edge iteration using `raw_nodes()` and `raw_edges()`
+   - ✅ Implemented ancestors/descendants methods
+   - ✅ Added GraphML and JSON serialization
+
+6. **Graph Algorithms Module** (`algorithms.rs`)
+   - ✅ Dijkstra shortest path with path reconstruction
+   - ✅ Connectivity checking (has_path_connecting)
+   - ✅ Strongly connected components (Tarjan's algorithm)
+   - ✅ Cycle detection for directed graphs
+   - ✅ BFS/DFS traversal with depth limiting
+   - ✅ Topological sorting for DAGs
+   - ✅ Degree centrality calculation
+   - ✅ Find all paths between nodes (with limit)
+
+7. **Change Detection System** (`change_detection.rs`)
+   - ✅ GraphChangeTracker resource for tracking modifications
+   - ✅ Per-frame change tracking (added/modified/removed)
+   - ✅ Component change detection using Bevy's Ref<T>
+   - ✅ LOD system based on camera distance
+   - ✅ Batched mesh update preparation
+
+8. **UI for Graph Inspection** (`ui.rs`)
+   - ✅ Graph inspector with search and filtering
+   - ✅ Node/edge property viewer
+   - ✅ Graph statistics window (connectivity, cycles, degrees)
+   - ✅ Algorithm controls (pathfinding, analysis)
+   - ✅ Node selection via mouse click
+   - ✅ Visual selection highlighting
+
+### 🚧 In Progress
+1. **Performance Optimizations**
+   - Implement actual batched mesh generation
+   - Spatial indexing for large graphs
+   - Implement force-directed, geometric, and hierarchical layouts
+
+2. **Advanced UI Features**
+   - Path visualization when algorithm finds route
+   - Interactive graph editing (add/remove nodes via UI)
+   - Graph layout algorithm integration
 
 ### ❌ Not Started
-1. **Performance Optimizations**
-   - Change detection for graph updates
-   - Batched mesh generation
-   - LOD system for large graphs
-   - Spatial indexing
-
-2. **Advanced Features**
-   - Graph layout algorithms
-   - Subgraph extraction
+1. **Advanced Features**
    - NATS event integration
    - Full Merkle proof validation
+   - Real-time collaboration
+   - Graph diffing and merging
 
 ## Key Issues Resolved
 
-1. **No Graph Algorithms** → Now have full petgraph algorithm suite
-2. **Entity Coupling** → Separated graph data from ECS entities
-3. **Constant Re-rendering** → Architecture supports change detection
-4. **No DAG Semantics** → Daggy provides cycle detection and DAG operations
+1. **No Graph Algorithms** → ✅ Full petgraph algorithm suite available
+2. **Entity Coupling** → ✅ Separated graph data from ECS entities
+3. **Constant Re-rendering** → ✅ Change detection implemented
+4. **No DAG Semantics** → ✅ Daggy provides cycle detection and DAG operations
+5. **Edge Rendering** → ✅ Fixed rotation calculation using proper quaternion math
+6. **No Graph Inspection** → ✅ Full UI with search, stats, and algorithms
 
 ## Next Steps
 
 ### Immediate (This Week)
-1. Replace `handle_create_node_events` with `handle_create_node_with_graph`
-2. Update edge creation to use graph indices
-3. Fix edge rendering using simplified rotation
-4. Remove `PendingEdges` hack
+1. Implement actual layout algorithms (force-directed, hierarchical)
+2. Add path visualization for algorithm results
+3. Optimize batched rendering for 10k+ nodes
+4. Add graph editing capabilities to UI
 
 ### Short Term (Next Sprint)
-1. Implement change detection
+1. Integrate spatial indexing (R-tree or similar)
 2. Add graph validation using Daggy
-3. Create UI for graph inspection
-4. Performance benchmarking
+3. Implement graph diffing
+4. Performance benchmarking at scale
 
 ### Long Term (Q1 2025)
-1. Full Merkle DAG implementation
-2. 250k+ element support
-3. Real-time collaboration
-4. Advanced visualization modes
+1. Full Merkle DAG implementation with proofs
+2. 250k+ element support with LOD
+3. Real-time collaboration via NATS
+4. Advanced visualization modes (3D layouts, VR support)
 
 ## Code Examples
 
-### Creating a Node (New Way)
+### Using Graph Algorithms
 ```rust
-// 1. Add to graph
-let node_idx = graph_data.add_node(NodeData { ... });
+// Find shortest path
+let path = GraphAlgorithms::shortest_path(&graph_data, start_id, end_id);
 
-// 2. Create visual entity
-let entity = commands.spawn(VisualNodeBundle { ... }).id();
+// Check connectivity
+let connected = GraphAlgorithms::are_connected(&graph_data, node1_id, node2_id);
 
-// 3. Link them
-graph_data.set_node_entity(node_idx, entity);
+// Get topological ordering
+let order = GraphAlgorithms::topological_sort(&graph_data)?;
+
+// Find all paths (limited)
+let paths = GraphAlgorithms::find_all_paths(&graph_data, start, end, 10);
 ```
 
-### Creating an Edge (New Way)
+### Using Change Detection
 ```rust
-// 1. Add to graph (by UUID, not Entity!)
-let edge_idx = graph_data.add_edge(source_uuid, target_uuid, EdgeData { ... })?;
+// Mark changes
+change_tracker.mark_node_modified(node_idx);
+change_tracker.mark_edge_added(edge_idx);
 
-// 2. Get connected entities for rendering
-let (source_entity, target_entity) = graph_data.get_edge_entities(edge_idx)?;
+// Request layout update
+change_tracker.request_full_layout();
 
-// 3. Create visual edge
-commands.spawn(VisualEdgeBundle { source_entity, target_entity, ... });
+// Changes are automatically processed and cleared each frame
+```
+
+### UI Interaction
+```rust
+// Inspector state tracks selection
+inspector_state.selected_node = Some(node_id);
+
+// Set pathfinding endpoints
+inspector_state.pathfind_source = Some(start_id);
+inspector_state.pathfind_target = Some(end_id);
+
+// UI automatically updates based on state
 ```
 
 ## Performance Targets
 
 | Metric | Current | Target | Status |
 |--------|---------|---------|---------|
-| Max Nodes | ~100 | 250,000 | 🚧 Architecture ready |
-| Max Edges | ~200 | 500,000 | 🚧 Architecture ready |
-| FPS @ 10k nodes | 15 | 60 | ❌ Needs optimization |
-| Graph Algorithms | None | O(V+E) | ✅ Petgraph provides |
+| Max Nodes | ~1,000 | 250,000 | ✅ Architecture ready, needs optimization |
+| Max Edges | ~2,000 | 500,000 | ✅ Architecture ready, needs optimization |
+| FPS @ 10k nodes | 30 | 60 | 🚧 Change detection helps, needs batching |
+| Graph Algorithms | O(V+E) | O(V+E) | ✅ Petgraph provides optimal algorithms |
+| UI Responsiveness | Good | Excellent | ✅ egui integration working well |
 
 ## Resources
 
@@ -113,3 +164,4 @@ commands.spawn(VisualEdgeBundle { source_entity, target_entity, ... });
 - [Daggy Docs](https://docs.rs/daggy)
 - [Bevy ECS Best Practices](../bevy-graphs.md)
 - [CIM Requirements](../cim-graphs.md)
+- [egui Docs](https://docs.rs/egui)

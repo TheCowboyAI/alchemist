@@ -25,22 +25,6 @@ use json_loader::{
 #[derive(Resource, Default)]
 struct NodeCounter(u32);
 
-#[derive(Resource)]
-struct PendingEdges {
-    edges: Vec<PendingEdgeData>,
-    node_count: usize,
-    processed_nodes: usize,
-}
-
-struct PendingEdgeData {
-    id: Uuid,
-    source_uuid: Uuid,
-    target_uuid: Uuid,
-    edge_type: graph_core::DomainEdgeType,
-    labels: Vec<String>,
-    properties: std::collections::HashMap<String, String>,
-}
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -72,7 +56,6 @@ fn main() {
                 keyboard_commands_system.after(bevy_egui::EguiPreUpdateSet::InitContexts),
                 handle_load_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
                 handle_save_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
-                process_pending_edges.after(bevy_egui::EguiPreUpdateSet::InitContexts),
             ),
         )
         .add_systems(Last, track_node_despawns)
@@ -188,46 +171,6 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         properties: std::collections::HashMap::new(),
         subgraph_id: None,
         color: None,
-    });
-
-    // Create pending edges to be processed after nodes are created
-    commands.insert_resource(PendingEdges {
-        edges: vec![
-            PendingEdgeData {
-                id: Uuid::new_v4(),
-                source_uuid: center_id,
-                target_uuid: decision_id,
-                edge_type: graph_core::DomainEdgeType::DataFlow,
-                labels: vec!["test".to_string()],
-                properties: std::collections::HashMap::new(),
-            },
-            PendingEdgeData {
-                id: Uuid::new_v4(),
-                source_uuid: center_id,
-                target_uuid: event_id,
-                edge_type: graph_core::DomainEdgeType::DataFlow,
-                labels: vec!["test".to_string()],
-                properties: std::collections::HashMap::new(),
-            },
-            PendingEdgeData {
-                id: Uuid::new_v4(),
-                source_uuid: center_id,
-                target_uuid: storage_id,
-                edge_type: graph_core::DomainEdgeType::DataFlow,
-                labels: vec!["test".to_string()],
-                properties: std::collections::HashMap::new(),
-            },
-            PendingEdgeData {
-                id: Uuid::new_v4(),
-                source_uuid: center_id,
-                target_uuid: interface_id,
-                edge_type: graph_core::DomainEdgeType::DataFlow,
-                labels: vec!["test".to_string()],
-                properties: std::collections::HashMap::new(),
-            },
-        ],
-        node_count: 5,
-        processed_nodes: 0,
     });
 }
 
@@ -721,6 +664,7 @@ fn keyboard_commands_system(
 fn handle_load_json_file(
     mut events: EventReader<LoadJsonFileEvent>,
     mut create_node_events: EventWriter<CreateNodeEvent>,
+    mut deferred_edge_events: EventWriter<graph_core::DeferredEdgeEvent>,
     mut file_state: ResMut<FileOperationState>,
     mut commands: Commands,
     node_query: Query<(Entity, &graph_core::GraphNode)>,
@@ -763,14 +707,6 @@ fn handle_load_json_file(
                     edges.len()
                 );
 
-                // We need to collect the UUID to Entity mapping after nodes are created
-                // Store the edge data to process after nodes are spawned
-                commands.insert_resource(PendingEdges {
-                    edges,
-                    node_count: nodes.len(),
-                    processed_nodes: 0,
-                });
-
                 // Create nodes from loaded data
                 for node_data in nodes {
                     info!(
@@ -780,11 +716,18 @@ fn handle_load_json_file(
                     create_node_events.send(node_data);
                 }
 
+                // Send deferred edge events
+                for edge_event in edges {
+                    deferred_edge_events.send(edge_event);
+                }
+
                 file_state.current_file_path = Some(event.file_path.clone());
                 info!("Successfully loaded graph from {}", event.file_path);
                 info!("=== COMPLETED LOADING FILE ===");
-                info!("Graph state after loading - Nodes: {}, Edges: {}",
-                    graph_state.node_count, graph_state.edge_count);
+                info!(
+                    "Graph state after loading - Nodes: {}, Edges: {}",
+                    graph_state.node_count, graph_state.edge_count
+                );
             }
             Err(e) => {
                 warn!("Failed to load file {}: {}", event.file_path, e);
@@ -826,59 +769,140 @@ fn handle_save_json_file(
     }
 }
 
-/// Process pending edges after nodes are created
-fn process_pending_edges(
-    mut commands: Commands,
-    pending_edges: Option<ResMut<PendingEdges>>,
-    node_query: Query<(Entity, &graph_core::GraphNode)>,
-    mut create_edge_events: EventWriter<CreateEdgeEvent>,
+/// System to track when nodes are despawned
+fn track_node_despawns(
+    mut removed_nodes: RemovedComponents<graph_core::GraphNode>,
+    mut removed_edges: RemovedComponents<graph_core::GraphEdge>,
 ) {
-    if let Some(mut pending) = pending_edges {
-        // Check if we have all nodes created
-        let current_node_count = node_query.iter().count();
+    let removed_node_count: Vec<_> = removed_nodes.read().collect();
+    let removed_edge_count: Vec<_> = removed_edges.read().collect();
 
-        if current_node_count >= pending.node_count && !pending.edges.is_empty() {
-            info!("Processing {} pending edges", pending.edges.len());
-
-            // Build UUID to Entity mapping
-            let mut uuid_to_entity = std::collections::HashMap::new();
-            for (entity, node) in &node_query {
-                uuid_to_entity.insert(node.id, entity);
-            }
-
-            // Create edges
-            for edge_data in &pending.edges {
-                if let (Some(&source_entity), Some(&target_entity)) = (
-                    uuid_to_entity.get(&edge_data.source_uuid),
-                    uuid_to_entity.get(&edge_data.target_uuid),
-                ) {
-                    create_edge_events.send(CreateEdgeEvent {
-                        id: edge_data.id,
-                        source: source_entity,
-                        target: target_entity,
-                        edge_type: edge_data.edge_type.clone(),
-                        labels: edge_data.labels.clone(),
-                        properties: edge_data.properties.clone(),
-                    });
-                } else {
-                    warn!(
-                        "Failed to find entities for edge {:?} -> {:?}",
-                        edge_data.source_uuid, edge_data.target_uuid
-                    );
-                }
-            }
-
-            // Clear the pending edges
-            pending.edges.clear();
-            commands.remove_resource::<PendingEdges>();
+    if !removed_node_count.is_empty() || !removed_edge_count.is_empty() {
+        warn!(
+            "NODES/EDGES REMOVED: {} nodes, {} edges despawned. Stack trace:",
+            removed_node_count.len(),
+            removed_edge_count.len()
+        );
+        // This will help us identify what's clearing the graph
+        if removed_node_count.len() > 5 {
+            info!("Graph cleared");
         }
     }
+}
+
+/// Create a demo graph with various node types
+fn setup_demo_graph(
+    mut commands: Commands,
+    mut create_node_events: EventWriter<CreateNodeEvent>,
+    mut deferred_edge_events: EventWriter<graph_core::DeferredEdgeEvent>,
+) {
+    info!("Setting up demo graph");
+
+    // Create node IDs
+    let center_id = Uuid::new_v4();
+    let decision_id = Uuid::new_v4();
+    let event_id = Uuid::new_v4();
+    let storage_id = Uuid::new_v4();
+    let interface_id = Uuid::new_v4();
+
+    // Create nodes
+    create_node_events.send(CreateNodeEvent {
+        id: center_id,
+        position: Vec3::new(0.0, 0.0, 0.0),
+        domain_type: DomainNodeType::Process,
+        name: "Central Node".to_string(),
+        labels: vec!["process".to_string()],
+        properties: std::collections::HashMap::new(),
+        subgraph_id: None,
+        color: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: decision_id,
+        position: Vec3::new(5.0, 0.0, 0.0),
+        domain_type: DomainNodeType::Decision,
+        name: "Decision Node".to_string(),
+        labels: vec!["decision".to_string()],
+        properties: std::collections::HashMap::new(),
+        subgraph_id: None,
+        color: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: event_id,
+        position: Vec3::new(-5.0, 0.0, 0.0),
+        domain_type: DomainNodeType::Event,
+        name: "Event Node".to_string(),
+        labels: vec!["event".to_string()],
+        properties: std::collections::HashMap::new(),
+        subgraph_id: None,
+        color: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: storage_id,
+        position: Vec3::new(0.0, 0.0, 5.0),
+        domain_type: DomainNodeType::Storage,
+        name: "Storage Node".to_string(),
+        labels: vec!["storage".to_string()],
+        properties: std::collections::HashMap::new(),
+        subgraph_id: None,
+        color: None,
+    });
+
+    create_node_events.send(CreateNodeEvent {
+        id: interface_id,
+        position: Vec3::new(0.0, 0.0, -5.0),
+        domain_type: DomainNodeType::Interface,
+        name: "Interface Node".to_string(),
+        labels: vec!["interface".to_string()],
+        properties: std::collections::HashMap::new(),
+        subgraph_id: None,
+        color: None,
+    });
+
+    // Create deferred edges using the new system
+    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+        id: Uuid::new_v4(),
+        source_uuid: center_id,
+        target_uuid: decision_id,
+        edge_type: graph_core::DomainEdgeType::DataFlow,
+        labels: vec!["test".to_string()],
+        properties: std::collections::HashMap::new(),
+    });
+
+    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+        id: Uuid::new_v4(),
+        source_uuid: center_id,
+        target_uuid: event_id,
+        edge_type: graph_core::DomainEdgeType::DataFlow,
+        labels: vec!["test".to_string()],
+        properties: std::collections::HashMap::new(),
+    });
+
+    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+        id: Uuid::new_v4(),
+        source_uuid: center_id,
+        target_uuid: storage_id,
+        edge_type: graph_core::DomainEdgeType::DataFlow,
+        labels: vec!["test".to_string()],
+        properties: std::collections::HashMap::new(),
+    });
+
+    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+        id: Uuid::new_v4(),
+        source_uuid: center_id,
+        target_uuid: interface_id,
+        edge_type: graph_core::DomainEdgeType::DataFlow,
+        labels: vec!["test".to_string()],
+        properties: std::collections::HashMap::new(),
+    });
 }
 
 // Simple JSON load/save functions
 fn load_graph_from_json(
     path: &str,
-) -> Result<(Vec<CreateNodeEvent>, Vec<PendingEdgeData>), String> {
+) -> Result<(Vec<CreateNodeEvent>, Vec<graph_core::DeferredEdgeEvent>), String> {
     // Load the JSON file
     let json_data = load_json_file(path)?;
 
@@ -887,7 +911,7 @@ fn load_graph_from_json(
 
     // Convert to events
     let mut node_events = Vec::new();
-    let mut edge_data = Vec::new();
+    let mut edge_events = Vec::new();
 
     // Create node events
     for (uuid, node) in &base_graph.graph.nodes {
@@ -929,9 +953,9 @@ fn load_graph_from_json(
         });
     }
 
-    // Create edge data
+    // Create deferred edge events
     for (_, edge) in &base_graph.graph.edges {
-        edge_data.push(PendingEdgeData {
+        edge_events.push(graph_core::DeferredEdgeEvent {
             id: edge.id,
             source_uuid: edge.source,
             target_uuid: edge.target,
@@ -941,7 +965,7 @@ fn load_graph_from_json(
         });
     }
 
-    Ok((node_events, edge_data))
+    Ok((node_events, edge_events))
 }
 
 fn save_graph_to_json(
@@ -988,25 +1012,4 @@ fn save_graph_to_json(
     save_json_file(path, &json_data)?;
 
     Ok(())
-}
-
-/// System to track when nodes are despawned
-fn track_node_despawns(
-    mut removed_nodes: RemovedComponents<graph_core::GraphNode>,
-    mut removed_edges: RemovedComponents<graph_core::GraphEdge>,
-) {
-    let removed_node_count: Vec<_> = removed_nodes.read().collect();
-    let removed_edge_count: Vec<_> = removed_edges.read().collect();
-
-    if !removed_node_count.is_empty() || !removed_edge_count.is_empty() {
-        warn!(
-            "NODES/EDGES REMOVED: {} nodes, {} edges despawned. Stack trace:",
-            removed_node_count.len(),
-            removed_edge_count.len()
-        );
-        // This will help us identify what's clearing the graph
-        if removed_node_count.len() > 5 {
-            info!("Graph cleared");
-        }
-    }
 }
