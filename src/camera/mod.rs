@@ -3,5 +3,4 @@ pub mod plugin;
 pub mod systems;
 
 pub use components::*;
-pub use plugin::CameraViewportPlugin;
-pub use systems::*;
+pub use plugin::*;

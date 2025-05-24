@@ -117,7 +117,7 @@ fn render_edges_3d(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     edge_query: &Query<(Entity, &GraphEdge, &EdgeVisual), Changed<Transform>>,
 ) {
-    for (entity, edge, visual) in edge_query {
+    for (entity, _edge, visual) in edge_query {
         // Create 3D cylinder for edge
         let mesh = meshes.add(Cylinder::new(visual.width * 0.1, 1.0).mesh());
         let material = materials.add(StandardMaterial {
@@ -141,7 +141,7 @@ fn render_edges_2d(
     materials: &mut ResMut<Assets<ColorMaterial>>,
     edge_query: &Query<(Entity, &GraphEdge, &EdgeVisual), Changed<Transform>>,
 ) {
-    for (entity, edge, visual) in edge_query {
+    for (entity, _edge, visual) in edge_query {
         // Create 2D rectangle for edge
         let mesh = meshes.add(Rectangle::new(1.0, visual.width));
         let material = materials.add(ColorMaterial::from(visual.color));

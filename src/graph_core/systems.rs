@@ -1,7 +1,9 @@
+use bevy::prelude::*;
+
 use super::components::*;
 use super::events::*;
-use bevy::prelude::*;
-use uuid::Uuid;
+
+/// Tracks graph state for UI display
 
 /// System to handle node creation events
 pub fn handle_create_node_events(
@@ -18,6 +20,7 @@ pub fn handle_create_node_events(
             event.domain_type.clone(),
             event.position,
             color,
+            event.name.clone(),
         ));
 
         entity_commands.insert(Name::new(event.name.clone()));
@@ -29,7 +32,7 @@ pub fn handle_create_node_events(
         graph_state.node_count += 1;
 
         // Emit modification event for event sourcing
-        modification_events.write(GraphModificationEvent::NodeCreated {
+        modification_events.send(GraphModificationEvent::NodeCreated {
             id: event.id,
             position: event.position,
             domain_type: event.domain_type.clone(),
@@ -67,7 +70,7 @@ pub fn handle_create_edge_events(
             graph_state.edge_count += 1;
 
             // Emit modification event
-            modification_events.write(GraphModificationEvent::EdgeCreated {
+            modification_events.send(GraphModificationEvent::EdgeCreated {
                 id: event.id,
                 source_id: source.id,
                 target_id: target.id,
@@ -92,7 +95,7 @@ pub fn handle_move_node_events(
             transform.translation = event.to;
             position.0 = event.to;
 
-            modification_events.write(GraphModificationEvent::NodeMoved {
+            modification_events.send(GraphModificationEvent::NodeMoved {
                 id: node.id,
                 from: event.from,
                 to: event.to,

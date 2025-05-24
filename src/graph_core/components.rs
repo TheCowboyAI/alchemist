@@ -1,14 +1,15 @@
 use bevy::prelude::*;
 use uuid::Uuid;
 
-/// Component for graph node entities
+/// Core node component
 #[derive(Component, Debug, Clone)]
 pub struct GraphNode {
     pub id: Uuid,
     pub domain_type: DomainNodeType,
+    pub name: String,
 }
 
-/// Component for graph edge entities  
+/// Core edge component
 #[derive(Component, Debug, Clone)]
 pub struct GraphEdge {
     pub id: Uuid,
@@ -103,9 +104,13 @@ pub struct GraphNodeBundle {
 }
 
 impl GraphNodeBundle {
-    pub fn new(id: Uuid, domain_type: DomainNodeType, position: Vec3, color: Color) -> Self {
+    pub fn new(id: Uuid, domain_type: DomainNodeType, position: Vec3, color: Color, name: String) -> Self {
         Self {
-            node: GraphNode { id, domain_type },
+            node: GraphNode {
+                id,
+                domain_type,
+                name,
+            },
             position: GraphPosition(position),
             visual: NodeVisual {
                 base_color: color,

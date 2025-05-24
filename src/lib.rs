@@ -20,7 +20,11 @@ pub use bevy::window;
 
 // Export our modules
 pub mod camera;
+pub mod events;
+pub mod graph;
 pub mod graph_core;
+pub mod graph_patterns;
+pub mod models;
 
 // Re-export commonly used types
 pub use camera::CameraViewportPlugin;

@@ -6,6 +6,4 @@ pub mod systems;
 
 pub use components::*;
 pub use events::*;
-pub use plugin::GraphPlugin;
-pub use rendering::*;
-pub use systems::*;
+pub use plugin::*;
