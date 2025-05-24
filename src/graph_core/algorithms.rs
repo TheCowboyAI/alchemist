@@ -1,14 +1,17 @@
 use bevy::prelude::*;
-use petgraph::Direction;
-use petgraph::algo::{
-    connected_components, dijkstra, has_path_connecting, is_cyclic_directed, tarjan_scc,
+use petgraph::{
+    algo::{
+        dijkstra, has_path_connecting, is_cyclic_directed, tarjan_scc,
+    },
+    graph::{DiGraph, NodeIndex as PetNodeIndex},
+    visit::{Bfs, Dfs, EdgeRef, Topo},
+    Direction,
 };
-use petgraph::graph::{DiGraph, NodeIndex as PetNodeIndex};
-use petgraph::visit::{Bfs, Dfs, EdgeRef, Topo, Walker};
 use std::collections::HashMap;
 use uuid::Uuid;
 
 use super::graph_data::{EdgeData, GraphData, NodeData};
+use crate::graph_core::components::DomainEdgeType;
 
 /// Graph algorithm examples and utilities
 #[derive(Resource)]
@@ -109,9 +112,7 @@ impl GraphAlgorithms {
 
             // Add neighbors to depth map
             for neighbor in graph_data.graph.neighbors(node_idx) {
-                if !depths.contains_key(&neighbor) {
-                    depths.insert(neighbor, depth + 1);
-                }
+                depths.entry(neighbor).or_insert_with(|| depth + 1);
             }
 
             // Add to result
@@ -382,16 +383,15 @@ mod tests {
             properties: HashMap::new(),
         };
 
-        let idx1 = graph.add_node(node1.clone());
-        let idx2 = graph.add_node(node2.clone());
-
-        // Add edge
         let edge = EdgeData {
             id: Uuid::new_v4(),
             edge_type: DomainEdgeType::DataFlow,
             labels: vec![],
-            properties: HashMap::new(),
+            properties: Default::default(),
         };
+
+        let _idx1 = graph.add_node(node1.clone());
+        let _idx2 = graph.add_node(node2.clone());
 
         graph.add_edge(node1.id, node2.id, edge).unwrap();
 

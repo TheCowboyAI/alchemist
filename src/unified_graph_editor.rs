@@ -302,8 +302,8 @@ fn handle_add_node_events(
 fn handle_mode_switch_events(
     mut events: EventReader<SwitchEditorModeEvent>,
     mut editor_mode: ResMut<EditorMode>,
-    camera_query: Query<&mut Camera>,
-    editor_state: Res<EditorState>,
+    _camera_query: Query<&mut Camera>,
+    _editor_state: Res<EditorState>,
 ) {
     for event in events.read() {
         editor_mode.mode = event.mode.clone();
@@ -559,4 +559,11 @@ fn calculate_subgraph_offset(existing_subgraphs: &HashMap<Uuid, SubgraphInfo>) -
     let y_offset = (count as i32 / grid_size) as f32 * 8.0;
 
     egui::Pos2::new(x_offset, y_offset)
+}
+
+fn debug_rendering(
+    _camera_query: Query<&mut Camera>,
+    _editor_state: Res<EditorState>,
+) {
+    // Debug code will be added as needed
 }

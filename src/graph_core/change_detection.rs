@@ -88,7 +88,7 @@ impl GraphChangeTracker {
 
 /// System to process graph changes and update visual entities
 pub fn process_graph_changes(
-    mut commands: Commands,
+    _commands: Commands,
     mut change_tracker: ResMut<GraphChangeTracker>,
     graph_data: Res<super::GraphData>,
     mut node_query: Query<(&mut Transform, &super::components::GraphNode)>,
@@ -127,7 +127,7 @@ pub fn process_graph_changes(
     // Process modified edges
     for &edge_idx in &change_tracker.modified_edges {
         if let Some(entity) = graph_data.get_edge_entity(edge_idx) {
-            if let Ok((mut transform, edge)) = edge_query.get_mut(entity) {
+            if let Ok((mut transform, _edge)) = edge_query.get_mut(entity) {
                 // Recalculate edge position/rotation based on connected nodes
                 if let Some((source_entity, target_entity)) = graph_data.get_edge_entities(edge_idx)
                 {
@@ -163,8 +163,8 @@ pub fn process_graph_changes(
 /// System to batch mesh updates for performance
 pub fn batch_mesh_updates(
     change_tracker: Res<GraphChangeTracker>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    query: Query<(&Mesh3d, &super::components::GraphNode)>,
+    _meshes: ResMut<Assets<Mesh>>,
+    _query: Query<(&Mesh3d, &super::components::GraphNode)>,
 ) {
     if change_tracker.modified_nodes.is_empty() {
         return;
@@ -189,18 +189,20 @@ pub struct ChangeState {
 
 /// System to mark entities as changed based on component changes
 pub fn detect_component_changes(
-    mut node_query: Query<
-        (Entity, &mut ChangeState, Ref<Transform>),
-        With<super::components::GraphNode>,
-    >,
-    mut edge_query: Query<
-        (Entity, &mut ChangeState, Ref<Transform>),
-        With<super::components::GraphEdge>,
-    >,
+    mut param_set: ParamSet<(
+        Query<
+            (Entity, &mut ChangeState, Ref<Transform>),
+            With<super::components::GraphNode>,
+        >,
+        Query<
+            (Entity, &mut ChangeState, Ref<Transform>),
+            With<super::components::GraphEdge>,
+        >,
+    )>,
     frame_count: Res<FrameCount>,
 ) {
     // Check nodes for changes
-    for (entity, mut change_state, transform) in &mut node_query {
+    for (entity, mut change_state, transform) in &mut param_set.p0() {
         if transform.is_changed() && !transform.is_added() {
             change_state.needs_update = true;
             change_state.last_modified_frame = frame_count.0;
@@ -209,7 +211,7 @@ pub fn detect_component_changes(
     }
 
     // Check edges for changes
-    for (entity, mut change_state, transform) in &mut edge_query {
+    for (entity, mut change_state, transform) in &mut param_set.p1() {
         if transform.is_changed() && !transform.is_added() {
             change_state.needs_update = true;
             change_state.last_modified_frame = frame_count.0;
@@ -235,7 +237,7 @@ pub fn update_lod_levels(
     mut node_query: Query<(&Transform, &mut LodLevel, Entity), With<super::components::GraphNode>>,
     mut commands: Commands,
 ) {
-    let Ok(camera_transform) = camera_query.get_single() else {
+    let Ok(camera_transform) = camera_query.single() else {
         return;
     };
 

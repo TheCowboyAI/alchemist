@@ -89,6 +89,12 @@ pub enum LayoutType {
     Grid,
 }
 
+/// Event to request a graph layout update
+#[derive(Event)]
+pub struct RequestLayoutEvent {
+    pub layout_type: LayoutType,
+}
+
 /// Event for graph validation
 #[derive(Event)]
 pub struct ValidateGraphEvent;

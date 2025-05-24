@@ -71,11 +71,11 @@ impl GraphData {
         let source = self
             .uuid_to_node
             .get(&source_id)
-            .ok_or_else(|| format!("Source node {} not found", source_id))?;
+            .ok_or_else(|| format!("Source node {source_id} not found"))?;
         let target = self
             .uuid_to_node
             .get(&target_id)
-            .ok_or_else(|| format!("Target node {} not found", target_id))?;
+            .ok_or_else(|| format!("Target node {target_id} not found"))?;
 
         Ok(self.graph.add_edge(*source, *target, data))
     }

@@ -1,5 +1,5 @@
 use crate::graph::AlchemistGraph;
-use crate::unified_graph_editor::{BaseGraphResource, VisualNodeComponent};
+use crate::graph_core::{GraphData, GraphNode};
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
@@ -71,7 +71,11 @@ impl Plugin for GraphLayoutPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GraphLayoutController>()
             .add_event::<LayoutUpdateEvent>()
-            .add_systems(Update, (handle_layout_update, apply_force_directed_layout));
+            .add_systems(Update, (
+                handle_layout_request_events,
+                handle_layout_update,
+                apply_force_directed_layout
+            ));
     }
 }
 
@@ -89,8 +93,8 @@ fn handle_layout_update(
 
 /// System that applies the force-directed layout algorithm
 fn apply_force_directed_layout(
-    mut base_graph: ResMut<BaseGraphResource>,
-    mut node_query: Query<&mut Transform, With<VisualNodeComponent>>,
+    mut graph_data: ResMut<GraphData>,
+    mut node_query: Query<(&mut Transform, &GraphNode)>,
     mut controller: ResMut<GraphLayoutController>,
     _time: Res<Time>,
 ) {
@@ -103,83 +107,84 @@ fn apply_force_directed_layout(
 
     // Process multiple iterations per frame
     let mut total_movement = 0.0;
-    let graph = &mut base_graph.graph;
 
     // Calculate forces and update positions
-    let mut forces: HashMap<Uuid, (f32, f32)> = HashMap::new();
+    let mut forces: HashMap<Uuid, Vec3> = HashMap::new();
 
-    // Initialize forces to zero
-    for node_id in graph.nodes.keys() {
-        forces.insert(*node_id, (0.0, 0.0));
+    // Get all node positions first
+    let mut node_positions: HashMap<Uuid, Vec3> = HashMap::new();
+    for (transform, node) in node_query.iter() {
+        node_positions.insert(node.id, transform.translation);
+        forces.insert(node.id, Vec3::ZERO);
     }
 
     // Calculate repulsive forces between all nodes
-    let nodes: Vec<_> = graph.nodes.keys().cloned().collect();
+    let nodes: Vec<Uuid> = node_positions.keys().cloned().collect();
     for i in 0..nodes.len() {
         for j in (i + 1)..nodes.len() {
             let node1 = nodes[i];
             let node2 = nodes[j];
 
-            if let (Some(pos1), Some(pos2)) = (
-                graph.node_positions.get(&node1),
-                graph.node_positions.get(&node2),
+            if let (Some(&pos1), Some(&pos2)) = (
+                node_positions.get(&node1),
+                node_positions.get(&node2),
             ) {
-                let dx = pos2.x - pos1.x;
-                let dy = pos2.y - pos1.y;
-                let distance = (dx * dx + dy * dy).sqrt().max(0.1);
+                let delta = pos2 - pos1;
+                let distance = delta.length().max(controller.params.min_distance);
 
                 let repulsive_force = controller.params.repulsion_constant / (distance * distance);
-                let fx = (dx / distance) * repulsive_force;
-                let fy = (dy / distance) * repulsive_force;
+                let force_vec = delta.normalize_or_zero() * repulsive_force;
 
                 if let Some(force1) = forces.get_mut(&node1) {
-                    force1.0 -= fx;
-                    force1.1 -= fy;
+                    *force1 -= force_vec;
                 }
                 if let Some(force2) = forces.get_mut(&node2) {
-                    force2.0 += fx;
-                    force2.1 += fy;
+                    *force2 += force_vec;
                 }
             }
         }
     }
 
     // Calculate attractive forces between connected nodes
-    for edge in graph.edges.values() {
-        if let (Some(pos1), Some(pos2)) = (
-            graph.node_positions.get(&edge.source),
-            graph.node_positions.get(&edge.target),
+    for (_edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
+        if let (Some(source_node), Some(target_node)) = (
+            graph_data.nodes().find(|(idx, _)| *idx == source_idx).map(|(_, data)| data),
+            graph_data.nodes().find(|(idx, _)| *idx == target_idx).map(|(_, data)| data),
         ) {
-            let dx = pos2.x - pos1.x;
-            let dy = pos2.y - pos1.y;
-            let distance = (dx * dx + dy * dy).sqrt().max(0.1);
+            if let (Some(&pos1), Some(&pos2)) = (
+                node_positions.get(&source_node.id),
+                node_positions.get(&target_node.id),
+            ) {
+                let delta = pos2 - pos1;
+                let distance = delta.length().max(controller.params.min_distance);
 
-            let attractive_force = controller.params.spring_constant * edge.weight * distance;
-            let fx = (dx / distance) * attractive_force;
-            let fy = (dy / distance) * attractive_force;
+                let attractive_force = controller.params.spring_constant * distance;
+                let force_vec = delta.normalize_or_zero() * attractive_force;
 
-            if let Some(force1) = forces.get_mut(&edge.source) {
-                force1.0 += fx;
-                force1.1 += fy;
-            }
-            if let Some(force2) = forces.get_mut(&edge.target) {
-                force2.0 -= fx;
-                force2.1 -= fy;
+                if let Some(force1) = forces.get_mut(&source_node.id) {
+                    *force1 += force_vec;
+                }
+                if let Some(force2) = forces.get_mut(&target_node.id) {
+                    *force2 -= force_vec;
+                }
             }
         }
     }
 
     // Apply forces to update positions
-    for (node_id, (fx, fy)) in forces {
-        if let Some(pos) = graph.node_positions.get_mut(&node_id) {
-            pos.x += fx * controller.params.damping * controller.temperature;
-            pos.y += fy * controller.params.damping * controller.temperature;
+    for (mut transform, node) in node_query.iter_mut() {
+        if let Some(&force) = forces.get(&node.id) {
+            let clamped_force = force.clamp_length_max(controller.params.max_force);
+            let movement = clamped_force * controller.params.damping * controller.temperature;
+
+            transform.translation += movement;
 
             // Apply bounds to keep nodes in a reasonable area
-            pos.x = pos.x.clamp(-20.0, 20.0);
-            pos.y = pos.y.clamp(-20.0, 20.0);
+            transform.translation.x = transform.translation.x.clamp(-50.0, 50.0);
+            transform.translation.y = transform.translation.y.clamp(-5.0, 5.0);
+            transform.translation.z = transform.translation.z.clamp(-50.0, 50.0);
 
-            total_movement += (fx * fx + fy * fy).sqrt();
+            total_movement += movement.length();
         }
     }
 
@@ -189,13 +194,8 @@ fn apply_force_directed_layout(
 
     // If movement is very small, consider the layout stable
     if total_movement < controller.stabilization_threshold {
-        return;
-    }
-
-    // Update visual node positions
-    for _transform in node_query.iter_mut() {
-        // TODO: Sync positions from graph data to visual transforms
-        // This would require additional component linking
+        controller.enabled = false;
+        info!("Force-directed layout stabilized after {} iterations", controller.iteration_count);
     }
 }
 
@@ -526,5 +526,27 @@ fn apply_circular_layout(graph: &mut AlchemistGraph) {
         let y = radius * angle.sin();
 
         graph.node_positions.insert(*node_id, egui::Pos2::new(x, y));
+    }
+}
+
+/// System to bridge RequestLayoutEvent from graph_core to LayoutUpdateEvent
+fn handle_layout_request_events(
+    mut request_events: EventReader<crate::graph_core::RequestLayoutEvent>,
+    mut layout_events: EventWriter<LayoutUpdateEvent>,
+    mut controller: ResMut<GraphLayoutController>,
+) {
+    for event in request_events.read() {
+        match event.layout_type {
+            crate::graph_core::LayoutType::ForceDirected => {
+                controller.enabled = true;
+                controller.iteration_count = 0;
+                controller.temperature = 0.9;
+                layout_events.send(LayoutUpdateEvent);
+                info!("Starting force-directed layout");
+            }
+            _ => {
+                warn!("Layout type {:?} not yet implemented", event.layout_type);
+            }
+        }
     }
 }

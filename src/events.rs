@@ -89,9 +89,14 @@ impl Event for GraphEvent {
 }
 
 // EventStream to store and process events
-#[derive(Debug)]
 pub struct EventStream {
     events: Vec<Box<dyn Event>>,
+}
+
+impl Default for EventStream {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EventStream {

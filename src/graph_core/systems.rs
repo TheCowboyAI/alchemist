@@ -1,11 +1,9 @@
 use bevy::prelude::*;
-use std::collections::HashMap;
 
-use super::components::*;
-use super::events::*;
-use super::graph_data::{EdgeData, GraphData, NodeData};
-
-/// Tracks graph state for UI display
+use super::{
+    components::*, events::*, graph_data::{EdgeData, GraphData, NodeData},
+    GraphEdge, GraphNode, NodeVisual,
+};
 
 /// System to handle node creation events
 pub fn handle_create_node_events(
@@ -242,55 +240,6 @@ pub fn update_node_visuals(
     }
 }
 
-/// System to handle pattern creation
-// TODO: Implement graph_patterns module
-/*
-pub fn handle_pattern_creation(
-    mut commands: Commands,
-    mut events: EventReader<CreatePatternEvent>,
-    mut create_node_events: EventWriter<CreateNodeEvent>,
-    mut create_edge_events: EventWriter<CreateEdgeEvent>,
-) {
-    for event in events.read() {
-        // Generate pattern and create nodes/edges
-        let pattern_graph = crate::graph_patterns::generate_pattern(event.pattern.clone());
-
-        // Map old IDs to new entities
-        let mut id_map = std::collections::HashMap::new();
-
-        // Create nodes
-        for (old_id, node) in &pattern_graph.nodes {
-            let new_id = Uuid::new_v4();
-            id_map.insert(old_id, new_id);
-
-            // Calculate position relative to pattern center
-            let pos = pattern_graph
-                .node_positions
-                .get(old_id)
-                .map(|p| Vec3::new(p.x, 0.0, p.y))
-                .unwrap_or(Vec3::ZERO)
-                + event.position;
-
-            create_node_events.send(CreateNodeEvent {
-                id: new_id,
-                position: pos,
-                domain_type: DomainNodeType::Process, // Default type
-                name: node.name.clone(),
-                subgraph_id: None,
-            });
-        }
-
-        // Create edges (will be processed next frame after nodes are created)
-        // This is a limitation we'll address with a better event ordering system
-        info!(
-            "Pattern {} created with {} nodes",
-            event.name,
-            pattern_graph.nodes.len()
-        );
-    }
-}
-*/
-
 /// System to handle graph validation
 pub fn handle_validation_events(
     mut events: EventReader<ValidateGraphEvent>,
@@ -511,6 +460,53 @@ pub fn process_deferred_edges(
             warn!(
                 "Could not find entities for edge {:?} -> {:?}, will retry",
                 event.source_uuid, event.target_uuid
+            );
+        }
+    }
+}
+
+/// System to ensure all edges in GraphData have corresponding visual entities
+pub fn synchronize_edge_entities(
+    mut commands: Commands,
+    graph_data: Res<GraphData>,
+    existing_edges: Query<(Entity, &GraphEdge)>,
+) {
+    // Create a set of edge IDs that already have entities
+    let existing_edge_ids: std::collections::HashSet<_> = existing_edges
+        .iter()
+        .map(|(_, edge)| edge.id)
+        .collect();
+
+    // Check all edges in the graph data
+    for (edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
+        // Skip if this edge already has an entity
+        if existing_edge_ids.contains(&edge_data.id) {
+            continue;
+        }
+
+        // Get the source and target entities
+        let source_entity = graph_data.get_node_entity(source_idx);
+        let target_entity = graph_data.get_node_entity(target_idx);
+
+        if let (Some(source), Some(target)) = (source_entity, target_entity) {
+            // Create the edge entity
+            let bundle = GraphEdgeBundle::new(
+                edge_data.id,
+                source,
+                target,
+                edge_data.edge_type.clone(),
+            );
+
+            let entity = commands.spawn(bundle).id();
+
+            // Note: We can't set the edge entity in GraphData here because it's not mutable
+            // This would need to be handled in a separate system or by making GraphData mutable
+
+            info!("Created missing edge entity for edge {:?}", edge_data.id);
+        } else {
+            warn!(
+                "Could not create edge entity: missing node entities for edge {:?}",
+                edge_data.id
             );
         }
     }

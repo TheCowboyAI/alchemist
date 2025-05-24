@@ -29,6 +29,13 @@ pub struct AlchemistGraph {
     pub nodes: HashMap<Uuid, GraphNode>,
     pub edges: HashMap<Uuid, GraphEdge>,
     pub node_positions: HashMap<Uuid, egui::Pos2>,
+    pub metadata: HashMap<String, String>,
+}
+
+impl Default for AlchemistGraph {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AlchemistGraph {
@@ -37,6 +44,7 @@ impl AlchemistGraph {
             nodes: HashMap::new(),
             edges: HashMap::new(),
             node_positions: HashMap::new(),
+            metadata: HashMap::new(),
         }
     }
 
@@ -284,6 +292,13 @@ pub struct GraphWorkflow {
     pub graph: AlchemistGraph,
     pub snarl_graph: Option<Snarl<GraphNodeData>>,
     pub current_node: Option<Uuid>,
+    pub node_positions: HashMap<Uuid, egui::Pos2>,
+}
+
+impl Default for GraphWorkflow {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GraphWorkflow {
@@ -292,6 +307,7 @@ impl GraphWorkflow {
             graph: AlchemistGraph::new(),
             snarl_graph: Some(Snarl::default()),
             current_node: None,
+            node_positions: HashMap::new(),
         }
     }
 

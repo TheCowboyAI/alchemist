@@ -238,7 +238,7 @@
       "id": "n18",
       "position": {
         "x": -205.95880621356315,
-        "y": 712.3216235450805
+        "y": 705.1807572139951
       },
       "caption": "configuration.nix",
       "labels": [],
@@ -355,7 +355,7 @@
       "id": "n5",
       "fromId": "n4",
       "toId": "n5",
-      "type": "k8s",
+      "type": "",
       "properties": {},
       "style": {}
     },
@@ -459,7 +459,7 @@
       "id": "n18",
       "fromId": "n15",
       "toId": "n1",
-      "type": "nixos-anywhere",
+      "type": "",
       "properties": {},
       "style": {}
     },

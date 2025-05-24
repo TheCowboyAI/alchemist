@@ -1,7 +1,8 @@
-use super::components::{DomainEdgeType, DomainNodeType, GraphEdge, GraphNode};
+use super::components::{GraphEdge, GraphNode};
 use super::{GraphAlgorithms, GraphChangeTracker, GraphData};
 use bevy::prelude::*;
-use bevy_egui::{EguiContexts, egui};
+use bevy::window::PrimaryWindow;
+use bevy_egui::{egui, EguiContexts};
 use uuid::Uuid;
 
 /// UI state for the graph inspector
@@ -28,9 +29,10 @@ pub fn graph_inspector_ui(
     mut contexts: EguiContexts,
     mut inspector_state: ResMut<GraphInspectorState>,
     graph_data: Res<GraphData>,
-    mut change_tracker: ResMut<GraphChangeTracker>,
-    node_query: Query<(&GraphNode, &Transform)>,
+    mut change_tracker: ResMut<super::GraphChangeTracker>,
+    _node_query: Query<(&GraphNode, &Transform)>,
     edge_query: Query<(&GraphEdge, &Transform)>,
+    mut layout_events: EventWriter<super::RequestLayoutEvent>,
 ) {
     let ctx = contexts.ctx_mut();
 
@@ -53,7 +55,7 @@ pub fn graph_inspector_ui(
             // Node list
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.collapsing("Nodes", |ui| {
-                    for (node_idx, node_data) in graph_data.nodes() {
+                    for (_node_idx, node_data) in graph_data.nodes() {
                         if !inspector_state.search_filter.is_empty()
                             && !node_data
                                 .name
@@ -75,7 +77,7 @@ pub fn graph_inspector_ui(
 
                 // Edge list
                 ui.collapsing("Edges", |ui| {
-                    for (edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
+                    for (_edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
                         let source_name = graph_data
                             .graph
                             .node_weight(source_idx)
@@ -87,7 +89,7 @@ pub fn graph_inspector_ui(
                             .map(|n| n.name.as_str())
                             .unwrap_or("Unknown");
 
-                        let edge_label = format!("{} → {}", source_name, target_name);
+                        let edge_label = format!("{source_name} → {target_name}");
 
                         let is_selected = inspector_state.selected_edge == Some(edge_data.id);
                         if ui.selectable_label(is_selected, edge_label).clicked() {
@@ -127,7 +129,7 @@ pub fn graph_inspector_ui(
                         ui.separator();
                         ui.label("Labels:");
                         for label in &node_data.labels {
-                            ui.label(format!("  • {}", label));
+                            ui.label(format!("  • {label}"));
                         }
                     }
 
@@ -135,7 +137,7 @@ pub fn graph_inspector_ui(
                         ui.separator();
                         ui.label("Properties:");
                         for (key, value) in &node_data.properties {
-                            ui.label(format!("  {}: {}", key, value));
+                            ui.label(format!("  {key}: {value}"));
                         }
                     }
 
@@ -154,7 +156,7 @@ pub fn graph_inspector_ui(
 
             // Edge properties
             if let Some(edge_id) = inspector_state.selected_edge {
-                if let Some((edge_component, transform)) =
+                if let Some((edge_component, _transform)) =
                     edge_query.iter().find(|(edge, _)| edge.id == edge_id)
                 {
                     ui.label("Edge Properties");
@@ -193,7 +195,7 @@ pub fn graph_inspector_ui(
         egui::Window::new("Graph Algorithms")
             .default_pos([400.0, 300.0])
             .show(ctx, |ui| {
-                show_algorithm_controls(ui, &mut inspector_state, &graph_data, &mut change_tracker);
+                show_algorithm_controls(ui, &mut inspector_state, &graph_data, &mut change_tracker, &mut layout_events);
             });
     }
 }
@@ -231,15 +233,15 @@ fn show_graph_statistics(ui: &mut egui::Ui, graph_data: &GraphData) {
     let mut max_out = 0;
     let mut max_total = 0;
 
-    for (_, (in_deg, out_deg, total)) in &centrality {
+    for (in_deg, out_deg, total) in centrality.values() {
         max_in = max_in.max(*in_deg);
         max_out = max_out.max(*out_deg);
         max_total = max_total.max(*total);
     }
 
-    ui.label(format!("Max In-Degree: {}", max_in));
-    ui.label(format!("Max Out-Degree: {}", max_out));
-    ui.label(format!("Max Total Degree: {}", max_total));
+    ui.label(format!("Max In-Degree: {max_in}"));
+    ui.label(format!("Max Out-Degree: {max_out}"));
+    ui.label(format!("Max Total Degree: {max_total}"));
 }
 
 /// Show algorithm controls
@@ -248,6 +250,7 @@ fn show_algorithm_controls(
     inspector_state: &mut GraphInspectorState,
     graph_data: &GraphData,
     change_tracker: &mut GraphChangeTracker,
+    layout_events: &mut EventWriter<super::RequestLayoutEvent>,
 ) {
     ui.heading("Pathfinding");
 
@@ -322,33 +325,37 @@ fn show_algorithm_controls(
     ui.heading("Layout");
 
     if ui.button("Force-Directed Layout").clicked() {
-        change_tracker.request_full_layout();
-        info!("Requested force-directed layout");
+        layout_events.send(super::RequestLayoutEvent {
+            layout_type: super::LayoutType::ForceDirected,
+        });
+        info!("Force-directed layout requested");
     }
 
     if ui.button("Hierarchical Layout").clicked() {
-        change_tracker.request_full_layout();
-        info!("Requested hierarchical layout");
+        layout_events.send(super::RequestLayoutEvent {
+            layout_type: super::LayoutType::Hierarchical,
+        });
+        info!("Hierarchical layout requested");
     }
 }
 
-/// System to handle node selection via clicking
+/// Handle mouse clicks for node selection
 pub fn handle_node_selection(
-    mut inspector_state: ResMut<GraphInspectorState>,
     mouse_button: Res<ButtonInput<MouseButton>>,
+    windows: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
-    node_query: Query<(Entity, &GraphNode, &GlobalTransform)>,
-    windows: Query<&Window>,
+    node_query: Query<(Entity, &GraphNode, &Transform)>,
+    mut inspector_state: ResMut<GraphInspectorState>,
 ) {
     if !mouse_button.just_pressed(MouseButton::Left) {
         return;
     }
 
-    let Ok((camera, camera_transform)) = camera_query.get_single() else {
+    let Ok((camera, camera_transform)) = camera_query.single() else {
         return;
     };
 
-    let Ok(window) = windows.get_single() else {
+    let Ok(window) = windows.single() else {
         return;
     };
 
@@ -364,8 +371,8 @@ pub fn handle_node_selection(
         let mut closest_node = None;
         let mut closest_distance = f32::MAX;
 
-        for (entity, node, transform) in &node_query {
-            let node_pos = transform.translation();
+        for (_entity, node, transform) in &node_query {
+            let node_pos = transform.translation;
             let distance = ray.origin.distance(node_pos);
 
             if distance < closest_distance && distance < 2.0 {
@@ -393,7 +400,7 @@ pub fn update_selection_highlights(
     inspector_state: Res<GraphInspectorState>,
     node_query: Query<(Entity, &GraphNode), Without<SelectionHighlight>>,
     highlighted_query: Query<Entity, With<SelectionHighlight>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    _materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Remove old highlights
     for entity in &highlighted_query {

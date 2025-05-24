@@ -163,6 +163,120 @@ pub fn render_graph_edges(
     }
 }
 
+/// System to render edges directly from GraphData
+pub fn render_graph_edges_from_data(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    graph_data: Res<super::GraphData>,
+    camera_query: Query<&GraphViewCamera>,
+    node_query: Query<&Transform, With<GraphNode>>,
+    rendered_edges: Query<&GraphEdge, With<EdgeRendered>>,
+) {
+    let Ok(camera) = camera_query.single() else {
+        return;
+    };
+
+    // Only render in 3D mode for now
+    if !matches!(camera.view_mode, ViewMode::ThreeD(_)) {
+        return;
+    }
+
+    // Create a set of already rendered edge IDs
+    let rendered_ids: std::collections::HashSet<_> = rendered_edges
+        .iter()
+        .map(|edge| edge.id)
+        .collect();
+
+    // Check all edges in the graph data
+    for (edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
+        // Skip if already rendered
+        if rendered_ids.contains(&edge_data.id) {
+            continue;
+        }
+
+        // Get the source and target entities
+        let source_entity = graph_data.get_node_entity(source_idx);
+        let target_entity = graph_data.get_node_entity(target_idx);
+
+        if let (Some(source), Some(target)) = (source_entity, target_entity) {
+            // Get transforms for positioning
+            if let (Ok(source_transform), Ok(target_transform)) =
+                (node_query.get(source), node_query.get(target))
+            {
+                let source_pos = source_transform.translation;
+                let target_pos = target_transform.translation;
+
+                // Calculate edge position and rotation
+                let mid_point = source_pos + (target_pos - source_pos) * 0.5;
+                let direction = target_pos - source_pos;
+                let distance = direction.length();
+
+                if distance > 0.01 {
+                    // Create the edge entity with visual components
+                    let edge_color = match edge_data.edge_type {
+                        super::components::DomainEdgeType::DataFlow => Color::srgb(0.3, 0.3, 0.8),
+                        super::components::DomainEdgeType::ControlFlow => Color::srgb(0.8, 0.3, 0.3),
+                        super::components::DomainEdgeType::Dependency => Color::srgb(0.3, 0.8, 0.3),
+                        super::components::DomainEdgeType::Association => Color::srgb(0.5, 0.5, 0.5),
+                        super::components::DomainEdgeType::Custom(_) => Color::srgb(0.6, 0.6, 0.6),
+                    };
+
+                    // Create cylinder mesh for the edge
+                    let cylinder = Cylinder::new(0.05, 1.0);
+                    let mesh = meshes.add(cylinder.mesh());
+                    let material = materials.add(StandardMaterial {
+                        base_color: edge_color,
+                        ..default()
+                    });
+
+                    // Calculate rotation
+                    let rotation = if direction.normalize() != Vec3::Y {
+                        Quat::from_rotation_arc(Vec3::Y, direction.normalize())
+                    } else {
+                        Quat::IDENTITY
+                    };
+
+                    // Spawn the edge entity
+                    let edge_entity = commands.spawn((
+                        GraphEdge {
+                            id: edge_data.id,
+                            source,
+                            target,
+                            edge_type: edge_data.edge_type.clone(),
+                            labels: edge_data.labels.clone(),
+                            properties: edge_data.properties.clone(),
+                        },
+                        EdgeVisual {
+                            color: edge_color,
+                            width: 1.0,
+                        },
+                        Transform {
+                            translation: mid_point,
+                            rotation,
+                            scale: Vec3::new(1.0, distance, 1.0),
+                        },
+                        GlobalTransform::default(),
+                        EdgeRendered,
+                    )).with_children(|parent| {
+                        parent.spawn((
+                            Mesh3d(mesh),
+                            MeshMaterial3d(material),
+                            Transform::default(),
+                            Name::new("EdgeCylinder"),
+                        ));
+                    }).id();
+
+                    info!(
+                        "Created edge visual from {:?} to {:?}",
+                        source_pos, target_pos
+                    );
+                }
+            }
+        }
+    }
+}
+
 fn render_edges_3d(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,

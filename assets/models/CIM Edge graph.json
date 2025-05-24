@@ -1,4 +1,401 @@
 {
+  "nodes": [
+    {
+      "id": "n0",
+      "position": {
+        "x": 525.8738073271248,
+        "y": -958.1589207268402
+      },
+      "caption": "leaf0.cim",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 189.55353715881515,
+        "y": -375.63512518003654
+      },
+      "caption": "leaf2.cim",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 862.1940774954346,
+        "y": -375.63512518003654
+      },
+      "caption": "leaf1.cim",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#a4dd00"
+      }
+    },
+    {
+      "id": "n4",
+      "position": {
+        "x": -811.6935035503798,
+        "y": -1338.4200412591476
+      },
+      "caption": "DNS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#f44e3b"
+      }
+    },
+    {
+      "id": "n7",
+      "position": {
+        "x": -202.98717906754896,
+        "y": -1338.4200412591476
+      },
+      "caption": "CIM",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n9",
+      "position": {
+        "x": 1149.2680057732584,
+        "y": -209.8929154115117
+      },
+      "caption": "containers",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n10",
+      "position": {
+        "x": -97.52039111900834,
+        "y": -209.8929154115117
+      },
+      "caption": "containers",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n11",
+      "position": {
+        "x": 525.8738073271248,
+        "y": -1295.8364934470296
+      },
+      "caption": "containers",
+      "labels": [
+        "<name>.leaf0.cim"
+      ],
+      "properties": {},
+      "style": {
+        "node-color": "#68ccca"
+      }
+    },
+    {
+      "id": "n12",
+      "position": {
+        "x": -202.98717906754896,
+        "y": -958.1589207268402
+      },
+      "caption": "NAMESERVER",
+      "labels": [
+        "<name><value>"
+      ],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n13",
+      "position": {
+        "x": -1044.2801652391106,
+        "y": -1338.4200412591476
+      },
+      "caption": "SSL Certified Web Presence ",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#68bc00"
+      }
+    },
+    {
+      "id": "n14",
+      "position": {
+        "x": 455.6529113692337,
+        "y": -1520.5644072214636
+      },
+      "caption": "DNS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n15",
+      "position": {
+        "x": 1253.9200598264106,
+        "y": -28.63024067500845
+      },
+      "caption": "DNS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n16",
+      "position": {
+        "x": 7.946396829532318,
+        "y": -27.219080173546388
+      },
+      "caption": "DNS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#fcdc00"
+      }
+    },
+    {
+      "id": "n17",
+      "position": {
+        "x": 596.094703285016,
+        "y": -1520.5644072214636
+      },
+      "caption": "Web",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n18",
+      "position": {
+        "x": 1081.825317380985,
+        "y": -27.219080173546388
+      },
+      "caption": "Web",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n19",
+      "position": {
+        "x": -202.98717906754896,
+        "y": -27.219080173546345
+      },
+      "caption": "Web",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#73d8ff"
+      }
+    },
+    {
+      "id": "n20",
+      "position": {
+        "x": 525.8738073271248,
+        "y": -591.4013328570611
+      },
+      "caption": "NATS",
+      "labels": [],
+      "properties": {},
+      "style": {
+        "node-color": "#aea1ff"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "n6",
+      "fromId": "n0",
+      "toId": "n3",
+      "type": "cluster",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n7",
+      "fromId": "n3",
+      "toId": "n2",
+      "type": "cluster",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n8",
+      "fromId": "n2",
+      "toId": "n0",
+      "type": "cluster",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n10",
+      "fromId": "n4",
+      "toId": "n7",
+      "type": "external addressing",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n12",
+      "fromId": "n3",
+      "toId": "n9",
+      "type": "K8s",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n13",
+      "fromId": "n2",
+      "toId": "n10",
+      "type": "K8s",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n14",
+      "fromId": "n0",
+      "toId": "n11",
+      "type": "K8s",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n15",
+      "fromId": "n7",
+      "toId": "n12",
+      "type": "Edge Router",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n16",
+      "fromId": "n12",
+      "toId": "n4",
+      "type": "push to external provider",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n17",
+      "fromId": "n12",
+      "toId": "n0",
+      "type": "reverse proxy",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n18",
+      "fromId": "n4",
+      "toId": "n13",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n19",
+      "fromId": "n11",
+      "toId": "n14",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n20",
+      "fromId": "n9",
+      "toId": "n15",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n21",
+      "fromId": "n10",
+      "toId": "n16",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n22",
+      "fromId": "n11",
+      "toId": "n17",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n23",
+      "fromId": "n9",
+      "toId": "n18",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n24",
+      "fromId": "n10",
+      "toId": "n19",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n25",
+      "fromId": "n0",
+      "toId": "n20",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n26",
+      "fromId": "n2",
+      "toId": "n20",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n27",
+      "fromId": "n3",
+      "toId": "n20",
+      "type": "",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "n28",
+      "fromId": "n7",
+      "toId": "n0",
+      "type": "Identity / Authorization",
+      "properties": {},
+      "style": {}
+    }
+  ],
   "style": {
     "font-family": "sans-serif",
     "background-color": "#ffffff",
@@ -51,357 +448,5 @@
     "property-color": "#000000",
     "property-font-size": 16,
     "property-font-weight": "normal"
-  },
-  "nodes": [
-    {
-      "id": "n0",
-      "position": {
-        "x": 377.58900052218263,
-        "y": -636.6396035044738
-      },
-      "caption": "leaf0.cim",
-      "labels": [],
-      "properties": {},
-      "style": {
-        "node-color": "#a4dd00"
-      }
-    },
-    {
-      "id": "n2",
-      "position": {
-        "x": 209.05606838731023,
-        "y": -344.7320022983175
-      },
-      "caption": "leaf2.cim",
-      "labels": [],
-      "properties": {},
-      "style": {
-        "node-color": "#a4dd00"
-      }
-    },
-    {
-      "id": "n3",
-      "position": {
-        "x": 546.1219326570551,
-        "y": -344.7320022983175
-      },
-      "caption": "leaf1.cim",
-      "labels": [],
-      "properties": {},
-      "style": {
-        "node-color": "#a4dd00"
-      }
-    },
-    {
-      "id": "n4",
-      "position": {
-        "x": -618.2392566177034,
-        "y": -838.9734654759009
-      },
-      "caption": "DNS",
-      "labels": [],
-      "properties": {},
-      "style": {
-        "node-color": "#f44e3b"
-      }
-    },
-    {
-      "id": "n7",
-      "position": {
-        "x": -9.532932134872397,
-        "y": -838.9734654759009
-      },
-      "caption": "CIM",
-      "labels": [],
-      "properties": {},
-      "style": {
-        "node-color": "#68bc00"
-      }
-    },
-    {
-      "id": "n9",
-      "position": {
-        "x": 708.4354652606625,
-        "y": -212.58614801634354
-      },
-      "caption": "containers",
-      "labels": [],
-      "properties": {},
-      "style": {
-        "node-color": "#68ccca"
-      }
-    },
-    {
-      "id": "n10",
-      "position": {
-        "x": 44.646681073759794,
-        "y": -212.58614801634354
-      },
-      "caption": "containers",
-      "labels": [],
-      "properties": {},
-      "style": {
-        "node-color": "#68ccca"
-      }
-    },
-    {
-      "id": "n11",
-      "position": {
-        "x": 377.58900052218263,
-        "y": -838.9734654759009
-      },
-      "caption": "containers",
-      "labels": [
-        "<name>.leaf0.cim"
-      ],
-      "properties": {},
-      "style": {
-        "node-color": "#68ccca"
-      }
-    },
-    {
-      "id": "n12",
-      "position": {
-        "x": -9.532932134872397,
-        "y": -636.6396035044738
-      },
-      "caption": "ns",
-      "labels": [
-        "<name>.cim"
-      ],
-      "properties": {},
-      "style": {
-        "node-color": "#fcdc00"
-      }
-    },
-    {
-      "id": "n13",
-      "position": {
-        "x": -618.2392566177034,
-        "y": -636.6396035044738
-      },
-      "caption": "SSL Certified Web Presence ",
-      "style": {
-        "node-color": "#68bc00"
-      },
-      "labels": [],
-      "properties": {}
-    },
-    {
-      "id": "n14",
-      "position": {
-        "x": 307.3681045642916,
-        "y": -1063.7013792503349
-      },
-      "caption": "DNS",
-      "style": {
-        "node-color": "#fcdc00"
-      },
-      "labels": [],
-      "properties": {}
-    },
-    {
-      "id": "n15",
-      "position": {
-        "x": 813.0875193138141,
-        "y": -31.3234732798403
-      },
-      "caption": "DNS",
-      "style": {
-        "node-color": "#fcdc00"
-      },
-      "labels": [],
-      "properties": {}
-    },
-    {
-      "id": "n16",
-      "position": {
-        "x": 150.11346902230042,
-        "y": -29.912312778378237
-      },
-      "caption": "DNS",
-      "style": {
-        "node-color": "#fcdc00"
-      },
-      "labels": [],
-      "properties": {}
-    },
-    {
-      "id": "n17",
-      "position": {
-        "x": 447.8098964800736,
-        "y": -1063.7013792503349
-      },
-      "caption": "Web",
-      "style": {
-        "node-color": "#73d8ff"
-      },
-      "labels": [],
-      "properties": {}
-    },
-    {
-      "id": "n18",
-      "position": {
-        "x": 640.9927768683884,
-        "y": -29.912312778378237
-      },
-      "caption": "Web",
-      "style": {
-        "node-color": "#73d8ff"
-      },
-      "labels": [],
-      "properties": {}
-    },
-    {
-      "id": "n19",
-      "position": {
-        "x": -60.82010687478078,
-        "y": -29.912312778378194
-      },
-      "caption": "Web",
-      "style": {
-        "node-color": "#73d8ff"
-      },
-      "labels": [],
-      "properties": {}
-    }
-  ],
-  "relationships": [
-    {
-      "id": "n6",
-      "fromId": "n0",
-      "toId": "n3",
-      "type": "cluster",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n7",
-      "fromId": "n3",
-      "toId": "n2",
-      "type": "cluster",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n8",
-      "fromId": "n2",
-      "toId": "n0",
-      "type": "cluster",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n10",
-      "fromId": "n4",
-      "toId": "n7",
-      "type": "external addressing",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n12",
-      "fromId": "n3",
-      "toId": "n9",
-      "type": "",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n13",
-      "fromId": "n2",
-      "toId": "n10",
-      "type": "",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n14",
-      "fromId": "n0",
-      "toId": "n11",
-      "type": "",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n15",
-      "fromId": "n7",
-      "toId": "n12",
-      "type": "",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n16",
-      "fromId": "n12",
-      "toId": "n4",
-      "type": "push to external provider",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n17",
-      "fromId": "n12",
-      "toId": "n0",
-      "type": "reverse proxy",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "n18",
-      "type": "",
-      "style": {},
-      "properties": {},
-      "fromId": "n4",
-      "toId": "n13"
-    },
-    {
-      "id": "n19",
-      "type": "",
-      "style": {},
-      "properties": {},
-      "fromId": "n11",
-      "toId": "n14"
-    },
-    {
-      "id": "n20",
-      "type": "",
-      "style": {},
-      "properties": {},
-      "fromId": "n9",
-      "toId": "n15"
-    },
-    {
-      "id": "n21",
-      "type": "",
-      "style": {},
-      "properties": {},
-      "fromId": "n10",
-      "toId": "n16"
-    },
-    {
-      "id": "n22",
-      "type": "",
-      "style": {},
-      "properties": {},
-      "fromId": "n11",
-      "toId": "n17"
-    },
-    {
-      "id": "n23",
-      "type": "",
-      "style": {},
-      "properties": {},
-      "fromId": "n9",
-      "toId": "n18"
-    },
-    {
-      "id": "n24",
-      "type": "",
-      "style": {},
-      "properties": {},
-      "fromId": "n10",
-      "toId": "n19"
-    }
-  ]
+  }
 }

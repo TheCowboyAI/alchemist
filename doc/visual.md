@@ -10,5 +10,5 @@ Hyperedges are clouds
 This will give us the ability to wireframe our graphs
 hpart is a rust implementation for partitioning hypergraphs
 
-
+EventStream<Domain<T>>-+->ObjectStore<T>
 

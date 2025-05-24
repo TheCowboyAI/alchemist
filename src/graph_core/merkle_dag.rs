@@ -1,9 +1,8 @@
 use bevy::prelude::*;
 use daggy::{Dag, EdgeIndex, NodeIndex, Walker};
-use petgraph::graph::NodeIndex as PetNodeIndex;
-use petgraph::visit::{IntoEdgeReferences, IntoNodeIdentifiers};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt::Debug;
 use uuid::Uuid;
 
 /// Content identifier for Merkle DAG nodes
@@ -54,23 +53,30 @@ pub struct MerkleDag {
     subgraph_roots: HashMap<String, Vec<NodeIndex>>,
 }
 
-// Schema for serialization
-#[derive(serde::Serialize, serde::Deserialize)]
-struct DagSchema {
-    nodes: Vec<(NodeIndex, MerkleNode)>,
-    edges: Vec<(NodeIndex, NodeIndex, MerkleEdge)>,
+/// Schema for native MerkleDag JSON format
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DagSchema {
+    nodes: Vec<MerkleNode>,
+    edges: Vec<MerkleEdge>,
+    metadata: HashMap<String, String>,
 }
 
-// Arrows.app compatible schema
-#[derive(serde::Serialize, serde::Deserialize)]
-struct ArrowsSchema {
-    #[serde(default)]
-    style: HashMap<String, serde_json::Value>,
+/// Schema for arrows.app compatibility
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ArrowsSchema {
     nodes: Vec<ArrowsNode>,
     relationships: Vec<ArrowsRelationship>,
+    style: ArrowsStyle,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+/// Style for arrows.app graph
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct ArrowsStyle {
+    #[serde(flatten)]
+    pub properties: HashMap<String, serde_json::Value>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 struct ArrowsNode {
     id: String,
     caption: String,
@@ -82,13 +88,13 @@ struct ArrowsNode {
     style: HashMap<String, serde_json::Value>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 struct ArrowsPosition {
     x: f32,
     y: f32,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 struct ArrowsRelationship {
     id: String,
     #[serde(rename = "type")]
@@ -142,7 +148,7 @@ impl MerkleDag {
         visited.push(start);
 
         // Use Daggy's walker for traversal - iterate directly
-        for (edge_idx, node_idx) in self.dag.children(start).iter(&self.dag) {
+        for (_edge_idx, node_idx) in self.dag.children(start).iter(&self.dag) {
             visited.push(node_idx);
 
             if node_idx == end {
@@ -151,7 +157,7 @@ impl MerkleDag {
             }
 
             // Continue searching depth-first
-            if let Some(mut path_node) = self.find_path_to(node_idx, end) {
+            if let Some(path_node) = self.find_path_to(node_idx, end) {
                 visited.extend(path_node);
                 return Ok(self.verify_path_proofs(&visited));
             }
@@ -246,28 +252,22 @@ impl MerkleDag {
 
     /// Serialize the DAG for persistence
     pub fn serialize(&self) -> Result<String, serde_json::Error> {
-        let nodes: Vec<(NodeIndex, MerkleNode)> = self
+        let nodes: Vec<MerkleNode> = self
             .dag
             .raw_nodes()
             .iter()
-            .enumerate()
-            .map(|(idx, node)| {
-                // In petgraph/daggy, nodes have a weight field that is the actual data
-                (NodeIndex::new(idx), node.weight.clone())
-            })
+            .map(|node| node.weight.clone())
             .collect();
 
-        let edges: Vec<(NodeIndex, NodeIndex, MerkleEdge)> = self
+        let edges: Vec<MerkleEdge> = self
             .dag
             .raw_edges()
             .iter()
-            .map(|edge| {
-                // In petgraph/daggy, edges have a weight field that is the actual data
-                (edge.source(), edge.target(), edge.weight.clone())
-            })
+            .map(|edge| edge.weight.clone())
             .collect();
 
-        let schema = DagSchema { nodes, edges };
+        let metadata = HashMap::new(); // Add any metadata if needed
+        let schema = DagSchema { nodes, edges, metadata };
         serde_json::to_string(&schema)
     }
 
@@ -321,7 +321,7 @@ impl MerkleDag {
         let mut relationships = Vec::new();
 
         // Convert nodes
-        for (idx, node) in self.dag.raw_nodes().iter().enumerate() {
+        for (_idx, node) in self.dag.raw_nodes().iter().enumerate() {
             let merkle_node = &node.weight;
 
             // Build properties map
@@ -349,7 +349,7 @@ impl MerkleDag {
             // Add metadata fields with meta_ prefix
             for (key, value) in &merkle_node.metadata {
                 properties.insert(
-                    format!("meta_{}", key),
+                    format!("meta_{key}"),
                     serde_json::Value::String(value.clone()),
                 );
             }
@@ -417,7 +417,7 @@ impl MerkleDag {
                 );
 
                 relationships.push(ArrowsRelationship {
-                    id: format!("edge_{}", edge_idx),
+                    id: format!("edge_{edge_idx}"),
                     rel_type: "LINKS_TO".to_string(),
                     from_id: source.cid.0.clone(),
                     to_id: target.cid.0.clone(),
@@ -428,7 +428,7 @@ impl MerkleDag {
         }
 
         ArrowsSchema {
-            style: HashMap::new(),
+            style: ArrowsStyle { properties: HashMap::new() },
             nodes,
             relationships,
         }
@@ -604,28 +604,22 @@ impl MerkleDag {
 
     /// Convert the DAG to a serializable format
     pub fn to_schema(&self) -> DagSchema {
-        let nodes: Vec<(NodeIndex, MerkleNode)> = self
+        let nodes: Vec<MerkleNode> = self
             .dag
             .raw_nodes()
             .iter()
-            .enumerate()
-            .map(|(idx, node)| {
-                // In petgraph/daggy, nodes have a weight field that is the actual data
-                (NodeIndex::new(idx), node.weight.clone())
-            })
+            .map(|node| node.weight.clone())
             .collect();
 
-        let edges: Vec<(NodeIndex, NodeIndex, MerkleEdge)> = self
+        let edges: Vec<MerkleEdge> = self
             .dag
             .raw_edges()
             .iter()
-            .map(|edge| {
-                // In petgraph/daggy, edges have a weight field that is the actual data
-                (edge.source(), edge.target(), edge.weight.clone())
-            })
+            .map(|edge| edge.weight.clone())
             .collect();
 
-        DagSchema { nodes, edges }
+        let metadata = HashMap::new(); // Add any metadata if needed
+        DagSchema { nodes, edges, metadata }
     }
 }
 
@@ -887,5 +881,25 @@ mod tests {
         let re_imported = MerkleDag::from_arrows_json(&exported).unwrap();
         assert_eq!(re_imported.dag.node_count(), 2);
         assert_eq!(re_imported.dag.edge_count(), 1);
+    }
+
+    #[test]
+    fn test_daggy_usage() {
+        let mut dag = MerkleDag::new();
+
+        let node1 = MerkleNode {
+            cid: Cid("QmNode1".to_string()),
+            links: vec![],
+            position: Vec3::new(100.0, 0.0, 200.0),
+            render_state: NodeRenderState {
+                color: [1.0, 0.5, 0.0, 1.0],
+                size: 0.75,
+                visible: true,
+            },
+            metadata: HashMap::new(),
+            uuid: Uuid::new_v4(),
+        };
+
+        let _idx = dag.add_node(node1);
     }
 }

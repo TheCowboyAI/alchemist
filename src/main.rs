@@ -8,6 +8,7 @@ mod camera;
 mod events;
 mod graph;
 mod graph_core;
+mod graph_layout;
 mod graph_patterns;
 mod json_loader;
 mod models;
@@ -16,6 +17,7 @@ mod unified_graph_editor;
 
 use camera::CameraViewportPlugin;
 use graph_core::{CreateEdgeEvent, CreateNodeEvent, DomainNodeType, GraphPlugin};
+use graph_layout::GraphLayoutPlugin;
 use graph_patterns::{GraphPattern, generate_pattern};
 use json_loader::{
     FileOperationState, JsonGraphData, JsonNode, JsonPosition, LoadJsonFileEvent,
@@ -40,6 +42,7 @@ fn main() {
         // Add our custom plugins
         .add_plugins(CameraViewportPlugin)
         .add_plugins(GraphPlugin)
+        .add_plugins(GraphLayoutPlugin)
         // Resources
         .init_resource::<NodeCounter>()
         .init_resource::<FileOperationState>()

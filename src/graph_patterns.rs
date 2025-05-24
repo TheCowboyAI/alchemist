@@ -2,14 +2,28 @@ use crate::graph::AlchemistGraph;
 use rand::prelude::*;
 use std::collections::HashMap;
 use uuid::Uuid;
+use bevy::prelude::*;
 
 /// Represents catalog categories for organizing graph patterns
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PatternCategory {
-    Basic,
-    Algorithmic,
-    Structural,
-    Modeling,
+    Workflow,
+    DataFlow,
+    Architecture,
+    Organization,
+    Custom,
+}
+
+impl std::fmt::Display for PatternCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PatternCategory::Workflow => write!(f, "Workflow"),
+            PatternCategory::DataFlow => write!(f, "DataFlow"),
+            PatternCategory::Architecture => write!(f, "Architecture"),
+            PatternCategory::Organization => write!(f, "Organization"),
+            PatternCategory::Custom => write!(f, "Custom"),
+        }
+    }
 }
 
 /// Represents all available graph patterns
@@ -89,18 +103,18 @@ impl GraphPattern {
     /// Get the category this pattern belongs to
     pub fn category(&self) -> PatternCategory {
         match self {
-            GraphPattern::Tree { .. } => PatternCategory::Structural,
-            GraphPattern::Star { .. } => PatternCategory::Basic,
-            GraphPattern::Cycle { .. } => PatternCategory::Basic,
-            GraphPattern::Complete { .. } => PatternCategory::Basic,
-            GraphPattern::Grid { .. } => PatternCategory::Structural,
-            GraphPattern::Random { .. } => PatternCategory::Basic,
-            GraphPattern::RegularPolygon { .. } => PatternCategory::Basic,
-            GraphPattern::MooreMachine => PatternCategory::Modeling,
-            GraphPattern::MealyMachine => PatternCategory::Modeling,
-            GraphPattern::FiniteAutomaton { .. } => PatternCategory::Modeling,
-            GraphPattern::DirectedAcyclicGraph { .. } => PatternCategory::Algorithmic,
-            GraphPattern::Bipartite { .. } => PatternCategory::Structural,
+            GraphPattern::Tree { .. } => PatternCategory::Architecture,
+            GraphPattern::Star { .. } => PatternCategory::Architecture,
+            GraphPattern::Cycle { .. } => PatternCategory::Architecture,
+            GraphPattern::Complete { .. } => PatternCategory::Architecture,
+            GraphPattern::Grid { .. } => PatternCategory::Architecture,
+            GraphPattern::Random { .. } => PatternCategory::Architecture,
+            GraphPattern::RegularPolygon { .. } => PatternCategory::Architecture,
+            GraphPattern::MooreMachine => PatternCategory::Architecture,
+            GraphPattern::MealyMachine => PatternCategory::Architecture,
+            GraphPattern::FiniteAutomaton { .. } => PatternCategory::Architecture,
+            GraphPattern::DirectedAcyclicGraph { .. } => PatternCategory::Architecture,
+            GraphPattern::Bipartite { .. } => PatternCategory::Architecture,
         }
     }
 
@@ -143,10 +157,16 @@ impl GraphPattern {
     }
 }
 
-/// A catalog of pattern examples for easy access
+#[derive(Resource)]
 pub struct PatternCatalog {
     patterns: HashMap<String, GraphPattern>,
-    categories: HashMap<PatternCategory, Vec<String>>,
+    categories: HashMap<String, Vec<String>>, // Category -> Pattern names
+}
+
+impl Default for PatternCatalog {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PatternCatalog {
@@ -222,7 +242,7 @@ impl PatternCatalog {
 
         // Add to categories map
         self.categories
-            .entry(category)
+            .entry(category.to_string())
             .or_default()
             .push(key_owned.clone());
 
@@ -237,7 +257,7 @@ impl PatternCatalog {
 
     /// Get all pattern keys in a specific category
     pub fn get_keys_by_category(&self, category: PatternCategory) -> Vec<&str> {
-        match self.categories.get(&category) {
+        match self.categories.get(&category.to_string()) {
             Some(keys) => keys.iter().map(|s| s.as_str()).collect(),
             None => Vec::new(),
         }

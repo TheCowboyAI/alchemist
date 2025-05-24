@@ -38,6 +38,7 @@ impl Plugin for GraphPlugin {
             .add_event::<DeselectAllEvent>()
             .add_event::<HoverEvent>()
             .add_event::<LayoutUpdateEvent>()
+            .add_event::<RequestLayoutEvent>()
             .add_event::<ValidateGraphEvent>()
             .add_event::<SaveGraphEvent>()
             .add_event::<LoadGraphEvent>()
@@ -61,6 +62,8 @@ impl Plugin for GraphPlugin {
                     handle_validation_events,
                     // Process deferred edges after nodes are created
                     process_deferred_edges,
+                    // Synchronize edge entities with graph data
+                    synchronize_edge_entities,
                     // Then update systems
                     update_edge_positions,
                     update_node_visuals,
@@ -90,6 +93,7 @@ impl Plugin for GraphPlugin {
                     render_reference_grid,
                     render_graph_nodes,
                     render_graph_edges,
+                    render_graph_edges_from_data,
                 )
                     .chain(),
             );

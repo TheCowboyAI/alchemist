@@ -1,57 +1,4 @@
 {
-  "style": {
-    "font-family": "sans-serif",
-    "background-color": "#ffffff",
-    "background-image": "",
-    "background-size": "100%",
-    "node-color": "#ffffff",
-    "border-width": 4,
-    "border-color": "#000000",
-    "radius": 50,
-    "node-padding": 5,
-    "node-margin": 2,
-    "outside-position": "auto",
-    "node-icon-image": "",
-    "node-background-image": "",
-    "icon-position": "inside",
-    "icon-size": 64,
-    "caption-position": "inside",
-    "caption-max-width": 200,
-    "caption-color": "#000000",
-    "caption-font-size": 50,
-    "caption-font-weight": "normal",
-    "label-position": "inside",
-    "label-display": "pill",
-    "label-color": "#000000",
-    "label-background-color": "#ffffff",
-    "label-border-color": "#000000",
-    "label-border-width": 4,
-    "label-font-size": 40,
-    "label-padding": 5,
-    "label-margin": 4,
-    "directionality": "directed",
-    "detail-position": "inline",
-    "detail-orientation": "parallel",
-    "arrow-width": 5,
-    "arrow-color": "#000000",
-    "margin-start": 5,
-    "margin-end": 5,
-    "margin-peer": 20,
-    "attachment-start": "normal",
-    "attachment-end": "normal",
-    "relationship-icon-image": "",
-    "type-color": "#000000",
-    "type-background-color": "#ffffff",
-    "type-border-color": "#000000",
-    "type-border-width": 0,
-    "type-font-size": 16,
-    "type-padding": 5,
-    "property-position": "outside",
-    "property-alignment": "colon",
-    "property-color": "#000000",
-    "property-font-size": 16,
-    "property-font-weight": "normal"
-  },
   "nodes": [
     {
       "id": "n0",
@@ -181,8 +128,8 @@
     {
       "id": "n9",
       "position": {
-        "x": 279.66520966703996,
-        "y": 196.1069483200365
+        "x": 298.02211751329685,
+        "y": 204.19024469876604
       },
       "caption": "Applications",
       "labels": [],
@@ -224,11 +171,11 @@
         "y": -420.2895689729173
       },
       "caption": "person",
+      "labels": [],
+      "properties": {},
       "style": {
         "node-color": "#a4dd00"
-      },
-      "labels": [],
-      "properties": {}
+      }
     },
     {
       "id": "n13",
@@ -237,11 +184,11 @@
         "y": 233.18774410092425
       },
       "caption": "Policy",
+      "labels": [],
+      "properties": {},
       "style": {
         "node-color": "#73d8ff"
-      },
-      "labels": [],
-      "properties": {}
+      }
     },
     {
       "id": "n14",
@@ -250,11 +197,11 @@
         "y": -217.5733382442174
       },
       "caption": "Command",
+      "labels": [],
+      "properties": {},
       "style": {
         "node-color": "#aea1ff"
-      },
-      "labels": [],
-      "properties": {}
+      }
     },
     {
       "id": "n15",
@@ -263,11 +210,11 @@
         "y": -49.42120880412342
       },
       "caption": "Query",
+      "labels": [],
+      "properties": {},
       "style": {
         "node-color": "#aea1ff"
-      },
-      "labels": [],
-      "properties": {}
+      }
     }
   ],
   "relationships": [
@@ -372,35 +319,88 @@
     },
     {
       "id": "n13",
-      "type": "",
-      "style": {},
-      "properties": {},
+      "fromId": "n12",
       "toId": "n5",
-      "fromId": "n12"
+      "type": "",
+      "properties": {},
+      "style": {}
     },
     {
       "id": "n14",
-      "type": "",
-      "style": {},
-      "properties": {},
+      "fromId": "n13",
       "toId": "n7",
-      "fromId": "n13"
+      "type": "",
+      "properties": {},
+      "style": {}
     },
     {
       "id": "n15",
-      "type": "",
-      "style": {},
-      "properties": {},
       "fromId": "n11",
-      "toId": "n14"
+      "toId": "n14",
+      "type": "",
+      "properties": {},
+      "style": {}
     },
     {
       "id": "n16",
-      "type": "",
-      "style": {},
-      "properties": {},
       "fromId": "n11",
-      "toId": "n15"
+      "toId": "n15",
+      "type": "",
+      "properties": {},
+      "style": {}
     }
-  ]
+  ],
+  "style": {
+    "font-family": "sans-serif",
+    "background-color": "#ffffff",
+    "background-image": "",
+    "background-size": "100%",
+    "node-color": "#ffffff",
+    "border-width": 4,
+    "border-color": "#000000",
+    "radius": 50,
+    "node-padding": 5,
+    "node-margin": 2,
+    "outside-position": "auto",
+    "node-icon-image": "",
+    "node-background-image": "",
+    "icon-position": "inside",
+    "icon-size": 64,
+    "caption-position": "inside",
+    "caption-max-width": 200,
+    "caption-color": "#000000",
+    "caption-font-size": 50,
+    "caption-font-weight": "normal",
+    "label-position": "inside",
+    "label-display": "pill",
+    "label-color": "#000000",
+    "label-background-color": "#ffffff",
+    "label-border-color": "#000000",
+    "label-border-width": 4,
+    "label-font-size": 40,
+    "label-padding": 5,
+    "label-margin": 4,
+    "directionality": "directed",
+    "detail-position": "inline",
+    "detail-orientation": "parallel",
+    "arrow-width": 5,
+    "arrow-color": "#000000",
+    "margin-start": 5,
+    "margin-end": 5,
+    "margin-peer": 20,
+    "attachment-start": "normal",
+    "attachment-end": "normal",
+    "relationship-icon-image": "",
+    "type-color": "#000000",
+    "type-background-color": "#ffffff",
+    "type-border-color": "#000000",
+    "type-border-width": 0,
+    "type-font-size": 16,
+    "type-padding": 5,
+    "property-position": "outside",
+    "property-alignment": "colon",
+    "property-color": "#000000",
+    "property-font-size": 16,
+    "property-font-weight": "normal"
+  }
 }
