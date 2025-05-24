@@ -87,6 +87,13 @@ pub fn json_to_base_graph(json_data: JsonGraphData) -> Result<BaseGraphResource,
                 json_node.position.y / 100.0, // Map 2D Y to 3D Z
             ),
         );
+
+        // Store style information in node_styles (if it exists)
+        if let Some(color) = json_node.style.get("node-color") {
+            if let Some(node) = base_graph.graph.nodes.get_mut(&node_id) {
+                node.properties.insert("node-color".to_string(), color.clone());
+            }
+        }
     }
 
     // Convert relationships

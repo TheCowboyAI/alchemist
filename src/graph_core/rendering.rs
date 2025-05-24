@@ -20,13 +20,12 @@ pub fn render_graph_nodes(
     node_query: Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Without<NodeRendered>>,
 ) {
     let Ok(camera) = camera_query.single() else {
-        warn!("No camera found for rendering!");
         return;
     };
 
     let node_count = node_query.iter().count();
     if node_count > 0 {
-        info!("Found {} nodes to render in {:?} mode", node_count, camera.view_mode);
+        info!("Rendering {} nodes", node_count);
     }
 
     // Render nodes based on current view mode
@@ -46,11 +45,7 @@ fn render_nodes_3d(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     node_query: &Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Without<NodeRendered>>,
 ) {
-    let mut rendered_count = 0;
-    for (entity, node, _position, visual) in node_query {
-        rendered_count += 1;
-        info!("Rendering 3D node '{}' at entity {:?}", node.name, entity);
-
+    for (entity, node, position, visual) in node_query {
         // Create 3D sphere for node
         let mesh = meshes.add(Sphere::new(0.5).mesh().uv(32, 18));
         let material = materials.add(StandardMaterial {
@@ -67,22 +62,29 @@ fn render_nodes_3d(
                     MeshMaterial3d(material),
                     Transform::from_translation(Vec3::ZERO),
                 ));
-
-                // Add text label
-                parent.spawn((
-                    Text2d::new(&node.name),
-                    TextFont {
-                        font_size: 14.0,
-                        ..default()
-                    },
-                    TextColor(Color::WHITE),
-                    Transform::from_xyz(0.0, 0.8, 0.1), // Position above the node
-                ));
             });
-    }
 
-    if rendered_count > 0 {
-        info!("Rendered {} 3D nodes", rendered_count);
+        // Also spawn a bright cube above the node as a debug marker
+        let debug_mesh = meshes.add(Cuboid::new(0.3, 0.3, 0.3));
+        let debug_material = materials.add(StandardMaterial {
+            base_color: Color::srgb(1.0, 1.0, 0.0), // Bright yellow
+            emissive: Color::srgb(1.0, 1.0, 0.0).into(),
+            emissive_exposure_weight: 2.0,
+            ..default()
+        });
+
+        // Use the GraphPosition
+        let world_pos = position.0;
+
+        // Spawn debug cube above node in world space
+        commands.spawn((
+            Mesh3d(debug_mesh),
+            MeshMaterial3d(debug_material),
+            Transform::from_translation(world_pos + Vec3::new(0.0, 1.5, 0.0)),
+            Name::new(format!("DebugCube_{}", node.name)),
+        ));
+
+        info!("Created node '{}' at {:?} with debug cube", node.name, world_pos);
     }
 }
 
@@ -116,6 +118,7 @@ fn render_nodes_2d(
                     },
                     TextColor(Color::WHITE),
                     Transform::from_xyz(0.0, 30.0, 0.1), // Position above the node
+                    bevy::sprite::Anchor::Center, // Center the text
                 ));
             });
     }
@@ -129,15 +132,21 @@ pub fn render_graph_edges(
     mut materials_2d: ResMut<Assets<ColorMaterial>>,
     camera_query: Query<&GraphViewCamera>,
     edge_query: Query<(Entity, &GraphEdge, &EdgeVisual), Without<EdgeRendered>>,
+    node_query: Query<&Transform, With<GraphNode>>,
 ) {
     let Ok(camera) = camera_query.single() else {
         return;
     };
 
+    let edge_count = edge_query.iter().count();
+    if edge_count > 0 {
+        info!("Rendering {} edges", edge_count);
+    }
+
     // Render edges based on current view mode
     match camera.view_mode {
         ViewMode::ThreeD(_) => {
-            render_edges_3d(&mut commands, &mut meshes, &mut materials_3d, &edge_query);
+            render_edges_3d(&mut commands, &mut meshes, &mut materials_3d, &edge_query, &node_query);
         }
         ViewMode::TwoD(_) => {
             render_edges_2d(&mut commands, &mut meshes, &mut materials_2d, &edge_query);
@@ -150,25 +159,60 @@ fn render_edges_3d(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     edge_query: &Query<(Entity, &GraphEdge, &EdgeVisual), Without<EdgeRendered>>,
+    node_query: &Query<&Transform, With<GraphNode>>,
 ) {
-    for (entity, _edge, visual) in edge_query {
-        // Create 3D cylinder for edge
-        let mesh = meshes.add(Cylinder::new(visual.width * 0.1, 1.0).mesh());
-        let material = materials.add(StandardMaterial {
-            base_color: visual.color,
-            ..default()
-        });
+    for (entity, edge, visual) in edge_query {
+        // Get source and target positions
+        if let (Ok(source_transform), Ok(target_transform)) =
+            (node_query.get(edge.source), node_query.get(edge.target))
+        {
+            let source_pos = source_transform.translation;
+            let target_pos = target_transform.translation;
+            let direction = target_pos - source_pos;
+            let distance = direction.length();
 
-        commands
-            .entity(entity)
-            .insert(EdgeRendered)
-            .with_children(|parent| {
-                parent.spawn((
-                    Mesh3d(mesh),
-                    MeshMaterial3d(material),
-                    Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::PI / 2.0)),
-                ));
+            if distance < 0.01 {
+                continue;
+            }
+
+            // Create a simple cylinder
+            let cylinder = Cylinder::new(0.05, distance);
+            let mesh = meshes.add(cylinder.mesh());
+
+            let material = materials.add(StandardMaterial {
+                base_color: visual.color,
+                ..default()
             });
+
+            // Position at midpoint
+            let midpoint = source_pos + direction * 0.5;
+
+            // Create rotation to align cylinder (Y-axis) with edge direction
+            let rotation = if direction.normalize() != Vec3::Y {
+                Quat::from_rotation_arc(Vec3::Y, direction.normalize())
+            } else {
+                Quat::IDENTITY
+            };
+
+            commands
+                .entity(entity)
+                .insert(EdgeRendered)
+                .insert(Transform {
+                    translation: midpoint,
+                    rotation,
+                    scale: Vec3::ONE,
+                })
+                .with_children(|parent| {
+                    parent.spawn((
+                        Mesh3d(mesh),
+                        MeshMaterial3d(material),
+                        Transform::default(),
+                        Name::new("EdgeCylinder"),
+                    ));
+                });
+
+            info!("Rendered edge from {:?} to {:?}", source_pos, target_pos);
+        }
     }
 }
 
@@ -190,7 +234,8 @@ fn render_edges_2d(
                 parent.spawn((
                     Mesh2d(mesh),
                     MeshMaterial2d(material),
-                    Transform::from_translation(Vec3::ZERO),
+                    // Don't override positioning - parent transform handles that
+                    Transform::default(),
                 ));
             });
     }

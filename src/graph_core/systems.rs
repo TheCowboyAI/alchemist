@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use super::components::*;
 use super::events::*;
+use super::graph_data::{GraphData, NodeData, EdgeData};
 
 /// Tracks graph state for UI display
 
@@ -13,7 +14,12 @@ pub fn handle_create_node_events(
     mut modification_events: EventWriter<GraphModificationEvent>,
 ) {
     for event in events.read() {
-        let color = get_color_for_domain_type(&event.domain_type);
+        // Parse color from hex string if provided, otherwise use domain type color
+        let color = if let Some(hex_color) = &event.color {
+            parse_hex_color(hex_color).unwrap_or_else(|| get_color_for_domain_type(&event.domain_type))
+        } else {
+            get_color_for_domain_type(&event.domain_type)
+        };
 
         let mut entity_commands = commands.spawn(GraphNodeBundle::new(
             event.id,
@@ -62,12 +68,18 @@ pub fn handle_create_edge_events(
         let target_node = node_query.get(event.target);
 
         if let (Ok(source), Ok(target)) = (source_node, target_node) {
-            commands.spawn(GraphEdgeBundle::new(
+            let mut bundle = GraphEdgeBundle::new(
                 event.id,
                 event.source,
                 event.target,
                 event.edge_type.clone(),
-            ));
+            );
+
+            // Update the edge with labels and properties
+            bundle.edge.labels = event.labels.clone();
+            bundle.edge.properties = event.properties.clone();
+
+            commands.spawn(bundle);
 
             graph_state.edge_count += 1;
 
@@ -183,19 +195,11 @@ pub fn update_edge_positions(
             let source_pos = source_transform.translation;
             let target_pos = target_transform.translation;
 
-            // Calculate edge position and rotation
-            let direction = target_pos - source_pos;
-            let distance = direction.length();
+            // Just position the edge entity at the midpoint
+            let mid_point = source_pos + (target_pos - source_pos) * 0.5;
+            edge_transform.translation = mid_point;
 
-            if distance > 0.01 {
-                let mid_point = source_pos + direction * 0.5;
-                edge_transform.translation = mid_point;
-
-                // Rotate to align with direction
-                let angle = direction.z.atan2(direction.x);
-                edge_transform.rotation = Quat::from_rotation_y(angle);
-                edge_transform.scale = Vec3::new(distance, 1.0, 1.0);
-            }
+            // No rotation or scaling needed for sphere-based edges
         }
     }
 }
@@ -318,5 +322,128 @@ fn get_color_for_domain_type(domain_type: &DomainNodeType) -> Color {
         DomainNodeType::Storage => Color::srgb(0.5, 0.3, 0.8),
         DomainNodeType::Interface => Color::srgb(0.4, 0.7, 0.9),
         DomainNodeType::Custom(_) => Color::srgb(0.6, 0.6, 0.6),
+    }
+}
+
+/// Helper function to parse hex color string
+fn parse_hex_color(hex: &str) -> Option<Color> {
+    let hex = hex.trim_start_matches('#');
+
+    if hex.len() != 6 {
+        return None;
+    }
+
+    let r = u8::from_str_radix(&hex[0..2], 16).ok()? as f32 / 255.0;
+    let g = u8::from_str_radix(&hex[2..4], 16).ok()? as f32 / 255.0;
+    let b = u8::from_str_radix(&hex[4..6], 16).ok()? as f32 / 255.0;
+
+    Some(Color::srgb(r, g, b))
+}
+
+/// Example of how node creation should work with proper graph data structure
+pub fn handle_create_node_with_graph(
+    mut commands: Commands,
+    mut events: EventReader<CreateNodeEvent>,
+    mut graph_data: ResMut<GraphData>,
+    mut graph_state: ResMut<GraphState>,
+) {
+    for event in events.read() {
+        // First, add to the graph data structure
+        let node_data = NodeData {
+            id: event.id,
+            name: event.name.clone(),
+            domain_type: event.domain_type.clone(),
+            position: event.position,
+            labels: event.labels.clone(),
+            properties: event.properties.clone(),
+        };
+
+        let graph_idx = graph_data.add_node(node_data);
+
+        // Then create the ECS entity for rendering
+        let color = event.color.as_ref()
+            .and_then(|hex| parse_hex_color(hex))
+            .unwrap_or_else(|| get_color_for_domain_type(&event.domain_type));
+
+        let entity = commands.spawn(GraphNodeBundle::new(
+            event.id,
+            event.domain_type.clone(),
+            event.position,
+            color,
+            event.name.clone(),
+            event.labels.clone(),
+            event.properties.clone(),
+        ))
+        .insert(Name::new(event.name.clone()))
+        .id();
+
+        // Associate the graph node with the ECS entity
+        graph_data.set_node_entity(graph_idx, entity);
+
+        if let Some(subgraph_id) = event.subgraph_id {
+            commands.entity(entity).insert(SubgraphMember { subgraph_id });
+        }
+
+        graph_state.node_count = graph_data.node_count();
+
+        info!(
+            "Created node '{}' with petgraph index {:?} and entity {:?}",
+            event.name, graph_idx, entity
+        );
+    }
+}
+
+/// Example of how edge creation should work
+pub fn handle_create_edge_with_graph(
+    mut commands: Commands,
+    mut events: EventReader<CreateEdgeEvent>,
+    mut graph_data: ResMut<GraphData>,
+    mut graph_state: ResMut<GraphState>,
+) {
+    for event in events.read() {
+        // Get the node UUIDs for source and target entities
+        let source_node = graph_data.nodes()
+            .find(|(idx, _)| graph_data.get_node_entity(*idx) == Some(event.source))
+            .map(|(_, data)| data.id);
+
+        let target_node = graph_data.nodes()
+            .find(|(idx, _)| graph_data.get_node_entity(*idx) == Some(event.target))
+            .map(|(_, data)| data.id);
+
+        if let (Some(source_id), Some(target_id)) = (source_node, target_node) {
+            // Add to graph data structure
+            let edge_data = EdgeData {
+                id: event.id,
+                edge_type: event.edge_type.clone(),
+                labels: event.labels.clone(),
+                properties: event.properties.clone(),
+            };
+
+            match graph_data.add_edge(source_id, target_id, edge_data) {
+                Ok(edge_idx) => {
+                    // Create ECS entity for rendering
+                    let bundle = GraphEdgeBundle::new(
+                        event.id,
+                        event.source,
+                        event.target,
+                        event.edge_type.clone(),
+                    );
+
+                    let entity = commands.spawn(bundle).id();
+
+                    // Associate the graph edge with the ECS entity
+                    graph_data.set_edge_entity(edge_idx, entity);
+
+                    graph_state.edge_count = graph_data.edge_count();
+
+                    info!("Created edge with petgraph index {:?} and entity {:?}", edge_idx, entity);
+                }
+                Err(e) => {
+                    warn!("Failed to create edge: {}", e);
+                }
+            }
+        } else {
+            warn!("Failed to create edge: source or target node not found in graph");
+        }
     }
 }

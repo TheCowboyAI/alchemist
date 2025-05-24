@@ -13,6 +13,7 @@ pub struct CreateNodeEvent {
     pub labels: Vec<String>,
     pub properties: HashMap<String, String>,
     pub subgraph_id: Option<Uuid>,
+    pub color: Option<String>, // Hex color from JSON style
 }
 
 /// Event for moving a node

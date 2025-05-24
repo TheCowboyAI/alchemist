@@ -67,24 +67,13 @@ fn main() {
         .add_systems(
             Update,
             (
-                // UI and input - run after EGUI initialization
-                ui_system,
-                debug_camera_system,
-                keyboard_commands_system,
-            )
-                .chain()
-                .after(bevy_egui::EguiPreUpdateSet::InitContexts),
-        )
-        .add_systems(
-            Update,
-            (
-                // File operations and graph manipulation
-                handle_load_json_file,
-                handle_save_json_file,
-                process_pending_edges,
-            )
-                .chain()
-                .after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                ui_system.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                debug_camera_system.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                keyboard_commands_system.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                handle_load_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                handle_save_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                process_pending_edges.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+            ),
         )
         .add_systems(Last, track_node_despawns)
         .run();
@@ -139,55 +128,106 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         affects_lightmapped_meshes: true,
     });
 
-    // Create some initial test nodes
+    // Create some initial test nodes with IDs we can reference
+    let center_id = Uuid::new_v4();
+    let decision_id = Uuid::new_v4();
+    let event_id = Uuid::new_v4();
+    let storage_id = Uuid::new_v4();
+    let interface_id = Uuid::new_v4();
+
     create_node_events.send(CreateNodeEvent {
-        id: Uuid::new_v4(),
+        id: center_id,
         position: Vec3::new(0.0, 0.0, 0.0),
         domain_type: DomainNodeType::Process,
         name: "Central Node".to_string(),
         labels: vec!["process".to_string()],
         properties: std::collections::HashMap::new(),
         subgraph_id: None,
+        color: None,
     });
 
     create_node_events.send(CreateNodeEvent {
-        id: Uuid::new_v4(),
+        id: decision_id,
         position: Vec3::new(5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Decision,
         name: "Decision Node".to_string(),
         labels: vec!["decision".to_string()],
         properties: std::collections::HashMap::new(),
         subgraph_id: None,
+        color: None,
     });
 
     create_node_events.send(CreateNodeEvent {
-        id: Uuid::new_v4(),
+        id: event_id,
         position: Vec3::new(-5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Event,
         name: "Event Node".to_string(),
         labels: vec!["event".to_string()],
         properties: std::collections::HashMap::new(),
         subgraph_id: None,
+        color: None,
     });
 
     create_node_events.send(CreateNodeEvent {
-        id: Uuid::new_v4(),
+        id: storage_id,
         position: Vec3::new(0.0, 0.0, 5.0),
         domain_type: DomainNodeType::Storage,
         name: "Storage Node".to_string(),
         labels: vec!["storage".to_string()],
         properties: std::collections::HashMap::new(),
         subgraph_id: None,
+        color: None,
     });
 
     create_node_events.send(CreateNodeEvent {
-        id: Uuid::new_v4(),
+        id: interface_id,
         position: Vec3::new(0.0, 0.0, -5.0),
         domain_type: DomainNodeType::Interface,
         name: "Interface Node".to_string(),
-        labels: vec!["interface".to_string()],
+        labels: vec!["event".to_string()],
         properties: std::collections::HashMap::new(),
         subgraph_id: None,
+        color: None,
+    });
+
+    // Create pending edges to be processed after nodes are created
+    commands.insert_resource(PendingEdges {
+        edges: vec![
+            PendingEdgeData {
+                id: Uuid::new_v4(),
+                source_uuid: center_id,
+                target_uuid: decision_id,
+                edge_type: graph_core::DomainEdgeType::DataFlow,
+                labels: vec!["test".to_string()],
+                properties: std::collections::HashMap::new(),
+            },
+            PendingEdgeData {
+                id: Uuid::new_v4(),
+                source_uuid: center_id,
+                target_uuid: event_id,
+                edge_type: graph_core::DomainEdgeType::DataFlow,
+                labels: vec!["test".to_string()],
+                properties: std::collections::HashMap::new(),
+            },
+            PendingEdgeData {
+                id: Uuid::new_v4(),
+                source_uuid: center_id,
+                target_uuid: storage_id,
+                edge_type: graph_core::DomainEdgeType::DataFlow,
+                labels: vec!["test".to_string()],
+                properties: std::collections::HashMap::new(),
+            },
+            PendingEdgeData {
+                id: Uuid::new_v4(),
+                source_uuid: center_id,
+                target_uuid: interface_id,
+                edge_type: graph_core::DomainEdgeType::DataFlow,
+                labels: vec!["test".to_string()],
+                properties: std::collections::HashMap::new(),
+            },
+        ],
+        node_count: 5,
+        processed_nodes: 0,
     });
 }
 
@@ -480,6 +520,7 @@ fn ui_system(
                     labels: vec!["process".to_string()],
                     properties: std::collections::HashMap::new(),
                     subgraph_id: None,
+                    color: None,
                 });
             }
 
@@ -576,14 +617,32 @@ fn add_pattern_to_graph(
             node.name, position
         );
 
+        // Determine domain type from labels or use the first label as a hint
+        let domain_type = if node.labels.contains(&"decision".to_string()) {
+            DomainNodeType::Decision
+        } else if node.labels.contains(&"event".to_string()) {
+            DomainNodeType::Event
+        } else if node.labels.contains(&"storage".to_string()) {
+            DomainNodeType::Storage
+        } else if node.labels.contains(&"interface".to_string()) {
+            DomainNodeType::Interface
+        } else {
+            DomainNodeType::Process
+        };
+
+        // Get color from properties if available
+        let mut properties_without_color = node.properties.clone();
+        let color_str = properties_without_color.remove("node-color");
+
         create_node_events.send(CreateNodeEvent {
             id: new_id,
             position,
-            domain_type: DomainNodeType::Process, // Default type
+            domain_type,
             name: node.name.clone(),
             labels: node.labels.clone(),
-            properties: node.properties.clone(),
+            properties: properties_without_color,
             subgraph_id: None,
+            color: color_str,
         });
 
         // We'll need to wait for nodes to be created before we can get their entities
@@ -639,6 +698,7 @@ fn keyboard_commands_system(
             labels: vec!["process".to_string()],
             properties: std::collections::HashMap::new(),
             subgraph_id: None,
+            color: None,
         });
         info!("Add node command triggered");
     }
@@ -831,11 +891,14 @@ fn load_graph_from_json(
 
     // Create node events
     for (uuid, node) in &base_graph.graph.nodes {
-        let position = base_graph
+        let mut position = base_graph
             .node_positions
             .get(uuid)
             .copied()
             .unwrap_or(Vec3::ZERO);
+
+        // Lift the node up by its radius so it sits on the ground plane
+        position.y += 0.5;
 
         // Determine domain type from labels or use the first label as a hint
         let domain_type = if node.labels.contains(&"decision".to_string()) {
@@ -850,14 +913,19 @@ fn load_graph_from_json(
             DomainNodeType::Process
         };
 
+        // Get color from properties if available
+        let mut properties_without_color = node.properties.clone();
+        let color_str = properties_without_color.remove("node-color");
+
         node_events.push(CreateNodeEvent {
             id: *uuid,
             position,
             domain_type,
             name: node.name.clone(),
             labels: node.labels.clone(),
-            properties: node.properties.clone(),
+            properties: properties_without_color,
             subgraph_id: None,
+            color: color_str,
         });
     }
 
