@@ -20,6 +20,7 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
    - Comprehensive architecture plan in `doc/plan/graph-architecture.md`
    - Implementation patterns in cursor rules
    - Business requirements documented in `cim-graphs.md`
+   - **NEW**: JSON schema documentation in `doc/merkle-dag-schema.md`
 
 4. **Migration from Current System**
    - ✅ Replaced `handle_create_node_events` with `handle_create_node_with_graph`
@@ -33,7 +34,8 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
    - ✅ Implemented BFS and DFS traversal using manual stack/queue approach
    - ✅ Fixed node/edge iteration using `raw_nodes()` and `raw_edges()`
    - ✅ Implemented ancestors/descendants methods
-   - ✅ Added GraphML and JSON serialization
+   - ✅ **UPDATED**: Replaced GraphML with arrows.app compatible JSON serialization
+   - ✅ **NEW**: Bidirectional conversion between native and arrows.app formats
 
 6. **Graph Algorithms Module** (`algorithms.rs`)
    - ✅ Dijkstra shortest path with path reconstruction
@@ -60,6 +62,14 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
    - ✅ Node selection via mouse click
    - ✅ Visual selection highlighting
 
+9. **Serialization Formats** (Updated December 2024)
+   - ✅ Native JSON schema for efficient serialization
+   - ✅ Arrows.app compatible JSON format for visualization
+   - ✅ Import/export from arrows.app
+   - ✅ Metadata preservation with proper namespacing
+   - ✅ Color format conversion (RGBA ↔ Hex)
+   - ❌ ~~GraphML export~~ (Removed in favor of JSON)
+
 ### 🚧 In Progress
 1. **Performance Optimizations**
    - Implement actual batched mesh generation
@@ -70,6 +80,7 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
    - Path visualization when algorithm finds route
    - Interactive graph editing (add/remove nodes via UI)
    - Graph layout algorithm integration
+   - **NEW**: Arrows.app integration for visual editing
 
 ### ❌ Not Started
 1. **Advanced Features**
@@ -86,6 +97,7 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
 4. **No DAG Semantics** → ✅ Daggy provides cycle detection and DAG operations
 5. **Edge Rendering** → ✅ Fixed rotation calculation using proper quaternion math
 6. **No Graph Inspection** → ✅ Full UI with search, stats, and algorithms
+7. **Limited Export Options** → ✅ Arrows.app compatible JSON format
 
 ## Next Steps
 
@@ -94,12 +106,14 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
 2. Add path visualization for algorithm results
 3. Optimize batched rendering for 10k+ nodes
 4. Add graph editing capabilities to UI
+5. **NEW**: Test arrows.app round-trip conversion
 
 ### Short Term (Next Sprint)
 1. Integrate spatial indexing (R-tree or similar)
 2. Add graph validation using Daggy
 3. Implement graph diffing
 4. Performance benchmarking at scale
+5. **NEW**: Create  templates for common patterns
 
 ### Long Term (Q1 2025)
 1. Full Merkle DAG implementation with proofs
@@ -124,16 +138,19 @@ let order = GraphAlgorithms::topological_sort(&graph_data)?;
 let paths = GraphAlgorithms::find_all_paths(&graph_data, start, end, 10);
 ```
 
-### Using Change Detection
+### Using Arrows.app Export
 ```rust
-// Mark changes
-change_tracker.mark_node_modified(node_idx);
-change_tracker.mark_edge_added(edge_idx);
+// Export to arrows.app format
+let arrows_json = merkle_dag.to_arrows_json()?;
+std::fs::write("graph.json", arrows_json)?;
 
-// Request layout update
-change_tracker.request_full_layout();
+// Import from arrows.app
+let json = std::fs::read_to_string("graph.json")?;
+let dag = MerkleDag::from_arrows_json(&json)?;
 
-// Changes are automatically processed and cleared each frame
+// Convert between formats
+let native = dag.to_json()?;  // Native format
+let arrows = dag.to_arrows_json()?;  // Arrows.app format
 ```
 
 ### UI Interaction
@@ -157,6 +174,7 @@ inspector_state.pathfind_target = Some(end_id);
 | FPS @ 10k nodes | 30 | 60 | 🚧 Change detection helps, needs batching |
 | Graph Algorithms | O(V+E) | O(V+E) | ✅ Petgraph provides optimal algorithms |
 | UI Responsiveness | Good | Excellent | ✅ egui integration working well |
+| JSON Export/Import | Fast | Fast | ✅ Both formats perform well |
 
 ## Resources
 
@@ -165,3 +183,5 @@ inspector_state.pathfind_target = Some(end_id);
 - [Bevy ECS Best Practices](../bevy-graphs.md)
 - [CIM Requirements](../cim-graphs.md)
 - [egui Docs](https://docs.rs/egui)
+- [Arrows.app](https://arrows.app) - Graph visualization tool
+- [MerkleDag Schema Docs](../merkle-dag-schema.md)

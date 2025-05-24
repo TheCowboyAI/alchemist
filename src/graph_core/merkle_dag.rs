@@ -61,6 +61,47 @@ struct DagSchema {
     edges: Vec<(NodeIndex, NodeIndex, MerkleEdge)>,
 }
 
+// Arrows.app compatible schema
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ArrowsSchema {
+    #[serde(default)]
+    style: HashMap<String, serde_json::Value>,
+    nodes: Vec<ArrowsNode>,
+    relationships: Vec<ArrowsRelationship>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ArrowsNode {
+    id: String,
+    caption: String,
+    labels: Vec<String>,
+    #[serde(default)]
+    properties: HashMap<String, serde_json::Value>,
+    position: ArrowsPosition,
+    #[serde(default)]
+    style: HashMap<String, serde_json::Value>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ArrowsPosition {
+    x: f32,
+    y: f32,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ArrowsRelationship {
+    id: String,
+    #[serde(rename = "type")]
+    rel_type: String,
+    #[serde(rename = "fromId")]
+    from_id: String,
+    #[serde(rename = "toId")]
+    to_id: String,
+    properties: HashMap<String, serde_json::Value>,
+    #[serde(default)]
+    style: HashMap<String, serde_json::Value>,
+}
+
 impl Default for MerkleDag {
     fn default() -> Self {
         Self {
@@ -210,17 +251,19 @@ impl MerkleDag {
             .raw_nodes()
             .iter()
             .enumerate()
-            .filter_map(|(idx, node)| node.weight.clone().map(|w| (NodeIndex::new(idx), w)))
+            .map(|(idx, node)| {
+                // In petgraph/daggy, nodes have a weight field that is the actual data
+                (NodeIndex::new(idx), node.weight.clone())
+            })
             .collect();
 
         let edges: Vec<(NodeIndex, NodeIndex, MerkleEdge)> = self
             .dag
             .raw_edges()
             .iter()
-            .filter_map(|edge| {
-                edge.weight
-                    .clone()
-                    .map(|w| (edge.source(), edge.target(), w))
+            .map(|edge| {
+                // In petgraph/daggy, edges have a weight field that is the actual data
+                (edge.source(), edge.target(), edge.weight.clone())
             })
             .collect();
 
@@ -266,37 +309,278 @@ impl MerkleDag {
         self.serialize()
     }
 
-    pub fn to_graphml(&self) -> String {
-        let mut xml = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.push_str("<graphml>\n");
+    /// Export to arrows.app compatible JSON format
+    pub fn to_arrows_json(&self) -> Result<String, serde_json::Error> {
+        let arrows_schema = self.to_arrows_schema();
+        serde_json::to_string_pretty(&arrows_schema)
+    }
 
-        // Write nodes
+    /// Convert to arrows.app compatible schema
+    pub fn to_arrows_schema(&self) -> ArrowsSchema {
+        let mut nodes = Vec::new();
+        let mut relationships = Vec::new();
+
+        // Convert nodes
         for (idx, node) in self.dag.raw_nodes().iter().enumerate() {
-            if let Some(ref weight) = node.weight {
-                xml.push_str(&format!("  <node id=\"{}\"/>\n", weight.cid.0));
+            let merkle_node = &node.weight;
+
+            // Build properties map
+            let mut properties = HashMap::new();
+            properties.insert(
+                "cid".to_string(),
+                serde_json::Value::String(merkle_node.cid.0.clone()),
+            );
+            properties.insert(
+                "uuid".to_string(),
+                serde_json::Value::String(merkle_node.uuid.to_string()),
+            );
+            properties.insert(
+                "size".to_string(),
+                serde_json::Value::Number(
+                    serde_json::Number::from_f64(merkle_node.render_state.size as f64)
+                        .unwrap_or(serde_json::Number::from(0)),
+                ),
+            );
+            properties.insert(
+                "visible".to_string(),
+                serde_json::Value::Bool(merkle_node.render_state.visible),
+            );
+
+            // Add metadata fields with meta_ prefix
+            for (key, value) in &merkle_node.metadata {
+                properties.insert(
+                    format!("meta_{}", key),
+                    serde_json::Value::String(value.clone()),
+                );
+            }
+
+            // Add color as hex
+            let color_hex = format!(
+                "#{:02x}{:02x}{:02x}",
+                (merkle_node.render_state.color[0] * 255.0) as u8,
+                (merkle_node.render_state.color[1] * 255.0) as u8,
+                (merkle_node.render_state.color[2] * 255.0) as u8
+            );
+            properties.insert("color".to_string(), serde_json::Value::String(color_hex));
+
+            // Use name from metadata as caption if available, otherwise use CID
+            let caption = merkle_node.metadata.get("name")
+                .or_else(|| merkle_node.metadata.get("caption"))
+                .cloned()
+                .unwrap_or_else(|| merkle_node.cid.0.clone());
+
+            nodes.push(ArrowsNode {
+                id: merkle_node.cid.0.clone(),
+                caption,
+                labels: vec!["MerkleNode".to_string()],
+                properties,
+                position: ArrowsPosition {
+                    x: merkle_node.position.x,
+                    y: merkle_node.position.z, // Using z as y for 2D projection
+                },
+                style: HashMap::new(),
+            });
+        }
+
+        // Convert edges
+        for (edge_idx, edge) in self.dag.raw_edges().iter().enumerate() {
+            let merkle_edge = &edge.weight;
+            let source_idx = edge.source();
+            let target_idx = edge.target();
+
+            if let (Some(source), Some(target)) = (
+                self.dag.node_weight(source_idx),
+                self.dag.node_weight(target_idx),
+            ) {
+                let mut properties = HashMap::new();
+                properties.insert(
+                    "weight".to_string(),
+                    serde_json::Value::Number(
+                        serde_json::Number::from_f64(merkle_edge.weight)
+                            .unwrap_or(serde_json::Number::from(1)),
+                    ),
+                );
+                properties.insert(
+                    "thickness".to_string(),
+                    serde_json::Value::Number(
+                        serde_json::Number::from_f64(merkle_edge.thickness as f64)
+                            .unwrap_or(serde_json::Number::from(0)),
+                    ),
+                );
+                properties.insert(
+                    "style".to_string(),
+                    serde_json::Value::String(format!("{:?}", merkle_edge.style)),
+                );
+                properties.insert(
+                    "has_proof".to_string(),
+                    serde_json::Value::Bool(!merkle_edge.proof.is_empty()),
+                );
+
+                relationships.push(ArrowsRelationship {
+                    id: format!("edge_{}", edge_idx),
+                    rel_type: "LINKS_TO".to_string(),
+                    from_id: source.cid.0.clone(),
+                    to_id: target.cid.0.clone(),
+                    properties,
+                    style: HashMap::new(),
+                });
             }
         }
 
-        // Write edges
-        for edge in self.dag.raw_edges().iter() {
-            if let Some(ref weight) = edge.weight {
-                let source_idx = edge.source();
-                let target_idx = edge.target();
+        ArrowsSchema {
+            style: HashMap::new(),
+            nodes,
+            relationships,
+        }
+    }
 
-                if let (Some(source), Some(target)) = (
-                    self.dag.node_weight(source_idx),
-                    self.dag.node_weight(target_idx),
-                ) {
-                    xml.push_str(&format!(
-                        "  <edge source=\"{}\" target=\"{}\"/>\n",
-                        source.cid.0, target.cid.0
-                    ));
+    /// Import from arrows.app compatible JSON
+    pub fn from_arrows_json(json: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let arrows_schema: ArrowsSchema = serde_json::from_str(json)?;
+        Self::from_arrows_schema(arrows_schema)
+    }
+
+    /// Convert from arrows.app schema
+    fn from_arrows_schema(schema: ArrowsSchema) -> Result<Self, Box<dyn std::error::Error>> {
+        let mut dag = MerkleDag::new();
+        let mut cid_to_idx = HashMap::new();
+
+        // Add nodes
+        for arrows_node in schema.nodes {
+            let cid = Cid(arrows_node.id.clone());
+
+            // Extract properties
+            let uuid = arrows_node
+                .properties
+                .get("uuid")
+                .and_then(|v| v.as_str())
+                .and_then(|s| Uuid::parse_str(s).ok())
+                .unwrap_or_else(Uuid::new_v4);
+
+            let size = arrows_node
+                .properties
+                .get("size")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.5) as f32;
+
+            let visible = arrows_node
+                .properties
+                .get("visible")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+
+            // Parse color from hex
+            let color = if let Some(color_str) =
+                arrows_node.properties.get("color").and_then(|v| v.as_str())
+            {
+                Self::parse_hex_color(color_str)
+            } else {
+                [1.0, 1.0, 1.0, 1.0]
+            };
+
+            // Extract metadata
+            let mut metadata = HashMap::new();
+
+            // Store caption if it's different from the id
+            if arrows_node.caption != arrows_node.id {
+                metadata.insert("caption".to_string(), arrows_node.caption.clone());
+            }
+
+            for (key, value) in &arrows_node.properties {
+                if key.starts_with("meta_") {
+                    if let Some(val_str) = value.as_str() {
+                        metadata.insert(
+                            key.strip_prefix("meta_").unwrap().to_string(),
+                            val_str.to_string(),
+                        );
+                    }
+                } else if key == "name" || key == "type" {
+                    // Store common properties directly in metadata
+                    if let Some(val_str) = value.as_str() {
+                        metadata.insert(key.clone(), val_str.to_string());
+                    }
                 }
             }
+
+            let node = MerkleNode {
+                cid: cid.clone(),
+                links: vec![], // Will be populated from relationships
+                position: Vec3::new(arrows_node.position.x, 0.0, arrows_node.position.y),
+                render_state: NodeRenderState {
+                    color,
+                    size,
+                    visible,
+                },
+                metadata,
+                uuid,
+            };
+
+            let idx = dag.add_node(node);
+            cid_to_idx.insert(arrows_node.id, idx);
         }
 
-        xml.push_str("</graphml>");
-        xml
+        // Add edges and update links
+        for relationship in schema.relationships {
+            if let (Some(&source_idx), Some(&target_idx)) = (
+                cid_to_idx.get(&relationship.from_id),
+                cid_to_idx.get(&relationship.to_id),
+            ) {
+                // Update source node's links
+                if let Some(source_node) = dag.dag.node_weight_mut(source_idx) {
+                    source_node.links.push(Cid(relationship.to_id.clone()));
+                }
+
+                // Create edge
+                let weight = relationship
+                    .properties
+                    .get("weight")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(1.0);
+
+                let thickness = relationship
+                    .properties
+                    .get("thickness")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.1) as f32;
+
+                let style = relationship
+                    .properties
+                    .get("style")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| match s {
+                        "Dashed" => Some(EdgeStyle::Dashed),
+                        "Dotted" => Some(EdgeStyle::Dotted),
+                        _ => Some(EdgeStyle::Solid),
+                    })
+                    .unwrap_or(EdgeStyle::Solid);
+
+                let edge = MerkleEdge {
+                    weight,
+                    proof: vec![], // Empty proof by default
+                    thickness,
+                    style,
+                };
+
+                dag.add_edge(source_idx, target_idx, edge)?;
+            }
+        }
+
+        Ok(dag)
+    }
+
+    /// Parse hex color string to RGBA array
+    fn parse_hex_color(hex: &str) -> [f32; 4] {
+        let hex = hex.trim_start_matches('#');
+        if hex.len() >= 6 {
+            if let (Ok(r), Ok(g), Ok(b)) = (
+                u8::from_str_radix(&hex[0..2], 16),
+                u8::from_str_radix(&hex[2..4], 16),
+                u8::from_str_radix(&hex[4..6], 16),
+            ) {
+                return [r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, 1.0];
+            }
+        }
+        [1.0, 1.0, 1.0, 1.0] // Default white
     }
 
     /// Commit a subgraph and generate proof
@@ -325,17 +609,19 @@ impl MerkleDag {
             .raw_nodes()
             .iter()
             .enumerate()
-            .filter_map(|(idx, node)| node.weight.clone().map(|w| (NodeIndex::new(idx), w)))
+            .map(|(idx, node)| {
+                // In petgraph/daggy, nodes have a weight field that is the actual data
+                (NodeIndex::new(idx), node.weight.clone())
+            })
             .collect();
 
         let edges: Vec<(NodeIndex, NodeIndex, MerkleEdge)> = self
             .dag
             .raw_edges()
             .iter()
-            .filter_map(|edge| {
-                edge.weight
-                    .clone()
-                    .map(|w| (edge.source(), edge.target(), w))
+            .map(|edge| {
+                // In petgraph/daggy, edges have a weight field that is the actual data
+                (edge.source(), edge.target(), edge.weight.clone())
             })
             .collect();
 
@@ -350,36 +636,46 @@ pub fn sync_dag_to_ecs(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // Check for new nodes that need ECS entities
-    for (idx, node) in merkle_dag.dag.raw_nodes().iter().enumerate() {
-        let node_idx = NodeIndex::new(idx);
-
-        if let Some(ref weight) = node.weight {
+    // Collect nodes that need ECS entities first to avoid borrow conflicts
+    let nodes_to_create: Vec<(NodeIndex, MerkleNode)> = merkle_dag
+        .dag
+        .raw_nodes()
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, node)| {
+            let node_idx = NodeIndex::new(idx);
             if !merkle_dag.node_to_entity.contains_key(&node_idx) {
-                // Create visual representation
-                let mesh = meshes.add(Sphere::new(weight.render_state.size));
-                let material = materials.add(StandardMaterial {
-                    base_color: Color::srgba(
-                        weight.render_state.color[0],
-                        weight.render_state.color[1],
-                        weight.render_state.color[2],
-                        weight.render_state.color[3],
-                    ),
-                    ..default()
-                });
-
-                let entity = commands
-                    .spawn((
-                        Mesh3d(mesh),
-                        MeshMaterial3d(material),
-                        Transform::from_translation(weight.position),
-                        weight.clone(),
-                    ))
-                    .id();
-
-                merkle_dag.set_node_entity(node_idx, entity);
+                Some((node_idx, node.weight.clone()))
+            } else {
+                None
             }
-        }
+        })
+        .collect();
+
+    // Now create entities for the collected nodes
+    for (node_idx, node) in nodes_to_create {
+        // Create visual representation
+        let mesh = meshes.add(Sphere::new(node.render_state.size));
+        let material = materials.add(StandardMaterial {
+            base_color: Color::srgba(
+                node.render_state.color[0],
+                node.render_state.color[1],
+                node.render_state.color[2],
+                node.render_state.color[3],
+            ),
+            ..default()
+        });
+
+        let entity = commands
+            .spawn((
+                Mesh3d(mesh),
+                MeshMaterial3d(material),
+                Transform::from_translation(node.position),
+                node,
+            ))
+            .id();
+
+        merkle_dag.set_node_entity(node_idx, entity);
     }
 }
 
@@ -445,5 +741,151 @@ mod tests {
 
         let idx = dag.add_node(node1);
         assert_eq!(dag.dag.node_count(), 1);
+    }
+
+    #[test]
+    fn test_arrows_app_export_import() {
+        let mut dag = MerkleDag::new();
+
+        // Create test nodes
+        let mut metadata1 = HashMap::new();
+        metadata1.insert("name".to_string(), "Process A".to_string());
+        metadata1.insert("type".to_string(), "bounded_context".to_string());
+
+        let node1 = MerkleNode {
+            cid: Cid("QmNode1".to_string()),
+            links: vec![],
+            position: Vec3::new(100.0, 0.0, 200.0),
+            render_state: NodeRenderState {
+                color: [1.0, 0.5, 0.0, 1.0],
+                size: 0.75,
+                visible: true,
+            },
+            metadata: metadata1,
+            uuid: Uuid::new_v4(),
+        };
+
+        let node2 = MerkleNode {
+            cid: Cid("QmNode2".to_string()),
+            links: vec![],
+            position: Vec3::new(300.0, 0.0, 400.0),
+            render_state: NodeRenderState {
+                color: [0.0, 1.0, 0.5, 1.0],
+                size: 0.5,
+                visible: true,
+            },
+            metadata: HashMap::new(),
+            uuid: Uuid::new_v4(),
+        };
+
+        let idx1 = dag.add_node(node1);
+        let idx2 = dag.add_node(node2);
+
+        // Add edge
+        let edge = MerkleEdge {
+            weight: 2.5,
+            proof: vec![1, 2, 3],
+            thickness: 0.2,
+            style: EdgeStyle::Dashed,
+        };
+        dag.add_edge(idx1, idx2, edge).unwrap();
+
+        // Export to arrows.app format
+        let arrows_json = dag.to_arrows_json().unwrap();
+
+        // Import back
+        let imported_dag = MerkleDag::from_arrows_json(&arrows_json).unwrap();
+
+        // Verify structure
+        assert_eq!(imported_dag.dag.node_count(), 2);
+        assert_eq!(imported_dag.dag.edge_count(), 1);
+
+        // Verify node properties
+        let imported_node1 = imported_dag.get_node_by_cid(&Cid("QmNode1".to_string())).unwrap();
+        assert_eq!(imported_node1.position.x, 100.0);
+        assert_eq!(imported_node1.position.z, 200.0);
+        assert_eq!(imported_node1.render_state.size, 0.75);
+        assert_eq!(imported_node1.metadata.get("name"), Some(&"Process A".to_string()));
+        assert_eq!(imported_node1.metadata.get("type"), Some(&"bounded_context".to_string()));
+
+        // Verify color conversion (should be close due to float precision)
+        assert!((imported_node1.render_state.color[0] - 1.0).abs() < 0.01);
+        assert!((imported_node1.render_state.color[1] - 0.5).abs() < 0.01);
+        assert!((imported_node1.render_state.color[2] - 0.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_import_real_arrows_app_file() {
+        // Test with a minimal arrows.app format similar to real exports
+        let arrows_schema = serde_json::json!({
+            "style": {
+                "font-family": "sans-serif",
+                "node-color": "#ffffff"
+            },
+            "nodes": [
+                {
+                    "id": "n0",
+                    "position": {
+                        "x": -325.846,
+                        "y": -435.525
+                    },
+                    "caption": "Org",
+                    "style": {},
+                    "labels": ["Entity"],
+                    "properties": {
+                        "id": "",
+                        "cn": ""
+                    }
+                },
+                {
+                    "id": "n1",
+                    "position": {
+                        "x": 249.5,
+                        "y": -74.726
+                    },
+                    "caption": "Person",
+                    "style": {},
+                    "labels": ["Entity"],
+                    "properties": {
+                        "id": "",
+                        "cn": ""
+                    }
+                }
+            ],
+            "relationships": [
+                {
+                    "id": "n0",
+                    "type": "employs",
+                    "style": {},
+                    "properties": {},
+                    "fromId": "n0",
+                    "toId": "n1"
+                }
+            ]
+        });
+
+        let arrows_json = serde_json::to_string(&arrows_schema).unwrap();
+
+        // Import the JSON
+        let dag = MerkleDag::from_arrows_json(&arrows_json).unwrap();
+
+        // Verify structure
+        assert_eq!(dag.dag.node_count(), 2);
+        assert_eq!(dag.dag.edge_count(), 1);
+
+        // Verify nodes were imported with correct captions in metadata
+        let node0 = dag.get_node_by_cid(&Cid("n0".to_string())).unwrap();
+        assert_eq!(node0.metadata.get("caption"), Some(&"Org".to_string()));
+        assert_eq!(node0.position.x, -325.846);
+        assert_eq!(node0.position.z, -435.525); // y becomes z
+
+        let node1 = dag.get_node_by_cid(&Cid("n1".to_string())).unwrap();
+        assert_eq!(node1.metadata.get("caption"), Some(&"Person".to_string()));
+
+        // Export back and verify round-trip
+        let exported = dag.to_arrows_json().unwrap();
+        let re_imported = MerkleDag::from_arrows_json(&exported).unwrap();
+        assert_eq!(re_imported.dag.node_count(), 2);
+        assert_eq!(re_imported.dag.edge_count(), 1);
     }
 }
