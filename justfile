@@ -11,7 +11,7 @@ trusted-keys := `nix eval --raw --impure --expr 'with import ./cache-config.nix;
 # 1. Is correctly recognized by Nix as a cache (nix path-info can query it)
 # 2. Shows up as a valid build source when using --option substituters
 # 3. Accepts packages via "nix copy --to"
-# 
+#
 # However, there appears to be a configuration issue where:
 # - The HTTP endpoints don't serve .narinfo files as expected
 # - This makes "curl http://localhost:5000/[hash]-name.narinfo" return 404
@@ -27,6 +27,52 @@ trusted-keys := `nix eval --raw --impure --expr 'with import ./cache-config.nix;
 default:
     @just --list
 
+# Fix rust-analyzer proc-macro issues by rebuilding artifacts
+fix-proc-macros:
+    #!/usr/bin/env bash
+    echo "Fixing proc-macro artifacts for rust-analyzer..."
+
+    # Check if we need to clean proc-macro artifacts
+    if [ -d "target/debug/deps" ]; then
+        echo "Cleaning old proc-macro artifacts..."
+        find target/debug/deps -name '*.rlib' -o -name '*.rmeta' | xargs rm -f 2>/dev/null || true
+        find target/debug/deps -name 'lib*derive*.so' -o -name 'lib*macros*.so' | xargs rm -f 2>/dev/null || true
+    fi
+
+    # Build just the proc-macro dependencies
+    echo "Building proc-macro dependencies..."
+    cargo check --quiet
+
+    # Count the built artifacts
+    PROC_MACRO_COUNT=$(find target/debug/deps -name 'lib*derive*.so' -o -name 'lib*macros*.so' 2>/dev/null | wc -l)
+
+    if [ "$PROC_MACRO_COUNT" -gt 0 ]; then
+        echo "✅ Successfully built $PROC_MACRO_COUNT proc-macro artifacts"
+        echo "Rust-analyzer should now work correctly!"
+    else
+        echo "⚠️  Warning: No proc-macro artifacts found after build"
+        echo "Try running 'cargo clean' and then this command again"
+    fi
+
+# Clean and fix proc-macro issues (more aggressive)
+fix-proc-macros-clean:
+    #!/usr/bin/env bash
+    echo "Performing clean rebuild of proc-macro artifacts..."
+
+    # Clean only the deps directory
+    if [ -d "target/debug/deps" ]; then
+        echo "Cleaning deps directory..."
+        rm -rf target/debug/deps
+    fi
+
+    # Rebuild
+    echo "Rebuilding proc-macro dependencies..."
+    cargo check
+
+    # Verify
+    PROC_MACRO_COUNT=$(find target/debug/deps -name 'lib*derive*.so' -o -name 'lib*macros*.so' 2>/dev/null | wc -l)
+    echo "✅ Built $PROC_MACRO_COUNT proc-macro artifacts"
+
 # ============================================================================
 # CONTENT-ADDRESSABLE BUILD APPROACH
 # ============================================================================
@@ -35,7 +81,7 @@ default:
 # 1. Filtering the source to only include files that affect the build
 # 2. Creating a pure source derivation with only build-relevant files
 # 3. Building from this filtered source instead of the Git workspace
-# 
+#
 # Benefits:
 # - Builds are cacheable even with dirty Git workspaces
 # - Dependencies are built separately and cached independently
@@ -46,13 +92,13 @@ default:
 build-pure-content target=".#":
     #!/usr/bin/env bash
     echo "Building with content-addressable approach (Git-state independent)"
-    
+
     # Check if pure-source.nix exists, create it if missing
     if [ ! -f pure-source.nix ]; then
         echo "Error: pure-source.nix not found. Please create it first."
         exit 1
     fi
-    
+
     # Build with --no-warn-dirty to ignore Git status
     echo "Building with content filtering..."
     nix build --no-warn-dirty \
@@ -65,25 +111,25 @@ build-pure-content target=".#":
 build-deps-pure:
     #!/usr/bin/env bash
     echo "Building Rust dependencies with content-addressable approach (Git-state independent)"
-    
+
     # Check if pure-source.nix exists
     if [ ! -f pure-source.nix ]; then
         echo "Error: pure-source.nix not found. Please create it first."
         exit 1
     fi
-    
+
     # Use nix build with --no-warn-dirty to ignore git status
     echo "Building rustDeps package with pure source..."
     nix build --no-warn-dirty --no-link -L ./\#rustDeps
-    
+
     # Get the path to the built rustDeps package
     RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps)
-    
+
     # Add the result to the cache explicitly
     if [ -n "$RUST_DEPS_PATH" ]; then
         echo "Adding Rust dependencies to cache at path: $RUST_DEPS_PATH"
         nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
-        
+
         echo "✅ Rust dependencies successfully built and cached"
         echo "You can now build your application with 'just build-after-deps-pure' and it will use the cached dependencies"
     else
@@ -95,16 +141,16 @@ build-deps-pure:
 build-after-deps-pure:
     #!/usr/bin/env bash
     echo "Building application with pure-source approach after pre-cached dependencies"
-    
+
     # Get the path for the rustDeps package
     RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null)
-    
+
     if [ -z "$RUST_DEPS_PATH" ]; then
         echo "❌ Cannot determine path for Rust dependencies"
         echo "Run 'just build-deps-pure' first to build and cache the dependencies"
         exit 1
     fi
-    
+
     # Check if the rustDeps package exists in the cache
     if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
         echo "✅ Using cached Rust dependencies from: $RUST_DEPS_PATH"
@@ -112,7 +158,7 @@ build-after-deps-pure:
         echo "⚠️ Rust dependencies found but not in cache, adding to cache now..."
         nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
     fi
-    
+
     # Build the main package with dependencies from cache
     echo "Building application using content-addressable source and cached dependencies..."
     nix build --no-warn-dirty --option substituters "{{substituters}}" \
@@ -123,10 +169,10 @@ build-after-deps-pure:
 run-pure target=".#":
     #!/usr/bin/env bash
     echo "Running with content-addressable approach (Git-state independent)"
-    
+
     # Build first with no warn dirty
     just build-pure-content {{target}}
-    
+
     # Run with the result
     echo "Running the built application..."
     ./result/bin/alchemist
@@ -135,13 +181,13 @@ run-pure target=".#":
 check-pure-status:
     #!/usr/bin/env bash
     echo "Checking status of content-addressable build packages..."
-    
+
     # Check rustDeps
     echo "Checking rustDeps package..."
     RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null || echo "")
     if [ -n "$RUST_DEPS_PATH" ]; then
         echo "✅ rustDeps found: $RUST_DEPS_PATH"
-        
+
         if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
             echo "✅ rustDeps is cached"
         else
@@ -150,13 +196,13 @@ check-pure-status:
     else
         echo "❌ rustDeps not found"
     fi
-    
+
     # Check main application
     echo "Checking main application package..."
     MAIN_PATH=$(nix path-info --no-warn-dirty ./\#default 2>/dev/null || echo "")
     if [ -n "$MAIN_PATH" ]; then
         echo "✅ main application found: $MAIN_PATH"
-        
+
         if nix path-info --store {{local-cache}} "$MAIN_PATH" 2>/dev/null; then
             echo "✅ main application is cached"
         else
@@ -180,14 +226,14 @@ build-from-commit commit_ref="HEAD" target=".#":
         echo "Error: Git commit {{commit_ref}} not found"
         exit 1
     fi
-    
+
     # Get the full commit hash
     COMMIT=$(git rev-parse {{commit_ref}})
     echo "Using commit: $COMMIT"
-    
+
     # Get the absolute path to the repo
     REPO_PATH=$(git rev-parse --show-toplevel)
-    
+
     # Build using the git+file URL format with explicit commit
     nix build --option substituters "{{substituters}}" \
               --option trusted-public-keys "{{trusted-keys}}" \
@@ -203,18 +249,18 @@ build-clean commit_ref="HEAD" target=".#":
         echo "Error: Git commit {{commit_ref}} not found"
         exit 1
     fi
-    
+
     # Get the full commit hash
     COMMIT=$(git rev-parse {{commit_ref}})
     echo "Using commit: $COMMIT"
-    
+
     # Create a temporary clean directory
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
-    
+
     echo "Creating clean checkout in $TEMP_DIR..."
     git archive $COMMIT | tar -x -C $TEMP_DIR
-    
+
     # Copy any untracked cache files that might be needed
     for file in cache-config.nix cache-tools.nix cache-management.nix analyze-cache-miss.nix; do
         if [ -f "$file" ] && [ ! -f "$TEMP_DIR/$file" ]; then
@@ -222,29 +268,29 @@ build-clean commit_ref="HEAD" target=".#":
             cp "$file" "$TEMP_DIR/$file"
         fi
     done
-    
+
     # Build from the clean directory
     echo "Building from clean directory..."
     pushd $TEMP_DIR > /dev/null
-    
+
     # Use --out-link to create a result symlink in the temp directory
     nix build --option substituters "{{substituters}}" \
               --option trusted-public-keys "{{trusted-keys}}" \
               -L -v --log-format bar-with-logs \
               {{target}}
-    
+
     BUILD_SUCCESS=$?
-    
+
     popd > /dev/null
-    
+
     # If successful, create a symlink to the result instead of copying
     if [ $BUILD_SUCCESS -eq 0 ] && [ -e "$TEMP_DIR/result" ]; then
         echo "Build successful, creating result symlink..."
-        
+
         # Get the actual store path
         RESULT_PATH=$(readlink -f "$TEMP_DIR/result")
-        
-        # Remove existing result if it's a symlink or empty directory 
+
+        # Remove existing result if it's a symlink or empty directory
         if [ -L "result" ]; then
             rm -f result
         elif [ -d "result" ]; then
@@ -252,7 +298,7 @@ build-clean commit_ref="HEAD" target=".#":
             chmod -R u+w result 2>/dev/null || true
             rm -rf result
         fi
-        
+
         # Create the symlink to the store path
         ln -sf "$RESULT_PATH" result
         echo "Done! Created symlink: result -> $RESULT_PATH"
@@ -290,12 +336,12 @@ check-path path:
         echo "Example: just check-path /nix/store/abc123-some-package"
         exit 1
     fi
-    
+
     if [[ ! "{{path}}" =~ ^/nix/store/.* ]]; then
         echo "Error: Path must be a full /nix/store path"
         exit 1
     fi
-    
+
     HASH=$(nix-store --query --hash "{{path}}" 2>/dev/null || echo "")
     if [ -z "$HASH" ]; then
         if [ ! -e "{{path}}" ]; then
@@ -305,12 +351,12 @@ check-path path:
         echo "Failed to get hash for {{path}}"
         exit 1
     fi
-    
+
     BASENAME=$(basename "{{path}}")
     echo "Checking if {{path}} exists in cache at {{local-cache}}..."
     echo "Hash: $HASH"
     echo "Path: $BASENAME"
-    
+
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "{{local-cache}}/$BASENAME.narinfo")
     if [ "$HTTP_CODE" = "200" ]; then
         echo "✅ Path exists in cache!"
@@ -327,20 +373,20 @@ add-to-cache path:
         echo "Example: just add-to-cache /nix/store/abc123-some-package"
         exit 1
     fi
-    
+
     if [[ ! "{{path}}" =~ ^/nix/store/.* ]]; then
         echo "Error: Path must be a full /nix/store path"
         exit 1
     fi
-    
+
     if [ ! -e "{{path}}" ]; then
         echo "Error: Path does not exist locally: {{path}}"
         exit 1
     fi
-    
+
     echo "Adding {{path}} to cache at {{local-cache}}..."
     nix copy --to {{local-cache}} "{{path}}" && echo "Successfully added to cache!" || echo "Failed to add to cache!"
-    
+
     # Verify it was added
     just check-path {{path}}
 
@@ -357,12 +403,12 @@ debug-cache *args:
     git status --short
     echo ""
     echo "Running build with verbose substituter logs:"
-    
+
     # Run with maximum verbosity to see all cache activity
     NIX_DEBUG=7 nix build --option substituters "{{substituters}}" \
             --option trusted-public-keys "{{trusted-keys}}" \
             -v --no-link --log-format bar-with-logs {{args}} 2>&1
-    
+
 # Check if a specific path is available from any of the substituters
 check-output-path path:
     #!/usr/bin/env bash
@@ -380,11 +426,11 @@ check-output-path path:
     else
         PATH_TO_CHECK="{{path}}"
     fi
-    
+
     echo "Checking if $PATH_TO_CHECK is available in substituters:"
     echo "- Checking local cache ({{local-cache}})..."
     nix path-info --store {{local-cache}} "$PATH_TO_CHECK" 2>/dev/null && echo "✅ Found in local cache" || echo "❌ Not found in local cache"
-    
+
     echo "- Checking official cache (https://cache.nixos.org/)..."
     nix path-info --store https://cache.nixos.org/ "$PATH_TO_CHECK" 2>/dev/null && echo "✅ Found in official cache" || echo "❌ Not found in official cache"
 
@@ -402,7 +448,7 @@ analyze-cache-miss drv="":
     else
         DRV_PATH="{{drv}}"
     fi
-    
+
     # Run the analyzer
     nix-build analyze-cache-miss.nix --argstr drvPath "$DRV_PATH" --no-out-link
     ANALYZER=$(readlink -f $(nix-build analyze-cache-miss.nix --argstr drvPath "$DRV_PATH" --no-out-link 2>/dev/null)/bin/analyze-cache-miss)
@@ -417,58 +463,58 @@ cache-report:
 prime-cache:
     #!/usr/bin/env bash
     echo "Priming the cache with key dependencies..."
-    
+
     # Check if we have a clean git state
     if ! git diff-index --quiet HEAD --; then
         echo "⚠️ Warning: Git workspace is dirty"
         echo "This will create unique/uncacheable package versions"
         echo "Consider running with a clean git state for better caching"
-        
+
         read -p "Continue anyway? [y/N] " answer
         if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
             echo "Aborting"
             exit 1
         fi
     fi
-    
+
     # Build only the key dependencies
     echo "Building key Rust dependencies..."
     nix build --option substituters "{{substituters}}" \
             --option trusted-public-keys "{{trusted-keys}}" \
             -L --no-link .#rustDeps
-    
+
     # Add them to the cache
     echo "Adding dependencies to cache..."
     nix copy --to {{local-cache}} $(nix-build --no-out-link .#rustDeps)
-    
+
     echo "Done priming cache!"
 
 # Update local Nix configuration to use the cache
 update-nix-conf:
     #!/usr/bin/env bash
     echo "Updating Nix configuration to use local cache..."
-    
+
     NIX_CONF="$HOME/.config/nix/nix.conf"
     CONTENT=$(nix eval --raw --impure --expr 'with import ./cache-config.nix; nixConfig')
     SYSTEM_NIX_CONF="/etc/nix/nix.conf"
-    
+
     # First try user-level configuration
     echo "Attempting to update user-level configuration at $NIX_CONF"
-    
+
     # Ensure the directory exists
     mkdir -p "$(dirname "$NIX_CONF")"
-    
+
     # Check if the file exists
     if [ -f "$NIX_CONF" ]; then
         echo "Found existing nix.conf, making backup..."
         cp "$NIX_CONF" "$NIX_CONF.bak.$(date +%Y%m%d%H%M%S)"
-        
+
         # Check for existing substituters and trusted-public-keys
         if grep -q "^substituters\s*=" "$NIX_CONF"; then
             echo "Existing substituters found, updating..."
             sed -i '/^substituters\s*=/d' "$NIX_CONF"
         fi
-        
+
         if grep -q "^trusted-public-keys\s*=" "$NIX_CONF"; then
             echo "Existing trusted-public-keys found, updating..."
             sed -i '/^trusted-public-keys\s*=/d' "$NIX_CONF"
@@ -477,10 +523,10 @@ update-nix-conf:
         echo "Creating new nix.conf file..."
         touch "$NIX_CONF"
     fi
-    
+
     # Add our configuration
     echo "$CONTENT" >> "$NIX_CONF"
-    
+
     # Check if we need to also update system configuration
     if [ -f "$SYSTEM_NIX_CONF" ]; then
         echo ""
@@ -494,7 +540,7 @@ update-nix-conf:
         echo "  sudo systemctl restart nix-daemon.service"
         echo ""
     fi
-    
+
     echo "User-level Nix configuration updated successfully!"
     echo "You may need to restart your shell for changes to take effect."
 
@@ -502,7 +548,7 @@ update-nix-conf:
 verify-deps:
     #!/usr/bin/env bash
     echo "Verifying all dependencies in cache..."
-    
+
     # Create a temporary nix file
     cat > verify-temp.nix <<EOF
     { pkgs ? import <nixpkgs> {} }:
@@ -511,11 +557,11 @@ verify-deps:
     in
     tools.verifyDepsScript tools.dummyPackage
     EOF
-    
+
     # Build and run it
     nix-build verify-temp.nix --no-out-link
     $(nix-build verify-temp.nix --no-out-link)/bin/verify-deps
-    
+
     # Clean up
     rm verify-temp.nix
 
@@ -523,30 +569,30 @@ verify-deps:
 optimized-build package=".#default":
     #!/usr/bin/env bash
     echo "Building with optimized caching for package: {{package}}"
-    
+
     # Check if git workspace is clean
     if ! git diff-index --quiet HEAD --; then
         echo "⚠️ Warning: Git workspace is dirty!"
         echo "This will create uncacheable derivations with unique timestamps"
         echo "For optimal caching, commit your changes and use just build-from-commit"
-        
+
         read -p "Continue anyway? [y/N] " answer
         if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
             echo "Aborting. Commit your changes or use just build-from-commit"
             exit 1
         fi
     fi
-    
+
     # Set the NIX_CONFIG variable to include our cache settings
     export NIX_CONFIG="$(nix eval --raw --impure --expr 'with import ./cache-config.nix; nixConfig')"
-    
+
     # Build with all optimizations
     nix build {{package}} \
         --option substituters "{{substituters}}" \
         --option trusted-public-keys "{{trusted-keys}}" \
         --log-format bar-with-logs \
         --quiet
-    
+
     # Add the result to the cache
     echo "Adding build result to cache..."
     nix copy --to {{local-cache}} ./result
@@ -589,23 +635,23 @@ nix-dev-watch:
     echo "👀 Watching source files for changes..."
     echo "🚀 Will rebuild and run using Nix within the devShell"
     echo ""
-    
+
     # Track the last modification time
     last_mod_time=0
-    
+
     # Function to get the latest modification time of project files
     get_latest_mod_time() {
         find src -name "*.rs" -o -name "Cargo.toml" -o -name "Cargo.lock" -o -name "*.nix" -type f -exec stat -c %Y {} \; | sort -nr | head -n1
     }
-    
+
     # Function to build and run the application using Nix within the devShell
     build_and_run() {
         echo "🔨 Building with Nix in devShell ($(date '+%H:%M:%S'))..."
-        
+
         # Use --expr to build directly from source path
         if nix build --no-warn-dirty --no-link -L; then
             echo "✅ Build successful, running..."
-            
+
             # Get the output path and run it directly
             OUTPUT_PATH=$(nix eval --raw .#.outPath)
             if [ -n "$OUTPUT_PATH" ] && [ -d "$OUTPUT_PATH" ]; then
@@ -618,18 +664,18 @@ nix-dev-watch:
             echo "❌ Build failed"
         fi
     }
-    
+
     # Initial build and run
     build_and_run
     last_mod_time=$(get_latest_mod_time)
-    
+
     echo "Watching for changes (Press Ctrl+C to stop)..."
-    
+
     # Watch for changes
     while true; do
         sleep 2
         current_mod_time=$(get_latest_mod_time)
-        
+
         if [ "$current_mod_time" != "$last_mod_time" ]; then
             echo "🔄 Changes detected, rebuilding..."
             last_mod_time=$current_mod_time
@@ -642,19 +688,19 @@ build-deps:
     #!/usr/bin/env bash
     echo "Building only Rust dependencies to cache them separately"
     echo "This allows libraries to be cached independently of your application code"
-    
+
     # Use nix build with --no-warn-dirty to ignore git status
     echo "Building rustDeps package..."
     nix build --no-warn-dirty --no-link -L ./\#rustDeps
-    
+
     # Get the path to the built rustDeps package
     RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps)
-    
+
     # Add the result to the cache explicitly
     if [ -n "$RUST_DEPS_PATH" ]; then
         echo "Adding Rust dependencies to cache at path: $RUST_DEPS_PATH"
         nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
-        
+
         echo "✅ Rust dependencies successfully built and cached"
         echo "You can now build your application with 'just build-after-deps' and it will use the cached dependencies"
     else
@@ -666,16 +712,16 @@ build-deps:
 build-after-deps:
     #!/usr/bin/env bash
     echo "Building application with pre-cached dependencies"
-    
+
     # Get the path for the rustDeps package
     RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null)
-    
+
     if [ -z "$RUST_DEPS_PATH" ]; then
         echo "❌ Cannot determine path for Rust dependencies"
         echo "Run 'just build-deps' first to build and cache the dependencies"
         exit 1
     fi
-    
+
     # Check if the rustDeps package exists in the cache
     if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
         echo "✅ Using cached Rust dependencies from: $RUST_DEPS_PATH"
@@ -683,7 +729,7 @@ build-after-deps:
         echo "⚠️ Rust dependencies found but not in cache, adding to cache now..."
         nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
     fi
-    
+
     # Build the main package with dependencies from cache
     echo "Building application using cached dependencies..."
     # Use --no-warn-dirty to ignore Git status
@@ -695,33 +741,33 @@ build-after-deps:
 build-after-deps-debug:
     #!/usr/bin/env bash
     echo "Building application with pre-cached dependencies (DEBUG MODE)"
-    
+
     # Get the path for the rustDeps package
     RUST_DEPS_PATH=$(nix path-info --no-warn-dirty ./\#rustDeps 2>/dev/null)
-    
+
     if [ -z "$RUST_DEPS_PATH" ]; then
         echo "❌ Cannot determine path for Rust dependencies"
         echo "Run 'just build-deps' first to build and cache the dependencies"
         exit 1
     fi
-    
+
     # Verify what exists in the rustDeps package
     echo "=== Examining rustDeps package ==="
     echo "rustDeps path: $RUST_DEPS_PATH"
     if [ -d "$RUST_DEPS_PATH/lib" ]; then
         echo "- lib directory exists"
         ls -la "$RUST_DEPS_PATH/lib" | head -n 20
-        
+
         echo "- Counting library files:"
         find "$RUST_DEPS_PATH/lib" -name "*.rlib" | wc -l
-        
+
         if [ -d "$RUST_DEPS_PATH/lib/deps" ]; then
             echo "- deps directory exists"
             ls -la "$RUST_DEPS_PATH/lib/deps" | head -n 20
         else
             echo "❌ deps directory missing"
         fi
-        
+
         if [ -d "$RUST_DEPS_PATH/lib/.fingerprint" ]; then
             echo "- .fingerprint directory exists"
             ls -la "$RUST_DEPS_PATH/lib/.fingerprint" | head -n 20
@@ -731,7 +777,7 @@ build-after-deps-debug:
     else
         echo "❌ lib directory missing in rustDeps package"
     fi
-    
+
     # Check if the rustDeps package exists in the cache
     if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
         echo "✅ rustDeps exists in cache: $RUST_DEPS_PATH"
@@ -739,7 +785,7 @@ build-after-deps-debug:
         echo "❌ rustDeps not in cache, adding now..."
         nix copy --to {{local-cache}} "$RUST_DEPS_PATH"
     fi
-    
+
     # Build the main package with dependencies from cache and extra verbosity
     echo "=== Building application with maximum verbosity ==="
     NIX_DEBUG=10 nix build --no-warn-dirty --option substituters "{{substituters}}" \
@@ -750,7 +796,7 @@ build-after-deps-debug:
 check-deps-cache:
     #!/usr/bin/env bash
     echo "Checking if Rust dependencies are cached..."
-    
+
     # Check if we can build rustDeps locally
     if nix build --no-link --dry-run .#rustDeps 2>/dev/null; then
         # Get the path for the rustDeps package
@@ -758,19 +804,19 @@ check-deps-cache:
         if [ -z "$RUST_DEPS_PATH" ]; then
             RUST_DEPS_PATH=$(nix build .#rustDeps --no-link --print-out-paths 2>/dev/null)
         fi
-        
+
         if [ -n "$RUST_DEPS_PATH" ]; then
             echo "✅ Rust dependencies found at: $RUST_DEPS_PATH"
-            
+
             # Check if it exists in the cache
             if nix path-info --store {{local-cache}} "$RUST_DEPS_PATH" 2>/dev/null; then
                 echo "✅ Rust dependencies are cached"
-                
+
                 # Get information about the package
                 echo ""
                 echo "Package info:"
                 nix path-info --json "$RUST_DEPS_PATH" | jq 2>/dev/null || echo "Could not get package info"
-                
+
                 # Check narinfo in cache
                 echo ""
                 echo "Cache entry details:"
@@ -789,7 +835,7 @@ check-deps-cache:
         echo "❌ Rust dependencies package cannot be built"
         echo "Run 'just build-deps' to build and cache dependencies"
         exit 1
-    fi 
+    fi
 
 # Create a stable hash-based build that doesn't depend on Git state
 build-hash:
@@ -804,7 +850,7 @@ build-hash:
 build-deps-hash:
     @echo "Building Rust dependencies with content-addressable hash approach (Git-state independent)"
     nix build -L --no-warn-dirty --show-trace .#rustDeps
-    @if [ $? -eq 0 ]; then echo "✅ Rust dependencies built and cached successfully"; else echo "❌ Failed to build Rust dependencies"; exit 1; fi 
+    @if [ $? -eq 0 ]; then echo "✅ Rust dependencies built and cached successfully"; else echo "❌ Failed to build Rust dependencies"; exit 1; fi
 
 # Run from clean checkout, using same approach as build-clean
 run-clean commit_ref="HEAD" target=".#":
@@ -815,18 +861,18 @@ run-clean commit_ref="HEAD" target=".#":
         echo "Error: Git commit {{commit_ref}} not found"
         exit 1
     fi
-    
+
     # Get the full commit hash
     COMMIT=$(git rev-parse {{commit_ref}})
     echo "Using commit: $COMMIT"
-    
+
     # Create a temporary clean directory
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
-    
+
     echo "Creating clean checkout in $TEMP_DIR..."
     git archive $COMMIT | tar -x -C $TEMP_DIR
-    
+
     # Copy any untracked cache files that might be needed
     for file in cache-config.nix cache-tools.nix cache-management.nix analyze-cache-miss.nix; do
         if [ -f "$file" ] && [ ! -f "$TEMP_DIR/$file" ]; then
@@ -834,19 +880,19 @@ run-clean commit_ref="HEAD" target=".#":
             cp "$file" "$TEMP_DIR/$file"
         fi
     done
-    
+
     # Run from the clean directory
     echo "Running from clean directory..."
     pushd $TEMP_DIR > /dev/null
-    
+
     nix run --option substituters "{{substituters}}" \
            --option trusted-public-keys "{{trusted-keys}}" \
            -L -v --log-format bar-with-logs \
            {{target}}
-    
+
     RUN_EXIT_CODE=$?
     popd > /dev/null
-    
+
     # Return the same exit code
     exit $RUN_EXIT_CODE
 
@@ -854,40 +900,40 @@ run-clean commit_ref="HEAD" target=".#":
 build-reproducible commit_ref="HEAD" target=".#":
     #!/usr/bin/env bash
     echo "Building with path filtering for reproducibility with local cache at {{local-cache}}"
-    
+
     # Create a temporary flake.nix that uses a specific filter for the source
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
-    
+
     # Get commit hash
     COMMIT=$(git rev-parse {{commit_ref}})
-    
+
     # Create a modified flake.nix that uses a filtered source
     cat > $TEMP_DIR/flake-repro.nix << 'EOF'
-    { 
+    {
       # This is a wrapper around the main flake to produce reproducible builds
       description = "Reproducible Information Alchemist build";
-      
+
       inputs = {
         nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
         flake-utils.url = "github:numtide/flake-utils";
         mainFlake.url = "path:/git/thecowboyai/alchemist";
       };
-      
-      outputs = { self, nixpkgs, flake-utils, mainFlake }: 
+
+      outputs = { self, nixpkgs, flake-utils, mainFlake }:
         flake-utils.lib.eachDefaultSystem (system:
           let
             pkgs = nixpkgs.legacyPackages.${system};
-            
+
             # Import the cache configuration from the main flake
             cacheConfig = import /git/thecowboyai/alchemist/cache-config.nix;
           in {
             # Re-export the main flake's packages
             packages = mainFlake.packages.${system};
-            
+
             # Default package is simply the main flake's default
             defaultPackage = mainFlake.packages.${system}.default;
-            
+
             # Explicitly set this to enable substituters
             nixConfig = {
               extra-substituters = cacheConfig.allSubstituters;
@@ -897,24 +943,24 @@ build-reproducible commit_ref="HEAD" target=".#":
         );
     }
     EOF
-    
+
     # Build using our reproducible flake
     echo "Building from reproducible flake..."
     nix build --option substituters "{{substituters}}" \
             --option trusted-public-keys "{{trusted-keys}}" \
             --no-warn-dirty \
             -L -v --log-format bar-with-logs \
-            $TEMP_DIR#{{target}} 
+            $TEMP_DIR#{{target}}
 
 # Build using pure inputs to eliminate Git dirty status influence
 build-pure target=".#":
     #!/usr/bin/env bash
     echo "Building with pure inputs for consistent cache usage at {{local-cache}}"
-    
+
     # Create temporary directory for our files
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
-    
+
     # Copy necessary files to the temp directory
     echo "Copying essential files to temporary directory..."
     cp flake.nix $TEMP_DIR/
@@ -926,19 +972,19 @@ build-pure target=".#":
     cp cache-tools.nix $TEMP_DIR/
     cp cache-management.nix $TEMP_DIR/
     cp analyze-cache-miss.nix $TEMP_DIR/
-    
+
     # Create the filter script that removes Git metadata
     cat > $TEMP_DIR/filter-git.nix << 'EOF'
     { pkgs ? import <nixpkgs> {} }:
-    
+
     pkgs.stdenv.mkDerivation {
       name = "alchemist-filtered-source";
       # Use the current directory as source
       src = ./.;
-      
+
       # We don't need to build anything
       dontBuild = true;
-      
+
       # Just copy the files to the output
       installPhase = ''
         mkdir -p $out
@@ -948,16 +994,16 @@ build-pure target=".#":
       '';
     }
     EOF
-    
+
     # Create a simple wrapper script for building with a cleaned source
     cat > $TEMP_DIR/build.sh << 'EOF'
     #!/usr/bin/env bash
     set -e
-    
+
     # Create a filtered source derivation
     SOURCE_DRV=$(nix-build filter-git.nix --no-out-link)
     echo "Created filtered source at $SOURCE_DRV"
-    
+
     # Build using the filtered source
     cd $SOURCE_DRV
     echo "Building from filtered source..."
@@ -966,7 +1012,7 @@ build-pure target=".#":
               --no-warn-dirty \
               -L -v --log-format bar-with-logs \
               "$3"
-              
+
     # Get the result path
     if [ -e "result" ]; then
         readlink -f "result"
@@ -976,11 +1022,11 @@ build-pure target=".#":
     fi
     EOF
     chmod +x $TEMP_DIR/build.sh
-    
+
     # Run the build script
     echo "Running filtered build..."
     RESULT_PATH=$(cd $TEMP_DIR && ./build.sh "{{substituters}}" "{{trusted-keys}}" "{{target}}")
-    
+
     # Copy the result back if successful
     if [ -n "$RESULT_PATH" ] && [ -d "$RESULT_PATH" ]; then
         echo "Build successful, creating result symlink..."
@@ -990,17 +1036,17 @@ build-pure target=".#":
     else
         echo "Build failed or produced no output"
         exit 1
-    fi 
+    fi
 
 # Determine exactly why a rebuild is needed by directly checking the cache for the derivation
 cache-check target=".#":
     #!/usr/bin/env bash
     echo "Checking why a rebuild might be needed for {{target}}..."
-    
+
     # First, determine the derivation path
     echo "Getting derivation path..."
     DRV_PATH=$(nix-instantiate --no-build-output . -A default 2>/dev/null)
-    
+
     if [ -z "$DRV_PATH" ]; then
         echo "Error: Failed to get derivation path. Trying with '{{target}}'..."
         # Try using the target directly
@@ -1014,12 +1060,12 @@ cache-check target=".#":
             else
                 echo "Your flake derivation exists, but next steps need the deriver path."
                 echo "Let's try to get the output path directly..."
-                
+
                 # Try to get the output path directly from a build
                 OUTPUT_PATH=$(nix eval --raw {{target}}.outPath 2>/dev/null || echo "")
                 if [ -n "$OUTPUT_PATH" ]; then
                     echo "Output path: $OUTPUT_PATH"
-                    
+
                     echo "Checking if output exists in cache..."
                     if nix path-info --store {{local-cache}} "$OUTPUT_PATH" 2>/dev/null; then
                         echo "✅ Output path exists in the cache! Your build should not rebuild."
@@ -1037,9 +1083,9 @@ cache-check target=".#":
             fi
         fi
     fi
-    
+
     echo "Derivation path: $DRV_PATH"
-    
+
     # Check if this derivation is in the cache
     echo "Checking if derivation exists in cache..."
     if nix path-info --store {{local-cache}} "$DRV_PATH" 2>/dev/null; then
@@ -1048,11 +1094,11 @@ cache-check target=".#":
         echo "    1. A dependency that's not in the cache"
         echo "    2. Nix not finding the derivation in the cache (network issue)"
         echo "    3. The actual output path doesn't match what Nix expects"
-        
+
         # Now check the output path
         OUTPUT_PATH=$(nix-store -q --outputs "$DRV_PATH" 2>/dev/null)
         echo "Output path: $OUTPUT_PATH"
-        
+
         echo "Checking if output exists in cache..."
         if nix path-info --store {{local-cache}} "$OUTPUT_PATH" 2>/dev/null; then
             echo "✅ Output path also exists in the cache! Your build should not rebuild."
@@ -1069,13 +1115,13 @@ cache-check target=".#":
         echo "1. Git dirty state: Uncommitted changes create a unique derivation hash"
         echo "2. Input changes: Dependencies or environment variables have changed"
         echo "3. Configuration differences: Nix settings that affect the build"
-        
+
         # Recommend a solution
         echo ""
         echo "Recommended solution:"
         echo "1. Commit your changes to create a clean state"
         echo "2. Use 'just build-clean' to build from a clean checkout"
-        echo "3. Once built, add the result to the cache: just add-to-cache \$(readlink -f result)" 
+        echo "3. Once built, add the result to the cache: just add-to-cache \$(readlink -f result)"
 
 # Run the DDD graph editor quickly using any existing build
 run-ddd-editor:
@@ -1089,4 +1135,4 @@ run-ddd-editor:
         nix run --option substituters "{{substituters}}" \
                 --option trusted-public-keys "{{trusted-keys}}" \
                 --no-write-lock-file
-    fi 
+    fi

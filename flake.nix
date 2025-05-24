@@ -135,7 +135,7 @@
                 if [ -f "$out/bin/alchemist" ]; then
                   patchelf --set-rpath "$out/lib:${pkgs.lib.makeLibraryPath nonRustDeps}" "$out/bin/alchemist"
                 fi
-                
+
                 # Create symlinks for Bevy dylib with the hash the binary expects
                 if [ -d "$out/lib" ] && [ -f "$out/bin/alchemist" ]; then
                   # Find what bevy dylib the binary actually needs
@@ -144,7 +144,7 @@
                     echo "Creating symlink: $NEEDED_BEVY -> libbevy_dylib.so"
                     ln -sf libbevy_dylib.so "$out/lib/$NEEDED_BEVY"
                   fi
-                  
+
                   # Copy required Rust standard library
                   NEEDED_STD=$(patchelf --print-needed "$out/bin/alchemist" | grep "libstd-" || true)
                   if [ -n "$NEEDED_STD" ]; then
@@ -191,6 +191,15 @@
               echo "  just           - See available just commands"
               echo ""
               echo "Library path: $LD_LIBRARY_PATH"
+
+              # Ensure proc-macro artifacts are built for rust-analyzer
+              echo "Ensuring proc-macro artifacts are available..."
+              if [ ! -d "target/debug/deps" ] || [ -z "$(find target/debug/deps -name 'lib*derive*.so' -o -name 'lib*macros*.so' 2>/dev/null)" ]; then
+                echo "Building proc-macro dependencies for rust-analyzer..."
+                cargo check --quiet 2>/dev/null || true
+              else
+                echo "Proc-macro artifacts found."
+              fi
             '';
           };
 

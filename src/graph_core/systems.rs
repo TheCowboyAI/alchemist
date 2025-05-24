@@ -21,6 +21,8 @@ pub fn handle_create_node_events(
             event.position,
             color,
             event.name.clone(),
+            event.labels.clone(),
+            event.properties.clone(),
         ));
 
         entity_commands.insert(Name::new(event.name.clone()));
@@ -40,8 +42,8 @@ pub fn handle_create_node_events(
         });
 
         info!(
-            "Created node {} at position {:?}",
-            event.name, event.position
+            "Created node '{}' at position {:?} (Entity: {:?}). Total nodes: {}",
+            event.name, event.position, entity_commands.id(), graph_state.node_count
         );
     }
 }

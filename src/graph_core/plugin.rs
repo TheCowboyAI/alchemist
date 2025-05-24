@@ -53,6 +53,7 @@ impl Plugin for GraphPlugin {
             .add_systems(
                 PostUpdate,
                 (
+                    clear_rendering_on_view_change,
                     render_reference_grid,
                     render_graph_nodes,
                     render_graph_edges,

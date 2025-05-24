@@ -83,8 +83,8 @@ pub fn json_to_base_graph(json_data: JsonGraphData) -> Result<BaseGraphResource,
             node_id,
             Vec3::new(
                 json_node.position.x / 100.0,
-                json_node.position.y / 100.0,
-                0.0,
+                0.0,                          // Keep Y at 0 for horizontal plane
+                json_node.position.y / 100.0, // Map 2D Y to 3D Z
             ),
         );
     }
@@ -152,7 +152,7 @@ pub fn base_graph_to_json(base_graph: &BaseGraphResource) -> JsonGraphData {
             .get(uuid)
             .map(|pos| JsonPosition {
                 x: pos.x * 100.0,
-                y: pos.y * 100.0,
+                y: pos.z * 100.0,
             })
             .unwrap_or_default();
 
@@ -238,6 +238,9 @@ pub struct SaveJsonFileEvent {
 }
 
 #[derive(Event)]
+pub struct ClearGraphEvent;
+
+#[derive(Event)]
 pub struct JsonFileLoadedEvent {
     pub success: bool,
     pub message: String,
@@ -261,20 +264,26 @@ impl FileOperationState {
     pub fn scan_models_directory(&mut self) {
         self.available_files.clear();
 
+        info!("Scanning assets/models directory for JSON files...");
+
         // Scan the assets/models directory for JSON files
         if let Ok(entries) = std::fs::read_dir("assets/models") {
             for entry in entries.flatten() {
                 if let Some(file_name) = entry.file_name().to_str() {
                     if file_name.ends_with(".json") {
-                        self.available_files
-                            .push(format!("assets/models/{}", file_name));
+                        let file_path = format!("assets/models/{}", file_name);
+                        info!("Found JSON file: {}", file_path);
+                        self.available_files.push(file_path);
                     }
                 }
             }
+        } else {
+            warn!("Failed to read assets/models directory");
         }
 
         // Sort for consistent ordering
         self.available_files.sort();
+        info!("Found {} JSON files total", self.available_files.len());
     }
 }
 

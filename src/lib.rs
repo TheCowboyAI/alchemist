@@ -24,7 +24,10 @@ pub mod events;
 pub mod graph;
 pub mod graph_core;
 pub mod graph_patterns;
+pub mod json_loader;
 pub mod models;
+pub mod theming;
+pub mod unified_graph_editor;
 
 // Re-export commonly used types
 pub use camera::CameraViewportPlugin;

@@ -302,7 +302,7 @@ fn handle_add_node_events(
 fn handle_mode_switch_events(
     mut events: EventReader<SwitchEditorModeEvent>,
     mut editor_mode: ResMut<EditorMode>,
-    mut camera_query: Query<&mut Camera>,
+    camera_query: Query<&mut Camera>,
     editor_state: Res<EditorState>,
 ) {
     for event in events.read() {

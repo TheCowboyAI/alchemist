@@ -1,5 +1,6 @@
 use super::components::{DomainEdgeType, DomainNodeType};
 use bevy::prelude::*;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 /// Event for creating a new graph node
@@ -9,6 +10,8 @@ pub struct CreateNodeEvent {
     pub position: Vec3,
     pub domain_type: DomainNodeType,
     pub name: String,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
     pub subgraph_id: Option<Uuid>,
 }
 
@@ -27,6 +30,8 @@ pub struct CreateEdgeEvent {
     pub source: Entity,
     pub target: Entity,
     pub edge_type: DomainEdgeType,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
 }
 
 /// Event for deleting nodes

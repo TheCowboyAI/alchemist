@@ -9,29 +9,37 @@ mod events;
 mod graph;
 mod graph_core;
 mod graph_patterns;
-mod models;
 mod json_loader;
+mod models;
+mod theming;
+mod unified_graph_editor;
 
 use camera::CameraViewportPlugin;
 use graph_core::{CreateEdgeEvent, CreateNodeEvent, DomainNodeType, GraphPlugin};
 use graph_patterns::{GraphPattern, generate_pattern};
-use json_loader::{load_json_file, save_json_file, json_to_base_graph, base_graph_to_json, FileOperationState, JsonGraphData, JsonNode, JsonRelationship, JsonPosition};
+use json_loader::{
+    FileOperationState, JsonGraphData, JsonNode, JsonPosition, LoadJsonFileEvent,
+    SaveJsonFileEvent, json_to_base_graph, load_json_file, save_json_file,
+};
 
 #[derive(Resource, Default)]
 struct NodeCounter(u32);
 
-#[derive(Event)]
-pub struct LoadJsonFileEvent {
-    pub file_path: String,
+#[derive(Resource)]
+struct PendingEdges {
+    edges: Vec<PendingEdgeData>,
+    node_count: usize,
+    processed_nodes: usize,
 }
 
-#[derive(Event)]
-pub struct SaveJsonFileEvent {
-    pub file_path: String,
+struct PendingEdgeData {
+    id: Uuid,
+    source_uuid: Uuid,
+    target_uuid: Uuid,
+    edge_type: graph_core::DomainEdgeType,
+    labels: Vec<String>,
+    properties: std::collections::HashMap<String, String>,
 }
-
-#[derive(Event)]
-pub struct ClearGraphEvent;
 
 fn main() {
     App::new()
@@ -54,17 +62,31 @@ fn main() {
         // Events
         .add_event::<LoadJsonFileEvent>()
         .add_event::<SaveJsonFileEvent>()
-        .add_event::<ClearGraphEvent>()
         // Setup systems
         .add_systems(Startup, (setup, setup_file_scanner))
-        .add_systems(Update, (
-            ui_system,
-            debug_camera_system,
-            keyboard_commands_system,
-            handle_load_json_file,
-            handle_save_json_file,
-            handle_clear_graph,
-        ))
+        .add_systems(
+            Update,
+            (
+                // UI and input - run after EGUI initialization
+                ui_system,
+                debug_camera_system,
+                keyboard_commands_system,
+            )
+                .chain()
+                .after(bevy_egui::EguiPreUpdateSet::InitContexts),
+        )
+        .add_systems(
+            Update,
+            (
+                // File operations and graph manipulation
+                handle_load_json_file,
+                handle_save_json_file,
+                process_pending_edges,
+            )
+                .chain()
+                .after(bevy_egui::EguiPreUpdateSet::InitContexts),
+        )
+        .add_systems(Last, track_node_despawns)
         .run();
 }
 
@@ -123,6 +145,8 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         position: Vec3::new(0.0, 0.0, 0.0),
         domain_type: DomainNodeType::Process,
         name: "Central Node".to_string(),
+        labels: vec!["process".to_string()],
+        properties: std::collections::HashMap::new(),
         subgraph_id: None,
     });
 
@@ -131,6 +155,8 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         position: Vec3::new(5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Decision,
         name: "Decision Node".to_string(),
+        labels: vec!["decision".to_string()],
+        properties: std::collections::HashMap::new(),
         subgraph_id: None,
     });
 
@@ -139,6 +165,8 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         position: Vec3::new(-5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Event,
         name: "Event Node".to_string(),
+        labels: vec!["event".to_string()],
+        properties: std::collections::HashMap::new(),
         subgraph_id: None,
     });
 
@@ -147,6 +175,8 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         position: Vec3::new(0.0, 0.0, 5.0),
         domain_type: DomainNodeType::Storage,
         name: "Storage Node".to_string(),
+        labels: vec!["storage".to_string()],
+        properties: std::collections::HashMap::new(),
         subgraph_id: None,
     });
 
@@ -155,6 +185,8 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         position: Vec3::new(0.0, 0.0, -5.0),
         domain_type: DomainNodeType::Interface,
         name: "Interface Node".to_string(),
+        labels: vec!["interface".to_string()],
+        properties: std::collections::HashMap::new(),
         subgraph_id: None,
     });
 }
@@ -167,7 +199,7 @@ fn setup_file_scanner(mut file_state: ResMut<FileOperationState>) {
 /// Enhanced UI system with graph patterns and file loading
 fn ui_system(
     mut contexts: EguiContexts,
-    graph_state: Res<graph_core::GraphState>,
+    mut graph_state: ResMut<graph_core::GraphState>,
     camera_query: Query<&camera::GraphViewCamera>,
     mut create_node_events: EventWriter<CreateNodeEvent>,
     mut create_edge_events: EventWriter<CreateEdgeEvent>,
@@ -175,7 +207,8 @@ fn ui_system(
     mut save_json_events: EventWriter<SaveJsonFileEvent>,
     mut file_state: ResMut<FileOperationState>,
     node_query: Query<(Entity, &graph_core::GraphNode)>,
-    mut clear_events: EventWriter<ClearGraphEvent>,
+    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
+    mut commands: Commands,
 ) {
     // Left panel with controls
     egui::SidePanel::left("controls")
@@ -214,6 +247,60 @@ fn ui_system(
             ui.label(format!("Edges: {}", graph_state.edge_count));
 
             ui.separator();
+
+            // Selected/Hovered Node Info
+            if let Some(hovered_entity) = graph_state.hovered_entity {
+                if let Ok((_, node)) = node_query.get(hovered_entity) {
+                    ui.heading("Hovered Node:");
+                    ui.label(format!("Name: {}", node.name));
+                    ui.label(format!("Type: {:?}", node.domain_type));
+
+                    if !node.labels.is_empty() {
+                        ui.label("Labels:");
+                        for label in &node.labels {
+                            ui.label(format!("  • {}", label));
+                        }
+                    }
+
+                    if !node.properties.is_empty() {
+                        ui.label("Properties:");
+                        for (key, value) in &node.properties {
+                            ui.label(format!("  • {}: {}", key, value));
+                        }
+                    }
+                    ui.separator();
+                }
+            }
+
+            // Selected nodes info
+            if !graph_state.selected_nodes.is_empty() {
+                ui.heading(format!(
+                    "Selected: {} nodes",
+                    graph_state.selected_nodes.len()
+                ));
+                for entity in &graph_state.selected_nodes {
+                    if let Ok((_, node)) = node_query.get(*entity) {
+                        ui.collapsing(format!("📌 {}", node.name), |ui| {
+                            ui.label(format!("Type: {:?}", node.domain_type));
+
+                            if !node.labels.is_empty() {
+                                ui.label("Labels:");
+                                for label in &node.labels {
+                                    ui.label(format!("  • {}", label));
+                                }
+                            }
+
+                            if !node.properties.is_empty() {
+                                ui.label("Properties:");
+                                for (key, value) in &node.properties {
+                                    ui.label(format!("  • {}: {}", key, value));
+                                }
+                            }
+                        });
+                    }
+                }
+                ui.separator();
+            }
 
             // Graph Patterns section
             ui.heading("📐 Graph Patterns");
@@ -390,13 +477,30 @@ fn ui_system(
                         _ => DomainNodeType::Interface,
                     },
                     name: format!("Node {}", graph_state.node_count + 1),
+                    labels: vec!["process".to_string()],
+                    properties: std::collections::HashMap::new(),
                     subgraph_id: None,
                 });
             }
 
             // Clear graph button
             if ui.button("🗑️ Clear Graph").clicked() {
-                clear_events.send(ClearGraphEvent);
+                // Clear the graph directly instead of sending an event
+                for entity in &node_query {
+                    commands.entity(entity.0).despawn_recursive();
+                }
+                for entity in &edge_query {
+                    commands.entity(entity).despawn_recursive();
+                }
+
+                // Reset graph state
+                graph_state.node_count = 0;
+                graph_state.edge_count = 0;
+                graph_state.selected_nodes.clear();
+                graph_state.selected_edges.clear();
+                graph_state.hovered_entity = None;
+
+                info!("Graph cleared from UI");
             }
 
             ui.separator();
@@ -413,10 +517,15 @@ fn ui_system(
 fn add_pattern_to_graph(
     pattern: GraphPattern,
     create_node_events: &mut EventWriter<CreateNodeEvent>,
-    create_edge_events: &mut EventWriter<CreateEdgeEvent>,
-    existing_nodes: &Query<(Entity, &graph_core::GraphNode)>,
+    _create_edge_events: &mut EventWriter<CreateEdgeEvent>,
+    _existing_nodes: &Query<(Entity, &graph_core::GraphNode)>,
 ) {
     let pattern_graph = generate_pattern(pattern);
+
+    info!(
+        "Generating pattern with {} nodes",
+        pattern_graph.nodes.len()
+    );
 
     // Calculate offset to avoid overlapping with existing nodes
     let offset = Vec3::new(10.0, 0.0, 10.0);
@@ -425,28 +534,55 @@ fn add_pattern_to_graph(
     let mut id_to_entity: std::collections::HashMap<Uuid, Entity> =
         std::collections::HashMap::new();
 
+    // Create a simple layout for nodes if they don't have positions
+    let node_count = pattern_graph.nodes.len();
+    let mut node_index = 0;
+
     // First pass: create all nodes
     for (old_id, node) in &pattern_graph.nodes {
         let new_id = Uuid::new_v4();
 
-        // Calculate position with offset
-        let pos = if let (Some(x_str), Some(y_str)) =
+        // Calculate position - try to get from properties first
+        let position = if let (Some(x_str), Some(y_str)) =
             (node.properties.get("x_pos"), node.properties.get("y_pos"))
         {
             if let (Ok(x), Ok(y)) = (x_str.parse::<f32>(), y_str.parse::<f32>()) {
                 Vec3::new(x / 20.0 + offset.x, 0.0, y / 20.0 + offset.z)
             } else {
-                offset
+                // Parse failed, use default layout
+                let angle = node_index as f32 * 2.0 * std::f32::consts::PI / node_count as f32;
+                let radius = 5.0;
+                Vec3::new(
+                    radius * angle.cos() + offset.x,
+                    0.0,
+                    radius * angle.sin() + offset.z,
+                )
             }
         } else {
-            offset
+            // No position properties, arrange in a circle
+            let angle = node_index as f32 * 2.0 * std::f32::consts::PI / node_count as f32;
+            let radius = 5.0;
+            Vec3::new(
+                radius * angle.cos() + offset.x,
+                0.0,
+                radius * angle.sin() + offset.z,
+            )
         };
+
+        node_index += 1;
+
+        info!(
+            "Creating pattern node '{}' at position {:?}",
+            node.name, position
+        );
 
         create_node_events.send(CreateNodeEvent {
             id: new_id,
-            position: pos,
+            position,
             domain_type: DomainNodeType::Process, // Default type
             name: node.name.clone(),
+            labels: node.labels.clone(),
+            properties: node.properties.clone(),
             subgraph_id: None,
         });
 
@@ -455,6 +591,11 @@ fn add_pattern_to_graph(
         id_to_entity.insert(*old_id, Entity::PLACEHOLDER);
     }
 
+    info!(
+        "Pattern generation complete, sent {} node events",
+        node_index
+    );
+
     // Note: Edge creation would need to happen after nodes are created
     // This is a limitation we'd need to address with a better event system
 }
@@ -462,12 +603,29 @@ fn add_pattern_to_graph(
 /// Keyboard commands system for clear controls
 fn keyboard_commands_system(
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut clear_events: EventWriter<ClearGraphEvent>,
     mut create_node_events: EventWriter<CreateNodeEvent>,
+    mut commands: Commands,
+    node_query: Query<Entity, With<graph_core::GraphNode>>,
+    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
+    mut graph_state: ResMut<graph_core::GraphState>,
 ) {
     // Clear graph with Ctrl+K
     if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyK) {
-        clear_events.send(ClearGraphEvent);
+        // Clear the graph directly
+        for entity in &node_query {
+            commands.entity(entity).despawn_recursive();
+        }
+        for entity in &edge_query {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        // Reset graph state
+        graph_state.node_count = 0;
+        graph_state.edge_count = 0;
+        graph_state.selected_nodes.clear();
+        graph_state.selected_edges.clear();
+        graph_state.hovered_entity = None;
+
         info!("Clear graph command triggered");
     }
 
@@ -478,6 +636,8 @@ fn keyboard_commands_system(
             position: Vec3::ZERO,
             domain_type: DomainNodeType::Process,
             name: "New Node".to_string(),
+            labels: vec!["process".to_string()],
+            properties: std::collections::HashMap::new(),
             subgraph_id: None,
         });
         info!("Add node command triggered");
@@ -500,27 +660,71 @@ fn keyboard_commands_system(
 /// Handle file loading
 fn handle_load_json_file(
     mut events: EventReader<LoadJsonFileEvent>,
-    mut commands: Commands,
-    mut clear_events: EventWriter<ClearGraphEvent>,
     mut create_node_events: EventWriter<CreateNodeEvent>,
     mut file_state: ResMut<FileOperationState>,
+    mut commands: Commands,
+    node_query: Query<(Entity, &graph_core::GraphNode)>,
+    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
+    mut graph_state: ResMut<graph_core::GraphState>,
 ) {
     for event in events.read() {
-        info!("Loading file: {}", event.file_path);
+        info!("=== START LOADING FILE: {} ===", event.file_path);
 
-        // First clear the graph
-        clear_events.send(ClearGraphEvent);
+        // Clear the graph immediately (synchronously)
+        info!("Clearing existing graph before loading new data...");
+
+        // Despawn all nodes
+        let node_count = node_query.iter().count();
+        for (entity, _) in &node_query {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        // Despawn all edges
+        let edge_count = edge_query.iter().count();
+        for entity in &edge_query {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        info!("Cleared {} nodes and {} edges", node_count, edge_count);
+
+        // Reset graph state
+        graph_state.node_count = 0;
+        graph_state.edge_count = 0;
+        graph_state.selected_nodes.clear();
+        graph_state.selected_edges.clear();
+        graph_state.hovered_entity = None;
 
         // Try to load the JSON file
         match load_graph_from_json(&event.file_path) {
-            Ok((nodes, _edges)) => {
+            Ok((nodes, edges)) => {
+                info!(
+                    "Successfully parsed {} nodes and {} edges from JSON",
+                    nodes.len(),
+                    edges.len()
+                );
+
+                // We need to collect the UUID to Entity mapping after nodes are created
+                // Store the edge data to process after nodes are spawned
+                commands.insert_resource(PendingEdges {
+                    edges,
+                    node_count: nodes.len(),
+                    processed_nodes: 0,
+                });
+
                 // Create nodes from loaded data
                 for node_data in nodes {
+                    info!(
+                        "Creating node: {} at position {:?}",
+                        node_data.name, node_data.position
+                    );
                     create_node_events.send(node_data);
                 }
 
                 file_state.current_file_path = Some(event.file_path.clone());
                 info!("Successfully loaded graph from {}", event.file_path);
+                info!("=== COMPLETED LOADING FILE ===");
+                info!("Graph state after loading - Nodes: {}, Edges: {}",
+                    graph_state.node_count, graph_state.edge_count);
             }
             Err(e) => {
                 warn!("Failed to load file {}: {}", event.file_path, e);
@@ -540,11 +744,15 @@ fn handle_save_json_file(
         info!("Saving file: {}", event.file_path);
 
         // Collect graph data
-        let nodes: Vec<_> = node_query.iter()
-            .map(|(node, transform)| (node.clone(), transform.translation))
-            .collect();
+        let mut nodes = Vec::new();
+        for (node, transform) in &node_query {
+            nodes.push((node.clone(), transform.translation));
+        }
 
-        let edges: Vec<_> = edge_query.iter().cloned().collect();
+        let mut edges = Vec::new();
+        for edge in &edge_query {
+            edges.push(edge.clone());
+        }
 
         match save_graph_to_json(&event.file_path, nodes, edges) {
             Ok(_) => {
@@ -558,38 +766,59 @@ fn handle_save_json_file(
     }
 }
 
-/// Handle clearing the graph
-fn handle_clear_graph(
-    mut events: EventReader<ClearGraphEvent>,
+/// Process pending edges after nodes are created
+fn process_pending_edges(
     mut commands: Commands,
-    node_query: Query<Entity, With<graph_core::GraphNode>>,
-    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
-    mut graph_state: ResMut<graph_core::GraphState>,
+    pending_edges: Option<ResMut<PendingEdges>>,
+    node_query: Query<(Entity, &graph_core::GraphNode)>,
+    mut create_edge_events: EventWriter<CreateEdgeEvent>,
 ) {
-    for _ in events.read() {
-        // Despawn all nodes
-        for entity in &node_query {
-            commands.entity(entity).despawn_recursive();
+    if let Some(mut pending) = pending_edges {
+        // Check if we have all nodes created
+        let current_node_count = node_query.iter().count();
+
+        if current_node_count >= pending.node_count && !pending.edges.is_empty() {
+            info!("Processing {} pending edges", pending.edges.len());
+
+            // Build UUID to Entity mapping
+            let mut uuid_to_entity = std::collections::HashMap::new();
+            for (entity, node) in &node_query {
+                uuid_to_entity.insert(node.id, entity);
+            }
+
+            // Create edges
+            for edge_data in &pending.edges {
+                if let (Some(&source_entity), Some(&target_entity)) = (
+                    uuid_to_entity.get(&edge_data.source_uuid),
+                    uuid_to_entity.get(&edge_data.target_uuid),
+                ) {
+                    create_edge_events.send(CreateEdgeEvent {
+                        id: edge_data.id,
+                        source: source_entity,
+                        target: target_entity,
+                        edge_type: edge_data.edge_type.clone(),
+                        labels: edge_data.labels.clone(),
+                        properties: edge_data.properties.clone(),
+                    });
+                } else {
+                    warn!(
+                        "Failed to find entities for edge {:?} -> {:?}",
+                        edge_data.source_uuid, edge_data.target_uuid
+                    );
+                }
+            }
+
+            // Clear the pending edges
+            pending.edges.clear();
+            commands.remove_resource::<PendingEdges>();
         }
-
-        // Despawn all edges
-        for entity in &edge_query {
-            commands.entity(entity).despawn_recursive();
-        }
-
-        // Reset graph state
-        graph_state.node_count = 0;
-        graph_state.edge_count = 0;
-        graph_state.selected_nodes.clear();
-        graph_state.selected_edges.clear();
-        graph_state.hovered_entity = None;
-
-        info!("Graph cleared");
     }
 }
 
 // Simple JSON load/save functions
-fn load_graph_from_json(path: &str) -> Result<(Vec<CreateNodeEvent>, Vec<graph_core::CreateEdgeEvent>), String> {
+fn load_graph_from_json(
+    path: &str,
+) -> Result<(Vec<CreateNodeEvent>, Vec<PendingEdgeData>), String> {
     // Load the JSON file
     let json_data = load_json_file(path)?;
 
@@ -598,15 +827,17 @@ fn load_graph_from_json(path: &str) -> Result<(Vec<CreateNodeEvent>, Vec<graph_c
 
     // Convert to events
     let mut node_events = Vec::new();
-    let mut edge_events = Vec::new();
+    let mut edge_data = Vec::new();
 
     // Create node events
     for (uuid, node) in &base_graph.graph.nodes {
-        let position = base_graph.node_positions.get(uuid)
+        let position = base_graph
+            .node_positions
+            .get(uuid)
             .copied()
             .unwrap_or(Vec3::ZERO);
 
-        // Determine domain type from labels
+        // Determine domain type from labels or use the first label as a hint
         let domain_type = if node.labels.contains(&"decision".to_string()) {
             DomainNodeType::Decision
         } else if node.labels.contains(&"event".to_string()) {
@@ -624,31 +855,35 @@ fn load_graph_from_json(path: &str) -> Result<(Vec<CreateNodeEvent>, Vec<graph_c
             position,
             domain_type,
             name: node.name.clone(),
+            labels: node.labels.clone(),
+            properties: node.properties.clone(),
             subgraph_id: None,
         });
     }
 
-    // Create edge events
+    // Create edge data
     for (_, edge) in &base_graph.graph.edges {
-        edge_events.push(graph_core::CreateEdgeEvent {
+        edge_data.push(PendingEdgeData {
             id: edge.id,
-            source: Entity::PLACEHOLDER, // Will need to map UUIDs to entities
-            target: Entity::PLACEHOLDER, // Will need to map UUIDs to entities
+            source_uuid: edge.source,
+            target_uuid: edge.target,
             edge_type: graph_core::DomainEdgeType::DataFlow,
+            labels: edge.labels.clone(),
+            properties: edge.properties.clone(),
         });
     }
 
-    Ok((node_events, edge_events))
+    Ok((node_events, edge_data))
 }
 
 fn save_graph_to_json(
     path: &str,
     nodes: Vec<(graph_core::GraphNode, Vec3)>,
-    edges: Vec<graph_core::GraphEdge>
+    edges: Vec<graph_core::GraphEdge>,
 ) -> Result<(), String> {
     // Create JSON data structure directly
     let mut json_nodes = Vec::new();
-    let mut json_relationships = Vec::new();
+    let json_relationships = Vec::new();
     let mut id_counter = 1;
     let mut uuid_to_string = std::collections::HashMap::new();
 
@@ -665,8 +900,8 @@ fn save_graph_to_json(
                 y: position.z * 100.0, // Use Z as Y for 2D representation
             },
             caption: node.name.clone(),
-            labels: vec![format!("{:?}", node.domain_type).to_lowercase()],
-            properties: std::collections::HashMap::new(),
+            labels: node.labels.clone(),
+            properties: node.properties.clone(),
             style: std::collections::HashMap::new(),
         };
 
@@ -685,4 +920,25 @@ fn save_graph_to_json(
     save_json_file(path, &json_data)?;
 
     Ok(())
+}
+
+/// System to track when nodes are despawned
+fn track_node_despawns(
+    mut removed_nodes: RemovedComponents<graph_core::GraphNode>,
+    mut removed_edges: RemovedComponents<graph_core::GraphEdge>,
+) {
+    let removed_node_count: Vec<_> = removed_nodes.read().collect();
+    let removed_edge_count: Vec<_> = removed_edges.read().collect();
+
+    if !removed_node_count.is_empty() || !removed_edge_count.is_empty() {
+        warn!(
+            "NODES/EDGES REMOVED: {} nodes, {} edges despawned. Stack trace:",
+            removed_node_count.len(),
+            removed_edge_count.len()
+        );
+        // This will help us identify what's clearing the graph
+        if removed_node_count.len() > 5 {
+            info!("Graph cleared");
+        }
+    }
 }

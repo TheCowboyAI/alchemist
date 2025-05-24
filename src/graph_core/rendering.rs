@@ -2,6 +2,14 @@ use super::components::*;
 use crate::camera::{GraphViewCamera, ViewMode};
 use bevy::prelude::*;
 
+/// Marker component for nodes that have been rendered
+#[derive(Component)]
+pub struct NodeRendered;
+
+/// Marker component for edges that have been rendered
+#[derive(Component)]
+pub struct EdgeRendered;
+
 /// System to render graph nodes in the appropriate mode
 pub fn render_graph_nodes(
     mut commands: Commands,
@@ -9,18 +17,16 @@ pub fn render_graph_nodes(
     mut materials_3d: ResMut<Assets<StandardMaterial>>,
     mut materials_2d: ResMut<Assets<ColorMaterial>>,
     camera_query: Query<&GraphViewCamera>,
-    node_query: Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Changed<GraphPosition>>,
-    existing_meshes: Query<(Entity, &ChildOf), Or<(With<Mesh3d>, With<Mesh2d>)>>,
+    node_query: Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Without<NodeRendered>>,
 ) {
     let Ok(camera) = camera_query.single() else {
+        warn!("No camera found for rendering!");
         return;
     };
 
-    // Clean up existing meshes when switching modes
-    for (mesh_entity, child_of) in &existing_meshes {
-        if node_query.contains(child_of.parent()) {
-            commands.entity(mesh_entity).despawn();
-        }
+    let node_count = node_query.iter().count();
+    if node_count > 0 {
+        info!("Found {} nodes to render in {:?} mode", node_count, camera.view_mode);
     }
 
     // Render nodes based on current view mode
@@ -38,9 +44,13 @@ fn render_nodes_3d(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    node_query: &Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Changed<GraphPosition>>,
+    node_query: &Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Without<NodeRendered>>,
 ) {
-    for (entity, _node, _position, visual) in node_query {
+    let mut rendered_count = 0;
+    for (entity, node, _position, visual) in node_query {
+        rendered_count += 1;
+        info!("Rendering 3D node '{}' at entity {:?}", node.name, entity);
+
         // Create 3D sphere for node
         let mesh = meshes.add(Sphere::new(0.5).mesh().uv(32, 18));
         let material = materials.add(StandardMaterial {
@@ -48,13 +58,31 @@ fn render_nodes_3d(
             ..default()
         });
 
-        commands.entity(entity).with_children(|parent| {
-            parent.spawn((
-                Mesh3d(mesh),
-                MeshMaterial3d(material),
-                Transform::from_translation(Vec3::ZERO),
-            ));
-        });
+        commands
+            .entity(entity)
+            .insert(NodeRendered)
+            .with_children(|parent| {
+                parent.spawn((
+                    Mesh3d(mesh),
+                    MeshMaterial3d(material),
+                    Transform::from_translation(Vec3::ZERO),
+                ));
+
+                // Add text label
+                parent.spawn((
+                    Text2d::new(&node.name),
+                    TextFont {
+                        font_size: 14.0,
+                        ..default()
+                    },
+                    TextColor(Color::WHITE),
+                    Transform::from_xyz(0.0, 0.8, 0.1), // Position above the node
+                ));
+            });
+    }
+
+    if rendered_count > 0 {
+        info!("Rendered {} 3D nodes", rendered_count);
     }
 }
 
@@ -62,20 +90,34 @@ fn render_nodes_2d(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
-    node_query: &Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Changed<GraphPosition>>,
+    node_query: &Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Without<NodeRendered>>,
 ) {
-    for (entity, _node, _position, visual) in node_query {
+    for (entity, node, _position, visual) in node_query {
         // Create 2D circle for node
         let mesh = meshes.add(Circle::new(20.0));
         let material = materials.add(ColorMaterial::from(visual.current_color));
 
-        commands.entity(entity).with_children(|parent| {
-            parent.spawn((
-                Mesh2d(mesh),
-                MeshMaterial2d(material),
-                Transform::from_translation(Vec3::ZERO),
-            ));
-        });
+        commands
+            .entity(entity)
+            .insert(NodeRendered)
+            .with_children(|parent| {
+                parent.spawn((
+                    Mesh2d(mesh),
+                    MeshMaterial2d(material),
+                    Transform::from_translation(Vec3::ZERO),
+                ));
+
+                // Add text label
+                parent.spawn((
+                    Text2d::new(&node.name),
+                    TextFont {
+                        font_size: 12.0,
+                        ..default()
+                    },
+                    TextColor(Color::WHITE),
+                    Transform::from_xyz(0.0, 30.0, 0.1), // Position above the node
+                ));
+            });
     }
 }
 
@@ -86,19 +128,11 @@ pub fn render_graph_edges(
     mut materials_3d: ResMut<Assets<StandardMaterial>>,
     mut materials_2d: ResMut<Assets<ColorMaterial>>,
     camera_query: Query<&GraphViewCamera>,
-    edge_query: Query<(Entity, &GraphEdge, &EdgeVisual), Changed<Transform>>,
-    existing_meshes: Query<(Entity, &ChildOf), Or<(With<Mesh3d>, With<Mesh2d>)>>,
+    edge_query: Query<(Entity, &GraphEdge, &EdgeVisual), Without<EdgeRendered>>,
 ) {
     let Ok(camera) = camera_query.single() else {
         return;
     };
-
-    // Clean up existing meshes when switching modes
-    for (mesh_entity, child_of) in &existing_meshes {
-        if edge_query.contains(child_of.parent()) {
-            commands.entity(mesh_entity).despawn();
-        }
-    }
 
     // Render edges based on current view mode
     match camera.view_mode {
@@ -115,7 +149,7 @@ fn render_edges_3d(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    edge_query: &Query<(Entity, &GraphEdge, &EdgeVisual), Changed<Transform>>,
+    edge_query: &Query<(Entity, &GraphEdge, &EdgeVisual), Without<EdgeRendered>>,
 ) {
     for (entity, _edge, visual) in edge_query {
         // Create 3D cylinder for edge
@@ -125,13 +159,16 @@ fn render_edges_3d(
             ..default()
         });
 
-        commands.entity(entity).with_children(|parent| {
-            parent.spawn((
-                Mesh3d(mesh),
-                MeshMaterial3d(material),
-                Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::PI / 2.0)),
-            ));
-        });
+        commands
+            .entity(entity)
+            .insert(EdgeRendered)
+            .with_children(|parent| {
+                parent.spawn((
+                    Mesh3d(mesh),
+                    MeshMaterial3d(material),
+                    Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::PI / 2.0)),
+                ));
+            });
     }
 }
 
@@ -139,20 +176,23 @@ fn render_edges_2d(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
-    edge_query: &Query<(Entity, &GraphEdge, &EdgeVisual), Changed<Transform>>,
+    edge_query: &Query<(Entity, &GraphEdge, &EdgeVisual), Without<EdgeRendered>>,
 ) {
     for (entity, _edge, visual) in edge_query {
         // Create 2D rectangle for edge
         let mesh = meshes.add(Rectangle::new(1.0, visual.width));
         let material = materials.add(ColorMaterial::from(visual.color));
 
-        commands.entity(entity).with_children(|parent| {
-            parent.spawn((
-                Mesh2d(mesh),
-                MeshMaterial2d(material),
-                Transform::from_translation(Vec3::ZERO),
-            ));
-        });
+        commands
+            .entity(entity)
+            .insert(EdgeRendered)
+            .with_children(|parent| {
+                parent.spawn((
+                    Mesh2d(mesh),
+                    MeshMaterial2d(material),
+                    Transform::from_translation(Vec3::ZERO),
+                ));
+            });
     }
 }
 
@@ -200,3 +240,37 @@ pub fn render_reference_grid(
 /// Marker component for the reference grid
 #[derive(Component)]
 pub struct ReferenceGrid;
+
+/// System to clear rendering when view mode changes
+pub fn clear_rendering_on_view_change(
+    mut commands: Commands,
+    camera_query: Query<&GraphViewCamera, Changed<GraphViewCamera>>,
+    rendered_nodes: Query<Entity, With<NodeRendered>>,
+    rendered_edges: Query<Entity, With<EdgeRendered>>,
+    children_query: Query<&Children>,
+) {
+    // Only run if camera view mode changed
+    if camera_query.iter().next().is_none() {
+        return;
+    }
+
+    // Remove NodeRendered component and despawn children
+    for entity in &rendered_nodes {
+        commands.entity(entity).remove::<NodeRendered>();
+        if let Ok(children) = children_query.get(entity) {
+            for child in children {
+                commands.entity(*child).despawn_recursive();
+            }
+        }
+    }
+
+    // Remove EdgeRendered component and despawn children
+    for entity in &rendered_edges {
+        commands.entity(entity).remove::<EdgeRendered>();
+        if let Ok(children) = children_query.get(entity) {
+            for child in children {
+                commands.entity(*child).despawn_recursive();
+            }
+        }
+    }
+}

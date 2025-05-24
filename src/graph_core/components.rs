@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 /// Core node component
@@ -7,6 +8,8 @@ pub struct GraphNode {
     pub id: Uuid,
     pub domain_type: DomainNodeType,
     pub name: String,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
 }
 
 /// Core edge component
@@ -16,6 +19,8 @@ pub struct GraphEdge {
     pub source: Entity,
     pub target: Entity,
     pub edge_type: DomainEdgeType,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
 }
 
 /// Component to store node position in graph space
@@ -104,12 +109,22 @@ pub struct GraphNodeBundle {
 }
 
 impl GraphNodeBundle {
-    pub fn new(id: Uuid, domain_type: DomainNodeType, position: Vec3, color: Color, name: String) -> Self {
+    pub fn new(
+        id: Uuid,
+        domain_type: DomainNodeType,
+        position: Vec3,
+        color: Color,
+        name: String,
+        labels: Vec<String>,
+        properties: HashMap<String, String>,
+    ) -> Self {
         Self {
             node: GraphNode {
                 id,
                 domain_type,
                 name,
+                labels,
+                properties,
             },
             position: GraphPosition(position),
             visual: NodeVisual {
@@ -119,8 +134,8 @@ impl GraphNodeBundle {
             transform: Transform::from_translation(position),
             global_transform: GlobalTransform::default(),
             visibility: Visibility::default(),
-            inherited_visibility: InheritedVisibility::default(),
             view_visibility: ViewVisibility::default(),
+            inherited_visibility: InheritedVisibility::default(),
         }
     }
 }
@@ -145,6 +160,8 @@ impl GraphEdgeBundle {
                 source,
                 target,
                 edge_type,
+                labels: Vec::new(),
+                properties: HashMap::new(),
             },
             visual: EdgeVisual {
                 width: 2.0,
