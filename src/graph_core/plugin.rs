@@ -28,6 +28,7 @@ impl Plugin for GraphPlugin {
             .init_resource::<GraphChangeTracker>()
             .init_resource::<GraphInspectorState>()
             .init_resource::<EdgeMeshTracker>()
+            .init_resource::<LastViewMode>()
             .insert_resource(GraphAlgorithms)
             // Events
             .add_event::<CreateNodeEvent>()
@@ -55,7 +56,6 @@ impl Plugin for GraphPlugin {
                 (
                     // Event handlers first - use the new graph-based handlers
                     handle_create_node_with_graph,
-                    handle_create_edge_with_graph,
                     handle_move_node_events,
                     handle_selection_events,
                     handle_hover_events,
@@ -67,8 +67,16 @@ impl Plugin for GraphPlugin {
             .add_systems(
                 Update,
                 (
-                    // Process deferred edges after nodes, but only every 10 frames to avoid flickering
-                    process_deferred_edges.run_if(|frame: Res<FrameCount>| frame.0 % 10 == 0),
+                    // Edge creation after nodes are processed
+                    handle_create_edge_with_graph,
+                    handle_deferred_edge_events,
+                )
+                    .chain()
+                    .after(handle_create_node_with_graph),
+            )
+            .add_systems(
+                Update,
+                (
                     // Then update systems
                     update_node_visuals,
                     // Change detection

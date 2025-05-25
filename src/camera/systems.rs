@@ -8,7 +8,7 @@ use super::components::*;
 
 /// Update camera transform and projection based on current view mode
 pub fn update_camera_system(
-    mut cameras: Query<(&mut Transform, &mut Projection, &GraphViewCamera)>,
+    mut cameras: Query<(&mut Transform, &mut Projection, &GraphViewCamera), Changed<GraphViewCamera>>,
 ) {
     for (mut transform, mut projection, view_camera) in &mut cameras {
         match view_camera.view_mode {
@@ -66,11 +66,18 @@ pub fn camera_transition_system(
 ) {
     for (mut view_camera, mut transform, mut projection) in &mut cameras {
         if view_camera.transition.active {
+            // Debug: Log that transition is active
+            info!("Camera transition active: progress={:.3}, from={:?}, to={:?}",
+                  view_camera.transition.progress,
+                  view_camera.transition.from_mode,
+                  view_camera.transition.to_mode);
+
             // Update transition progress
             view_camera.transition.progress += time.delta_secs() / view_camera.transition.duration;
 
             if view_camera.transition.progress >= 1.0 {
                 // Complete transition
+                info!("Camera transition completed");
                 view_camera.view_mode = view_camera.transition.to_mode;
                 view_camera.transition.active = false;
             } else {
@@ -170,6 +177,8 @@ pub fn orbit_camera_input_system(
 ) {
     for mut camera in &mut cameras {
         if let ViewMode::ThreeD(mut state) = camera.view_mode {
+            let mut state_changed = false;
+
             // Pan with middle mouse button
             if mouse_input.pressed(MouseButton::Middle)
                 && keyboard_input.pressed(KeyCode::ShiftLeft)
@@ -180,6 +189,7 @@ pub fn orbit_camera_input_system(
 
                     state.focus_point += right * motion.delta.x * 0.01 * state.orbit_radius;
                     state.focus_point += forward * motion.delta.y * 0.01 * state.orbit_radius;
+                    state_changed = true;
                 }
             }
             // Orbit with right mouse button or middle mouse without shift
@@ -191,15 +201,20 @@ pub fn orbit_camera_input_system(
                     state.azimuth -= motion.delta.x * 0.01;
                     state.elevation = (state.elevation - motion.delta.y * 0.01)
                         .clamp(-PI / 2.0 + 0.1, PI / 2.0 - 0.1);
+                    state_changed = true;
                 }
             }
 
             // Zoom with mouse wheel
             for wheel in mouse_wheel.read() {
                 state.orbit_radius = (state.orbit_radius - wheel.y * 2.0).clamp(5.0, 100.0);
+                state_changed = true;
             }
 
-            camera.view_mode = ViewMode::ThreeD(state);
+            // Only update the camera if state actually changed
+            if state_changed {
+                camera.view_mode = ViewMode::ThreeD(state);
+            }
         }
     }
 }
@@ -213,20 +228,27 @@ pub fn pan_camera_input_system(
 ) {
     for mut camera in &mut cameras {
         if let ViewMode::TwoD(mut state) = camera.view_mode {
+            let mut state_changed = false;
+
             // Pan with middle mouse button
             if mouse_input.pressed(MouseButton::Middle) {
                 for motion in mouse_motion.read() {
                     state.center.x -= motion.delta.x * state.zoom_level;
                     state.center.y += motion.delta.y * state.zoom_level;
+                    state_changed = true;
                 }
             }
 
             // Zoom with mouse wheel
             for wheel in mouse_wheel.read() {
                 state.zoom_level = (state.zoom_level - wheel.y * 0.1).clamp(0.1, 10.0);
+                state_changed = true;
             }
 
-            camera.view_mode = ViewMode::TwoD(state);
+            // Only update the camera if state actually changed
+            if state_changed {
+                camera.view_mode = ViewMode::TwoD(state);
+            }
         }
     }
 }
@@ -280,17 +302,47 @@ fn calculate_orbit_from_zoom(zoom_level: f32) -> f32 {
 pub fn update_viewport_system(
     mut cameras: Query<&mut Camera>,
     windows: Query<&Window>,
-    viewport_config: Res<ViewportConfig>,
+    _viewport_config: Res<ViewportConfig>,
+    control_panel_state: Option<Res<crate::ui_panels::ControlPanelState>>,
+    inspector_panel_state: Option<Res<crate::ui_panels::InspectorPanelState>>,
 ) {
     let Ok(window) = windows.single() else { return };
 
     for mut camera in &mut cameras {
-        // Account for tools panel
+        // Calculate viewport based on active panels
+        let mut left_offset = 0.0;
+        let mut right_offset = 0.0;
+
+        // Account for control panel on the left
+        if let Some(control_state) = &control_panel_state {
+            if control_state.visible {
+                left_offset = control_state.width;
+            }
+        }
+
+        // Account for inspector panel on the right
+        if let Some(inspector_state) = &inspector_panel_state {
+            if inspector_state.visible {
+                match inspector_state.side {
+                    crate::ui_panels::InspectorSide::Right => {
+                        right_offset = inspector_state.width;
+                    }
+                    crate::ui_panels::InspectorSide::Left => {
+                        left_offset += inspector_state.width;
+                    }
+                }
+            }
+        }
+
+        // Set viewport to exclude UI panels
+        let viewport_width = window.physical_width() as f32 - left_offset - right_offset;
+        let viewport_height = window.physical_height() as f32;
+
         camera.viewport = Some(Viewport {
-            physical_position: UVec2::new(viewport_config.tools_panel_width as u32, 0),
+            physical_position: UVec2::new(left_offset as u32, 0),
             physical_size: UVec2::new(
-                (window.physical_width() as f32 - viewport_config.tools_panel_width) as u32,
-                window.physical_height(),
+                viewport_width.max(1.0) as u32,
+                viewport_height.max(1.0) as u32,
             ),
             ..default()
         });

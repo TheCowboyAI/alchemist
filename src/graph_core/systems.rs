@@ -372,25 +372,96 @@ pub fn process_deferred_edges(
 
     // Re-queue events that need retry
     for event in events_to_retry {
-        deferred_edge_events.send(event);
+        deferred_edge_events.write(event);
     }
 }
 
 /// System to handle edge deletion events and remove OutgoingEdge components
-pub struct DeleteEdgeEvent {
-    pub edge_id: Uuid,
-    pub source: Entity, // The source node entity
-}
-
 pub fn handle_delete_edge_events(
     mut commands: Commands,
-    events: EventReader<DeleteEdgeEvent>,
+    mut events: EventReader<DeleteEdgeEvent>,
     mut node_query: Query<&mut OutgoingEdge, With<GraphNode>>,
 ) {
-    for event in &events {
+    for event in events.read() {
         if let Ok(outgoing_edge) = node_query.get_mut(event.source) {
             if outgoing_edge.id == event.edge_id {
                 commands.entity(event.source).remove::<OutgoingEdge>();
+            }
+        }
+    }
+}
+
+/// System to handle UUID-based edge creation (for JSON loading and demo setup)
+pub fn handle_deferred_edge_events(
+    mut events: EventReader<DeferredEdgeEvent>,
+    mut graph_data: ResMut<GraphData>,
+    mut graph_state: ResMut<GraphState>,
+    mut commands: Commands,
+) {
+    // Only process if we have nodes in the graph
+    if graph_data.node_count() == 0 {
+        return;
+    }
+
+    for event in events.read() {
+        // Check if both source and target nodes exist in GraphData
+        let source_exists = graph_data.nodes()
+            .any(|(_, data)| data.id == event.source_uuid);
+        let target_exists = graph_data.nodes()
+            .any(|(_, data)| data.id == event.target_uuid);
+
+        if !source_exists {
+            warn!("Skipping edge {:?}: Source node {:?} not found in GraphData",
+                  event.id, event.source_uuid);
+            continue;
+        }
+
+        if !target_exists {
+            warn!("Skipping edge {:?}: Target node {:?} not found in GraphData",
+                  event.id, event.target_uuid);
+            continue;
+        }
+
+        // Try to add the edge directly to GraphData using UUIDs
+        let edge_data = EdgeData {
+            id: event.id,
+            edge_type: event.edge_type.clone(),
+            labels: event.labels.clone(),
+            properties: event.properties.clone(),
+        };
+
+        match graph_data.add_edge(event.source_uuid, event.target_uuid, edge_data) {
+            Ok(_) => {
+                graph_state.edge_count = graph_data.edge_count();
+
+                // Find the source and target entities to add OutgoingEdge component
+                let source_entity = graph_data.nodes()
+                    .find(|(_, data)| data.id == event.source_uuid)
+                    .and_then(|(idx, _)| graph_data.get_node_entity(idx));
+
+                let target_entity = graph_data.nodes()
+                    .find(|(_, data)| data.id == event.target_uuid)
+                    .and_then(|(idx, _)| graph_data.get_node_entity(idx));
+
+                if let (Some(source), Some(target)) = (source_entity, target_entity) {
+                    // Add OutgoingEdge component to the source node entity
+                    commands.entity(source).insert(OutgoingEdge {
+                        id: event.id,
+                        target,
+                        edge_type: event.edge_type.clone(),
+                        labels: event.labels.clone(),
+                        properties: event.properties.clone(),
+                    });
+
+                    info!("Successfully created edge {:?} from {:?} to {:?}",
+                          event.id, event.source_uuid, event.target_uuid);
+                } else {
+                    warn!("Could not find entities for edge {:?}: source_entity={:?}, target_entity={:?}",
+                          event.id, source_entity, target_entity);
+                }
+            }
+            Err(e) => {
+                warn!("Failed to create edge {:?}: {}", event.id, e);
             }
         }
     }

@@ -27,6 +27,7 @@ pub mod graph_patterns;
 pub mod json_loader;
 pub mod models;
 pub mod theming;
+pub mod ui_panels;
 pub mod unified_graph_editor;
 
 // Re-export commonly used types

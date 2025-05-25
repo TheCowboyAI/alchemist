@@ -1,6 +1,6 @@
 use super::components::GraphNode;
 use super::graph_data::GraphData;
-use super::{GraphAlgorithms, GraphInspectorState, GraphState};
+use super::GraphAlgorithms;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_egui::{egui, EguiContexts};
