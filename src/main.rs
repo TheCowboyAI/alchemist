@@ -193,7 +193,6 @@ fn ui_system(
     mut save_json_events: EventWriter<SaveJsonFileEvent>,
     mut file_state: ResMut<FileOperationState>,
     node_query: Query<(Entity, &graph_core::GraphNode)>,
-    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
     mut commands: Commands,
 ) {
     // Left panel with controls
@@ -472,11 +471,8 @@ fn ui_system(
 
             // Clear graph button
             if ui.button("🗑️ Clear Graph").clicked() {
-                // Clear the graph directly instead of sending an event
-                for entity in &node_query {
-                    commands.entity(entity.0).despawn_recursive();
-                }
-                for entity in &edge_query {
+                // Despawn all nodes (edges are just in GraphData)
+                for (entity, _) in &node_query {
                     commands.entity(entity).despawn_recursive();
                 }
 
@@ -484,8 +480,10 @@ fn ui_system(
                 graph_state.node_count = 0;
                 graph_state.edge_count = 0;
                 graph_state.selected_nodes.clear();
-                graph_state.selected_edges.clear();
                 graph_state.hovered_entity = None;
+
+                // Clear the GraphData resource
+                commands.insert_resource(graph_core::GraphData::default());
 
                 info!("Graph cleared from UI");
             }
@@ -611,16 +609,12 @@ fn keyboard_commands_system(
     mut create_node_events: EventWriter<CreateNodeEvent>,
     mut commands: Commands,
     node_query: Query<Entity, With<graph_core::GraphNode>>,
-    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
     mut graph_state: ResMut<graph_core::GraphState>,
 ) {
     // Clear graph with Ctrl+K
     if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyK) {
-        // Clear the graph directly
+        // Despawn all nodes
         for entity in &node_query {
-            commands.entity(entity).despawn_recursive();
-        }
-        for entity in &edge_query {
             commands.entity(entity).despawn_recursive();
         }
 
@@ -628,8 +622,10 @@ fn keyboard_commands_system(
         graph_state.node_count = 0;
         graph_state.edge_count = 0;
         graph_state.selected_nodes.clear();
-        graph_state.selected_edges.clear();
         graph_state.hovered_entity = None;
+
+        // Clear the GraphData resource
+        commands.insert_resource(graph_core::GraphData::default());
 
         info!("Clear graph command triggered");
     }
@@ -671,37 +667,12 @@ fn handle_load_json_file(
     mut file_state: ResMut<FileOperationState>,
     mut commands: Commands,
     node_query: Query<(Entity, &graph_core::GraphNode)>,
-    edge_query: Query<Entity, With<graph_core::GraphEdge>>,
     mut graph_state: ResMut<graph_core::GraphState>,
 ) {
     for event in events.read() {
-        info!("=== START LOADING FILE: {} ===", event.file_path);
+        info!("Loading file: {}", event.file_path);
 
-        // Clear the graph immediately (synchronously)
-        info!("Clearing existing graph before loading new data...");
-
-        // Despawn all nodes
-        let node_count = node_query.iter().count();
-        for (entity, _) in &node_query {
-            commands.entity(entity).despawn_recursive();
-        }
-
-        // Despawn all edges
-        let edge_count = edge_query.iter().count();
-        for entity in &edge_query {
-            commands.entity(entity).despawn_recursive();
-        }
-
-        info!("Cleared {} nodes and {} edges", node_count, edge_count);
-
-        // Reset graph state
-        graph_state.node_count = 0;
-        graph_state.edge_count = 0;
-        graph_state.selected_nodes.clear();
-        graph_state.selected_edges.clear();
-        graph_state.hovered_entity = None;
-
-        // Try to load the JSON file
+        // Try to load the JSON file first before clearing
         match load_graph_from_json(&event.file_path) {
             Ok((nodes, edges)) => {
                 info!(
@@ -710,12 +681,22 @@ fn handle_load_json_file(
                     edges.len()
                 );
 
+                // Despawn all nodes
+                for (entity, _) in &node_query {
+                    commands.entity(entity).despawn_recursive();
+                }
+
+                // Reset graph state
+                graph_state.node_count = 0;
+                graph_state.edge_count = 0;
+                graph_state.selected_nodes.clear();
+                graph_state.hovered_entity = None;
+
+                // Clear the GraphData resource
+                commands.insert_resource(graph_core::GraphData::default());
+
                 // Create nodes from loaded data
                 for node_data in nodes {
-                    info!(
-                        "Creating node: {} at position {:?}",
-                        node_data.name, node_data.position
-                    );
                     create_node_events.send(node_data);
                 }
 
@@ -726,11 +707,6 @@ fn handle_load_json_file(
 
                 file_state.current_file_path = Some(event.file_path.clone());
                 info!("Successfully loaded graph from {}", event.file_path);
-                info!("=== COMPLETED LOADING FILE ===");
-                info!(
-                    "Graph state after loading - Nodes: {}, Edges: {}",
-                    graph_state.node_count, graph_state.edge_count
-                );
             }
             Err(e) => {
                 warn!("Failed to load file {}: {}", event.file_path, e);
@@ -743,7 +719,7 @@ fn handle_load_json_file(
 fn handle_save_json_file(
     mut events: EventReader<SaveJsonFileEvent>,
     node_query: Query<(&graph_core::GraphNode, &Transform)>,
-    edge_query: Query<&graph_core::GraphEdge>,
+    graph_data: Res<graph_core::GraphData>,
     mut file_state: ResMut<FileOperationState>,
 ) {
     for event in events.read() {
@@ -755,12 +731,15 @@ fn handle_save_json_file(
             nodes.push((node.clone(), transform.translation));
         }
 
+        // Get edges from GraphData
         let mut edges = Vec::new();
-        for edge in &edge_query {
-            edges.push(edge.clone());
+        for (_edge_idx, edge_data, _source_idx, _target_idx) in graph_data.edges() {
+            // Convert EdgeData to the format expected by save function
+            // For now, just log that we'd save edges
+            info!("Would save edge {:?}", edge_data.id);
         }
 
-        match save_graph_to_json(&event.file_path, nodes, edges) {
+        match save_graph_to_json(&event.file_path, nodes) {
             Ok(_) => {
                 file_state.current_file_path = Some(event.file_path.clone());
                 info!("Successfully saved graph to {}", event.file_path);
@@ -775,21 +754,15 @@ fn handle_save_json_file(
 /// System to track when nodes are despawned
 fn track_node_despawns(
     mut removed_nodes: RemovedComponents<graph_core::GraphNode>,
-    mut removed_edges: RemovedComponents<graph_core::GraphEdge>,
 ) {
     let removed_node_count: Vec<_> = removed_nodes.read().collect();
-    let removed_edge_count: Vec<_> = removed_edges.read().collect();
 
-    if !removed_node_count.is_empty() || !removed_edge_count.is_empty() {
-        warn!(
-            "NODES/EDGES REMOVED: {} nodes, {} edges despawned. Stack trace:",
-            removed_node_count.len(),
-            removed_edge_count.len()
+    // Only log if it seems like an unexpected removal (small numbers)
+    if !removed_node_count.is_empty() && removed_node_count.len() < 5 {
+        info!(
+            "Nodes removed: {} nodes despawned",
+            removed_node_count.len()
         );
-        // This will help us identify what's clearing the graph
-        if removed_node_count.len() > 5 {
-            info!("Graph cleared");
-        }
     }
 }
 
@@ -872,6 +845,7 @@ fn setup_demo_graph(
         edge_type: graph_core::DomainEdgeType::DataFlow,
         labels: vec!["test".to_string()],
         properties: std::collections::HashMap::new(),
+        retry_count: 0,
     });
 
     deferred_edge_events.send(graph_core::DeferredEdgeEvent {
@@ -881,6 +855,7 @@ fn setup_demo_graph(
         edge_type: graph_core::DomainEdgeType::DataFlow,
         labels: vec!["test".to_string()],
         properties: std::collections::HashMap::new(),
+        retry_count: 0,
     });
 
     deferred_edge_events.send(graph_core::DeferredEdgeEvent {
@@ -890,6 +865,7 @@ fn setup_demo_graph(
         edge_type: graph_core::DomainEdgeType::DataFlow,
         labels: vec!["test".to_string()],
         properties: std::collections::HashMap::new(),
+        retry_count: 0,
     });
 
     deferred_edge_events.send(graph_core::DeferredEdgeEvent {
@@ -899,6 +875,7 @@ fn setup_demo_graph(
         edge_type: graph_core::DomainEdgeType::DataFlow,
         labels: vec!["test".to_string()],
         properties: std::collections::HashMap::new(),
+        retry_count: 0,
     });
 }
 
@@ -965,6 +942,7 @@ fn load_graph_from_json(
             edge_type: graph_core::DomainEdgeType::DataFlow,
             labels: edge.labels.clone(),
             properties: edge.properties.clone(),
+            retry_count: 0,
         });
     }
 
@@ -974,7 +952,6 @@ fn load_graph_from_json(
 fn save_graph_to_json(
     path: &str,
     nodes: Vec<(graph_core::GraphNode, Vec3)>,
-    edges: Vec<graph_core::GraphEdge>,
 ) -> Result<(), String> {
     // Create JSON data structure directly
     let mut json_nodes = Vec::new();
@@ -1003,7 +980,7 @@ fn save_graph_to_json(
         json_nodes.push(json_node);
     }
 
-    // Note: Edge saving would require entity-to-UUID mapping
+    // Note: Edge saving would require access to GraphData
     // For now, we'll skip edges
 
     let json_data = JsonGraphData {

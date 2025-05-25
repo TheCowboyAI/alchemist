@@ -1,8 +1,9 @@
 use bevy::prelude::*;
+use petgraph::Direction;
 
 use super::{
     components::*, events::*, graph_data::{EdgeData, GraphData, NodeData},
-    GraphEdge, GraphNode, NodeVisual,
+    GraphNode, NodeVisual,
 };
 
 /// System to handle node creation events
@@ -47,57 +48,14 @@ pub fn handle_create_node_events(
             name: event.name.clone(),
         });
 
-        info!(
-            "Created node '{}' at position {:?} (Entity: {:?}). Total nodes: {}",
-            event.name,
-            event.position,
-            entity_commands.id(),
-            graph_state.node_count
-        );
-    }
-}
-
-/// System to handle edge creation events
-pub fn handle_create_edge_events(
-    mut commands: Commands,
-    mut events: EventReader<CreateEdgeEvent>,
-    mut graph_state: ResMut<GraphState>,
-    node_query: Query<&GraphNode>,
-    mut modification_events: EventWriter<GraphModificationEvent>,
-) {
-    for event in events.read() {
-        // Verify both nodes exist
-        let source_node = node_query.get(event.source);
-        let target_node = node_query.get(event.target);
-
-        if let (Ok(source), Ok(target)) = (source_node, target_node) {
-            let mut bundle = GraphEdgeBundle::new(
-                event.id,
-                event.source,
-                event.target,
-                event.edge_type.clone(),
-            );
-
-            // Update the edge with labels and properties
-            bundle.edge.labels = event.labels.clone();
-            bundle.edge.properties = event.properties.clone();
-
-            commands.spawn(bundle);
-
-            graph_state.edge_count += 1;
-
-            // Emit modification event
-            modification_events.write(GraphModificationEvent::EdgeCreated {
-                id: event.id,
-                source_id: source.id,
-                target_id: target.id,
-                edge_type: event.edge_type.clone(),
-            });
-
-            info!("Created edge from {:?} to {:?}", source.id, target.id);
-        } else {
-            warn!("Failed to create edge: source or target node not found");
-        }
+        // Only log important nodes or in debug mode
+        // info!(
+        //     "Created node '{}' at position {:?} (Entity: {:?}). Total nodes: {}",
+        //     event.name,
+        //     event.position,
+        //     entity_commands.id(),
+        //     graph_state.node_count
+        // );
     }
 }
 
@@ -135,7 +93,6 @@ pub fn handle_selection_events(
             commands.entity(entity).remove::<Selected>();
         }
         graph_state.selected_nodes.clear();
-        graph_state.selected_edges.clear();
     }
 
     // Handle selection
@@ -146,7 +103,6 @@ pub fn handle_selection_events(
                 commands.entity(entity).remove::<Selected>();
             }
             graph_state.selected_nodes.clear();
-            graph_state.selected_edges.clear();
         }
 
         // Add new selection
@@ -186,42 +142,6 @@ pub fn handle_hover_events(
     }
 }
 
-/// System to update edge positions based on node positions
-pub fn update_edge_positions(
-    mut edge_query: Query<(&GraphEdge, &mut Transform)>,
-    node_query: Query<&Transform, (With<GraphNode>, Without<GraphEdge>)>,
-) {
-    for (edge, mut edge_transform) in &mut edge_query {
-        if let (Ok(source_transform), Ok(target_transform)) =
-            (node_query.get(edge.source), node_query.get(edge.target))
-        {
-            let source_pos = source_transform.translation;
-            let target_pos = target_transform.translation;
-
-            // Position the edge entity at the midpoint
-            let mid_point = source_pos + (target_pos - source_pos) * 0.5;
-            edge_transform.translation = mid_point;
-
-            // Calculate rotation to align edge with direction
-            let direction = target_pos - source_pos;
-            let distance = direction.length();
-
-            if distance > 0.01 {
-                // Create rotation to align Y-axis (cylinder's axis) with edge direction
-                let rotation = if direction.normalize() != Vec3::Y {
-                    Quat::from_rotation_arc(Vec3::Y, direction.normalize())
-                } else {
-                    Quat::IDENTITY
-                };
-                edge_transform.rotation = rotation;
-
-                // Scale to match the distance
-                edge_transform.scale = Vec3::new(1.0, distance, 1.0);
-            }
-        }
-    }
-}
-
 /// System to update visual appearance based on selection/hover state
 pub fn update_node_visuals(
     mut node_query: Query<
@@ -243,28 +163,25 @@ pub fn update_node_visuals(
 /// System to handle graph validation
 pub fn handle_validation_events(
     mut events: EventReader<ValidateGraphEvent>,
-    node_query: Query<&GraphNode>,
-    edge_query: Query<&GraphEdge>,
+    graph_data: Res<GraphData>,
 ) {
     for _ in events.read() {
         let mut validation_errors = Vec::new();
 
         // Check for orphaned nodes (nodes with no edges)
-        for node in &node_query {
-            let has_edges = edge_query.iter().any(|edge| {
-                edge.source == Entity::PLACEHOLDER || edge.target == Entity::PLACEHOLDER
-                // Note: This needs proper entity comparison
-            });
+        for (node_idx, node_data) in graph_data.nodes() {
+            let has_incoming = graph_data.graph.edges_directed(node_idx, Direction::Incoming).count() > 0;
+            let has_outgoing = graph_data.graph.edges_directed(node_idx, Direction::Outgoing).count() > 0;
 
-            if !has_edges {
-                validation_errors.push(format!("Node {:?} has no connections", node.id));
+            if !has_incoming && !has_outgoing {
+                validation_errors.push(format!("Node '{}' ({:?}) has no connections", node_data.name, node_data.id));
             }
         }
 
         // Check for self-loops
-        for edge in &edge_query {
-            if edge.source == edge.target {
-                validation_errors.push(format!("Edge {:?} is a self-loop", edge.id));
+        for (_edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
+            if source_idx == target_idx {
+                validation_errors.push(format!("Edge {:?} is a self-loop", edge_data.id));
             }
         }
 
@@ -360,19 +277,20 @@ pub fn handle_create_node_with_graph(
 
         graph_state.node_count = graph_data.node_count();
 
-        info!(
-            "Created node '{}' with petgraph index {:?} and entity {:?}",
-            event.name, graph_idx, entity
-        );
+        // Only log in debug mode or when specifically needed
+        // info!(
+        //     "Created node '{}' with petgraph index {:?} and entity {:?}",
+        //     event.name, graph_idx, entity
+        // );
     }
 }
 
 /// Example of how edge creation should work
 pub fn handle_create_edge_with_graph(
-    mut commands: Commands,
     mut events: EventReader<CreateEdgeEvent>,
     mut graph_data: ResMut<GraphData>,
     mut graph_state: ResMut<GraphState>,
+    mut commands: Commands,
 ) {
     for event in events.read() {
         // Get the node UUIDs for source and target entities
@@ -396,26 +314,17 @@ pub fn handle_create_edge_with_graph(
             };
 
             match graph_data.add_edge(source_id, target_id, edge_data) {
-                Ok(edge_idx) => {
-                    // Create ECS entity for rendering
-                    let bundle = GraphEdgeBundle::new(
-                        event.id,
-                        event.source,
-                        event.target,
-                        event.edge_type.clone(),
-                    );
-
-                    let entity = commands.spawn(bundle).id();
-
-                    // Associate the graph edge with the ECS entity
-                    graph_data.set_edge_entity(edge_idx, entity);
-
+                Ok(_edge_idx) => {
                     graph_state.edge_count = graph_data.edge_count();
 
-                    info!(
-                        "Created edge with petgraph index {:?} and entity {:?}",
-                        edge_idx, entity
-                    );
+                    // Attach OutgoingEdge component to the source node entity
+                    commands.entity(event.source).insert(OutgoingEdge {
+                        id: event.id,
+                        target: event.target,
+                        edge_type: event.edge_type.clone(),
+                        labels: event.labels.clone(),
+                        properties: event.properties.clone(),
+                    });
                 }
                 Err(e) => {
                     warn!("Failed to create edge: {}", e);
@@ -430,41 +339,65 @@ pub fn handle_create_edge_with_graph(
 /// System to process deferred edge events after nodes have been created
 pub fn process_deferred_edges(
     mut events: EventReader<DeferredEdgeEvent>,
-    mut create_edge_events: EventWriter<CreateEdgeEvent>,
-    graph_data: Res<GraphData>,
+    mut graph_data: ResMut<GraphData>,
+    mut deferred_edge_events: EventWriter<DeferredEdgeEvent>,
 ) {
+    let mut events_to_retry = Vec::new();
+
     for event in events.read() {
-        // Find entities for the source and target UUIDs
-        let source_entity = graph_data
-            .nodes()
-            .find(|(_, node_data)| node_data.id == event.source_uuid)
-            .and_then(|(idx, _)| graph_data.get_node_entity(idx));
+        // Try to add the edge directly to GraphData
+        let edge_data = EdgeData {
+            id: event.id,
+            edge_type: event.edge_type.clone(),
+            labels: event.labels.clone(),
+            properties: event.properties.clone(),
+        };
 
-        let target_entity = graph_data
-            .nodes()
-            .find(|(_, node_data)| node_data.id == event.target_uuid)
-            .and_then(|(idx, _)| graph_data.get_node_entity(idx));
+        match graph_data.add_edge(event.source_uuid, event.target_uuid, edge_data) {
+            Ok(_) => {
+                // Successfully added edge
+            }
+            Err(_) if event.retry_count < 3 => {
+                // Nodes might not exist yet, retry later
+                let mut retry_event = event.clone();
+                retry_event.retry_count += 1;
+                events_to_retry.push(retry_event);
+            }
+            Err(e) => {
+                // Give up after 3 retries
+                warn!("Failed to create edge after {} retries: {}", event.retry_count, e);
+            }
+        }
+    }
 
-        if let (Some(source), Some(target)) = (source_entity, target_entity) {
-            create_edge_events.write(CreateEdgeEvent {
-                id: event.id,
-                source,
-                target,
-                edge_type: event.edge_type.clone(),
-                labels: event.labels.clone(),
-                properties: event.properties.clone(),
-            });
-        } else {
-            // Nodes might not be created yet, re-queue the event
-            // In a production system, we'd want a more sophisticated retry mechanism
-            warn!(
-                "Could not find entities for edge {:?} -> {:?}, will retry",
-                event.source_uuid, event.target_uuid
-            );
+    // Re-queue events that need retry
+    for event in events_to_retry {
+        deferred_edge_events.send(event);
+    }
+}
+
+/// System to handle edge deletion events and remove OutgoingEdge components
+pub struct DeleteEdgeEvent {
+    pub edge_id: Uuid,
+    pub source: Entity, // The source node entity
+}
+
+pub fn handle_delete_edge_events(
+    mut commands: Commands,
+    events: EventReader<DeleteEdgeEvent>,
+    mut node_query: Query<&mut OutgoingEdge, With<GraphNode>>,
+) {
+    for event in &events {
+        if let Ok(outgoing_edge) = node_query.get_mut(event.source) {
+            if outgoing_edge.id == event.edge_id {
+                commands.entity(event.source).remove::<OutgoingEdge>();
+            }
         }
     }
 }
 
+// NOTE: These systems are deprecated - edges are no longer entities
+/*
 /// System to ensure all edges in GraphData have corresponding visual entities
 pub fn synchronize_edge_entities(
     mut commands: Commands,
@@ -478,7 +411,7 @@ pub fn synchronize_edge_entities(
         .collect();
 
     // Check all edges in the graph data
-    for (edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
+    for (_edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
         // Skip if this edge already has an entity
         if existing_edge_ids.contains(&edge_data.id) {
             continue;
@@ -489,7 +422,7 @@ pub fn synchronize_edge_entities(
         let target_entity = graph_data.get_node_entity(target_idx);
 
         if let (Some(source), Some(target)) = (source_entity, target_entity) {
-            // Create the edge entity
+            // Create the edge entity as a standalone entity
             let bundle = GraphEdgeBundle::new(
                 edge_data.id,
                 source,
@@ -497,12 +430,13 @@ pub fn synchronize_edge_entities(
                 edge_data.edge_type.clone(),
             );
 
-            let entity = commands.spawn(bundle).id();
+            commands.spawn(bundle);
 
             // Note: We can't set the edge entity in GraphData here because it's not mutable
             // This would need to be handled in a separate system or by making GraphData mutable
 
-            info!("Created missing edge entity for edge {:?}", edge_data.id);
+            // Only log in debug mode
+            // info!("Created missing edge entity for edge {:?}", edge_data.id);
         } else {
             warn!(
                 "Could not create edge entity: missing node entities for edge {:?}",
@@ -511,3 +445,21 @@ pub fn synchronize_edge_entities(
         }
     }
 }
+
+/// System to clean up orphaned edges when nodes are despawned
+pub fn cleanup_orphaned_edges(
+    mut commands: Commands,
+    edge_query: Query<(Entity, &GraphEdge)>,
+    node_query: Query<Entity, With<GraphNode>>,
+) {
+    // Collect all valid node entities
+    let valid_nodes: std::collections::HashSet<Entity> = node_query.iter().collect();
+
+    // Check each edge and despawn if source or target doesn't exist
+    for (edge_entity, edge) in &edge_query {
+        if !valid_nodes.contains(&edge.source) || !valid_nodes.contains(&edge.target) {
+            commands.entity(edge_entity).despawn_recursive();
+        }
+    }
+}
+*/

@@ -733,7 +733,7 @@ mod tests {
             uuid: Uuid::new_v4(),
         };
 
-        let idx = dag.add_node(node1);
+        let _idx = dag.add_node(node1);
         assert_eq!(dag.dag.node_count(), 1);
     }
 

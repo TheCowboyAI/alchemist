@@ -1,5 +1,89 @@
 # Graph Implementation Status
 
+## 2024 ECS Edge Refactor: Nodes as Entities, Edges as Components
+
+### New ECS Pattern
+
+- **Nodes as Entities:** Each graph node is an ECS entity with a `GraphNode` component.
+- **Edges as Components:** Each edge is represented as an `OutgoingEdge` component attached to the *source* node entity. This component contains:
+    - `id`: UUID of the edge (matches GraphData and events)
+    - `target`: ECS entity of the target node
+    - `edge_type`, `labels`, `properties`: all edge metadata
+- **Edge Creation:**
+    - Add the edge to `GraphData` (data layer).
+    - Attach an `OutgoingEdge` component to the source node entity in ECS.
+- **Edge Deletion:**
+    - Remove the edge from `GraphData`.
+    - Emit a `DeleteEdgeEvent { source, edge_id }`.
+    - System removes the `OutgoingEdge` component with the matching `edge_id` from the source node entity.
+- **Edge Rendering:**
+    - Rendering system iterates all nodes and their `OutgoingEdge` components.
+    - For each outgoing edge, renders a mesh between the source and target node entities.
+    - Uses `EdgeMeshTracker` to manage and clean up mesh entities.
+
+### Benefits
+- **No edge ECS entities:** Only nodes are entities; edges are lightweight components.
+- **Efficient traversal:** Query all outgoing edges for a node in O(1) ECS time.
+- **No data duplication:** All properties live in `GraphData`; ECS is a projection for rendering and interaction.
+- **Easy selection/highlighting:** Both nodes and edges can be selected, highlighted, or animated via ECS.
+
+### Migration/Implementation Steps
+
+1. Add `OutgoingEdge` component to ECS.
+2. Update edge creation system to attach `OutgoingEdge` to the source node entity.
+3. Update edge deletion system to remove the correct `OutgoingEdge` from the source node entity.
+4. Refactor edge rendering system to use `OutgoingEdge` components.
+5. Remove all legacy edge entity logic and ensure no ECS edge entities remain.
+6. Test and validate: Ensure correct rendering, selection, and deletion of edges.
+
+### Status Table Update
+
+| Area                | Old Approach                | New Approach (2024)         | Status      |
+|---------------------|----------------------------|-----------------------------|-------------|
+| Node ECS Mapping    | Entity per node            | Entity per node             | ✅ Complete |
+| Edge ECS Mapping    | Entity per edge            | OutgoingEdge component      | ✅ Complete |
+| Edge Properties     | ECS + GraphData (dup)      | GraphData only, ECS ref     | ✅ Complete |
+| Edge Rendering      | Per-edge entity/mesh       | Mesh per OutgoingEdge       | ✅ Complete |
+| Edge Deletion       | Despawn entity             | Remove OutgoingEdge comp    | ✅ Complete |
+| Batched Rendering   | Not implemented            | (Planned/Optional)          | 🚧 Planned  |
+
+### Example Code
+
+```rust
+#[derive(Component, Debug, Clone)]
+pub struct OutgoingEdge {
+    pub id: Uuid,         // Edge UUID
+    pub target: Entity,   // Target node entity
+    pub edge_type: DomainEdgeType,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
+}
+
+#[derive(Event)]
+pub struct DeleteEdgeEvent {
+    pub source: Entity,
+    pub edge_id: Uuid,
+}
+
+pub fn handle_delete_edge_events(
+    mut commands: Commands,
+    events: EventReader<DeleteEdgeEvent>,
+    mut node_query: Query<&mut OutgoingEdge, With<GraphNode>>,
+) {
+    for event in &events {
+        if let Ok(outgoing_edge) = node_query.get_mut(event.source) {
+            if outgoing_edge.id == event.edge_id {
+                commands.entity(event.source).remove::<OutgoingEdge>();
+            }
+        }
+    }
+}
+```
+
+---
+
+## Previous Status and Architecture (for reference)
+
 ## Overview
 
 Following the frustration with our ad-hoc graph implementation (December 2024), we've begun transitioning to a proper dual-layer architecture using established graph libraries.
@@ -82,6 +166,7 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
 1. **Performance Optimizations**
    - ✅ Implement force-directed layout algorithm
    - ✅ Integrate layout controls in UI
+   - ✅ Fix edge rendering from base graph
    - Implement actual batched mesh generation
    - Spatial indexing for large graphs
    - Implement geometric and hierarchical layouts
@@ -115,11 +200,13 @@ Following the frustration with our ad-hoc graph implementation (December 2024), 
 
 ### Immediate (This Week)
 1. ✅ Implement force-directed layout algorithm
-2. Implement hierarchical layout algorithm
-3. Add path visualization for algorithm results
-4. Optimize batched rendering for 10k+ nodes
-5. Add graph editing capabilities to UI
-6. ✅ Test arrows.app round-trip conversion
+2. ✅ Fix edge rendering from base graph
+3. Implement hierarchical layout algorithm
+4. Add path visualization for algorithm results
+5. Optimize batched rendering for 10k+ nodes
+6. Add graph editing capabilities to UI
+7. ✅ Test arrows.app round-trip conversion
+8. Implement edge bundling for complex graphs
 
 ### Short Term (Next Sprint)
 1. Integrate spatial indexing (R-tree or similar)

@@ -11,7 +11,6 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use super::graph_data::{EdgeData, GraphData, NodeData};
-use crate::graph_core::components::DomainEdgeType;
 
 /// Graph algorithm examples and utilities
 #[derive(Resource)]
@@ -319,41 +318,41 @@ pub fn demonstrate_algorithms(graph_data: Res<GraphData>) {
 
     // Shortest path example
     if let Some((path, cost)) = GraphAlgorithms::shortest_path(&graph_data, node1.id, node2.id) {
-        info!(
-            "Shortest path from {} to {}: {:?} (cost: {})",
-            node1.name, node2.name, path, cost
-        );
+        // info!(
+        //     "Shortest path from {} to {}: {:?} (cost: {})",
+        //     node1.name, node2.name, path, cost
+        // );
     }
 
     // Connectivity check
     let connected = GraphAlgorithms::are_connected(&graph_data, node1.id, node2.id);
-    info!(
-        "Nodes {} and {} are connected: {}",
-        node1.name, node2.name, connected
-    );
+    // info!(
+    //     "Nodes {} and {} are connected: {}",
+    //     node1.name, node2.name, connected
+    // );
 
     // Find components
     let components = GraphAlgorithms::find_components(&graph_data);
-    info!("Found {} connected components", components.len());
+    // info!("Found {} connected components", components.len());
 
     // Check for cycles
     let has_cycles = GraphAlgorithms::has_cycles(&graph_data);
-    info!("Graph has cycles: {}", has_cycles);
+    // info!("Graph has cycles: {}", has_cycles);
 
     // Topological sort (if DAG)
     match GraphAlgorithms::topological_sort(&graph_data) {
-        Ok(order) => info!("Topological order: {:?}", order),
-        Err(e) => info!("Cannot perform topological sort: {}", e),
+        Ok(order) => {} // info!("Topological order: {:?}", order),
+        Err(e) => {} // info!("Cannot perform topological sort: {}", e),
     }
 
     // Degree centrality
     let centrality = GraphAlgorithms::degree_centrality(&graph_data);
-    for (node_id, (in_deg, out_deg, total)) in centrality.iter().take(5) {
-        info!(
-            "Node {:?} - In: {}, Out: {}, Total: {}",
-            node_id, in_deg, out_deg, total
-        );
-    }
+    // for (node_id, (in_deg, out_deg, total)) in centrality.iter().take(5) {
+    //     info!(
+    //         "Node {:?} - In: {}, Out: {}, Total: {}",
+    //         node_id, in_deg, out_deg, total
+    //     );
+    // }
 }
 
 #[cfg(test)]

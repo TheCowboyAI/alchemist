@@ -1,5 +1,6 @@
-use super::components::{GraphEdge, GraphNode};
-use super::{GraphAlgorithms, GraphChangeTracker, GraphData};
+use super::components::GraphNode;
+use super::graph_data::GraphData;
+use super::{GraphAlgorithms, GraphInspectorState, GraphState};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_egui::{egui, EguiContexts};
@@ -29,9 +30,7 @@ pub fn graph_inspector_ui(
     mut contexts: EguiContexts,
     mut inspector_state: ResMut<GraphInspectorState>,
     graph_data: Res<GraphData>,
-    mut change_tracker: ResMut<super::GraphChangeTracker>,
     _node_query: Query<(&GraphNode, &Transform)>,
-    edge_query: Query<(&GraphEdge, &Transform)>,
     mut layout_events: EventWriter<super::RequestLayoutEvent>,
 ) {
     let ctx = contexts.ctx_mut();
@@ -156,14 +155,33 @@ pub fn graph_inspector_ui(
 
             // Edge properties
             if let Some(edge_id) = inspector_state.selected_edge {
-                if let Some((edge_component, _transform)) =
-                    edge_query.iter().find(|(edge, _)| edge.id == edge_id)
-                {
-                    ui.label("Edge Properties");
-                    ui.separator();
+                // Find edge in GraphData
+                for (_edge_idx, edge_data, _source_idx, _target_idx) in graph_data.edges() {
+                    if edge_data.id == edge_id {
+                        ui.label("Edge Properties");
+                        ui.separator();
 
-                    ui.label(format!("Type: {:?}", edge_component.edge_type));
-                    ui.label(format!("ID: {}", edge_component.id));
+                        ui.label(format!("Type: {:?}", edge_data.edge_type));
+                        ui.label(format!("ID: {}", edge_data.id));
+
+                        if !edge_data.labels.is_empty() {
+                            ui.separator();
+                            ui.label("Labels:");
+                            for label in &edge_data.labels {
+                                ui.label(format!("  • {label}"));
+                            }
+                        }
+
+                        if !edge_data.properties.is_empty() {
+                            ui.separator();
+                            ui.label("Properties:");
+                            for (key, value) in &edge_data.properties {
+                                ui.label(format!("  {key}: {value}"));
+                            }
+                        }
+
+                        break;
+                    }
                 }
             }
         });
@@ -195,7 +213,7 @@ pub fn graph_inspector_ui(
         egui::Window::new("Graph Algorithms")
             .default_pos([400.0, 300.0])
             .show(ctx, |ui| {
-                show_algorithm_controls(ui, &mut inspector_state, &graph_data, &mut change_tracker, &mut layout_events);
+                show_algorithm_controls(ui, &mut inspector_state, &graph_data, &mut layout_events);
             });
     }
 }
@@ -249,7 +267,6 @@ fn show_algorithm_controls(
     ui: &mut egui::Ui,
     inspector_state: &mut GraphInspectorState,
     graph_data: &GraphData,
-    change_tracker: &mut GraphChangeTracker,
     layout_events: &mut EventWriter<super::RequestLayoutEvent>,
 ) {
     ui.heading("Pathfinding");
@@ -325,14 +342,14 @@ fn show_algorithm_controls(
     ui.heading("Layout");
 
     if ui.button("Force-Directed Layout").clicked() {
-        layout_events.send(super::RequestLayoutEvent {
+        layout_events.write(super::RequestLayoutEvent {
             layout_type: super::LayoutType::ForceDirected,
         });
         info!("Force-directed layout requested");
     }
 
     if ui.button("Hierarchical Layout").clicked() {
-        layout_events.send(super::RequestLayoutEvent {
+        layout_events.write(super::RequestLayoutEvent {
             layout_type: super::LayoutType::Hierarchical,
         });
         info!("Hierarchical layout requested");
@@ -385,7 +402,7 @@ pub fn handle_node_selection(
         if let Some(node_id) = closest_node {
             inspector_state.selected_node = Some(node_id);
             inspector_state.selected_edge = None;
-            info!("Selected node: {:?}", node_id);
+            // info!("Selected node: {:?}", node_id);
         }
     }
 }

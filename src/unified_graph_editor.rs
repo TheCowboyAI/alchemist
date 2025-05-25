@@ -561,9 +561,10 @@ fn calculate_subgraph_offset(existing_subgraphs: &HashMap<Uuid, SubgraphInfo>) -
     egui::Pos2::new(x_offset, y_offset)
 }
 
+#[allow(dead_code)]
 fn debug_rendering(
-    _camera_query: Query<&mut Camera>,
-    _editor_state: Res<EditorState>,
+    _gizmos: Gizmos,
+    _graph_data: Res<crate::graph_core::GraphData>,
 ) {
     // Debug code will be added as needed
 }

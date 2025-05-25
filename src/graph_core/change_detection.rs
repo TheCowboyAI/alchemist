@@ -1,7 +1,7 @@
 use bevy::diagnostic::FrameCount;
 use bevy::prelude::*;
 use petgraph::graph::{EdgeIndex as PetEdgeIndex, NodeIndex as PetNodeIndex};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
 /// Tracks changes to the graph for efficient rendering updates
@@ -21,6 +21,8 @@ pub struct GraphChangeTracker {
     pub removed_edges: HashSet<Uuid>,
     /// Whether the entire graph needs re-layout
     pub needs_full_layout: bool,
+    /// Last positions of nodes
+    pub last_positions: HashMap<Uuid, Vec3>,
 }
 
 impl GraphChangeTracker {
@@ -83,6 +85,7 @@ impl GraphChangeTracker {
         self.removed_nodes.clear();
         self.removed_edges.clear();
         self.needs_full_layout = false;
+        self.last_positions.clear();
     }
 }
 
@@ -92,10 +95,6 @@ pub fn process_graph_changes(
     mut change_tracker: ResMut<GraphChangeTracker>,
     graph_data: Res<super::GraphData>,
     mut node_query: Query<(&mut Transform, &super::components::GraphNode)>,
-    mut edge_query: Query<
-        (&mut Transform, &super::components::GraphEdge),
-        Without<super::components::GraphNode>,
-    >,
 ) {
     if !change_tracker.has_changes() {
         return;
@@ -124,30 +123,7 @@ pub fn process_graph_changes(
         }
     }
 
-    // Process modified edges
-    for &edge_idx in &change_tracker.modified_edges {
-        if let Some(entity) = graph_data.get_edge_entity(edge_idx) {
-            if let Ok((mut transform, _edge)) = edge_query.get_mut(entity) {
-                // Recalculate edge position/rotation based on connected nodes
-                if let Some((source_entity, target_entity)) = graph_data.get_edge_entities(edge_idx)
-                {
-                    if let (Ok((source_transform, _)), Ok((target_transform, _))) =
-                        (node_query.get(source_entity), node_query.get(target_entity))
-                    {
-                        // Update edge transform
-                        let start = source_transform.translation;
-                        let end = target_transform.translation;
-                        let midpoint = (start + end) / 2.0;
-                        let direction = (end - start).normalize();
-
-                        transform.translation = midpoint;
-                        transform.rotation = Quat::from_rotation_arc(Vec3::Z, direction);
-                        transform.scale = Vec3::new(0.02, 0.02, (end - start).length());
-                    }
-                }
-            }
-        }
-    }
+    // Note: Edge changes are tracked through GraphData modifications
 
     // Process full layout if needed
     if change_tracker.needs_full_layout {
@@ -189,20 +165,14 @@ pub struct ChangeState {
 
 /// System to mark entities as changed based on component changes
 pub fn detect_component_changes(
-    mut param_set: ParamSet<(
-        Query<
-            (Entity, &mut ChangeState, Ref<Transform>),
-            With<super::components::GraphNode>,
-        >,
-        Query<
-            (Entity, &mut ChangeState, Ref<Transform>),
-            With<super::components::GraphEdge>,
-        >,
-    )>,
+    mut query: Query<
+        (Entity, &mut ChangeState, Ref<Transform>),
+        With<super::components::GraphNode>,
+    >,
     frame_count: Res<FrameCount>,
 ) {
     // Check nodes for changes
-    for (entity, mut change_state, transform) in &mut param_set.p0() {
+    for (entity, mut change_state, transform) in &mut query {
         if transform.is_changed() && !transform.is_added() {
             change_state.needs_update = true;
             change_state.last_modified_frame = frame_count.0;
@@ -210,14 +180,7 @@ pub fn detect_component_changes(
         }
     }
 
-    // Check edges for changes
-    for (entity, mut change_state, transform) in &mut param_set.p1() {
-        if transform.is_changed() && !transform.is_added() {
-            change_state.needs_update = true;
-            change_state.last_modified_frame = frame_count.0;
-            debug!("Edge {:?} transform changed", entity);
-        }
-    }
+    // Note: Edge changes are tracked through GraphData modifications
 }
 
 /// Marker component for entities that need LOD updates

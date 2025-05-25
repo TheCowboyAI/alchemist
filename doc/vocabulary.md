@@ -8,7 +8,7 @@
 ### Architecture Terms
 - **CIM (Composable Information Machine)**: A framework for building distributed systems that transform scattered information into organized, actionable knowledge
 - **Domain**: A unique set of ideas and concepts that cannot be further reduced, representing a specific area of knowledge or business function
-- **Pod**: A self-contained functional unit within CIM that provides specific services (e.g., AI, communications, documentation)
+- **Agent**: A self-contained functional unit within CIM that provides specific services (e.g., AI, communications, documentation)
 - **Event**: A record of something that happened within the CIM system
 - **Command**: An instruction that modifies CIM state
 - **Message**: Any transmission within the CIM system
@@ -78,8 +78,11 @@
 ### Infrastructure
 *See specific implementations: [STB](stb_implementation.md), [Portal](portal_implementation.md)*
 - **STB (Set-Top Box)**: Hardware implementation for media streaming and control
-- **Portal**: Web-based interface implementation
+- **Web Portal**: Web-based interface implementation
 - **Domain Implementation**: Specific instance of CIM for a particular organization or purpose
+- **Leaf**: A Deterministic Host Node
+- **Cluster**: A Managed Cluster of Leaf Nodes
+- **SuperCluster**: A Managed Cluster of Clusters
 
 ### Security
 *Detailed in [Security Model](security.md)*
@@ -89,9 +92,6 @@
 - **OpenSSL**: Cryptographic software library
 
 ---
-*For contribution guidelines, see [Contributing](index.md#contributing)*
-
-# CIM Domain Vocabulary - Notes
 
 ## Knowledge Domain
 
@@ -331,4 +331,4 @@
   * Influences: Decisions
   * Aligns-With: Laws
 - **Usage Context**: Ethical decision making and governance
-- **Code Reference**: TBD 
+- **Code Reference**: TBD

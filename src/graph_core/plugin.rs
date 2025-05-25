@@ -27,6 +27,7 @@ impl Plugin for GraphPlugin {
             .init_resource::<MerkleDag>()
             .init_resource::<GraphChangeTracker>()
             .init_resource::<GraphInspectorState>()
+            .init_resource::<EdgeMeshTracker>()
             .insert_resource(GraphAlgorithms)
             // Events
             .add_event::<CreateNodeEvent>()
@@ -60,12 +61,15 @@ impl Plugin for GraphPlugin {
                     handle_hover_events,
                     // handle_pattern_creation, // TODO: Implement graph_patterns module
                     handle_validation_events,
-                    // Process deferred edges after nodes are created
-                    process_deferred_edges,
-                    // Synchronize edge entities with graph data
-                    synchronize_edge_entities,
+                )
+                    .chain(),
+            )
+            .add_systems(
+                Update,
+                (
+                    // Process deferred edges after nodes, but only every 10 frames to avoid flickering
+                    process_deferred_edges.run_if(|frame: Res<FrameCount>| frame.0 % 10 == 0),
                     // Then update systems
-                    update_edge_positions,
                     update_node_visuals,
                     // Change detection
                     detect_component_changes,
@@ -93,9 +97,7 @@ impl Plugin for GraphPlugin {
                     render_reference_grid,
                     render_graph_nodes,
                     render_graph_edges,
-                    render_graph_edges_from_data,
-                )
-                    .chain(),
+                ),
             );
     }
 }

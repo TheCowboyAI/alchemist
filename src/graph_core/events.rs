@@ -35,8 +35,8 @@ pub struct CreateEdgeEvent {
     pub properties: HashMap<String, String>,
 }
 
-/// Event for deferred edge creation - sent along with node creation
-#[derive(Event)]
+/// Event for creating edges after nodes have been created (with UUID references)
+#[derive(Event, Debug, Clone)]
 pub struct DeferredEdgeEvent {
     pub id: Uuid,
     pub source_uuid: Uuid,
@@ -44,6 +44,7 @@ pub struct DeferredEdgeEvent {
     pub edge_type: DomainEdgeType,
     pub labels: Vec<String>,
     pub properties: HashMap<String, String>,
+    pub retry_count: u8,  // Track retry attempts
 }
 
 /// Event for deleting nodes
@@ -55,7 +56,8 @@ pub struct DeleteNodeEvent {
 /// Event for deleting edges
 #[derive(Event)]
 pub struct DeleteEdgeEvent {
-    pub entity: Entity,
+    pub source: Entity, // The source node entity
+    pub edge_id: Uuid,  // The UUID of the edge to delete
 }
 
 /// Event for selecting entities
@@ -165,7 +167,7 @@ impl GraphModificationEvent {
     /// Convert to a serializable format for persistence
     pub fn to_persistence_format(&self) -> String {
         // This would be implemented with proper serialization
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 }
 

@@ -12,17 +12,6 @@ pub struct GraphNode {
     pub properties: HashMap<String, String>,
 }
 
-/// Core edge component
-#[derive(Component, Debug, Clone)]
-pub struct GraphEdge {
-    pub id: Uuid,
-    pub source: Entity,
-    pub target: Entity,
-    pub edge_type: DomainEdgeType,
-    pub labels: Vec<String>,
-    pub properties: HashMap<String, String>,
-}
-
 /// Component to store node position in graph space
 #[derive(Component, Debug, Clone, Copy)]
 pub struct GraphPosition(pub Vec3);
@@ -42,11 +31,20 @@ pub struct NodeVisual {
     pub current_color: Color,
 }
 
-/// Component for visual representation of edges
-#[derive(Component)]
+/// Struct for edge visual properties (not a component since edges aren't entities)
+#[derive(Debug, Clone)]
 pub struct EdgeVisual {
     pub width: f32,
     pub color: Color,
+}
+
+impl Default for EdgeVisual {
+    fn default() -> Self {
+        Self {
+            width: 2.0,
+            color: Color::srgb(0.255, 0.412, 0.882), // Royal blue
+        }
+    }
 }
 
 /// Component to track which subgraph a node belongs to
@@ -82,7 +80,6 @@ pub struct GraphState {
     pub node_count: usize,
     pub edge_count: usize,
     pub selected_nodes: Vec<Entity>,
-    pub selected_edges: Vec<Entity>,
     pub hovered_entity: Option<Entity>,
 }
 
@@ -140,38 +137,15 @@ impl GraphNodeBundle {
     }
 }
 
-/// Component bundle for spawning graph edges
-#[derive(Bundle)]
-pub struct GraphEdgeBundle {
-    pub edge: GraphEdge,
-    pub visual: EdgeVisual,
-    pub transform: Transform,
-    pub global_transform: GlobalTransform,
-    pub visibility: Visibility,
-    pub inherited_visibility: InheritedVisibility,
-    pub view_visibility: ViewVisibility,
-}
-
-impl GraphEdgeBundle {
-    pub fn new(id: Uuid, source: Entity, target: Entity, edge_type: DomainEdgeType) -> Self {
-        Self {
-            edge: GraphEdge {
-                id,
-                source,
-                target,
-                edge_type,
-                labels: Vec::new(),
-                properties: HashMap::new(),
-            },
-            visual: EdgeVisual {
-                width: 2.0,
-                color: Color::srgb(0.6, 0.6, 0.6),
-            },
-            transform: Transform::default(),
-            global_transform: GlobalTransform::default(),
-            visibility: Visibility::default(),
-            inherited_visibility: InheritedVisibility::default(),
-            view_visibility: ViewVisibility::default(),
-        }
-    }
+/// Component to track outgoing edges from a node
+/// `id` is the UUID of the edge (matches GraphData and events)
+#[derive(Component, Debug, Clone)]
+pub struct OutgoingEdge {
+    /// The UUID of the edge (unique identifier)
+    pub id: Uuid,
+    /// The ECS entity of the target node
+    pub target: Entity,
+    pub edge_type: DomainEdgeType,
+    pub labels: Vec<String>,
+    pub properties: HashMap<String, String>,
 }
