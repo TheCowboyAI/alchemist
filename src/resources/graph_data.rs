@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use petgraph::Direction;
 use petgraph::graph::{DiGraph, EdgeIndex as PetEdgeIndex, NodeIndex as PetNodeIndex};
-use petgraph::visit::EdgeRef;
 use std::collections::HashMap;
 use uuid::Uuid;
 

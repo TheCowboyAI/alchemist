@@ -24,7 +24,7 @@ use crate::components::{DomainEdgeType, DomainNodeType};
 /// - `node_creation_system` - Spawns the entity and components
 /// - `undo_system` - Records the operation
 /// - `graph_validation_system` - Validates graph constraints
-#[derive(Event)]
+#[derive(Event, Clone)]
 pub struct CreateNodeEvent {
     pub id: Uuid,
     pub position: Vec3,
@@ -86,7 +86,7 @@ pub struct BatchMoveNodesEvent {
 }
 
 /// Event for creating a new edge
-#[derive(Event)]
+#[derive(Event, Clone)]
 pub struct CreateEdgeEvent {
     pub id: Uuid,
     pub source: Entity,

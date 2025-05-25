@@ -21,7 +21,7 @@ impl EdgeVisualizationBundle {
     pub fn new(start: Vec3, end: Vec3, visual: EdgeVisual) -> Self {
         // Calculate edge position and rotation
         let midpoint = (start + end) / 2.0;
-        let direction = (end - start).normalize();
+        let _direction = (end - start).normalize();
         let length = start.distance(end);
 
         // Create transform that positions and orients the edge

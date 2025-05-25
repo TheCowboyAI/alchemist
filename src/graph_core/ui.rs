@@ -4,7 +4,6 @@ use super::GraphAlgorithms;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_egui::{egui, EguiContexts};
-use uuid::Uuid;
 use crate::resources::GraphInspectorState;
 
 /// Main UI system for graph inspection

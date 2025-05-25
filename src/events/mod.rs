@@ -87,7 +87,6 @@ pub use camera_events::*;
 // Temporary compatibility layer for old event system
 // TODO: Refactor graph.rs to use new event system
 mod compat {
-    use std::any::Any;
     use std::collections::HashMap;
     use std::time::{SystemTime, UNIX_EPOCH};
     use uuid::Uuid;
