@@ -8,7 +8,9 @@ pub struct tmp;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, ui_system);
+        app.add_systems(Update, ui_system
+            .after(bevy_egui::EguiPreUpdateSet::InitContexts)
+            .before(bevy_egui::EguiPreUpdateSet::ProcessInput));
     }
 }
 

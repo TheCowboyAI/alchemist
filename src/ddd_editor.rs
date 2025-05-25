@@ -274,7 +274,9 @@ impl Plugin for DddEditorPlugin {
             .add_systems(
                 Update,
                 (
-                    handle_ddd_editor_ui,
+                    handle_ddd_editor_ui
+                        .after(bevy_egui::EguiPreUpdateSet::InitContexts)
+                        .before(bevy_egui::EguiPreUpdateSet::ProcessInput),
                     handle_ddd_pattern_creation,
                     handle_ddd_graph_update,
                     handle_ddd_editor_visibility,

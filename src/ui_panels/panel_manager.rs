@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::time::{Duration, Instant};
 
 /// Central manager for all UI panels
 #[derive(Resource, Clone, Debug)]
@@ -7,6 +8,8 @@ pub struct PanelManager {
     pub current_workspace: WorkspaceMode,
     pub panels: PanelStates,
     pub show_panel_config: bool,
+    pub last_toggle_time: Instant,
+    pub toggle_debounce_duration: Duration,
 }
 
 /// Different workspace modes for different user needs
@@ -69,6 +72,8 @@ impl Default for PanelManager {
             current_workspace: WorkspaceMode::Standard,
             panels: PanelStates::default(),
             show_panel_config: false,
+            last_toggle_time: Instant::now(),
+            toggle_debounce_duration: Duration::from_millis(100), // 100ms debounce
         }
     }
 }
@@ -171,6 +176,13 @@ impl Default for PanelStates {
 impl PanelManager {
     /// Switch to a different workspace mode
     pub fn set_workspace(&mut self, mode: WorkspaceMode) {
+        let now = Instant::now();
+        if now.duration_since(self.last_toggle_time) < self.toggle_debounce_duration {
+            // Ignore rapid workspace changes
+            return;
+        }
+        self.last_toggle_time = now;
+
         self.current_workspace = mode.clone();
         self.panels = self.get_workspace_layout(&mode);
     }
@@ -235,10 +247,12 @@ impl PanelManager {
 
     /// Toggle a specific panel
     pub fn toggle_panel(&mut self, panel_name: &str) {
-        // If we're not in custom mode, switch to custom to preserve changes
-        if self.current_workspace != WorkspaceMode::Custom {
-            self.current_workspace = WorkspaceMode::Custom;
+        let now = Instant::now();
+        if now.duration_since(self.last_toggle_time) < self.toggle_debounce_duration {
+            // Ignore rapid toggle attempts
+            return;
         }
+        self.last_toggle_time = now;
 
         match panel_name {
             "control" => self.panels.control_panel.visible = !self.panels.control_panel.visible,

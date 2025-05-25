@@ -74,24 +74,6 @@ pub enum DomainEdgeType {
     Custom(String),
 }
 
-/// Resource to track the overall graph state
-#[derive(Resource, Default)]
-pub struct GraphState {
-    pub node_count: usize,
-    pub edge_count: usize,
-    pub selected_nodes: Vec<Entity>,
-    pub hovered_entity: Option<Entity>,
-}
-
-/// Resource for graph metadata
-#[derive(Resource, Default)]
-pub struct GraphMetadata {
-    pub name: String,
-    pub description: String,
-    pub version: String,
-    pub domain: String,
-}
-
 /// Component bundle for spawning graph nodes
 #[derive(Bundle)]
 pub struct GraphNodeBundle {

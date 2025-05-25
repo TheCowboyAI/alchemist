@@ -18,9 +18,15 @@ pub use bevy::transform;
 pub use bevy::ui;
 pub use bevy::window;
 
-// Export our modules
-pub mod camera;
+// Export our new modular structure
+pub mod components;
+pub mod resources;
 pub mod events;
+pub mod bundles;
+pub mod system_sets;
+
+// Export existing modules
+pub mod camera;
 pub mod graph;
 pub mod graph_core;
 pub mod graph_patterns;
@@ -33,6 +39,7 @@ pub mod unified_graph_editor;
 // Re-export commonly used types
 pub use camera::CameraViewportPlugin;
 pub use graph_core::GraphPlugin;
+pub use system_sets::configure_system_sets;
 
 /// A dummy function to ensure we have a valid lib target
 pub fn alchemist_graph() -> &'static str {

@@ -11,28 +11,41 @@ pub fn menu_bar_system(
     mut panel_manager: ResMut<PanelManager>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
-    // Handle keyboard shortcuts for workspaces
+    let mut needs_update = false;
+
+    // Handle keyboard shortcuts for workspaces - only on key press, not hold
     if keyboard_input.just_pressed(KeyCode::F1) {
         panel_manager.toggle_panel("control");
+        needs_update = true;
     }
     if keyboard_input.just_pressed(KeyCode::F2) {
         panel_manager.toggle_panel("inspector");
+        needs_update = true;
     }
     if keyboard_input.just_pressed(KeyCode::F3) {
         panel_manager.set_workspace(WorkspaceMode::Minimal);
+        needs_update = true;
     }
     if keyboard_input.just_pressed(KeyCode::F4) {
         panel_manager.set_workspace(WorkspaceMode::Standard);
+        needs_update = true;
     }
     if keyboard_input.just_pressed(KeyCode::F5) {
         panel_manager.set_workspace(WorkspaceMode::Advanced);
+        needs_update = true;
     }
 
-    // Sync panel states with panel manager
-    control_panel_state.visible = panel_manager.panels.control_panel.visible;
-    inspector_panel_state.visible = panel_manager.panels.inspector_panel.visible;
+    // Only sync panel states when panel manager has actually changed
+    if panel_manager.is_changed() || needs_update {
+        if control_panel_state.visible != panel_manager.panels.control_panel.visible {
+            control_panel_state.visible = panel_manager.panels.control_panel.visible;
+        }
+        if inspector_panel_state.visible != panel_manager.panels.inspector_panel.visible {
+            inspector_panel_state.visible = panel_manager.panels.inspector_panel.visible;
+        }
+    }
 
-    // Top menu bar
+    // Top menu bar - only show when needed
     egui::TopBottomPanel::top("menu_bar").show(contexts.ctx_mut(), |ui| {
         egui::menu::bar(ui, |ui| {
             // File menu
@@ -186,37 +199,33 @@ pub fn menu_bar_system(
 
             // Help menu
             ui.menu_button("Help", |ui| {
-                if ui.button("Keyboard Shortcuts").clicked() {
-                    info!("Show keyboard shortcuts");
+                if ui.button("⌨️ Keyboard Shortcuts").clicked() {
+                    info!("Keyboard shortcuts help requested");
                     ui.close_menu();
                 }
-                if ui.button("Workspace Guide").clicked() {
-                    info!("Show workspace guide");
+                if ui.button("📖 Documentation").clicked() {
+                    info!("Documentation requested");
                     ui.close_menu();
                 }
-                if ui.button("About").clicked() {
-                    info!("Show about dialog");
+                if ui.button("ℹ️ About").clicked() {
+                    info!("About dialog requested");
                     ui.close_menu();
                 }
             });
 
-            // Right-aligned status with workspace indicator
+            // Status indicators on the right
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let workspace_icon = match panel_manager.current_workspace {
-                    WorkspaceMode::Minimal => "🎯",
-                    WorkspaceMode::Standard => "⚖️",
-                    WorkspaceMode::Advanced => "🔧",
-                    WorkspaceMode::DDD => "🏗️",
-                    WorkspaceMode::ECS => "⚙️",
-                    WorkspaceMode::Algorithms => "🧮",
-                    WorkspaceMode::Custom => "🎨",
+                // Current workspace indicator
+                let workspace_text = match panel_manager.current_workspace {
+                    WorkspaceMode::Minimal => "🎯 Minimal",
+                    WorkspaceMode::Standard => "⚖️ Standard",
+                    WorkspaceMode::Advanced => "🔧 Advanced",
+                    WorkspaceMode::DDD => "🏗️ DDD",
+                    WorkspaceMode::ECS => "⚙️ ECS",
+                    WorkspaceMode::Algorithms => "🧮 Algorithms",
+                    WorkspaceMode::Custom => "🔧 Custom",
                 };
-
-                ui.label(format!("{} {:?} | {} panels",
-                    workspace_icon,
-                    panel_manager.current_workspace,
-                    panel_manager.visible_panel_count()
-                ));
+                ui.label(format!("Workspace: {}", workspace_text));
             });
         });
     });

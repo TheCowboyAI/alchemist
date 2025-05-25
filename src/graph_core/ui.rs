@@ -5,25 +5,7 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_egui::{egui, EguiContexts};
 use uuid::Uuid;
-
-/// UI state for the graph inspector
-#[derive(Resource, Default)]
-pub struct GraphInspectorState {
-    /// Currently selected node
-    pub selected_node: Option<Uuid>,
-    /// Currently selected edge
-    pub selected_edge: Option<Uuid>,
-    /// Show graph statistics
-    pub show_stats: bool,
-    /// Show algorithm controls
-    pub show_algorithms: bool,
-    /// Path finding source
-    pub pathfind_source: Option<Uuid>,
-    /// Path finding target
-    pub pathfind_target: Option<Uuid>,
-    /// Search filter
-    pub search_filter: String,
-}
+use crate::resources::GraphInspectorState;
 
 /// Main UI system for graph inspection
 pub fn graph_inspector_ui(

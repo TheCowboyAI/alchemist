@@ -17,5 +17,8 @@ pub use graph_data::GraphData;
 pub use merkle_dag::{MerkleDag, MerkleEdge, MerkleNode};
 pub use plugin::GraphPlugin;
 pub use ui::{
-    GraphInspectorState, graph_inspector_ui, handle_node_selection, update_selection_highlights,
+    graph_inspector_ui, handle_node_selection, update_selection_highlights,
 };
+
+// Import GraphState and GraphMetadata from resources module
+pub use crate::resources::{GraphState, GraphMetadata};

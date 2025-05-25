@@ -1,11 +1,17 @@
 use bevy::prelude::*;
 use bevy_egui::{EguiContexts, EguiPlugin};
-use std::collections::HashMap;
 use uuid::Uuid;
 
-// Import the new modules
-mod camera;
+// Import the new modular structure
+mod components;
+mod resources;
 mod events;
+mod bundles;
+mod system_sets;
+
+// Import the existing modules
+mod camera;
+mod events_old; // Rename to avoid conflict
 mod graph;
 mod graph_core;
 mod graph_layout;
@@ -25,9 +31,10 @@ use json_loader::{
     SaveJsonFileEvent, json_to_base_graph, load_json_file, save_json_file,
 };
 use ui_panels::UiPanelsPlugin;
+use theming::ThemingPlugin;
+use resources::{NodeCounter, DpiScaling};
 
-#[derive(Resource, Default)]
-struct NodeCounter(u32);
+
 
 fn main() {
     App::new()
@@ -46,14 +53,16 @@ fn main() {
         .add_plugins(GraphPlugin)
         .add_plugins(GraphLayoutPlugin)
         .add_plugins(UiPanelsPlugin)
+        .add_plugins(ThemingPlugin)
         // Resources
         .init_resource::<NodeCounter>()
         .init_resource::<FileOperationState>()
+        .init_resource::<DpiScaling>()
         // Events
         .add_event::<LoadJsonFileEvent>()
         .add_event::<SaveJsonFileEvent>()
         // Setup systems
-        .add_systems(Startup, (setup, setup_file_scanner))
+        .add_systems(Startup, (setup, setup_file_scanner, setup_dpi_scaling))
         .add_systems(
             Update,
             (
@@ -61,10 +70,122 @@ fn main() {
                 keyboard_commands_system.after(bevy_egui::EguiPreUpdateSet::InitContexts),
                 handle_load_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
                 handle_save_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                update_dpi_scaling.after(bevy_egui::EguiPreUpdateSet::InitContexts),
             ),
         )
         .add_systems(Last, track_node_despawns)
         .run();
+}
+
+/// Setup DPI scaling on startup
+fn setup_dpi_scaling(
+    mut dpi_scaling: ResMut<DpiScaling>,
+    mut contexts: EguiContexts,
+    windows: Query<&Window>,
+) {
+    if let Ok(window) = windows.single() {
+        let window_scale_factor = window.scale_factor();
+        let resolution = &window.resolution;
+
+        // Get egui's native pixels per point which might be different
+        let egui_scale = contexts.ctx_mut().native_pixels_per_point().unwrap_or(1.0);
+
+        // Use the higher of the two scale factors
+        let detected_scale = window_scale_factor.max(egui_scale);
+
+        dpi_scaling.scale_factor = detected_scale;
+
+        let base_size = dpi_scaling.base_font_size;
+
+        debug!("DPI Detection:");
+        debug!("  Window scale factor: {}", window_scale_factor);
+        debug!("  Egui native pixels per point: {}", egui_scale);
+        debug!("  Window resolution: {}x{}", resolution.width(), resolution.height());
+        debug!("  Using scale factor: {}", detected_scale);
+        debug!("Applied DPI scaling: {}x (base font: {}pt -> {}pt)",
+            detected_scale, base_size, base_size * detected_scale);
+
+        // Apply initial scaling
+        theming::apply_base16_theme(contexts.ctx_mut(), &theming::Base16Theme::tokyo_night());
+        apply_dpi_scaling(&dpi_scaling, contexts.ctx_mut());
+    }
+}
+
+/// Update DPI scaling when window scale factor changes
+fn update_dpi_scaling(
+    mut dpi_scaling: ResMut<DpiScaling>,
+    mut contexts: EguiContexts,
+    windows: Query<&Window, Changed<Window>>,
+    theme: Res<theming::AlchemistTheme>,
+) {
+    // Only check for DPI changes if the window actually changed
+    if let Ok(window) = windows.single() {
+        let new_scale_factor = window.scale_factor();
+        if (new_scale_factor - dpi_scaling.scale_factor).abs() > 0.01 {
+            dpi_scaling.scale_factor = new_scale_factor;
+            debug!("DPI scale factor changed to: {}", dpi_scaling.scale_factor);
+
+            // Only reapply scaling if theme is not currently changing
+            // The theme system will handle reapplying DPI scaling after theme changes
+            if !theme.theme_changed {
+                apply_dpi_scaling(&dpi_scaling, contexts.ctx_mut());
+                debug!("Reapplied DPI scaling due to window change");
+            }
+        }
+    }
+}
+
+/// Apply DPI scaling to egui context
+fn apply_dpi_scaling(dpi_scaling: &DpiScaling, ctx: &mut egui::Context) {
+    let mut style = (*ctx.style()).clone();
+
+    // Use manual override if available, otherwise use detected scale
+    let scale = dpi_scaling.manual_override.unwrap_or(dpi_scaling.scale_factor);
+    let base_size = dpi_scaling.base_font_size;
+
+    // Apply scaling to all text styles
+    style.text_styles.insert(
+        egui::TextStyle::Body,
+        egui::FontId::new(base_size * scale, egui::FontFamily::Proportional),
+    );
+    style.text_styles.insert(
+        egui::TextStyle::Button,
+        egui::FontId::new(base_size * scale, egui::FontFamily::Proportional),
+    );
+    style.text_styles.insert(
+        egui::TextStyle::Heading,
+        egui::FontId::new((base_size * 1.5) * scale, egui::FontFamily::Proportional),
+    );
+    style.text_styles.insert(
+        egui::TextStyle::Small,
+        egui::FontId::new((base_size * 0.83) * scale, egui::FontFamily::Proportional),
+    );
+    style.text_styles.insert(
+        egui::TextStyle::Monospace,
+        egui::FontId::new((base_size * 0.92) * scale, egui::FontFamily::Monospace),
+    );
+
+    // Scale spacing and padding proportionally
+    let spacing_scale = scale.max(1.0); // Don't make spacing smaller than default
+    style.spacing.item_spacing = egui::vec2(8.0 * spacing_scale, 6.0 * spacing_scale);
+    style.spacing.button_padding = egui::vec2(12.0 * spacing_scale, 6.0 * spacing_scale);
+    style.spacing.menu_margin = egui::Margin::same((8.0 * spacing_scale) as i8);
+    style.spacing.indent = 18.0 * spacing_scale;
+
+    // Scale window rounding
+    let rounding_scale = scale.min(2.0); // Don't make rounding too large
+    style.visuals.window_corner_radius = egui::CornerRadius::same((6.0 * rounding_scale) as u8);
+    style.visuals.menu_corner_radius = egui::CornerRadius::same((4.0 * rounding_scale) as u8);
+    style.visuals.widgets.noninteractive.corner_radius = egui::CornerRadius::same((3.0 * rounding_scale) as u8);
+    style.visuals.widgets.inactive.corner_radius = egui::CornerRadius::same((3.0 * rounding_scale) as u8);
+    style.visuals.widgets.hovered.corner_radius = egui::CornerRadius::same((3.0 * rounding_scale) as u8);
+    style.visuals.widgets.active.corner_radius = egui::CornerRadius::same((3.0 * rounding_scale) as u8);
+
+    ctx.set_style(style);
+
+    let override_text = if dpi_scaling.manual_override.is_some() { " (manual)" } else { "" };
+    info!("Applied DPI scaling: {}x{} (base font: {}pt -> {}pt)",
+          scale, override_text, dpi_scaling.base_font_size, dpi_scaling.base_font_size * scale);
 }
 
 /// Debug system to log camera state
@@ -123,7 +244,7 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
     let storage_id = Uuid::new_v4();
     let interface_id = Uuid::new_v4();
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: center_id,
         position: Vec3::new(0.0, 0.0, 0.0),
         domain_type: DomainNodeType::Process,
@@ -134,7 +255,7 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: decision_id,
         position: Vec3::new(5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Decision,
@@ -145,7 +266,7 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: event_id,
         position: Vec3::new(-5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Event,
@@ -156,7 +277,7 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: storage_id,
         position: Vec3::new(0.0, 0.0, 5.0),
         domain_type: DomainNodeType::Storage,
@@ -167,7 +288,7 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: interface_id,
         position: Vec3::new(0.0, 0.0, -5.0),
         domain_type: DomainNodeType::Interface,
@@ -191,6 +312,9 @@ fn keyboard_commands_system(
     mut commands: Commands,
     node_query: Query<Entity, With<graph_core::GraphNode>>,
     mut graph_state: ResMut<graph_core::GraphState>,
+    mut dpi_scaling: ResMut<DpiScaling>,
+    mut contexts: EguiContexts,
+    theme: Res<theming::AlchemistTheme>,
 ) {
     // Clear graph with Ctrl+K
     if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyK) {
@@ -213,7 +337,7 @@ fn keyboard_commands_system(
 
     // Add node at origin with Ctrl+N
     if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyN) {
-        create_node_events.send(CreateNodeEvent {
+        create_node_events.write(CreateNodeEvent {
             id: Uuid::new_v4(),
             position: Vec3::ZERO,
             domain_type: DomainNodeType::Process,
@@ -226,12 +350,51 @@ fn keyboard_commands_system(
         info!("Add node command triggered");
     }
 
+    // DPI scaling controls
+    if keyboard.pressed(KeyCode::ControlLeft) {
+        let mut dpi_changed = false;
+
+        // Increase DPI scaling with Ctrl+Plus
+        if keyboard.just_pressed(KeyCode::Equal) || keyboard.just_pressed(KeyCode::NumpadAdd) {
+            let current_scale = dpi_scaling.manual_override.unwrap_or(dpi_scaling.scale_factor);
+            let new_scale = (current_scale + 0.25).min(3.0);
+            dpi_scaling.manual_override = Some(new_scale);
+            dpi_changed = true;
+            info!("Increased DPI scaling to: {}x", new_scale);
+        }
+
+        // Decrease DPI scaling with Ctrl+Minus
+        if keyboard.just_pressed(KeyCode::Minus) || keyboard.just_pressed(KeyCode::NumpadSubtract) {
+            let current_scale = dpi_scaling.manual_override.unwrap_or(dpi_scaling.scale_factor);
+            let new_scale = (current_scale - 0.25).max(0.5);
+            dpi_scaling.manual_override = Some(new_scale);
+            dpi_changed = true;
+            info!("Decreased DPI scaling to: {}x", new_scale);
+        }
+
+        // Reset DPI scaling with Ctrl+0
+        if keyboard.just_pressed(KeyCode::Digit0) || keyboard.just_pressed(KeyCode::Numpad0) {
+            dpi_scaling.manual_override = None;
+            dpi_changed = true;
+            info!("Reset DPI scaling to auto-detected: {}x", dpi_scaling.scale_factor);
+        }
+
+        // Apply DPI changes immediately
+        if dpi_changed {
+            theming::apply_base16_theme(contexts.ctx_mut(), &theme.current_theme);
+            apply_dpi_scaling(&dpi_scaling, contexts.ctx_mut());
+        }
+    }
+
     // Print help with H
     if keyboard.just_pressed(KeyCode::KeyH) {
         info!("=== Keyboard Commands ===");
         info!("Tab/V: Switch between 2D/3D view");
         info!("Ctrl+K: Clear graph");
         info!("Ctrl+N: Add new node at origin");
+        info!("Ctrl++: Increase DPI scaling");
+        info!("Ctrl+-: Decrease DPI scaling");
+        info!("Ctrl+0: Reset DPI scaling to auto");
         info!("D: Debug camera info");
         info!("H: Show this help");
         info!("=== Mouse Controls ===");
@@ -278,12 +441,12 @@ fn handle_load_json_file(
 
                 // Create nodes from loaded data
                 for node_data in nodes {
-                    create_node_events.send(node_data);
+                    create_node_events.write(node_data);
                 }
 
                 // Send deferred edge events
                 for edge_event in edges {
-                    deferred_edge_events.send(edge_event);
+                    deferred_edge_events.write(edge_event);
                 }
 
                 file_state.current_file_path = Some(event.file_path.clone());
@@ -350,7 +513,7 @@ fn track_node_despawns(
 
 /// Create a demo graph with various node types
 fn setup_demo_graph(
-    mut commands: Commands,
+    _commands: Commands,
     mut create_node_events: EventWriter<CreateNodeEvent>,
     mut deferred_edge_events: EventWriter<graph_core::DeferredEdgeEvent>,
 ) {
@@ -364,7 +527,7 @@ fn setup_demo_graph(
     let interface_id = Uuid::new_v4();
 
     // Create nodes
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: center_id,
         position: Vec3::new(0.0, 0.0, 0.0),
         domain_type: DomainNodeType::Process,
@@ -375,7 +538,7 @@ fn setup_demo_graph(
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: decision_id,
         position: Vec3::new(5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Decision,
@@ -386,7 +549,7 @@ fn setup_demo_graph(
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: event_id,
         position: Vec3::new(-5.0, 0.0, 0.0),
         domain_type: DomainNodeType::Event,
@@ -397,7 +560,7 @@ fn setup_demo_graph(
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: storage_id,
         position: Vec3::new(0.0, 0.0, 5.0),
         domain_type: DomainNodeType::Storage,
@@ -408,7 +571,7 @@ fn setup_demo_graph(
         color: None,
     });
 
-    create_node_events.send(CreateNodeEvent {
+    create_node_events.write(CreateNodeEvent {
         id: interface_id,
         position: Vec3::new(0.0, 0.0, -5.0),
         domain_type: DomainNodeType::Interface,
@@ -420,7 +583,7 @@ fn setup_demo_graph(
     });
 
     // Create deferred edges using the new system
-    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+    deferred_edge_events.write(graph_core::DeferredEdgeEvent {
         id: Uuid::new_v4(),
         source_uuid: center_id,
         target_uuid: decision_id,
@@ -430,7 +593,7 @@ fn setup_demo_graph(
         retry_count: 0,
     });
 
-    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+    deferred_edge_events.write(graph_core::DeferredEdgeEvent {
         id: Uuid::new_v4(),
         source_uuid: center_id,
         target_uuid: event_id,
@@ -440,7 +603,7 @@ fn setup_demo_graph(
         retry_count: 0,
     });
 
-    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+    deferred_edge_events.write(graph_core::DeferredEdgeEvent {
         id: Uuid::new_v4(),
         source_uuid: center_id,
         target_uuid: storage_id,
@@ -450,7 +613,7 @@ fn setup_demo_graph(
         retry_count: 0,
     });
 
-    deferred_edge_events.send(graph_core::DeferredEdgeEvent {
+    deferred_edge_events.write(graph_core::DeferredEdgeEvent {
         id: Uuid::new_v4(),
         source_uuid: center_id,
         target_uuid: interface_id,

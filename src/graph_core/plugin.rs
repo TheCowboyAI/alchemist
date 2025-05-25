@@ -2,15 +2,15 @@ use super::algorithms::{GraphAlgorithms, demonstrate_algorithms};
 use super::change_detection::{
     GraphChangeTracker, detect_component_changes, process_graph_changes,
 };
-use super::components::*;
 use super::events::*;
 use super::graph_data::GraphData;
 use super::merkle_dag::MerkleDag;
 use super::rendering::*;
 use super::systems::*;
 use super::ui::{
-    GraphInspectorState, graph_inspector_ui, handle_node_selection, update_selection_highlights,
+    graph_inspector_ui, handle_node_selection, update_selection_highlights,
 };
+use crate::resources::{GraphState, GraphMetadata, GraphInspectorState, EdgeMeshTracker, LastViewMode};
 use bevy::diagnostic::FrameCount;
 use bevy::prelude::*;
 
@@ -92,7 +92,7 @@ impl Plugin for GraphPlugin {
             .add_systems(
                 Update,
                 (
-                    graph_inspector_ui,
+                    graph_inspector_ui.after(bevy_egui::EguiPreUpdateSet::InitContexts),
                     // Run algorithm demo periodically (optional)
                     demonstrate_algorithms.run_if(|frame: Res<FrameCount>| frame.0 % 300 == 0),
                 ),

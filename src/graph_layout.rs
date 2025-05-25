@@ -93,7 +93,7 @@ fn handle_layout_update(
 
 /// System that applies the force-directed layout algorithm
 fn apply_force_directed_layout(
-    mut graph_data: ResMut<GraphData>,
+    graph_data: ResMut<GraphData>,
     mut node_query: Query<(&mut Transform, &GraphNode)>,
     mut controller: ResMut<GraphLayoutController>,
     _time: Res<Time>,
@@ -146,7 +146,7 @@ fn apply_force_directed_layout(
     }
 
     // Calculate attractive forces between connected nodes
-    for (_edge_idx, edge_data, source_idx, target_idx) in graph_data.edges() {
+    for (_edge_idx, _edge_data, source_idx, target_idx) in graph_data.edges() {
         if let (Some(source_node), Some(target_node)) = (
             graph_data.nodes().find(|(idx, _)| *idx == source_idx).map(|(_, data)| data),
             graph_data.nodes().find(|(idx, _)| *idx == target_idx).map(|(_, data)| data),

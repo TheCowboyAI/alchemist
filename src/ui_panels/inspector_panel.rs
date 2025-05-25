@@ -1,4 +1,4 @@
-use crate::graph_core::{GraphInspectorState, GraphState};
+use crate::resources::{GraphInspectorState, GraphState};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 
@@ -35,6 +35,12 @@ pub fn inspector_panel_system(
     graph_state: Res<GraphState>,
     node_query: Query<(&crate::graph_core::GraphNode, &Transform)>,
 ) {
+    // Only log when visibility actually changes
+    if panel_state.is_changed() {
+        debug!("Inspector panel visibility changed to: {}", panel_state.visible);
+    }
+
+    // Only update if panel is visible
     if !panel_state.visible {
         // Show a small floating button when panel is hidden
         egui::Window::new("Show Inspector Panel")
@@ -50,6 +56,7 @@ pub fn inspector_panel_system(
         return;
     }
 
+    // Only show panel when visible
     let panel = match panel_state.side {
         InspectorSide::Right => egui::SidePanel::right("inspector_panel"),
         InspectorSide::Left => egui::SidePanel::left("inspector_panel"),
@@ -228,7 +235,10 @@ pub fn inspector_panel_system(
                     });
             });
 
-            // Update panel width
-            panel_state.width = ui.available_width();
+            // Only update panel width if it actually changed significantly
+            let new_width = ui.available_width();
+            if (new_width - panel_state.width).abs() > 5.0 {
+                panel_state.width = new_width;
+            }
         });
 }

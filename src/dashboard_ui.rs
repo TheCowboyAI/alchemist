@@ -34,7 +34,9 @@ impl Plugin for DashboardUiPlugin {
             .add_event::<ToggleWorkflowEditorEvent>()
             .add_event::<ToggleDddEditorEvent>()
             .add_event::<ToggleEcsEditorEvent>()
-            .add_systems(Update, dashboard_ui_system);
+            .add_systems(Update, dashboard_ui_system
+                .after(bevy_egui::EguiPreUpdateSet::InitContexts)
+                .before(bevy_egui::EguiPreUpdateSet::ProcessInput));
     }
 }
 

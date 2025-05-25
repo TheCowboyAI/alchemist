@@ -209,7 +209,7 @@ impl Default for AlchemistTheme {
             current_theme: themes[0].clone(), // Start with Tokyo Night
             available_themes: themes,
             selected_theme_index: 0,
-            theme_changed: true, // Start with true to apply theme on first frame
+            theme_changed: false, // Don't apply theme every frame - let setup_theme handle initial application
         }
     }
 }
@@ -220,8 +220,8 @@ pub struct ThemingPlugin;
 impl Plugin for ThemingPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<AlchemistTheme>()
-            .add_systems(Startup, setup_theme)
-            .add_systems(Update, apply_theme_changes);
+            .add_systems(Startup, setup_theme.after(bevy_egui::EguiStartupSet::InitContexts))
+            .add_systems(Update, apply_theme_changes.after(bevy_egui::EguiPreUpdateSet::InitContexts));
     }
 }
 
@@ -231,10 +231,15 @@ fn setup_theme(mut contexts: EguiContexts, theme: Res<AlchemistTheme>) {
 }
 
 // System to apply theme changes when the theme is changed
-fn apply_theme_changes(mut contexts: EguiContexts, mut theme: ResMut<AlchemistTheme>) {
+fn apply_theme_changes(
+    mut contexts: EguiContexts,
+    mut theme: ResMut<AlchemistTheme>,
+) {
     if theme.theme_changed {
+        debug!("Applying theme change: {}", theme.current_theme.name);
         apply_base16_theme(contexts.ctx_mut(), &theme.current_theme);
         theme.theme_changed = false;
+        debug!("Theme applied successfully: {}", theme.current_theme.name);
     }
 }
 
@@ -271,41 +276,16 @@ pub fn apply_base16_theme(ctx: &mut egui::Context, theme: &Base16Theme) {
     // Window borders - more visible
     style.visuals.window_stroke = egui::Stroke::new(1.0, theme.base03);
 
-    // Rounding
-    style.visuals.window_corner_radius = egui::CornerRadius::same(8);
-    style.visuals.menu_corner_radius = egui::CornerRadius::same(6);
-    style.visuals.widgets.noninteractive.corner_radius = egui::CornerRadius::same(4);
-    style.visuals.widgets.inactive.corner_radius = egui::CornerRadius::same(4);
-    style.visuals.widgets.hovered.corner_radius = egui::CornerRadius::same(4);
-    style.visuals.widgets.active.corner_radius = egui::CornerRadius::same(4);
+    // Rounding - basic values, DPI scaling will be applied separately
+    style.visuals.window_corner_radius = egui::CornerRadius::same(6);
+    style.visuals.menu_corner_radius = egui::CornerRadius::same(4);
+    style.visuals.widgets.noninteractive.corner_radius = egui::CornerRadius::same(3);
+    style.visuals.widgets.inactive.corner_radius = egui::CornerRadius::same(3);
+    style.visuals.widgets.hovered.corner_radius = egui::CornerRadius::same(3);
+    style.visuals.widgets.active.corner_radius = egui::CornerRadius::same(3);
 
-    // Double the font size as requested
-    style.text_styles.insert(
-        egui::TextStyle::Body,
-        egui::FontId::new(24.0, egui::FontFamily::Proportional), // Double from ~12 to 24
-    );
-    style.text_styles.insert(
-        egui::TextStyle::Button,
-        egui::FontId::new(24.0, egui::FontFamily::Proportional),
-    );
-    style.text_styles.insert(
-        egui::TextStyle::Heading,
-        egui::FontId::new(36.0, egui::FontFamily::Proportional), // Larger heading
-    );
-    style.text_styles.insert(
-        egui::TextStyle::Small,
-        egui::FontId::new(20.0, egui::FontFamily::Proportional), // Bigger small text
-    );
-    style.text_styles.insert(
-        egui::TextStyle::Monospace,
-        egui::FontId::new(22.0, egui::FontFamily::Monospace),
-    );
-
-    // Increase spacing for larger text
-    style.spacing.item_spacing = egui::vec2(12.0, 8.0); // More spacing
-    style.spacing.button_padding = egui::vec2(16.0, 8.0); // Bigger buttons
-    style.spacing.menu_margin = egui::Margin::same(12);
-    style.spacing.indent = 32.0; // More indentation
+    // NOTE: Font sizes and spacing are handled by the DPI scaling system in main.rs
+    // This ensures consistent scaling across the entire application
 
     // Apply the custom style
     ctx.set_style(style);

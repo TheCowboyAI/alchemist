@@ -5,6 +5,7 @@ use super::{
     components::*, events::*, graph_data::{EdgeData, GraphData, NodeData},
     GraphNode, NodeVisual,
 };
+use crate::resources::GraphState;
 
 /// System to handle node creation events
 pub fn handle_create_node_events(

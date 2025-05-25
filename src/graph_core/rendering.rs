@@ -1,59 +1,11 @@
 use super::components::*;
 use crate::camera::{GraphViewCamera, ViewMode};
+use crate::resources::{EdgeMeshTracker, LastViewMode};
 use bevy::prelude::*;
-use uuid;
-
-/// Resource to track edge mesh entities for cleanup
-#[derive(Resource, Default)]
-pub struct EdgeMeshTracker {
-    edge_meshes: std::collections::HashMap<uuid::Uuid, Entity>,
-    initial_render_done: bool,
-}
-
-impl EdgeMeshTracker {
-    pub fn track(&mut self, edge_id: uuid::Uuid, entity: Entity) {
-        self.edge_meshes.insert(edge_id, entity);
-    }
-
-    pub fn remove(&mut self, edge_id: &uuid::Uuid, commands: &mut Commands) {
-        if let Some(entity) = self.edge_meshes.remove(edge_id) {
-            commands.entity(entity).despawn();
-        }
-    }
-
-    pub fn despawn_all(&mut self, commands: &mut Commands) {
-        for entity in self.edge_meshes.values() {
-            commands.entity(*entity).despawn();
-        }
-        self.edge_meshes.clear();
-    }
-
-    pub fn has_edge(&self, edge_id: &uuid::Uuid) -> bool {
-        self.edge_meshes.contains_key(edge_id)
-    }
-
-    pub fn mark_initial_render_done(&mut self) {
-        self.initial_render_done = true;
-    }
-
-    pub fn needs_initial_render(&self) -> bool {
-        !self.initial_render_done
-    }
-}
 
 /// Marker component for nodes that have been rendered
 #[derive(Component)]
 pub struct NodeRendered;
-
-/// Marker component for edges that have been rendered (removed - edges aren't entities)
-// #[derive(Component)]
-// pub struct EdgeRendered;
-
-/// Resource to track the last view mode to detect actual mode changes
-#[derive(Resource, Default)]
-pub struct LastViewMode {
-    pub mode: Option<ViewMode>,
-}
 
 /// System to render graph nodes in the appropriate mode
 pub fn render_graph_nodes(

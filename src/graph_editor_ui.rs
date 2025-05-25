@@ -230,7 +230,9 @@ impl Plugin for GraphEditorUiPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GraphEditorTheme>()
             .add_systems(Startup, setup_custom_theme)
-            .add_systems(Update, graph_editor_ui_system);
+            .add_systems(Update, graph_editor_ui_system
+                .after(bevy_egui::EguiPreUpdateSet::InitContexts)
+                .before(bevy_egui::EguiPreUpdateSet::ProcessInput));
     }
 }
 

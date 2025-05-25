@@ -45,6 +45,12 @@ pub fn control_panel_system(
     file_state: Res<FileOperationState>,
     node_query: Query<(Entity, &crate::graph_core::GraphNode)>,
 ) {
+    // Only log when visibility actually changes
+    if panel_state.is_changed() {
+        debug!("Control panel visibility changed to: {}", panel_state.visible);
+    }
+
+    // Only update if panel is visible
     if !panel_state.visible {
         // Show a small floating button when panel is hidden
         egui::Window::new("Show Control Panel")
@@ -60,6 +66,7 @@ pub fn control_panel_system(
         return;
     }
 
+    // Only show panel when visible
     egui::SidePanel::left("control_panel")
         .default_width(panel_state.width)
         .resizable(true)
@@ -112,8 +119,11 @@ pub fn control_panel_system(
                 }
             }
 
-            // Update panel width
-            panel_state.width = ui.available_width();
+            // Only update panel width if it actually changed significantly
+            let new_width = ui.available_width();
+            if (new_width - panel_state.width).abs() > 5.0 {
+                panel_state.width = new_width;
+            }
         });
 }
 
