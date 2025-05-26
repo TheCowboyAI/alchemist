@@ -135,6 +135,8 @@ impl Plugin for GraphPlugin {
                         .run_if(nodes_changed),
                     render_graph_edges
                         .run_if(edges_changed),
+                    // Ensure edges are rendered even if change detection misses them
+                    ensure_edges_rendered,
                 )
                     .chain()
                     .in_set(GraphSystemSet::RenderPrep),

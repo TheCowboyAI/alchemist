@@ -48,8 +48,8 @@ fn update_2d_camera(transform: &mut Transform, projection: &mut Projection, stat
     // Use orthographic projection for 2D
     *projection = Projection::Orthographic(OrthographicProjection {
         scale: state.zoom_level,
-        near: -1000.0,
-        far: 1000.0,
+        near: -10000.0,
+        far: 10000.0,
         viewport_origin: Vec2::new(0.5, 0.5),
         scaling_mode: ScalingMode::WindowSize,
         area: Rect {
@@ -207,7 +207,7 @@ pub fn orbit_camera_input_system(
 
             // Zoom with mouse wheel
             for wheel in mouse_wheel.read() {
-                state.orbit_radius = (state.orbit_radius - wheel.y * 2.0).clamp(5.0, 100.0);
+                state.orbit_radius = (state.orbit_radius - wheel.y * 2.0).clamp(1.0, 500.0);
                 state_changed = true;
             }
 
@@ -241,7 +241,7 @@ pub fn pan_camera_input_system(
 
             // Zoom with mouse wheel
             for wheel in mouse_wheel.read() {
-                state.zoom_level = (state.zoom_level - wheel.y * 0.1).clamp(0.1, 10.0);
+                state.zoom_level = (state.zoom_level - wheel.y * 0.1).clamp(0.01, 50.0);
                 state_changed = true;
             }
 
@@ -386,7 +386,11 @@ pub fn update_frustum_culling(
     let camera_pos = camera_transform.translation;
     let cull_distance = match view_camera.view_mode {
         ViewMode::ThreeD(state) => state.orbit_radius * 3.0,
-        ViewMode::TwoD(state) => state.zoom_level * 1000.0,
+        ViewMode::TwoD(_state) => {
+            // In 2D mode, don't cull based on zoom level
+            // Always show all nodes regardless of zoom
+            f32::MAX
+        }
     };
 
     for (mut frustum, node_transform) in &mut nodes {

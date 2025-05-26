@@ -235,11 +235,12 @@ pub fn update_change_flags(
     changed_nodes: Query<Entity, (With<super::components::GraphNode>, Changed<Transform>)>,
     mut removed_nodes: RemovedComponents<super::components::GraphNode>,
     // Check for edge changes
-    added_edges: Query<Entity, (With<super::components::GraphNode>, Added<super::components::OutgoingEdge>)>,
-    changed_edges: Query<Entity, (With<super::components::GraphNode>, Changed<super::components::OutgoingEdge>)>,
-    mut removed_edges: RemovedComponents<super::components::OutgoingEdge>,
+    added_edges: Query<Entity, (With<super::components::GraphNode>, Added<super::components::OutgoingEdges>)>,
+    changed_edges: Query<Entity, (With<super::components::GraphNode>, Changed<super::components::OutgoingEdges>)>,
+    mut removed_edges: RemovedComponents<super::components::OutgoingEdges>,
     // Check for view mode changes
     camera_query: Query<&GraphViewCamera, Changed<GraphViewCamera>>,
+    mut last_view_mode: Local<Option<crate::camera::ViewMode>>,
     // Check for selection changes
     selection_query: Query<Entity, (With<super::components::GraphNode>, Changed<super::components::Selected>)>,
 ) {
@@ -266,9 +267,22 @@ pub fn update_change_flags(
         break;
     }
 
-    // Check for view mode changes
-    if camera_query.single().is_ok() {
-        change_flags.view_mode_changed = true;
+    // Check for view mode changes - only when switching between 2D and 3D
+    if let Ok(camera) = camera_query.single() {
+        let current_is_3d = matches!(camera.view_mode, crate::camera::ViewMode::ThreeD(_));
+
+        if let Some(last_mode) = &*last_view_mode {
+            let last_was_3d = matches!(last_mode, crate::camera::ViewMode::ThreeD(_));
+            if current_is_3d != last_was_3d {
+                change_flags.view_mode_changed = true;
+                debug!("View mode changed from {} to {}",
+                    if last_was_3d { "3D" } else { "2D" },
+                    if current_is_3d { "3D" } else { "2D" }
+                );
+            }
+        }
+
+        *last_view_mode = Some(camera.view_mode.clone());
     }
 
     // Check for selection changes

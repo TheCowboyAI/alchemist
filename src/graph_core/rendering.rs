@@ -26,15 +26,15 @@ pub fn render_graph_nodes(
         return;
     }
 
-    info!("Rendering {} nodes", node_count);
+    debug!("Rendering {} nodes", node_count);
 
     // Render nodes based on current view mode
     match camera.view_mode {
         ViewMode::ThreeD(_) => {
             render_nodes_3d(&mut commands, &mut meshes, &mut materials_3d, &node_query);
         }
-        ViewMode::TwoD(_) => {
-            render_nodes_2d(&mut commands, &mut meshes, &mut materials_2d, &node_query);
+        ViewMode::TwoD(state) => {
+            render_nodes_2d(&mut commands, &mut meshes, &mut materials_2d, &node_query, state.zoom_level);
         }
     }
 }
@@ -59,7 +59,7 @@ fn render_nodes_3d(
             .entity(entity)
             .insert(NodeRendered)
             .with_children(|parent| {
-                // Add the sphere mesh
+                // Add the sphere mesh - it will inherit parent's transform
                 parent.spawn((
                     Mesh3d(mesh),
                     MeshMaterial3d(material),
@@ -75,10 +75,16 @@ fn render_nodes_2d(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
     node_query: &Query<(Entity, &GraphNode, &GraphPosition, &NodeVisual), Without<NodeRendered>>,
+    zoom_level: f32,
 ) {
-    for (entity, _node, _position, visual) in node_query {
-        // Create 2D circle for node
-        let mesh = meshes.add(Circle::new(20.0));
+    for (entity, node, _position, visual) in node_query {
+        // Scale nodes based on zoom, but maintain minimum/maximum size
+        // When zoom_level is high (zoomed out), we want larger nodes
+        // When zoom_level is low (zoomed in), we want smaller nodes
+        let base_size = 0.5;
+        let scaled_size = base_size * zoom_level.max(0.5).min(5.0);
+
+        let mesh = meshes.add(Circle::new(scaled_size));
         let material = materials.add(ColorMaterial::from(visual.current_color));
 
         commands
@@ -89,25 +95,36 @@ fn render_nodes_2d(
                     Mesh2d(mesh),
                     MeshMaterial2d(material),
                     Transform::from_translation(Vec3::ZERO),
+                    Name::new(format!("NodeCircle_{}", node.name)),
                 ));
             });
     }
 }
 
-/// System to render edges using OutgoingEdge components on node entities
+/// System to render edges using OutgoingEdges components on node entities
 pub fn render_graph_edges(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    node_query: Query<(Entity, &Transform, Option<&OutgoingEdge>), With<GraphNode>>,
+    node_query: Query<(Entity, &Transform, Option<&OutgoingEdges>), With<GraphNode>>,
     all_nodes: Query<&Transform, With<GraphNode>>,
     mut edge_tracker: ResMut<EdgeMeshTracker>,
     // Track specific changes
-    changed_nodes: Query<(Entity, &OutgoingEdge), (With<GraphNode>, Changed<OutgoingEdge>)>,
-    added_nodes: Query<(Entity, &OutgoingEdge), (With<GraphNode>, Added<OutgoingEdge>)>,
-    mut removed_edges: RemovedComponents<OutgoingEdge>,
+    changed_nodes: Query<(Entity, &OutgoingEdges), (With<GraphNode>, Changed<OutgoingEdges>)>,
+    added_nodes: Query<(Entity, &OutgoingEdges), (With<GraphNode>, Added<OutgoingEdges>)>,
+    mut removed_edges: RemovedComponents<OutgoingEdges>,
 ) {
     let mut edges_updated = 0;
+
+    // Count how many nodes have OutgoingEdges components
+    let nodes_with_edges = node_query.iter()
+        .filter(|(_, _, edges)| edges.is_some() && !edges.unwrap().edges.is_empty())
+        .count();
+
+    if nodes_with_edges > 0 || !added_nodes.is_empty() || !changed_nodes.is_empty() {
+        debug!("render_graph_edges: {} nodes with edges, {} added, {} changed",
+              nodes_with_edges, added_nodes.iter().count(), changed_nodes.iter().count());
+    }
 
     // Handle removed edges
     for _entity in removed_edges.read() {
@@ -116,8 +133,34 @@ pub fn render_graph_edges(
     }
 
     // Handle added edges
-    for (source_entity, outgoing_edge) in &added_nodes {
-        if !edge_tracker.has_edge(&outgoing_edge.id) {
+    for (source_entity, outgoing_edges) in &added_nodes {
+        debug!("Processing {} added edges from entity {:?}", outgoing_edges.edges.len(), source_entity);
+        if let Ok(source_tf) = node_query.get(source_entity) {
+            for outgoing_edge in &outgoing_edges.edges {
+                if !edge_tracker.has_edge(&outgoing_edge.id) {
+                    if let Ok(target_tf) = all_nodes.get(outgoing_edge.target) {
+                        create_edge_mesh(
+                            &mut commands,
+                            &mut meshes,
+                            &mut materials,
+                            &mut edge_tracker,
+                            outgoing_edge,
+                            source_tf.1.translation,
+                            target_tf.translation,
+                        );
+                        edges_updated += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // Handle changed edges (update existing ones)
+    for (source_entity, outgoing_edges) in &changed_nodes {
+        // Remove old meshes and create new ones
+        for outgoing_edge in &outgoing_edges.edges {
+            edge_tracker.remove(&outgoing_edge.id, &mut commands);
+
             if let Ok(source_tf) = node_query.get(source_entity) {
                 if let Ok(target_tf) = all_nodes.get(outgoing_edge.target) {
                     create_edge_mesh(
@@ -135,43 +178,25 @@ pub fn render_graph_edges(
         }
     }
 
-    // Handle changed edges (update existing ones)
-    for (source_entity, outgoing_edge) in &changed_nodes {
-        // Remove old mesh and create new one
-        edge_tracker.remove(&outgoing_edge.id, &mut commands);
-
-        if let Ok(source_tf) = node_query.get(source_entity) {
-            if let Ok(target_tf) = all_nodes.get(outgoing_edge.target) {
-                create_edge_mesh(
-                    &mut commands,
-                    &mut meshes,
-                    &mut materials,
-                    &mut edge_tracker,
-                    outgoing_edge,
-                    source_tf.1.translation,
-                    target_tf.translation,
-                );
-                edges_updated += 1;
-            }
-        }
-    }
-
     // Initial render - create all edges that don't exist yet
     if edge_tracker.needs_initial_render() {
-        for (_entity, source_tf, outgoing_edge_opt) in &node_query {
-            if let Some(outgoing_edge) = outgoing_edge_opt {
-                if !edge_tracker.has_edge(&outgoing_edge.id) {
-                    if let Ok(target_tf) = all_nodes.get(outgoing_edge.target) {
-                        create_edge_mesh(
-                            &mut commands,
-                            &mut meshes,
-                            &mut materials,
-                            &mut edge_tracker,
-                            outgoing_edge,
-                            source_tf.translation,
-                            target_tf.translation,
-                        );
-                        edges_updated += 1;
+        debug!("Initial edge render - checking all nodes for edges");
+        for (_entity, source_tf, outgoing_edges_opt) in &node_query {
+            if let Some(outgoing_edges) = outgoing_edges_opt {
+                for outgoing_edge in &outgoing_edges.edges {
+                    if !edge_tracker.has_edge(&outgoing_edge.id) {
+                        if let Ok(target_tf) = all_nodes.get(outgoing_edge.target) {
+                            create_edge_mesh(
+                                &mut commands,
+                                &mut meshes,
+                                &mut materials,
+                                &mut edge_tracker,
+                                outgoing_edge,
+                                source_tf.translation,
+                                target_tf.translation,
+                            );
+                            edges_updated += 1;
+                        }
                     }
                 }
             }
@@ -180,7 +205,7 @@ pub fn render_graph_edges(
     }
 
     if edges_updated > 0 {
-        info!("Updated {} edge meshes", edges_updated);
+        debug!("Updated {} edge meshes", edges_updated);
     }
 }
 
@@ -204,8 +229,8 @@ fn create_edge_mesh(
     let midpoint = (source_pos + target_pos) / 2.0;
     let direction = (target_pos - source_pos).normalize();
 
-    // Create cylinder mesh
-    let cylinder = Cylinder::new(0.15, distance);
+    // Create cylinder mesh with appropriate size
+    let cylinder = Cylinder::new(0.1, distance);  // Reduced from 0.15 to 0.1
     let mesh = meshes.add(cylinder.mesh().resolution(8).build());
 
     // Create royal blue material
@@ -296,7 +321,7 @@ pub fn clear_rendering_on_view_change(
         return;
     }
 
-    info!("Clearing rendering due to view mode change");
+    debug!("Clearing rendering due to view mode change");
 
     // Remove NodeRendered component and despawn children
     for entity in &rendered_nodes {
@@ -311,4 +336,45 @@ pub fn clear_rendering_on_view_change(
     // Clear edge meshes and reset initial render flag
     edge_tracker.despawn_all(&mut commands);
     edge_tracker.initial_render_done = false;
+}
+
+/// System to ensure edges are rendered even if change detection misses them
+pub fn ensure_edges_rendered(
+    node_query: Query<(Entity, &Transform, &OutgoingEdges), With<GraphNode>>,
+    all_nodes: Query<&Transform, With<GraphNode>>,
+    mut edge_tracker: ResMut<EdgeMeshTracker>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    // Check if there are edges that need rendering
+    let mut unrendered_edges = Vec::new();
+
+    for (entity, source_tf, outgoing_edges) in &node_query {
+        for edge in &outgoing_edges.edges {
+            if !edge_tracker.has_edge(&edge.id) {
+                unrendered_edges.push((entity, source_tf, edge));
+            }
+        }
+    }
+
+    if !unrendered_edges.is_empty() {
+        debug!("Found {} unrendered edges, rendering them now", unrendered_edges.len());
+
+        for (entity, source_tf, outgoing_edge) in unrendered_edges {
+            if let Ok(target_tf) = all_nodes.get(outgoing_edge.target) {
+                create_edge_mesh(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    &mut edge_tracker,
+                    outgoing_edge,
+                    source_tf.translation,
+                    target_tf.translation,
+                );
+                debug!("Rendered edge {:?} from {:?} to {:?}",
+                      outgoing_edge.id, entity, outgoing_edge.target);
+            }
+        }
+    }
 }

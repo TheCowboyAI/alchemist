@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_egui::{EguiContexts, EguiPlugin};
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use uuid::Uuid;
 
 // Import the new modular structure
@@ -23,81 +23,81 @@ mod ui_panels;
 mod unified_graph_editor;
 
 use camera::CameraViewportPlugin;
-use graph_core::{CreateEdgeEvent, CreateNodeEvent, DomainNodeType, GraphPlugin};
-use graph_layout::GraphLayoutPlugin;
-use graph_patterns::{GraphPattern, generate_pattern};
+use graph_core::{CreateNodeEvent, DomainNodeType};
 use json_loader::{
-    FileOperationState, JsonGraphData, JsonNode, JsonPosition, LoadJsonFileEvent,
-    SaveJsonFileEvent, json_to_base_graph, load_json_file, save_json_file,
+    FileOperationState, LoadJsonFileEvent, SaveJsonFileEvent,
+    load_json_file, save_json_file, json_to_base_graph,
+    JsonGraphData, JsonNode, JsonPosition,
 };
-use ui_panels::UiPanelsPlugin;
-use theming::ThemingPlugin;
-use resources::{NodeCounter, DpiScaling};
-use system_sets::{GraphSystemSet, CameraSystemSet, FileSystemSet};
+use resources::DpiScaling;
+use system_sets::configure_system_sets;
 
 
 
 fn main() {
-    App::new()
+    let mut app = App::new();
+
+    app
+        // Add DefaultPlugins first (includes basic Bevy functionality)
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Alchemist Graph Editor".to_string(),
-                resolution: (1920.0, 1080.0).into(),
+                resolution: (1280.0, 720.0).into(),
                 ..default()
             }),
             ..default()
         }))
-        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: false })
-        .add_plugins(camera::CameraViewportPlugin)
+        // Add EguiPlugin early so it initializes before other plugins
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: false,
+        });
+
+    // Configure system sets after basic plugins
+    configure_system_sets(&mut app);
+
+    app
+        // Add our custom plugins
+        .add_plugins(CameraViewportPlugin)
         .add_plugins(graph_core::GraphPlugin)
         .add_plugins(ui_panels::UiPanelsPlugin)
-        .add_plugins(theming::ThemingPlugin)
-        // Resources
-        .init_resource::<FileOperationState>()
         .init_resource::<DpiScaling>()
-        // Events
+        .init_resource::<FileOperationState>()
+        .init_resource::<theming::AlchemistTheme>()
+        .insert_resource(EdgeCreationTimer(Timer::from_seconds(0.5, TimerMode::Repeating)))
         .add_event::<LoadJsonFileEvent>()
         .add_event::<SaveJsonFileEvent>()
-        // Configure system ordering
-        .configure_sets(
-            Update,
+        .add_systems(
+            Startup,
             (
-                // Define the execution order of system sets
-                GraphSystemSet::Input,
-                GraphSystemSet::EventProcessing,
-                GraphSystemSet::StateUpdate,
-                GraphSystemSet::ChangeDetection,
-                GraphSystemSet::UI,
-            )
-                .chain(),
+                setup,
+                setup_demo_graph,
+                setup_file_scanner,
+            ),
         )
-        .configure_sets(
-            Update,
-            (
-                CameraSystemSet::Input,
-                CameraSystemSet::Update,
-                CameraSystemSet::Viewport,
-            )
-                .chain()
-                .after(GraphSystemSet::Input)
-                .before(GraphSystemSet::StateUpdate),
+        // Add setup_dpi_scaling separately to ensure it runs after EguiPlugin
+        .add_systems(
+            Startup,
+            setup_dpi_scaling.after(bevy_egui::EguiStartupSet::InitContexts),
         )
-        // Setup systems
-        .add_systems(Startup, (setup, setup_file_scanner, setup_dpi_scaling))
         .add_systems(
             Update,
             (
-                // Input systems
-                keyboard_commands_system.in_set(GraphSystemSet::Input),
-                // File handling in event processing
-                handle_load_json_file.in_set(GraphSystemSet::EventProcessing),
-                handle_save_json_file.in_set(GraphSystemSet::EventProcessing),
-                // Debug and DPI in state update
-                debug_camera_system.in_set(GraphSystemSet::StateUpdate),
-                update_dpi_scaling.in_set(GraphSystemSet::StateUpdate),
+                debug_camera_system,
+                handle_load_json_file,
+                handle_save_json_file,
+                track_node_despawns,
+                create_demo_edges_after_delay,
             ),
         )
-        .add_systems(Last, track_node_despawns)
+        // Systems that use EguiContexts must run after initialization
+        .add_systems(
+            Update,
+            (
+                update_dpi_scaling,
+                keyboard_commands_system,
+            )
+                .after(bevy_egui::EguiPreUpdateSet::InitContexts),
+        )
         .run();
 }
 
@@ -239,7 +239,7 @@ fn debug_camera_system(
 }
 
 /// Setup the scene with camera, lights, and initial graph nodes
-fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeEvent>) {
+fn setup(mut commands: Commands) {
     // Spawn camera with our GraphViewCamera component
     commands.spawn((Camera3d::default(), camera::GraphViewCamera::default()));
 
@@ -261,67 +261,7 @@ fn setup(mut commands: Commands, mut create_node_events: EventWriter<CreateNodeE
         affects_lightmapped_meshes: true,
     });
 
-    // Create some initial test nodes with IDs we can reference
-    let center_id = Uuid::new_v4();
-    let decision_id = Uuid::new_v4();
-    let event_id = Uuid::new_v4();
-    let storage_id = Uuid::new_v4();
-    let interface_id = Uuid::new_v4();
-
-    create_node_events.write(CreateNodeEvent {
-        id: center_id,
-        position: Vec3::new(0.0, 0.0, 0.0),
-        domain_type: DomainNodeType::Process,
-        name: "Central Node".to_string(),
-        labels: vec!["process".to_string()],
-        properties: std::collections::HashMap::new(),
-        subgraph_id: None,
-        color: None,
-    });
-
-    create_node_events.write(CreateNodeEvent {
-        id: decision_id,
-        position: Vec3::new(5.0, 0.0, 0.0),
-        domain_type: DomainNodeType::Decision,
-        name: "Decision Node".to_string(),
-        labels: vec!["decision".to_string()],
-        properties: std::collections::HashMap::new(),
-        subgraph_id: None,
-        color: None,
-    });
-
-    create_node_events.write(CreateNodeEvent {
-        id: event_id,
-        position: Vec3::new(-5.0, 0.0, 0.0),
-        domain_type: DomainNodeType::Event,
-        name: "Event Node".to_string(),
-        labels: vec!["event".to_string()],
-        properties: std::collections::HashMap::new(),
-        subgraph_id: None,
-        color: None,
-    });
-
-    create_node_events.write(CreateNodeEvent {
-        id: storage_id,
-        position: Vec3::new(0.0, 0.0, 5.0),
-        domain_type: DomainNodeType::Storage,
-        name: "Storage Node".to_string(),
-        labels: vec!["storage".to_string()],
-        properties: std::collections::HashMap::new(),
-        subgraph_id: None,
-        color: None,
-    });
-
-    create_node_events.write(CreateNodeEvent {
-        id: interface_id,
-        position: Vec3::new(0.0, 0.0, -5.0),
-        domain_type: DomainNodeType::Interface,
-        name: "Interface Node".to_string(),
-        labels: vec!["event".to_string()],
-        properties: std::collections::HashMap::new(),
-        subgraph_id: None,
-        color: None,
-    });
+    // Note: Nodes are created in setup_demo_graph
 }
 
 /// Setup file scanner
@@ -344,7 +284,7 @@ fn keyboard_commands_system(
     if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyK) {
         // Despawn all nodes
         for entity in &node_query {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
 
         // Reset graph state
@@ -451,7 +391,7 @@ fn handle_load_json_file(
 
                 // Despawn all nodes
                 for (entity, _) in &node_query {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
 
                 // Reset graph state
@@ -607,6 +547,8 @@ fn setup_demo_graph(
     });
 
     // Create deferred edges using the new system
+    info!("Creating edges for demo graph");
+
     deferred_edge_events.write(graph_core::DeferredEdgeEvent {
         id: Uuid::new_v4(),
         source_uuid: center_id,
@@ -646,6 +588,60 @@ fn setup_demo_graph(
         properties: std::collections::HashMap::new(),
         retry_count: 0,
     });
+
+    info!("Demo graph setup complete: 5 nodes, 4 edges");
+}
+
+/// Timer resource to delay edge creation
+#[derive(Resource)]
+struct EdgeCreationTimer(Timer);
+
+/// System to create edges after nodes are ready
+fn create_demo_edges_after_delay(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut timer: ResMut<EdgeCreationTimer>,
+    graph_data: Res<graph_core::GraphData>,
+    node_query: Query<(Entity, &graph_core::GraphNode)>,
+) {
+    timer.0.tick(time.delta());
+
+    // Only run once when timer finishes and we have all nodes
+    if timer.0.just_finished() && graph_data.node_count() >= 5 && !timer.0.paused() {
+        info!("Creating edges directly after delay");
+
+        // Find the central node
+        let central_node = node_query.iter()
+            .find(|(_, node)| node.name == "Central Node");
+
+        if let Some((central_entity, _central_node)) = central_node {
+            // Collect all edges for the central node
+            let mut outgoing_edges = graph_core::OutgoingEdges::default();
+
+            for (entity, node) in &node_query {
+                if entity != central_entity {
+                    // Add edge to the collection
+                    outgoing_edges.edges.push(graph_core::OutgoingEdge {
+                        id: Uuid::new_v4(),
+                        target: entity,
+                        edge_type: graph_core::DomainEdgeType::DataFlow,
+                        labels: vec!["demo".to_string()],
+                        properties: std::collections::HashMap::new(),
+                    });
+                    info!("Added edge from Central Node to {}", node.name);
+                }
+            }
+
+            let edge_count = outgoing_edges.edges.len();
+            info!("Created {} edges total", edge_count);
+
+            // Add all edges at once
+            commands.entity(central_entity).insert(outgoing_edges);
+
+            // Pause the timer so it doesn't run again
+            timer.0.pause();
+        }
+    }
 }
 
 // Simple JSON load/save functions

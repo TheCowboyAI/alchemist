@@ -122,9 +122,16 @@ pub fn configure_system_sets(app: &mut App) {
             GraphSystemSet::EventProcessing,
             GraphSystemSet::StateUpdate,
             GraphSystemSet::ChangeDetection,
-            GraphSystemSet::UI,
         )
             .chain(),
+    );
+
+    // GraphSystemSet::UI must run after egui initialization
+    app.configure_sets(
+        Update,
+        GraphSystemSet::UI
+            .after(GraphSystemSet::ChangeDetection)
+            .after(bevy_egui::EguiPreUpdateSet::InitContexts),
     );
 
     // Configure camera system ordering

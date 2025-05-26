@@ -131,3 +131,9 @@ pub struct OutgoingEdge {
     pub labels: Vec<String>,
     pub properties: HashMap<String, String>,
 }
+
+/// Component to track multiple outgoing edges from a node
+#[derive(Component, Debug, Clone, Default)]
+pub struct OutgoingEdges {
+    pub edges: Vec<OutgoingEdge>,
+}

@@ -401,10 +401,19 @@ pub fn handle_deferred_edge_events(
 ) {
     // Only process if we have nodes in the graph
     if graph_data.node_count() == 0 {
+        warn!("No nodes in graph, deferring edge creation");
         return;
     }
 
+    let event_count = events.len();
+    if event_count > 0 {
+        debug!("Processing {} deferred edge events", event_count);
+    }
+
     for event in events.read() {
+        debug!("Processing deferred edge: {:?} from {:?} to {:?}",
+              event.id, event.source_uuid, event.target_uuid);
+
         // Check if both source and target nodes exist in GraphData
         let source_exists = graph_data.nodes()
             .any(|(_, data)| data.id == event.source_uuid);
@@ -454,8 +463,8 @@ pub fn handle_deferred_edge_events(
                         properties: event.properties.clone(),
                     });
 
-                    info!("Successfully created edge {:?} from {:?} to {:?}",
-                          event.id, event.source_uuid, event.target_uuid);
+                    debug!("Successfully created edge {:?} from entity {:?} to entity {:?}",
+                          event.id, source, target);
                 } else {
                     warn!("Could not find entities for edge {:?}: source_entity={:?}, target_entity={:?}",
                           event.id, source_entity, target_entity);
