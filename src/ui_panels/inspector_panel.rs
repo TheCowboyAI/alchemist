@@ -86,68 +86,20 @@ pub fn inspector_panel_system(
 
             ui.separator();
 
-            // Toggle sections
-            ui.horizontal(|ui| {
-                ui.checkbox(&mut inspector_state.show_stats, "Statistics");
-                ui.checkbox(&mut inspector_state.show_algorithms, "Algorithms");
+            // Graph statistics
+            ui.collapsing("📊 Graph Statistics", |ui| {
+                ui.label(format!("Total Nodes: {}", graph_state.node_count));
+                ui.label(format!("Total Edges: {}", graph_state.edge_count));
+                ui.label(format!("Selected Nodes: {}", graph_state.selected_nodes.len()));
+
+                if let Some(hovered) = graph_state.hovered_entity {
+                    ui.label(format!("Hovered: {:?}", hovered));
+                } else {
+                    ui.label("Hovered: None");
+                }
             });
 
             ui.separator();
-
-            // Graph statistics
-            if inspector_state.show_stats {
-                ui.collapsing("📊 Graph Statistics", |ui| {
-                    ui.label(format!("Total Nodes: {}", graph_state.node_count));
-                    ui.label(format!("Total Edges: {}", graph_state.edge_count));
-                    ui.label(format!("Selected Nodes: {}", graph_state.selected_nodes.len()));
-
-                    if let Some(hovered) = graph_state.hovered_entity {
-                        ui.label(format!("Hovered: {:?}", hovered));
-                    } else {
-                        ui.label("Hovered: None");
-                    }
-                });
-                ui.separator();
-            }
-
-            // Algorithm controls
-            if inspector_state.show_algorithms {
-                ui.collapsing("🔬 Graph Algorithms", |ui| {
-                    ui.label("Path Finding:");
-
-                    ui.horizontal(|ui| {
-                        ui.label("Source:");
-                        if let Some(source) = inspector_state.pathfind_source {
-                            ui.label(format!("{:?}", source));
-                            if ui.button("Clear").clicked() {
-                                inspector_state.pathfind_source = None;
-                            }
-                        } else {
-                            ui.label("None selected");
-                        }
-                    });
-
-                    ui.horizontal(|ui| {
-                        ui.label("Target:");
-                        if let Some(target) = inspector_state.pathfind_target {
-                            ui.label(format!("{:?}", target));
-                            if ui.button("Clear").clicked() {
-                                inspector_state.pathfind_target = None;
-                            }
-                        } else {
-                            ui.label("None selected");
-                        }
-                    });
-
-                    if inspector_state.pathfind_source.is_some() && inspector_state.pathfind_target.is_some() {
-                        if ui.button("Find Path").clicked() {
-                            info!("Path finding requested");
-                            // TODO: Implement path finding
-                        }
-                    }
-                });
-                ui.separator();
-            }
 
             // Selected node details
             if let Some(selected_node_id) = inspector_state.selected_node {
@@ -178,6 +130,21 @@ pub fn inspector_panel_system(
                                     ui.label(format!("  • {}: {}", key, value));
                                 }
                             }
+
+                            ui.separator();
+
+                            // Quick actions
+                            ui.horizontal(|ui| {
+                                if ui.button("Set as Path Source").clicked() {
+                                    inspector_state.pathfind_source = Some(selected_node_id);
+                                    info!("Set {} as pathfinding source", node.name);
+                                }
+                                if ui.button("Set as Path Target").clicked() {
+                                    inspector_state.pathfind_target = Some(selected_node_id);
+                                    info!("Set {} as pathfinding target", node.name);
+                                }
+                            });
+
                             break;
                         }
                     }

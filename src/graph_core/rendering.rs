@@ -1,6 +1,6 @@
 use super::components::*;
 use crate::camera::{GraphViewCamera, ViewMode};
-use crate::resources::{EdgeMeshTracker, LastViewMode};
+use crate::resources::EdgeMeshTracker;
 use bevy::prelude::*;
 
 /// Marker component for nodes that have been rendered

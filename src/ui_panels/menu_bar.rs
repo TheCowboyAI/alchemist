@@ -1,4 +1,4 @@
-use super::{ControlPanelState, InspectorPanelState};
+use super::{ControlPanelState, InspectorPanelState, AlgorithmPanelState};
 use super::panel_manager::{PanelManager, WorkspaceMode};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
@@ -8,6 +8,7 @@ pub fn menu_bar_system(
     mut contexts: EguiContexts,
     mut control_panel_state: ResMut<ControlPanelState>,
     mut inspector_panel_state: ResMut<InspectorPanelState>,
+    mut algorithm_panel_state: ResMut<AlgorithmPanelState>,
     mut panel_manager: ResMut<PanelManager>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
@@ -34,6 +35,10 @@ pub fn menu_bar_system(
         panel_manager.set_workspace(WorkspaceMode::Advanced);
         needs_update = true;
     }
+    if keyboard_input.just_pressed(KeyCode::F6) {
+        panel_manager.toggle_panel("algorithms");
+        needs_update = true;
+    }
 
     // Only sync panel states when panel manager has actually changed
     if panel_manager.is_changed() || needs_update {
@@ -42,6 +47,9 @@ pub fn menu_bar_system(
         }
         if inspector_panel_state.visible != panel_manager.panels.inspector_panel.visible {
             inspector_panel_state.visible = panel_manager.panels.inspector_panel.visible;
+        }
+        if algorithm_panel_state.visible != panel_manager.panels.algorithms_panel.visible {
+            algorithm_panel_state.visible = panel_manager.panels.algorithms_panel.visible;
         }
     }
 

@@ -19,7 +19,6 @@ pub enum ControlPanelTab {
     Graph,
     DDD,
     ECS,
-    Algorithms,
 }
 
 impl ControlPanelState {
@@ -88,7 +87,6 @@ pub fn control_panel_system(
                 ui.selectable_value(&mut panel_state.active_tab, ControlPanelTab::Graph, "📊 Graph");
                 ui.selectable_value(&mut panel_state.active_tab, ControlPanelTab::DDD, "🏗️ DDD");
                 ui.selectable_value(&mut panel_state.active_tab, ControlPanelTab::ECS, "⚙️ ECS");
-                ui.selectable_value(&mut panel_state.active_tab, ControlPanelTab::Algorithms, "🧮 Algorithms");
             });
 
             ui.separator();
@@ -113,9 +111,6 @@ pub fn control_panel_system(
                 }
                 ControlPanelTab::ECS => {
                     show_ecs_tab(ui);
-                }
-                ControlPanelTab::Algorithms => {
-                    show_algorithms_tab(ui, &graph_state);
                 }
             }
 
@@ -406,63 +401,6 @@ fn show_ecs_tab(ui: &mut egui::Ui) {
     ui.label("• Movement: 60 FPS");
     ui.label("• Collision: 60 FPS");
     ui.label("• Render: 60 FPS");
-}
-
-/// Show the Algorithms tab content
-fn show_algorithms_tab(ui: &mut egui::Ui, graph_state: &GraphState) {
-    ui.heading("🧮 Graph Algorithms");
-
-    ui.label("Available Algorithms:");
-
-    ui.collapsing("Pathfinding", |ui| {
-        if ui.button("🎯 Dijkstra's Algorithm").clicked() {
-            info!("Dijkstra's algorithm clicked");
-        }
-        if ui.button("⭐ A* Algorithm").clicked() {
-            info!("A* algorithm clicked");
-        }
-        if ui.button("🌊 Breadth-First Search").clicked() {
-            info!("BFS clicked");
-        }
-        if ui.button("🏔️ Depth-First Search").clicked() {
-            info!("DFS clicked");
-        }
-    });
-
-    ui.collapsing("Graph Analysis", |ui| {
-        if ui.button("🔗 Connected Components").clicked() {
-            info!("Connected components clicked");
-        }
-        if ui.button("🔄 Cycle Detection").clicked() {
-            info!("Cycle detection clicked");
-        }
-        if ui.button("📊 Centrality Measures").clicked() {
-            info!("Centrality measures clicked");
-        }
-        if ui.button("🎯 Topological Sort").clicked() {
-            info!("Topological sort clicked");
-        }
-    });
-
-    ui.collapsing("Network Flow", |ui| {
-        if ui.button("💧 Max Flow").clicked() {
-            info!("Max flow clicked");
-        }
-        if ui.button("💰 Min Cost Flow").clicked() {
-            info!("Min cost flow clicked");
-        }
-    });
-
-    ui.separator();
-
-    ui.heading("Algorithm Results");
-    ui.label(format!("Graph has {} nodes and {} edges", graph_state.node_count, graph_state.edge_count));
-
-    if graph_state.node_count > 0 {
-        ui.label("✅ Graph is ready for analysis");
-    } else {
-        ui.label("⚠️ Add nodes to run algorithms");
-    }
 }
 
 /// Helper function to add patterns to the graph

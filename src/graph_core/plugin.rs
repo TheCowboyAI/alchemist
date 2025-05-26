@@ -8,7 +8,7 @@ use super::merkle_dag::MerkleDag;
 use super::rendering::*;
 use super::systems::*;
 use super::ui::{
-    graph_inspector_ui, handle_node_selection, update_selection_highlights,
+    handle_node_selection, update_selection_highlights,
 };
 use crate::resources::{GraphState, GraphMetadata, GraphInspectorState, EdgeMeshTracker, LastViewMode};
 use crate::system_sets::{GraphSystemSet, GraphChangeFlags, reset_change_flags, view_mode_changed, nodes_changed, edges_changed};
@@ -118,7 +118,8 @@ impl Plugin for GraphPlugin {
                     // Mouse selection needs to generate events
                     handle_node_selection.in_set(GraphSystemSet::Input),
                     // Inspector UI runs after all state updates
-                    graph_inspector_ui.in_set(GraphSystemSet::UI),
+                    // DISABLED: Duplicate inspector - using ui_panels version instead
+                    // graph_inspector_ui.in_set(GraphSystemSet::UI),
                 ),
             )
 

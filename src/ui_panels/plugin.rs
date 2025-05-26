@@ -1,4 +1,4 @@
-use super::{control_panel::*, inspector_panel::*};
+use super::{control_panel::*, inspector_panel::*, algorithm_panel::*};
 use super::menu_bar::{menu_bar_system, show_keyboard_shortcuts_help, panel_configuration_system};
 use super::panel_manager::PanelManager;
 use crate::system_sets::GraphSystemSet;
@@ -13,6 +13,7 @@ impl Plugin for UiPanelsPlugin {
             // Resources for panel state
             .init_resource::<ControlPanelState>()
             .init_resource::<InspectorPanelState>()
+            .init_resource::<AlgorithmPanelState>()
             .init_resource::<PanelManager>()
             // UI systems - all run in the UI phase after state is stable
             .add_systems(
@@ -25,6 +26,7 @@ impl Plugin for UiPanelsPlugin {
                     // Main panel systems
                     control_panel_system,
                     inspector_panel_system,
+                    algorithm_panel_system,
                     // Help system
                     show_keyboard_shortcuts_help,
                 )

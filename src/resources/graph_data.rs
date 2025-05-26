@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use petgraph::Direction;
 use petgraph::graph::{DiGraph, EdgeIndex as PetEdgeIndex, NodeIndex as PetNodeIndex};
 use std::collections::HashMap;
 use uuid::Uuid;
