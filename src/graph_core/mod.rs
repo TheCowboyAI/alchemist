@@ -10,7 +10,7 @@ pub mod systems;
 pub mod ui;
 
 pub use algorithms::{GraphAlgorithms, demonstrate_algorithms};
-pub use change_detection::{GraphChangeTracker, detect_component_changes, process_graph_changes};
+pub use change_detection::{GraphChangeTracker, detect_component_changes, process_graph_changes, update_change_flags};
 pub use components::*;
 pub use events::*;
 pub use graph_data::GraphData;

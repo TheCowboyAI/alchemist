@@ -1,18 +1,91 @@
 use bevy::prelude::*;
 
-/// System sets for graph operations
+/// System sets for organizing graph editor systems
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GraphSystemSet {
-    /// Input collection (raw input events)
+    /// Input gathering and initial event generation
     Input,
-    /// Event processing (handle events, validate)
+    /// Processing events in dependency order
     EventProcessing,
-    /// Graph structure updates
-    GraphUpdate,
-    /// Visual component updates
-    VisualUpdate,
-    /// Rendering preparation
+    /// Updating component states based on events
+    StateUpdate,
+    /// Detecting changes for rendering and UI
+    ChangeDetection,
+    /// UI systems that need stable state
+    UI,
+    /// Rendering preparation in PostUpdate
     RenderPrep,
+}
+
+/// System sets for camera-specific operations
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum CameraSystemSet {
+    /// Camera input handling
+    Input,
+    /// Camera state updates and transitions
+    Update,
+    /// Viewport and bounds updates
+    Viewport,
+}
+
+/// System sets for file operations
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum FileSystemSet {
+    /// File event generation
+    Events,
+    /// File processing
+    Processing,
+}
+
+/// Resource to track what changed this frame
+#[derive(Resource, Default)]
+pub struct GraphChangeFlags {
+    pub nodes_changed: bool,
+    pub edges_changed: bool,
+    pub view_mode_changed: bool,
+    pub selection_changed: bool,
+    pub graph_structure_changed: bool,
+}
+
+impl GraphChangeFlags {
+    /// Reset all flags (call at end of frame)
+    pub fn reset(&mut self) {
+        self.nodes_changed = false;
+        self.edges_changed = false;
+        self.view_mode_changed = false;
+        self.selection_changed = false;
+        self.graph_structure_changed = false;
+    }
+}
+
+/// Run condition: nodes changed this frame
+pub fn nodes_changed(flags: Res<GraphChangeFlags>) -> bool {
+    flags.nodes_changed
+}
+
+/// Run condition: edges changed this frame
+pub fn edges_changed(flags: Res<GraphChangeFlags>) -> bool {
+    flags.edges_changed
+}
+
+/// Run condition: view mode changed this frame
+pub fn view_mode_changed(flags: Res<GraphChangeFlags>) -> bool {
+    flags.view_mode_changed
+}
+
+/// Run condition: selection changed this frame
+pub fn selection_changed(flags: Res<GraphChangeFlags>) -> bool {
+    flags.selection_changed
+}
+
+/// Run condition: graph structure changed this frame
+pub fn graph_structure_changed(flags: Res<GraphChangeFlags>) -> bool {
+    flags.graph_structure_changed
+}
+
+/// System to reset change flags at the end of the frame
+pub fn reset_change_flags(mut flags: ResMut<GraphChangeFlags>) {
+    flags.reset();
 }
 
 /// System sets for UI operations
@@ -26,17 +99,6 @@ pub enum UISystemSet {
     PanelRender,
     /// Render overlays and tooltips
     OverlayRender,
-}
-
-/// System sets for camera operations
-#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-pub enum CameraSystemSet {
-    /// Process camera input
-    Input,
-    /// Update camera state
-    StateUpdate,
-    /// Apply camera transform
-    TransformUpdate,
 }
 
 /// System sets for file I/O operations
@@ -58,8 +120,9 @@ pub fn configure_system_sets(app: &mut App) {
         (
             GraphSystemSet::Input,
             GraphSystemSet::EventProcessing,
-            GraphSystemSet::GraphUpdate,
-            GraphSystemSet::VisualUpdate,
+            GraphSystemSet::StateUpdate,
+            GraphSystemSet::ChangeDetection,
+            GraphSystemSet::UI,
         )
             .chain(),
     );
@@ -69,8 +132,8 @@ pub fn configure_system_sets(app: &mut App) {
         Update,
         (
             CameraSystemSet::Input,
-            CameraSystemSet::StateUpdate,
-            CameraSystemSet::TransformUpdate,
+            CameraSystemSet::Update,
+            CameraSystemSet::Viewport,
         )
             .chain()
             .after(GraphSystemSet::EventProcessing),
@@ -104,7 +167,7 @@ pub fn configure_system_sets(app: &mut App) {
             IOSystemSet::Save,
         )
             .chain()
-            .after(GraphSystemSet::GraphUpdate),
+            .after(GraphSystemSet::StateUpdate),
     );
 
     // Auto-save runs independently at the end

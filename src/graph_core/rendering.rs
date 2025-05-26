@@ -20,11 +20,13 @@ pub fn render_graph_nodes(
         return;
     };
 
-    // Debug: Check if we're rendering nodes
+    // Only render if there are unrendered nodes
     let node_count = node_query.iter().count();
-    if node_count > 0 {
-        info!("Rendering {} nodes", node_count);
+    if node_count == 0 {
+        return;
     }
+
+    info!("Rendering {} nodes", node_count);
 
     // Render nodes based on current view mode
     match camera.view_mode {
@@ -238,27 +240,15 @@ pub fn render_reference_grid(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials_3d: ResMut<Assets<StandardMaterial>>,
-    camera_query: Query<&GraphViewCamera>,
+    camera_query: Query<&GraphViewCamera, Changed<GraphViewCamera>>,
     grid_query: Query<Entity, With<ReferenceGrid>>,
-    last_view_mode: Res<LastViewMode>,
 ) {
+    // Only run when camera view mode actually changed
     let Ok(camera) = camera_query.single() else {
         return;
     };
 
-    // Check if the view mode actually changed
-    let current_mode = std::mem::discriminant(&camera.view_mode);
-    let mode_changed = match &last_view_mode.mode {
-        Some(last_mode) => std::mem::discriminant(last_mode) != current_mode,
-        None => true, // First time, consider it changed
-    };
-
-    // Only run if camera view mode actually changed
-    if !mode_changed {
-        return;
-    }
-
-    // Remove existing grid when view mode changes
+    // Remove existing grid
     for entity in &grid_query {
         commands.entity(entity).despawn();
     }
@@ -296,24 +286,13 @@ pub struct ReferenceGrid;
 /// System to clear rendering when view mode changes
 pub fn clear_rendering_on_view_change(
     mut commands: Commands,
-    camera_query: Query<&GraphViewCamera>,
+    camera_query: Query<&GraphViewCamera, Changed<GraphViewCamera>>,
     rendered_nodes: Query<Entity, With<NodeRendered>>,
     children_query: Query<&Children>,
     mut edge_tracker: ResMut<EdgeMeshTracker>,
-    mut last_view_mode: ResMut<LastViewMode>,
 ) {
-    let Ok(camera) = camera_query.single() else {
-        return;
-    };
-
-    // Check if the view mode actually changed
-    let current_mode = std::mem::discriminant(&camera.view_mode);
-    let mode_changed = match &last_view_mode.mode {
-        Some(last_mode) => std::mem::discriminant(last_mode) != current_mode,
-        None => true, // First time, consider it changed
-    };
-
-    if !mode_changed {
+    // Only run when camera view mode actually changed
+    if camera_query.single().is_err() {
         return;
     }
 
@@ -332,7 +311,4 @@ pub fn clear_rendering_on_view_change(
     // Clear edge meshes and reset initial render flag
     edge_tracker.despawn_all(&mut commands);
     edge_tracker.initial_render_done = false;
-
-    // Update the last view mode
-    last_view_mode.mode = Some(camera.view_mode);
 }

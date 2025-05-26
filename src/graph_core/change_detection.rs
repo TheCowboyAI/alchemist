@@ -3,6 +3,8 @@ use bevy::prelude::*;
 use petgraph::graph::{EdgeIndex as PetEdgeIndex, NodeIndex as PetNodeIndex};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
+use crate::system_sets::GraphChangeFlags;
+use crate::camera::GraphViewCamera;
 
 /// Tracks changes to the graph for efficient rendering updates
 #[derive(Resource, Default)]
@@ -222,6 +224,56 @@ pub fn update_lod_levels(
             lod.distance = distance;
             commands.entity(entity).insert(NeedsLodUpdate);
         }
+    }
+}
+
+/// System to update GraphChangeFlags based on detected changes
+pub fn update_change_flags(
+    mut change_flags: ResMut<GraphChangeFlags>,
+    // Check for node changes
+    added_nodes: Query<Entity, Added<super::components::GraphNode>>,
+    changed_nodes: Query<Entity, (With<super::components::GraphNode>, Changed<Transform>)>,
+    mut removed_nodes: RemovedComponents<super::components::GraphNode>,
+    // Check for edge changes
+    added_edges: Query<Entity, (With<super::components::GraphNode>, Added<super::components::OutgoingEdge>)>,
+    changed_edges: Query<Entity, (With<super::components::GraphNode>, Changed<super::components::OutgoingEdge>)>,
+    mut removed_edges: RemovedComponents<super::components::OutgoingEdge>,
+    // Check for view mode changes
+    camera_query: Query<&GraphViewCamera, Changed<GraphViewCamera>>,
+    // Check for selection changes
+    selection_query: Query<Entity, (With<super::components::GraphNode>, Changed<super::components::Selected>)>,
+) {
+    // Reset flags at start of frame
+    change_flags.reset();
+
+    // Check for node changes
+    if !added_nodes.is_empty() || !changed_nodes.is_empty() {
+        change_flags.nodes_changed = true;
+    }
+
+    for _ in removed_nodes.read() {
+        change_flags.nodes_changed = true;
+        break;
+    }
+
+    // Check for edge changes
+    if !added_edges.is_empty() || !changed_edges.is_empty() {
+        change_flags.edges_changed = true;
+    }
+
+    for _ in removed_edges.read() {
+        change_flags.edges_changed = true;
+        break;
+    }
+
+    // Check for view mode changes
+    if camera_query.single().is_ok() {
+        change_flags.view_mode_changed = true;
+    }
+
+    // Check for selection changes
+    if !selection_query.is_empty() {
+        change_flags.selection_changed = true;
     }
 }
 

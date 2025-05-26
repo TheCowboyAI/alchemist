@@ -33,6 +33,7 @@ use json_loader::{
 use ui_panels::UiPanelsPlugin;
 use theming::ThemingPlugin;
 use resources::{NodeCounter, DpiScaling};
+use system_sets::{GraphSystemSet, CameraSystemSet, FileSystemSet};
 
 
 
@@ -41,36 +42,59 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Alchemist Graph Editor".to_string(),
+                resolution: (1920.0, 1080.0).into(),
                 ..default()
             }),
             ..default()
         }))
-        .add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: false,
-        })
-        // Add our custom plugins
-        .add_plugins(CameraViewportPlugin)
-        .add_plugins(GraphPlugin)
-        .add_plugins(GraphLayoutPlugin)
-        .add_plugins(UiPanelsPlugin)
-        .add_plugins(ThemingPlugin)
+        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: false })
+        .add_plugins(camera::CameraViewportPlugin)
+        .add_plugins(graph_core::GraphPlugin)
+        .add_plugins(ui_panels::UiPanelsPlugin)
+        .add_plugins(theming::ThemingPlugin)
         // Resources
-        .init_resource::<NodeCounter>()
         .init_resource::<FileOperationState>()
         .init_resource::<DpiScaling>()
         // Events
         .add_event::<LoadJsonFileEvent>()
         .add_event::<SaveJsonFileEvent>()
+        // Configure system ordering
+        .configure_sets(
+            Update,
+            (
+                // Define the execution order of system sets
+                GraphSystemSet::Input,
+                GraphSystemSet::EventProcessing,
+                GraphSystemSet::StateUpdate,
+                GraphSystemSet::ChangeDetection,
+                GraphSystemSet::UI,
+            )
+                .chain(),
+        )
+        .configure_sets(
+            Update,
+            (
+                CameraSystemSet::Input,
+                CameraSystemSet::Update,
+                CameraSystemSet::Viewport,
+            )
+                .chain()
+                .after(GraphSystemSet::Input)
+                .before(GraphSystemSet::StateUpdate),
+        )
         // Setup systems
         .add_systems(Startup, (setup, setup_file_scanner, setup_dpi_scaling))
         .add_systems(
             Update,
             (
-                debug_camera_system.after(bevy_egui::EguiPreUpdateSet::InitContexts),
-                keyboard_commands_system.after(bevy_egui::EguiPreUpdateSet::InitContexts),
-                handle_load_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
-                handle_save_json_file.after(bevy_egui::EguiPreUpdateSet::InitContexts),
-                update_dpi_scaling.after(bevy_egui::EguiPreUpdateSet::InitContexts),
+                // Input systems
+                keyboard_commands_system.in_set(GraphSystemSet::Input),
+                // File handling in event processing
+                handle_load_json_file.in_set(GraphSystemSet::EventProcessing),
+                handle_save_json_file.in_set(GraphSystemSet::EventProcessing),
+                // Debug and DPI in state update
+                debug_camera_system.in_set(GraphSystemSet::StateUpdate),
+                update_dpi_scaling.in_set(GraphSystemSet::StateUpdate),
             ),
         )
         .add_systems(Last, track_node_despawns)
