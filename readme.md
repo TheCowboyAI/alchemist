@@ -89,26 +89,9 @@ cargo run
 
 ### Development with Nix
 
-This project uses Nix for reproducible builds and development environments. See [cache-readme.md](./cache-readme.md) for detailed information on using the local Nix cache to speed up builds.
+This project uses Nix for reproducible builds and development environments.
 
-#### Efficient Building with Cache
-
-```bash
-# RECOMMENDED: Two-step build for maximum caching
-just build-deps      # Cache all dependencies (run once)
-just build-after-deps # Build application using cached deps
-
-# Pure builds (avoids Git dirty status issues)
-just build-pure
-
-# Development shell with all tools
-just develop
-
-# Run tests
-just test
-```
-
-**Note**: Nix caching is sensitive to Git workspace status. For best performance, commit changes before building or use the pure build commands.
+**Note**: Nix caching is sensitive to Git workspace status. For best performance, commit changes before building.
 
 ## 🎯 Use Cases
 
@@ -150,17 +133,6 @@ Information Alchemist is under active development. Current focus areas:
 - [ ] AI agent integration
 - [ ] Performance optimization
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch
-3. Write tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
 
 ## 📄 License
 
