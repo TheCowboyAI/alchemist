@@ -1,70 +1,85 @@
-# Format on Save Setup for Cursor
+# Cursor Format Setup
 
-## Configuration Added
+This document explains how automatic code formatting is configured in this project.
 
-I've created the necessary configuration files to enable proper formatting for each file type:
+## Automatic Formatting with treefmt
 
-### Files Created:
-- `.vscode/settings.json` - Cursor/VS Code settings
-- `.vscode/tasks.json` - Task definition for nix fmt
-- `.vscode/keybindings.json` - Keyboard shortcuts
+This project uses `treefmt` to automatically format code on save in Cursor/VS Code. The configuration is set up to format all file types according to the rules defined in `flake.nix`.
 
-## How It Works
+### What Gets Formatted
 
-### Rust Files (.rs)
-- **Format on Save**: ✅ Enabled by default
-- **Formatter**: rustfmt with nightly features
-- **No extension needed** - works out of the box!
+- **Rust files** (.rs): Formatted with `rustfmt`
+- **Nix files** (.nix): Formatted with `nixpkgs-fmt`
 
-### Nix & TOML Files (.nix, .toml)
-- **Format on Save**: Requires "Run on Save" extension
-- **Formatter**: nix fmt (nixpkgs-fmt for .nix, configured formatter for .toml)
+### How It Works
 
-## Setup Options
+When you save any file in Cursor, the following happens:
+1. The save triggers the `emeraldwalk.runonsave` extension
+2. It runs `nix develop -c treefmt ${file}` on the saved file
+3. `treefmt` checks the file type and applies the appropriate formatter
 
-### For Rust Files
-Nothing to do! Rust files will automatically format when you save them.
+### Required Extensions
 
-### For Nix/TOML Files
+To enable format on save, you need one of these VS Code/Cursor extensions:
+- **Run on Save** by emeraldwalk (already configured)
+- **Run on Save** by pucelle (alternative, also configured)
 
-#### Option 1: Using "Run on Save" Extension (Recommended)
-1. Install the "Run on Save" extension in Cursor:
-   - Open Command Palette (Cmd/Ctrl + Shift + P)
-   - Type "Extensions: Install Extensions"
-   - Search for "Run on Save" by emeraldwalk
-   - Install it
+### Manual Formatting
 
-2. Now `.nix` and `.toml` files will automatically format on save
+You can also manually format files:
 
-#### Option 2: Manual Formatting
-- Use keyboard shortcuts: `Shift+Alt+F` or `Ctrl+K Ctrl+F`
-- Or run the task: Cmd/Ctrl + Shift + P → "Tasks: Run Task" → "nix fmt"
-- Or use the terminal: `nix fmt`
+```bash
+# Format all files in the project
+nix develop -c treefmt
 
-## What's Configured
+# Format specific files
+nix develop -c treefmt src/main.rs
 
-- ✅ Rust files use rustfmt directly (with nightly features)
-- ✅ Nix and TOML files use `nix fmt`
-- ✅ Configured terminal to use zsh (your default shell)
-- ✅ Added file cleanup (trim whitespace, add final newline)
+# Check formatting without changing files
+nix develop -c treefmt --check
+```
 
-## Testing
+### Troubleshooting
 
-### Test Rust Formatting:
-1. Open any `.rs` file
-2. Make a change (e.g., add extra spaces)
-3. Save (Cmd/Ctrl + S)
-4. File should auto-format using rustfmt
+If formatting on save isn't working:
 
-### Test Nix/TOML Formatting:
-1. Install "Run on Save" extension first
-2. Open a `.nix` or `.toml` file
-3. Make a change
-4. Save - it should format using nix fmt
+1. **Check that you're in the Nix development shell**:
+   ```bash
+   nix develop
+   ```
 
-## Troubleshooting
+2. **Verify treefmt is available**:
+   ```bash
+   which treefmt
+   ```
 
-If format-on-save isn't working:
-- **For Rust**: Check that rust-analyzer extension is installed and running
-- **For Nix/TOML**: Ensure you're in the nix devshell and "Run on Save" extension is installed
-- Check the Output panel in Cursor for any error messages
+3. **Test manual formatting**:
+   ```bash
+   treefmt --version
+   ```
+
+4. **Check VS Code output**:
+   - Open Output panel (View → Output)
+   - Select "Run on Save" from the dropdown
+   - Look for any error messages
+
+### Customizing Format Rules
+
+To modify formatting rules, edit the `treefmt.config` section in `flake.nix`:
+
+```nix
+treefmt.config = {
+  projectRootFile = "flake.nix";
+  programs = {
+    rustfmt.enable = true;
+    nixpkgs-fmt.enable = true;
+    # Add more formatters here
+  };
+};
+```
+
+After changing the configuration, reload your development shell:
+```bash
+exit
+nix develop
+```

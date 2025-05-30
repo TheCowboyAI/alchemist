@@ -11,6 +11,7 @@ This document outlines the phased implementation approach for Information Alchem
 - **Continuous Integration**: Daily builds with automated testing
 - **Event-Driven First**: All features implemented via event sourcing
 - **User Feedback**: Regular demos and feedback sessions
+- **Continuously Updated Documentation**: After changes are accepted for /doc/plan in chat, documentation is updated in /doc/publish to syncronize with the /doc/plan changes
 
 ### Principles
 1. **Working Software**: Deployable increment every sprint

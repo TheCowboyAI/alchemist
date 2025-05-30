@@ -4,6 +4,8 @@ globs: /src/*, *.toml, *.nix
 alwaysApply: false
 ---
 
+**AVOID ResMut<> WHENEVER POSSIBLE, WE USE EVENTS AND COMPONENTS**
+
 ## Component Design Principles
 **Atomic data containers**
 ```rust

@@ -75,7 +75,7 @@ Domains provide boundaries and meaning to our ECS worlds:
 ```bash
 # Clone the repository
 git clone https://github.com/thecowboyai/information-alchemist
-cd information-alchemist
+cd ia
 
 # Using Nix (recommended)
 nix develop

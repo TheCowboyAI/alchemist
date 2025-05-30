@@ -20,6 +20,11 @@
         inputs.treefmt-nix.flakeModule
       ];
 
+      # Export overlay for external use
+      flake = {
+        overlays.default = import ./nix/overlay.nix;
+      };
+
       perSystem = { config, self', inputs', pkgs, system, ... }:
         let
           # Apply rust-overlay
@@ -41,119 +46,39 @@
           };
 
           # Dependencies needed for Bevy and our project
-          nonRustDeps = with pkgs; [
-            # Audio support
-            alsa-lib
-            alsa-utils
+          nonRustDeps = import ./nix/rust-deps.nix { inherit pkgs; };
 
-            # Wayland support
-            wayland
-            wayland-protocols
-            wayland-scanner
-            libxkbcommon
+          # Main package definition
+          ia-package = import ./nix/package.nix {
+            inherit (pkgs) lib;
+            inherit pkgs nonRustDeps;
+          };
 
-            # X11 support (fallback)
-            xorg.libX11
-            xorg.libXcursor
-            xorg.libXrandr
-            xorg.libXi
-
-            # Vulkan
-            vulkan-headers
-            vulkan-loader
-            vulkan-validation-layers
-
-            # Graphics
-            libGL
-            freetype
-
-            # System libraries
-            udev
-            systemd
-            stdenv.cc.cc.lib
-            zlib
-          ];
+          # App configuration
+          ia-app = {
+            type = "app";
+            program = "${ia-package}/bin/ia";
+            meta.description = ia-package.meta.description;
+          };
         in
         {
           packages = {
-            # Main application package - simple build
-            default = pkgs.rustPlatform.buildRustPackage {
-              pname = "alchemist";
-              version = "0.1.0";
+            # Main application package
+            default = ia-package;
 
-              # Use current directory as source
-              src = pkgs.lib.cleanSourceWith {
-                src = ./.;
-                filter = path: type:
-                  let
-                    baseName = builtins.baseNameOf path;
-                    relativePath = pkgs.lib.removePrefix (toString ./.) (toString path);
-                  in
-                  # Include Rust project files
-                  (pkgs.lib.hasSuffix ".rs" path) ||
-                  (pkgs.lib.hasSuffix ".toml" path) ||
-                  (pkgs.lib.hasSuffix "Cargo.lock" path) ||
-                  # Include assets if they exist
-                  (pkgs.lib.hasInfix "/assets/" path) ||
-                  # Include directories but exclude problematic ones
-                  (type == "directory" &&
-                  !(baseName == ".git") &&
-                  !(baseName == "target") &&
-                  !(baseName == ".direnv") &&
-                  !(baseName == "result") &&
-                  !(baseName == ".cache")
-                  );
-              };
+            # Alias for clarity
+            ia = ia-package;
+          };
 
-              # Use the Cargo lock file
-              cargoLock.lockFile = ./Cargo.lock;
-
-              # Build inputs for compilation
-              buildInputs = nonRustDeps;
-              nativeBuildInputs = with pkgs; [
-                pkg-config
-                llvmPackages.clang
-                llvmPackages.bintools
-                lld
-                patchelf
-              ];
-
-              # Environment for build - configure dynamic linking properly
-              LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nonRustDeps;
-              BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
-              BEVY_ASSET_ROOT = toString ./.;
-
-              # Rust flags for dynamic linking
-              RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld";
-
-              # Skip tests (may require graphics)
-              doCheck = false;
-
-              postInstall = "";
-            };
+          # Make 'nix run' work
+          apps = {
+            default = ia-app;
+            ia = ia-app;
           };
 
           # Development shell
-          devShells.default = pkgs.mkShell {
-            buildInputs = nonRustDeps ++ [
-              rust-toolchain
-              pkgs.pkg-config
-              pkgs.llvmPackages.clang
-              pkgs.llvmPackages.bintools
-              pkgs.lld
-              # Development tools
-              pkgs.just
-              pkgs.git
-            ];
-
-            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nonRustDeps;
-            BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
-            BEVY_ASSET_ROOT = toString ./.;
-
-            # Rust flags for development
-            RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld";
-
-            shellHook = "";
+          devShells.default = import ./nix/devshell.nix {
+            inherit pkgs rust-toolchain nonRustDeps;
           };
 
           # Formatting configuration

@@ -1,9 +1,9 @@
 [package]
-name = "alchemist"
+name = "ia"
 authors = ["CowboyAI"]
-description = "Information alchemy UI"
+description = "Information Alchemist - AI-Powered Graph Editor"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 exclude = ["examples/"]
 
 [lints.clippy]
@@ -17,16 +17,23 @@ all = { level = "warn", priority = -1 }
 [workspace]
 exclude = ["examples/"]
 
+[features]
+default = []
+dev = [
+  "bevy/dynamic_linking",
+  "bevy/asset_processor",
+  "bevy/file_watcher"
+]
+
 [dependencies]
 rand = "0.9"
 egui = "0.31.1"
 eframe = "0.31.1"
-uuid = { version = "1.4", features = ["v4", "serde"] }
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 egui-snarl = "0.7.1"
 bevy = { version = "0.16.0", features = [
-  "dynamic_linking",
   "jpeg",
   "animation",
   "multi_threaded",
@@ -38,9 +45,5 @@ bevy = { version = "0.16.0", features = [
 bevy_egui = "0.34.1"
 rand_chacha = "0.9.0"
 bevy_panorbit_camera = "0.26.0"
-petgraph = { version = "0.6", features = ["serde-1"] }
-daggy = { version = "0.8", features = ["serde-1"] }
-
-[[example]]
-name = "graph_algorithms_demo"
-path = "examples/graph_algorithms_demo.rs"
+petgraph = { version = "0.8.1", features = ["serde-1"] }
+daggy = { version = "0.9.0", features = ["serde-1"] }
