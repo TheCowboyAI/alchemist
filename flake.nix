@@ -129,34 +129,7 @@
               # Skip tests (may require graphics)
               doCheck = false;
 
-              # Simple postInstall - set up library paths properly
-              postInstall = ''
-                # Set up the binary to find both system libraries and its own dylibs
-                if [ -f "$out/bin/alchemist" ]; then
-                  patchelf --set-rpath "$out/lib:${pkgs.lib.makeLibraryPath nonRustDeps}" "$out/bin/alchemist"
-                fi
-
-                # Create symlinks for Bevy dylib with the hash the binary expects
-                if [ -d "$out/lib" ] && [ -f "$out/bin/alchemist" ]; then
-                  # Find what bevy dylib the binary actually needs
-                  NEEDED_BEVY=$(patchelf --print-needed "$out/bin/alchemist" | grep "libbevy_dylib-" || true)
-                  if [ -n "$NEEDED_BEVY" ] && [ -f "$out/lib/libbevy_dylib.so" ]; then
-                    echo "Creating symlink: $NEEDED_BEVY -> libbevy_dylib.so"
-                    ln -sf libbevy_dylib.so "$out/lib/$NEEDED_BEVY"
-                  fi
-
-                  # Copy required Rust standard library
-                  NEEDED_STD=$(patchelf --print-needed "$out/bin/alchemist" | grep "libstd-" || true)
-                  if [ -n "$NEEDED_STD" ]; then
-                    STD_LIB_PATH=$(find /nix/store -name "$NEEDED_STD" -type f 2>/dev/null | head -1)
-                    if [ -n "$STD_LIB_PATH" ]; then
-                      echo "Copying Rust std lib: $NEEDED_STD"
-                      cp "$STD_LIB_PATH" "$out/lib/"
-                      chmod 755 "$out/lib/$NEEDED_STD"
-                    fi
-                  fi
-                fi
-              '';
+              postInstall = "";
             };
           };
 
@@ -180,27 +153,7 @@
             # Rust flags for development
             RUSTFLAGS = "--cfg edition2024_preview -C linker=clang -C link-arg=-fuse-ld=lld";
 
-            shellHook = ''
-              echo "Entering Alchemist development environment"
-              echo "Available commands:"
-              echo "  nix build      - Build the project"
-              echo "  nix run        - Run the project"
-              echo "  cargo build    - Build with cargo (development)"
-              echo "  cargo run      - Run with cargo (development)"
-              echo "  cargo test     - Run tests"
-              echo "  just           - See available just commands"
-              echo ""
-              echo "Library path: $LD_LIBRARY_PATH"
-
-              # Ensure proc-macro artifacts are built for rust-analyzer
-              echo "Ensuring proc-macro artifacts are available..."
-              if [ ! -d "target/debug/deps" ] || [ -z "$(find target/debug/deps -name 'lib*derive*.so' -o -name 'lib*macros*.so' 2>/dev/null)" ]; then
-                echo "Building proc-macro dependencies for rust-analyzer..."
-                cargo check --quiet 2>/dev/null || true
-              else
-                echo "Proc-macro artifacts found."
-              fi
-            '';
+            shellHook = "";
           };
 
           # Formatting configuration

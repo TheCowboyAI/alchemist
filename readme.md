@@ -1,130 +1,184 @@
 # Information Alchemist
-"ia"
-
-A program to visualize Information Architecture and Display it in a 3D World
-
-
-We use the [WebGPU standard](https://www.w3.org/TR/WGSL/)
-
-
-This World may connect to LIVE Events and Data Streams through the Event System.
-
-Incoming Events will update Observables that the Entities watch.
 
 ![The Alchemist](./alchemist.webp)
->"a person who transforms or creates something through a seemingly magical process."
+> "A person who transforms or creates something through a seemingly magical process."
 
-This is an experimental User Interface and Projection system for a CIM.
+## Visual Intelligence for the Composable Information Machine
 
-The idea is that everything in the Information System is Identified.
-It is composed of Entities (identifiable objects), Values (components), Behaviors (systems) and Events. 
+Information Alchemist is a powerful 3D-capable graph visualization and editing system that serves as the primary user interface for the Composable Information Machine (CIM). It transforms complex data relationships into intuitive, interactive visual spaces where information comes alive.
 
-These equate to our three base Models:
-  - Applied Categories
-  - Entity Component System (ECS)
-  - Domain Driven Design (DDD)
+### 🚀 Key Features
 
-## Development with Nix
+- **3D/2D Visualization**: Seamlessly switch between immersive 3D exploration and efficient 2D overview modes
+- **Subgraph Composition**: Load and compose multiple graphs while maintaining their structure as distinct subgraphs
+- **Real-time Collaboration**: Multiple users can work on the same graph simultaneously
+- **AI-Powered Insights**: Integrated AI agents provide pattern recognition and optimization suggestions
+- **Event-Driven Architecture**: Every change is captured as an event, enabling perfect audit trails
+- **High Performance**: Handles 250k+ elements at 60 FPS through advanced rendering optimizations
+- **Extensible**: WASM-based plugin system for custom algorithms and visualizations
 
-This project uses Nix for reproducible builds. See [cache-readme.md](./cache-readme.md) for detailed information on using the local Nix cache to speed up builds.
+## 📚 Documentation
 
-### Using the Local Cache Effectively
+### [Business Documentation](doc/publish/business/)
+For business leaders and decision makers - understand how Information Alchemist transforms your business through visual intelligence.
 
-For best results with the local cache:
+### [Technical Documentation](doc/publish/technical/)
+For developers and technical implementers - comprehensive guides on architecture, integration, and extension.
 
-```bash
-# NEW: Two-step build process for maximum caching efficiency
-# Step 1: Build and cache only the dependencies (do once)
-just build-deps
+### [Requirements & Planning](doc/plan/)
+Detailed requirements documentation and implementation roadmap.
 
-# Step 2: Build your application using cached dependencies (do every time)
-just build-after-deps
+## 🏗️ Architecture Overview
 
-# Check dependency cache status
-just check-deps-cache
+Information Alchemist is built on three foundational models:
 
-# HIGHLY RECOMMENDED: Build with pure inputs
-# This completely eliminates Git dirty status issues
-# and creates fully reproducible builds
-just build-pure
+### Mathematical Model
+Using Applied Category Theory to define and model information relationships:
+- **Applied Categories**: Mathematical objects that model our information worlds
+- **Category Theory**: Formal specifications for composable systems
+- **Graph Theory**: Foundation for visualizing relationships and flows
 
-# Run from a clean checkout (recommended with build-clean)
-# This avoids dirty workspace issues and ensures cache hits
-just run-clean
-
-# Clean builds from latest commit (also works well)
-# This avoids dirty workspace issues and ensures cache hits
-just build-clean
-
-# Development shell with cache
-just develop
-
-# Build with cache (works but may rebuild if workspace is dirty)
-just build
-
-# Run with cache (works but may rebuild if workspace is dirty)
-just run
-
-# Check if dependencies are in cache
-just verify-deps
-
-# Troubleshoot cache issues
-just debug-cache
-```
-
-**IMPORTANT**: A dirty Git workspace (uncommitted changes) will create unique package hashes that won't match what's in the cache. For best performance, use one of these approaches:
-
-1. **Two-step build process (RECOMMENDED)**: 
-   - First run `just build-deps` to cache all libraries
-   - Then run `just build-after-deps` for application builds
-   - This ensures libraries are only built once regardless of your application changes
-
-2. **Pure builds**:
-   - Run `just build-pure` which filters the source
-   - Creates consistent derivation hashes regardless of Git status
-
-## Understanding Nix Caching
-
-For those who are curious why dirty Git workspaces cause cache misses:
-
-1. Nix creates derivation hashes based on all inputs, including the source code
-2. When your Git workspace has uncommitted changes, the source input hash changes
-3. This creates a unique derivation hash that won't match what's in the cache
-4. The `build-pure` command works by filtering the source to only include relevant files and exclude Git metadata
-
-## Mathematical Model
-The Mathematical Model is our definition of Mathematics and how we apply it.
-
-### Applied Categories
-These are actual Categories we define using Applied Category Theory.
-Categories are Mathematical Objects which Model our Worlds.
-There are known specifications for Categories using Category Theory.
-
-## Observable Model
-The Observable Model is how we observe the system, these are User Interfaces (UIs) and Applicatiopn Programming Interfaces (APIs).
-
-### Entity Component System
-We use an Entity Component System where:
+### Observable Model (ECS)
+Built on Bevy's Entity Component System for maximum performance and flexibility:
 
 #### Components
-Components are Values
-They are collections of data structures
-No functionality is provided other than providing data
+- **Values**: Collections of data structures
+- **Properties**: Attributes and metadata
+- **No functionality**: Pure data representation
 
 #### Entities
-Identifiable Object with a Unique Identifier
-Entities are composed from Components
-An Entity is an Identified Collection of Values
+- **Identifiable Objects**: Unique identifiers for every element
+- **Component Composition**: Entities are collections of components
+- **Dynamic**: Components can be added/removed at runtime
 
 #### Systems
-Systems are behaviors and functionality which can be applied to Entities
+- **Behaviors**: Functions that operate on entities with specific components
+- **Parallel**: Systems run concurrently for performance
+- **Event-Driven**: Systems respond to and emit events
 
-## Domain Model
-Domains are the boundaries we set on collections of ECS Worlds.
+### Domain Model (DDD)
+Domains provide boundaries and meaning to our ECS worlds:
+- **Bounded Contexts**: Clear separation of concerns
+- **Ubiquitous Language**: Consistent terminology across the system
+- **Event Sourcing**: All changes captured as domain events
 
-Domains define everything about a given collection of Values, Entities containing these values, and the systems that operate on them.
+## 🛠️ Development
 
-These are the definitions of meaning we apply to the ECS world.
+### Prerequisites
+
+- Rust (latest stable)
+- Nix (for reproducible builds)
+- WASM toolchain (for plugin development)
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/thecowboyai/information-alchemist
+cd information-alchemist
+
+# Using Nix (recommended)
+nix develop
+nix build
+nix run
+
+# Or using Cargo directly
+cargo build --release
+cargo run
+```
+
+### Development with Nix
+
+This project uses Nix for reproducible builds and development environments. See [cache-readme.md](./cache-readme.md) for detailed information on using the local Nix cache to speed up builds.
+
+#### Efficient Building with Cache
+
+```bash
+# RECOMMENDED: Two-step build for maximum caching
+just build-deps      # Cache all dependencies (run once)
+just build-after-deps # Build application using cached deps
+
+# Pure builds (avoids Git dirty status issues)
+just build-pure
+
+# Development shell with all tools
+just develop
+
+# Run tests
+just test
+```
+
+**Note**: Nix caching is sensitive to Git workspace status. For best performance, commit changes before building or use the pure build commands.
+
+## 🎯 Use Cases
+
+### Business Intelligence
+- Customer journey visualization
+- Supply chain optimization
+- Risk relationship mapping
+- Process flow analysis
+
+### Software Architecture
+- System dependency graphs
+- Microservice relationships
+- Data flow visualization
+- API interaction mapping
+
+### Knowledge Management
+- Concept mapping
+- Research relationships
+- Documentation structure
+- Learning pathways
+
+## 🔌 Integration
+
+Information Alchemist integrates seamlessly with the CIM backend through:
+
+- **NATS JetStream**: Real-time event streaming
+- **GraphQL**: Flexible data queries
+- **REST API**: File import/export
+- **WebSocket**: Live collaboration
+
+## 🚦 Project Status
+
+Information Alchemist is under active development. Current focus areas:
+
+- [ ] Core graph engine implementation
+- [ ] 3D rendering pipeline
+- [ ] Event system integration
+- [ ] WASM plugin architecture
+- [ ] AI agent integration
+- [ ] Performance optimization
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Write tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+## 📄 License
+
+Information Alchemist is part of the Composable Information Machine ecosystem. See [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+Built with:
+- [Bevy Engine](https://bevyengine.org/) - Game engine and ECS framework
+- [egui](https://github.com/emilk/egui) - Immediate mode GUI
+- [petgraph](https://github.com/petgraph/petgraph) - Graph data structures
+- [NATS](https://nats.io/) - Messaging and streaming
+
+---
+
+**Information Alchemist**: Where data becomes understanding through the magic of visualization.
+
+*Part of the [Composable Information Machine](https://github.com/thecowboyai/CIM) project*
 
 
 

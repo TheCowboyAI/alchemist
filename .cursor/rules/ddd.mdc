@@ -1,0 +1,139 @@
+---
+description: DDD Best Practices
+globs:
+alwaysApply: true
+---
+
+# Domain-Driven Design Naming Convention Guideline
+
+This document establishes strict and comprehensive naming conventions for all code, documentation, and event structures within a Domain-Driven Design (DDD) project. The goal is to enforce clarity, consistency, and alignment with the Ubiquitous Language[1][5].
+
+---
+
+## **1. Ubiquitous Language**
+
+- **All names must be derived from the business domain vocabulary.**
+  - Example: Use `Invoice` instead of `InvoiceEntity` or `InvoiceComponent` or `InvoiceDTO` unless "Entity" or "DTO" are explicit business terms.
+- **Avoid technical terms and suffixes unless they are part of the domain language.**
+  - Example: Do not use `Manager`, `Helper`, or `Processor` unless these are business terms.
+- **Collaborate with domain experts to validate names and maintain a shared glossary**[5].
+- **Names must be clear, pronounceable, and free from uninterpretable acronyms.**
+- **Compound Names should be natural phrases with no whitespace and PascalCase**
+- **Keep names as concise and specific as possible**[1].
+
+---
+
+## **2. Aggregates and Entities**
+
+- **Aggregates are named as singular nouns.**
+  - Example: `Order`, `User`.
+- **Entities within aggregates are also named as singular nouns.**
+  - Example: `OrderItem` (part of the `Order` aggregate).
+- **Avoid technical suffixes unless required by the domain.**
+  - Example: Use `Order`, not `OrderAggregate`, unless "Aggregate" is a business term.
+
+---
+
+## **3. Domain Services**
+
+- **Domain services are named as `DomainService`.**
+  - Example: `UserRegistrationDomainService`, `InvoiceProcessingDomainService`.
+- **Application services are named as `Service`.**
+  - Example: `UserRegistrationService` (application layer).
+- **Distinguish clearly between domain and application services by suffixing domain services with `DomainService`.**
+
+---
+
+## **4. Repositories**
+
+- **Repositories are named as `Repository`.**
+  - Example: `OrderRepository`.
+- **Avoid generic or ambiguous repository names.**
+  - Example: Do not use `DataRepository` or `GenericRepository`.
+
+---
+
+## **5. Value Objects**
+
+- **Value objects are named as descriptive nouns or noun phrases.**
+  - Example: `Address`, `TimeRange`.
+- **Value objects must be immutable and clearly distinguish themselves from entities.**
+  - Example: `Address` (value object), `User` (entity).
+
+---
+
+## **6. Domain Events**
+
+- **Domain events are named as `Event`.**
+  - Example: `MoneyDepositedEvent`, `OrderPlacedEvent`[4].
+- **Events must be specific to the action and subject.**
+  - Example: Use `OrderShippedEvent`, not `OrderChangedEvent`.
+- **Event payloads should be minimal, immutable, and use primitive types or simple DTOs**[4].
+- **Event names must be serializable and independent of domain model classes.**
+
+---
+
+## **7. Event-Driven Architecture (Topic/Queue Naming)**
+
+- **Events related to collections or aggregates use plural names.**
+  - Example: `payments.failed`, `users.registered`[2].
+- **Events related to processes or single entities use singular names.**
+  - Example: `transaction.authorised`, `authentication.failed`[2].
+- **IF Including a version, so do so at the END of the topic name.**
+  - Example: `domain.event.v1` or `domain.event.v0.2.1`.
+- **For sub-entities or nested concepts, use plural for collections.**
+  - Example: `order.items.shipped`.
+- **Avoid embedding technical details or generic terms in event names.**
+
+---
+
+## **8. Intention-Revealing Interfaces**
+
+- **Interfaces and classes must reveal intent through their names.**
+  - Example: `InvoiceApprovalService`, not `InvoiceService`.
+- **Avoid generic or ambiguous names.**
+  - Example: Use `InvoiceApprovalService`, not `InvoiceProcessor`.
+
+---
+
+## **9. Bounded Contexts**
+
+- **Concepts must be isolated within their bounded context.**
+  - Example: `Candidate` in "sourcing" context vs. `Prospect` in "interview" context[5].
+- **Use context-specific names to avoid ambiguity.**
+  - Example: `Prospect`, `Candidate`, `Employee` for different stages.
+
+---
+
+## **10. Naming Process and Documentation**
+
+- **All naming conventions must be documented in a shared glossary.**
+- **Names must be reviewed and validated by both developers and domain experts**[5].
+- **Use collaborative modeling techniques (e.g., Event Storming) to refine names iteratively**[5].
+- **Refactor names as the domain understanding evolves.**
+
+---
+
+## **11. Enforcement and Tools**
+
+- **Use linters, style guides, or static analysis tools to enforce naming conventions.**
+- **Document exceptions and rationale for any deviation from the standard.**
+- **Regularly audit code and documentation for compliance.**
+
+---
+
+This guideline ensures that naming within your project is Domain-Driven Design consistent, domain-aligned, and maintainable.
+
+**ADHERE STRICTLY TO THESE RULES TO MINIMIZE AMBIGUITY AND MAXIMIZE CLARITY**.
+
+Citations:
+[1] https://enterprisecraftsmanship.com/posts/ubiquitous-language-naming/
+[2] https://arrangeactassert.com/posts/how-i-name-events/
+[3] https://learn.microsoft.com/en-us/archive/msdn-magazine/2009/february/best-practice-an-introduction-to-domain-driven-design
+[4] https://alexandrugris.github.io/architecture/2017/11/27/domain-driven-design-notes.html
+[5] https://www.toolify.ai/ai-news/mastering-the-art-of-naming-in-domaindriven-design-188644
+[6] https://stackoverflow.com/questions/10374844/naming-convention-for-domain-services-and-application-services-with-ddd
+[7] https://www.linkedin.com/advice/0/what-some-best-practices-naming-organizing
+[8] https://www.nexcess.net/blog/domain-naming-best-practices/
+[9] https://softwareengineering.stackexchange.com/questions/389333/efficient-techniques-to-make-a-clean-rename-of-a-ubiquitous-language-term-ddd
+[10] https://flowframework.readthedocs.io/en/7.3/TheDefinitiveGuide/PartI/ConceptsOfModernProgramming.html

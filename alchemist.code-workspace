@@ -20,7 +20,7 @@
             ".vscode/ra-target",
             "--workspace",
             "--exclude",
-            "examples"
+            "samples"
         ],
         "rust-analyzer.server.extraEnv": {
             "RUSTFLAGS": "-C target-cpu=native"
