@@ -164,23 +164,48 @@ pub struct ValidateGraph;
 
 impl ValidateGraph {
     /// Validates that an operation is allowed
-    pub fn can_add_node(&self, _graph_id: GraphIdentity) -> Result<(), ValidationError> {
+    pub fn can_add_node(&self, _graph_id: GraphIdentity) -> Result<(), GraphConstraintViolation> {
         // TODO: Implement domain rules
         Ok(())
     }
 
     pub fn can_connect_nodes(
         &self,
-        _source: NodeIdentity,
-        _target: NodeIdentity,
-    ) -> Result<(), ValidationError> {
-        // TODO: Implement domain rules (e.g., no self-loops, category constraints)
+        source: NodeIdentity,
+        target: NodeIdentity,
+    ) -> Result<(), GraphConstraintViolation> {
+        // Check for self-referencing edges
+        if source == target {
+            return Err(GraphConstraintViolation::SelfReferencingEdge { node: source });
+        }
+
+        // TODO: Implement additional domain rules
         Ok(())
     }
 }
 
-#[derive(Debug)]
-pub enum ValidationError {
-    InvalidOperation(String),
-    ConstraintViolation(String),
+/// Domain-specific constraint violations for graph operations
+#[derive(Debug, Clone)]
+pub enum GraphConstraintViolation {
+    /// Attempted to create an edge from a node to itself
+    SelfReferencingEdge { node: NodeIdentity },
+
+    /// Node exists without any connections
+    DisconnectedNode { node: NodeIdentity },
+
+    /// Graph contains a cycle when acyclic graph is required
+    CyclicDependency { path: Vec<NodeIdentity> },
+
+    /// Node category doesn't allow the requested edge type
+    InvalidEdgeCategory {
+        source: NodeIdentity,
+        target: NodeIdentity,
+        category: String
+    },
+
+    /// Maximum node count exceeded for graph
+    NodeLimitExceeded { limit: usize, current: usize },
+
+    /// Maximum edge count exceeded for node
+    EdgeLimitExceeded { node: NodeIdentity, limit: usize },
 }

@@ -5,19 +5,19 @@ use crate::contexts::graph_management::events::*;
 // ============= Visualization Services =============
 // Services that handle visual representation
 
-// ============= Animation Components =============
-// Components to track animations at different hierarchy levels
+// ============= Motion Components =============
+// Components to track motion and dynamics at different hierarchy levels
 
-/// Animation state for entire graphs
+/// Motion dynamics for entire graphs
 #[derive(Component)]
-pub struct GraphAnimation {
+pub struct GraphMotion {
     pub rotation_speed: f32,
     pub oscillation_amplitude: f32,
     pub oscillation_frequency: f32,
     pub scale_factor: f32,
 }
 
-impl Default for GraphAnimation {
+impl Default for GraphMotion {
     fn default() -> Self {
         Self {
             rotation_speed: 0.0,
@@ -28,17 +28,17 @@ impl Default for GraphAnimation {
     }
 }
 
-/// Animation state for subgraphs
+/// Orbital dynamics for subgraphs
 #[derive(Component)]
-pub struct SubgraphAnimation {
+pub struct SubgraphOrbit {
     pub local_rotation_speed: f32,
     pub orbit_radius: f32,
     pub orbit_speed: f32,
 }
 
-/// Animation state for individual nodes
+/// Pulse dynamics for individual nodes
 #[derive(Component)]
-pub struct NodeAnimation {
+pub struct NodePulse {
     pub bounce_height: f32,
     pub bounce_speed: f32,
     pub pulse_scale: f32,
@@ -130,7 +130,7 @@ impl AnimateGraphElements {
     /// Animates entire graphs (rotation, oscillation, scaling)
     pub fn animate_graphs(
         time: Res<Time>,
-        mut graphs: Query<(&mut Transform, &GraphAnimation), With<Graph>>,
+        mut graphs: Query<(&mut Transform, &GraphMotion), With<Graph>>,
     ) {
         for (mut transform, animation) in graphs.iter_mut() {
             let elapsed = time.elapsed_secs();
@@ -158,7 +158,7 @@ impl AnimateGraphElements {
     /// Animates subgraphs (local rotation, orbiting)
     pub fn animate_subgraphs(
         time: Res<Time>,
-        mut subgraphs: Query<(&mut Transform, &SubgraphAnimation), Without<Graph>>,
+        mut subgraphs: Query<(&mut Transform, &SubgraphOrbit), Without<Graph>>,
     ) {
         for (mut transform, animation) in subgraphs.iter_mut() {
             let elapsed = time.elapsed_secs();
@@ -182,7 +182,7 @@ impl AnimateGraphElements {
     /// Animates individual nodes (bouncing, pulsing)
     pub fn animate_nodes(
         time: Res<Time>,
-        mut nodes: Query<(&mut Transform, &NodeAnimation), With<crate::contexts::graph_management::domain::Node>>,
+        mut nodes: Query<(&mut Transform, &NodePulse), With<crate::contexts::graph_management::domain::Node>>,
     ) {
         for (mut transform, animation) in nodes.iter_mut() {
             let elapsed = time.elapsed_secs();
@@ -213,7 +213,7 @@ impl AnimateGraphElements {
             // Find the graph entity and add animation
             for (entity, identity) in graphs.iter_mut() {
                 if identity.0 == event.graph.0 {
-                    commands.entity(entity).insert(GraphAnimation {
+                    commands.entity(entity).insert(GraphMotion {
                         rotation_speed: 0.5, // Rotate at 0.5 rad/s
                         ..default()
                     });

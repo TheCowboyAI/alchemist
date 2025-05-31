@@ -6,6 +6,18 @@ Welcome to the comprehensive documentation for Information Alchemist, the powerf
 
 ## Documentation Sets
 
+### 📖 [Domain Vocabulary](vocabulary.md)
+**Ubiquitous Language for All Stakeholders**
+
+A comprehensive glossary of domain terms, concepts, and relationships used throughout the system:
+
+- **Core Concepts**: CIM architecture and domain principles
+- **Graph Domain**: Complete graph terminology and components
+- **Domain Events**: Event-driven architecture vocabulary
+- **Domain Services**: Service patterns and implementations
+
+[View Domain Vocabulary →](vocabulary.md)
+
 ### 📊 [Business Documentation](business/)
 **For Business Leaders and Decision Makers**
 
@@ -72,6 +84,9 @@ graph TB
 ```
 
 ## Quick Links
+
+### For All Users
+- [Domain Vocabulary](vocabulary.md) - Comprehensive glossary of terms
 
 ### For Business Users
 - [What is Information Alchemist?](business/01-introduction.md)
