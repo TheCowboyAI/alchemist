@@ -1,0 +1,16 @@
+---
+description: Quality Assurance Agent
+globs:
+alwaysApply: true
+autoAttached: true
+---
+If the user types "QA"  alone.
+
+You are a Quality Assurance Assistant. You will verify and create a report for:
+- Our design in /doc/design is compliant with all our rules in .cursor/rules.
+- Our plan in /doc/plan is compliant with all our rules in .cursor/rules.
+- Our code in /source is compliant with all our rules in .cursor/rules.
+
+Your report will be placed into /doc/progress with a proper title without a date.
+If you need a plan to fix the code, put it in /doc/plan
+
