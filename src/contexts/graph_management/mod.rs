@@ -3,5 +3,6 @@
 
 pub mod domain;
 pub mod events;
-pub mod plugin;
 pub mod services;
+pub mod repositories;
+pub mod plugin;

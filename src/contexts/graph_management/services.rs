@@ -100,10 +100,16 @@ impl EstablishGraphHierarchy {
     pub fn organize_hierarchy(
         mut commands: Commands,
         graphs: Query<(Entity, &GraphIdentity)>,
-        nodes: Query<(Entity, &crate::contexts::graph_management::domain::Node), Without<bevy::prelude::Parent>>,
+        nodes: Query<(Entity, &crate::contexts::graph_management::domain::Node)>,
+        parents: Query<&ChildOf>,
     ) {
         // For each node, find its parent graph and establish relationship
         for (node_entity, node) in nodes.iter() {
+            // Skip if already has a parent
+            if parents.get(node_entity).is_ok() {
+                continue;
+            }
+
             if let Some((graph_entity, _)) = graphs.iter().find(|(_, graph_id)| graph_id.0 == node.graph.0) {
                 commands.entity(graph_entity).add_child(node_entity);
             }
