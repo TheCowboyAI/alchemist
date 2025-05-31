@@ -2,202 +2,293 @@
 
 ## Overview
 
-This roadmap guides the implementation of the Information Alchemist Graph system following the DDD-compliant design.
+With our DDD-compliant foundation complete, this roadmap guides feature implementation for the Information Alchemist Graph system.
 
-## Phase 1: Core Foundation (Week 1-2)
+## Current State
 
-### Sprint 1: Graph Management Context
+✅ **Completed Foundation**
+- 100% DDD-compliant architecture
+- Graph Management context (core domain)
+- Visualization context (supporting domain)
+- Event-driven communication
+- Basic 3D rendering with Bevy
 
-#### Tasks
-1. **Domain Model Implementation**
-   - Graph aggregate with GraphIdentity, GraphMetadata, GraphJourney
-   - Node and Edge entities
-   - Value objects (identities, positions, content)
+## Phase 1: Persistent Storage (Week 1-2)
 
-2. **Storage Component**
-   - Implement `Graphs` (plural storage pattern)
-   - Daggy integration for graph structure
-   - Index management for fast lookups
+### Sprint 1: Daggy Integration
 
-3. **Core Services**
-   - `CreateGraph` - graph creation logic
-   - `AddNodeToGraph` - node management
-   - `ConnectGraphNodes` - edge management
-   - `ValidateGraph` - business rules
-
-4. **Domain Events**
-   - `GraphCreated`, `NodeAdded`, `EdgeConnected`
-   - Event metadata and correlation
-   - Event store foundation
-
-### Sprint 2: Event System & Persistence
+**Goal**: Replace in-memory storage with persistent graph structure
 
 #### Tasks
-1. **Event Store Implementation**
-   - Event storage by graph
-   - Event replay capability
-   - Projection support
 
-2. **Event Topics**
-   - Set up event routing
-   - Implement topic naming (graphs.created, node.added, etc.)
+1. **Implement GraphStorage with Daggy**
+   ```rust
+   pub struct GraphStorage {
+       graphs: HashMap<GraphIdentity, Dag<NodeData, EdgeData>>,
+       indices: GraphIndices,
+   }
+   ```
 
-3. **Basic Serialization**
-   - JSON format for graphs
-   - Import/export foundation
+2. **Create Sync Service**
+   ```rust
+   pub struct SyncGraphWithDaggy;  // Keeps ECS and Daggy in sync
+   ```
 
-## Phase 2: Visualization (Week 3-4)
+3. **Add Storage Service Methods**
+   - `StoreGraph` - Persist to Daggy
+   - `LoadGraph` - Restore from Daggy
+   - `QueryGraphStructure` - Graph algorithms
 
-### Sprint 3: View System
+4. **Integration Points**
+   - Hook into existing events
+   - Maintain backward compatibility
+   - Add performance monitoring
 
-#### Tasks
-1. **View Aggregates**
-   - GraphView with camera and selection state
-   - 2D/3D perspective support
+### Sprint 2: Event Persistence
 
-2. **Bevy Integration**
-   - NodeReference and EdgeReference components
-   - Sync system between Daggy and ECS
-   - Basic 3D rendering
-
-3. **Layout Service**
-   - `ApplyGraphLayout` implementation
-   - Force-directed algorithm
-   - Position management
-
-### Sprint 4: Interaction
+**Goal**: Create durable event store for replay and audit
 
 #### Tasks
-1. **Selection System**
-   - `TrackNodeSelection` service
-   - Multi-selection support
-   - Selection visualization
 
-2. **View Controls**
-   - Camera movement
-   - 2D/3D switching
-   - Zoom and pan
+1. **File-Based Event Store**
+   ```rust
+   pub struct PersistGraphEvents {
+       storage_path: PathBuf,
+       format: EventFormat,
+   }
+   ```
 
-3. **Rendering Pipeline**
-   - `RenderGraphView` service
-   - Edge visualization
-   - Node styling
+2. **Event Replay System**
+   ```rust
+   pub struct ReplayGraphEvents;  // Rebuilds state from events
+   ```
 
-## Phase 3: Analysis & Import/Export (Week 5-6)
+3. **Snapshot Mechanism**
+   - Periodic snapshots
+   - Snapshot on demand
+   - Restore from snapshot
 
-### Sprint 5: Analysis Context
+## Phase 2: Enhanced Visualization (Week 3-4)
 
-#### Tasks
-1. **Analysis Services**
-   - `AnalyzeGraph` - general analysis
-   - `FindGraphPaths` - pathfinding
-   - `CalculateGraphMetrics` - metrics
+### Sprint 3: Edge Rendering
 
-2. **Algorithms**
-   - Shortest path
-   - Cycle detection
-   - Centrality measures
-
-### Sprint 6: Import/Export Context
+**Goal**: Make edges visible and interactive
 
 #### Tasks
-1. **Format Support**
-   - `ImportGraphFormats` service
-   - `ExportGraphFormats` service
-   - JSON, Cypher, Mermaid formats
 
-2. **Validation**
-   - `ValidateImportFormat` service
-   - Schema validation
-   - Error handling
+1. **Edge Mesh Generation**
+   ```rust
+   pub struct GenerateEdgeMeshes;  // Creates line/arrow meshes
+   ```
 
-## Phase 4: Advanced Features (Week 7-8)
+2. **Edge Styling**
+   - Line thickness based on strength
+   - Arrow heads for direction
+   - Color by category
 
-### Sprint 7: Animation Context
+3. **Edge Animation**
+   ```rust
+   pub struct AnimateEdgeFlow;  // Shows data flow
+   ```
 
-#### Tasks
-1. **Timeline System**
-   - Event timeline management
-   - Playback controls
+### Sprint 4: 2D/3D Views
 
-2. **Animation Services**
-   - `ReplayGraphChanges`
-   - `AnimateTransitions`
-   - Interpolation system
-
-### Sprint 8: Collaboration Context
+**Goal**: Support multiple viewing perspectives
 
 #### Tasks
-1. **Session Management**
-   - Collaboration sessions
-   - User presence
 
-2. **Conflict Resolution**
-   - `CoordinateGraphSharing`
-   - `ResolveConflicts`
-   - Change synchronization
+1. **View Switching Service**
+   ```rust
+   pub struct ToggleGraphPerspective;  // 2D ↔ 3D
+   ```
 
-## Technical Implementation Details
+2. **2D Rendering**
+   - Orthographic camera
+   - Flat node sprites
+   - Simplified edges
 
-### Directory Structure
-```
-src/
-├── contexts/
-│   ├── graph_management/
-│   │   ├── domain/
-│   │   ├── application/
-│   │   └── infrastructure/
-│   ├── visualization/
-│   ├── analysis/
-│   ├── import_export/
-│   ├── animation/
-│   └── collaboration/
-└── shared/
-    ├── events/
-    └── types/
+3. **Layout Algorithms**
+   ```rust
+   pub struct CalculateForceDirectedLayout;
+   pub struct CalculateCircularLayout;
+   pub struct CalculateHierarchicalLayout;
+   ```
+
+## Phase 3: Import/Export (Week 5-6)
+
+### Sprint 5: Data Formats
+
+**Goal**: Enable data exchange with other tools
+
+#### Tasks
+
+1. **JSON Format**
+   ```rust
+   pub struct SerializeGraphToJson;
+   pub struct DeserializeGraphFromJson;
+   ```
+
+2. **Cypher Format**
+   ```rust
+   pub struct ExportGraphToCypher;  // Neo4j compatible
+   ```
+
+3. **Mermaid Format**
+   ```rust
+   pub struct GenerateMermaidDiagram;  // Documentation
+   ```
+
+### Sprint 6: Batch Operations
+
+**Goal**: Handle large graphs efficiently
+
+#### Tasks
+
+1. **Bulk Import**
+   ```rust
+   pub struct ImportGraphBatch;  // Efficient bulk loading
+   ```
+
+2. **Streaming Export**
+   ```rust
+   pub struct StreamGraphExport;  // Memory-efficient export
+   ```
+
+3. **Format Validation**
+   ```rust
+   pub struct ValidateImportedGraph;  // Schema validation
+   ```
+
+## Phase 4: Analysis Tools (Week 7-8)
+
+### Sprint 7: Graph Algorithms
+
+**Goal**: Provide insights into graph structure
+
+#### Tasks
+
+1. **Path Finding**
+   ```rust
+   pub struct FindShortestPath;
+   pub struct FindAllPaths;
+   pub struct CalculatePathWeight;
+   ```
+
+2. **Centrality Metrics**
+   ```rust
+   pub struct CalculateNodeCentrality;
+   pub struct CalculateBetweenness;
+   pub struct CalculatePageRank;
+   ```
+
+3. **Community Detection**
+   ```rust
+   pub struct DetectGraphCommunities;
+   pub struct CalculateModularity;
+   ```
+
+### Sprint 8: Pattern Matching
+
+**Goal**: Find specific structures in graphs
+
+#### Tasks
+
+1. **Subgraph Matching**
+   ```rust
+   pub struct FindSubgraphPattern;
+   pub struct MatchGraphTemplate;
+   ```
+
+2. **Anomaly Detection**
+   ```rust
+   pub struct DetectGraphAnomalies;
+   pub struct IdentifyOutliers;
+   ```
+
+## Implementation Guidelines
+
+### Service Implementation Pattern
+
+```rust
+// All services follow this pattern
+pub struct ServiceName;
+
+impl ServiceName {
+    pub fn execute(
+        &self,
+        // inputs
+    ) -> Result<DomainEvent, DomainError> {
+        // 1. Validate inputs
+        // 2. Perform operation
+        // 3. Return event or error
+    }
+}
 ```
 
 ### Testing Strategy
 
-1. **Unit Tests**
-   - Domain model invariants
-   - Service logic
-   - Event handling
+```rust
+#[cfg(test)]
+mod tests {
+    // Unit test each service
+    #[test]
+    fn service_handles_valid_input() { }
 
-2. **Integration Tests**
-   - Cross-context communication
-   - Event flow validation
-   - Storage persistence
+    #[test]
+    fn service_rejects_invalid_input() { }
 
-3. **End-to-End Tests**
-   - Complete user scenarios
-   - Performance benchmarks
+    // Integration test event flows
+    #[test]
+    fn events_flow_between_contexts() { }
+}
+```
 
-### Migration from Current Code
+### Performance Targets
 
-1. **Preserve Working Features**
-   - Keep current 3D visualization
-   - Maintain basic node spawning
+| Operation | Target | Max |
+|-----------|--------|-----|
+| Node render | < 1ms | 5ms |
+| Edge render | < 2ms | 10ms |
+| Layout calc | < 100ms | 500ms |
+| Path finding | < 50ms | 200ms |
+| Import/Export | < 1s/1000 nodes | 5s |
 
-2. **Gradual Migration**
-   - Implement new design alongside
-   - Switch systems one at a time
-   - Validate at each step
+## Success Criteria
 
-## Success Metrics
+### Phase 1 ✓
+- [ ] Graphs persist between sessions
+- [ ] Event history available
+- [ ] Can replay to any point
 
-- **Week 2**: Basic graph CRUD with events
-- **Week 4**: Interactive 3D visualization
-- **Week 6**: Import/export and analysis
-- **Week 8**: Full feature set
+### Phase 2 ✓
+- [ ] Edges clearly visible
+- [ ] Smooth 2D/3D switching
+- [ ] Auto-layout working
 
-## Risk Mitigation
+### Phase 3 ✓
+- [ ] Import from JSON
+- [ ] Export to Cypher
+- [ ] Batch operations fast
+
+### Phase 4 ✓
+- [ ] Find shortest paths
+- [ ] Calculate centrality
+- [ ] Detect communities
+
+## Risk Management
 
 | Risk | Mitigation |
 |------|------------|
-| Daggy learning curve | Start with simple examples, prototype early |
-| Event system complexity | Build incrementally, test thoroughly |
-| Performance concerns | Profile early, optimize critical paths |
-| Breaking changes | Feature flags, gradual rollout |
+| Daggy learning curve | Start with simple use cases, refer to examples |
+| Performance degradation | Profile early, optimize critical paths |
+| Format compatibility | Test with real-world data files |
+| Algorithm complexity | Use established libraries where possible |
 
-This roadmap ensures systematic implementation while maintaining DDD principles throughout the development process.
+## Next Steps
+
+1. **Week 1**: Begin Daggy integration
+2. **Week 2**: Implement event persistence
+3. **Week 3**: Add edge rendering
+4. **Continue**: Follow sprint schedule
+
+This roadmap ensures systematic feature development while maintaining our DDD principles and architecture quality.

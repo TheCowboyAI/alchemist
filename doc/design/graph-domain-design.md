@@ -2,13 +2,15 @@
 
 ## Overview
 
-This document defines the complete design for the Information Alchemist Graph system following strict DDD principles with pure domain language.
+This document defines the complete domain model for the Information Alchemist Graph system, following strict DDD principles with pure business language.
 
-## Domain Model
+## Core Domain Model
 
-### Core Aggregates
+### Aggregates
 
 #### Graph (Aggregate Root)
+The central concept representing a collection of nodes and edges with identity and metadata.
+
 ```rust
 pub struct Graph {
     pub identity: GraphIdentity,
@@ -18,6 +20,8 @@ pub struct Graph {
 ```
 
 #### GraphView
+A perspective on a graph with camera position and selection state.
+
 ```rust
 pub struct GraphView {
     pub identity: ViewIdentity,
@@ -29,6 +33,8 @@ pub struct GraphView {
 ```
 
 #### GraphAnalysis
+Results from analyzing a graph's structure and properties.
+
 ```rust
 pub struct GraphAnalysis {
     pub identity: AnalysisIdentity,
@@ -41,6 +47,8 @@ pub struct GraphAnalysis {
 ### Entities
 
 #### Node
+A vertex in the graph with content and position.
+
 ```rust
 pub struct Node {
     pub identity: NodeIdentity,
@@ -51,6 +59,8 @@ pub struct Node {
 ```
 
 #### Edge
+A connection between two nodes with relationship properties.
+
 ```rust
 pub struct Edge {
     pub identity: EdgeIdentity,
@@ -61,14 +71,22 @@ pub struct Edge {
 
 ### Value Objects
 
+#### Identities
+Unique identifiers for domain objects.
+
 ```rust
-// Identities
 pub struct GraphIdentity(Uuid);
 pub struct NodeIdentity(Uuid);
 pub struct EdgeIdentity(Uuid);
 pub struct ViewIdentity(Uuid);
+pub struct AnalysisIdentity(Uuid);
+pub struct EventIdentity(Uuid);
+```
 
-// Metadata
+#### Graph Metadata
+Descriptive information about a graph.
+
+```rust
 pub struct GraphMetadata {
     pub name: String,
     pub description: String,
@@ -77,14 +95,23 @@ pub struct GraphMetadata {
     pub modified: SystemTime,
     pub tags: Vec<String>,
 }
+```
 
-// Content
+#### Node Content
+The data contained within a node.
+
+```rust
 pub struct NodeContent {
     pub label: String,
     pub category: String,
     pub properties: Properties,
 }
+```
 
+#### Edge Relationship
+The connection details between nodes.
+
+```rust
 pub struct EdgeRelationship {
     pub source: NodeIdentity,
     pub target: NodeIdentity,
@@ -92,14 +119,22 @@ pub struct EdgeRelationship {
     pub strength: f32,
     pub properties: Properties,
 }
+```
 
-// Positioning
+#### Spatial Position
+Location in 2D and 3D space.
+
+```rust
 pub struct SpatialPosition {
     pub coordinates_3d: Vec3,
     pub coordinates_2d: Vec2,
 }
+```
 
-// Journey tracking
+#### Graph Journey
+The history and version tracking of a graph.
+
+```rust
 pub struct GraphJourney {
     pub version: u64,
     pub event_count: u64,
@@ -109,9 +144,10 @@ pub struct GraphJourney {
 
 ## Domain Events
 
-Following Rule #6: No "Event" suffix - events are past-tense facts.
+All events are past-tense facts without technical suffixes.
 
-### Graph Management Events
+### Graph Lifecycle Events
+
 ```rust
 pub struct GraphCreated {
     pub graph: GraphIdentity,
@@ -137,6 +173,32 @@ pub struct NodeRemoved {
     pub node: NodeIdentity,
 }
 
+pub struct EdgeDisconnected {
+    pub graph: GraphIdentity,
+    pub edge: EdgeIdentity,
+}
+
+pub struct NodeMoved {
+    pub graph: GraphIdentity,
+    pub node: NodeIdentity,
+    pub from: SpatialPosition,
+    pub to: SpatialPosition,
+}
+
+pub struct PropertyUpdated {
+    pub graph: GraphIdentity,
+    pub target: PropertyTarget,
+    pub property: String,
+    pub old_value: Option<PropertyValue>,
+    pub new_value: PropertyValue,
+}
+
+pub struct LabelApplied {
+    pub graph: GraphIdentity,
+    pub target: LabelTarget,
+    pub label: String,
+}
+
 pub struct GraphDeleted {
     pub graph: GraphIdentity,
     pub reason: DeletionReason,
@@ -144,6 +206,7 @@ pub struct GraphDeleted {
 ```
 
 ### Visualization Events
+
 ```rust
 pub struct GraphViewChanged {
     pub view: ViewIdentity,
@@ -156,6 +219,10 @@ pub struct NodeSelected {
     pub node: NodeIdentity,
 }
 
+pub struct SelectionCleared {
+    pub view: ViewIdentity,
+}
+
 pub struct LayoutCalculated {
     pub graph: GraphIdentity,
     pub layout_type: LayoutType,
@@ -163,209 +230,247 @@ pub struct LayoutCalculated {
 }
 ```
 
-## Domain Components
-
-Following Rule #3: ServiceContext pattern (verb phrases).
-
-### Graph Management Context
+### Analysis Events
 
 ```rust
-// Storage (Rule #4: plural domain context)
-pub struct Graphs {
-    storage: HashMap<GraphIdentity, Graph>,
-    index: GraphIndex,
+pub struct PathFound {
+    pub analysis: AnalysisIdentity,
+    pub source: NodeIdentity,
+    pub target: NodeIdentity,
+    pub path: Vec<NodeIdentity>,
 }
 
-// Services (verb phrases revealing intent)
-pub struct CreateGraph {
-    graphs: Graphs,
+pub struct MetricsCalculated {
+    pub analysis: AnalysisIdentity,
+    pub graph: GraphIdentity,
+    pub metrics: GraphMetrics,
 }
 
-pub struct AddNodeToGraph {
-    graphs: Graphs,
-}
-
-pub struct ConnectGraphNodes {
-    graphs: Graphs,
-}
-
-pub struct ValidateGraph {
-    rules: Vec<GraphRule>,
+pub struct PatternDetected {
+    pub analysis: AnalysisIdentity,
+    pub pattern_type: PatternType,
+    pub nodes: Vec<NodeIdentity>,
 }
 ```
 
-### Visualization Context
+## Domain Services
+
+All services use verb phrases that reveal their intent.
+
+### Graph Management Services
 
 ```rust
-pub struct ApplyGraphLayout {
-    algorithms: HashMap<LayoutType, LayoutAlgorithm>,
-}
+/// Creates new graphs with metadata
+pub struct CreateGraph;
 
-pub struct TrackNodeSelection {
-    selections: HashMap<ViewIdentity, SelectionState>,
-}
+/// Adds nodes to existing graphs
+pub struct AddNodeToGraph;
 
-pub struct RenderGraphView {
-    renderers: HashMap<ViewMode, ViewRenderer>,
-}
+/// Connects nodes with edges
+pub struct ConnectGraphNodes;
+
+/// Validates graph structure and constraints
+pub struct ValidateGraph;
+
+/// Removes nodes from graphs
+pub struct RemoveNodeFromGraph;
+
+/// Disconnects edges between nodes
+pub struct DisconnectGraphNodes;
+
+/// Updates properties on graph elements
+pub struct UpdateGraphProperties;
 ```
 
-### Analysis Context
+### Visualization Services
 
 ```rust
-pub struct AnalyzeGraph {
-    algorithms: AlgorithmLibrary,
-}
+/// Calculates optimal node positions
+pub struct ApplyGraphLayout;
 
-pub struct FindGraphPaths {
-    pathfinding: PathfindingAlgorithms,
-}
+/// Tracks user selections in views
+pub struct TrackNodeSelection;
 
-pub struct CalculateGraphMetrics {
-    calculators: MetricCalculators,
-}
+/// Renders graphs to the screen
+pub struct RenderGraphView;
+
+/// Switches between 2D and 3D views
+pub struct ToggleViewPerspective;
+
+/// Controls camera movement
+pub struct ControlGraphCamera;
+
+/// Animates graph changes
+pub struct AnimateGraphElements;
 ```
 
-### Import/Export Context
+### Analysis Services
 
 ```rust
-pub struct ImportGraphFormats {
-    importers: HashMap<FormatType, GraphImporter>,
-}
+/// Analyzes graph structure and properties
+pub struct AnalyzeGraph;
 
-pub struct ExportGraphFormats {
-    exporters: HashMap<FormatType, GraphExporter>,
-}
+/// Finds paths between nodes
+pub struct FindGraphPaths;
 
-pub struct ValidateImportFormat {
-    validators: HashMap<FormatType, FormatValidator>,
-}
+/// Calculates graph metrics
+pub struct CalculateGraphMetrics;
+
+/// Detects patterns in graph structure
+pub struct DetectGraphPatterns;
+
+/// Identifies graph communities
+pub struct FindGraphCommunities;
+```
+
+### Import/Export Services
+
+```rust
+/// Imports graphs from various formats
+pub struct ImportGraphData;
+
+/// Exports graphs to various formats
+pub struct ExportGraphData;
+
+/// Validates imported data
+pub struct ValidateGraphData;
+
+/// Transforms between formats
+pub struct TransformGraphFormat;
+```
+
+## Storage Components
+
+Storage uses plural domain terms.
+
+```rust
+/// Storage for graph aggregates
+pub struct Graphs;
+
+/// Storage for graph events
+pub struct GraphEvents;
+
+/// Index for fast node lookups
+pub struct Nodes;
+
+/// Index for edge traversal
+pub struct Edges;
+
+/// Storage for analysis results
+pub struct Analyses;
+
+/// Storage for view states
+pub struct Views;
 ```
 
 ## Event Topics
 
-Following Rule #7: Event topic naming.
+Following domain-driven topic naming.
 
-### Collection Events (plural)
+### Collection Topics (plural)
 - `graphs.created`
 - `nodes.added`
 - `edges.connected`
+- `nodes.removed`
+- `edges.disconnected`
 
-### Single Entity Events (singular)
+### Entity Topics (singular)
 - `graph.deleted`
 - `node.selected`
+- `node.moved`
 - `view.changed`
+- `layout.calculated`
 
 ## Bounded Contexts
 
 ### 1. Graph Management (Core Domain)
-- **Purpose**: Manage graph lifecycle and structure
-- **Language**: Graph, Node, Edge, Connection
-- **Components**: Graphs, CreateGraph, ValidateGraph
+**Purpose**: Manage graph structure and lifecycle
+**Language**: Graph, Node, Edge, Connection, Relationship
+**Services**: CreateGraph, AddNodeToGraph, ConnectGraphNodes, ValidateGraph
+**Storage**: Graphs, GraphEvents, Nodes, Edges
 
 ### 2. Visualization (Supporting Domain)
-- **Purpose**: Display and interact with graphs
-- **Language**: View, Layout, Selection, Camera
-- **Components**: ApplyGraphLayout, RenderGraphView
+**Purpose**: Display and interact with graphs
+**Language**: View, Perspective, Camera, Selection, Layout
+**Services**: RenderGraphView, ApplyGraphLayout, TrackNodeSelection
+**Storage**: Views
 
 ### 3. Analysis (Supporting Domain)
-- **Purpose**: Analyze graph properties and patterns
-- **Language**: Path, Metric, Algorithm, Pattern
-- **Components**: AnalyzeGraph, FindGraphPaths
+**Purpose**: Analyze graph properties and patterns
+**Language**: Path, Metric, Pattern, Community, Centrality
+**Services**: AnalyzeGraph, FindGraphPaths, CalculateGraphMetrics
+**Storage**: Analyses
 
 ### 4. Import/Export (Supporting Domain)
-- **Purpose**: Serialize graphs to various formats
-- **Language**: Format, Schema, Validation
-- **Components**: ImportGraphFormats, ExportGraphFormats
+**Purpose**: Transform graphs between formats
+**Language**: Format, Schema, Transformation, Validation
+**Services**: ImportGraphData, ExportGraphData, ValidateGraphData
 
-### 5. Collaboration (Generic Subdomain)
-- **Purpose**: Enable multi-user graph editing
-- **Language**: Session, Collaborator, Conflict
-- **Components**: CoordinateGraphSharing, ResolveConflicts
+### 5. Animation (Supporting Domain)
+**Purpose**: Animate graph changes over time
+**Language**: Motion, Transition, Timeline, Replay
+**Services**: AnimateGraphElements, ReplayGraphChanges
 
-### 6. Animation (Supporting Domain)
-- **Purpose**: Animate graph changes over time
-- **Language**: Timeline, Replay, Transition
-- **Components**: ReplayGraphChanges, AnimateTransitions
+### 6. Collaboration (Generic Subdomain)
+**Purpose**: Enable multi-user graph editing
+**Language**: Session, Participant, Conflict, Synchronization
+**Services**: ShareGraphSession, ResolveEditConflicts
 
-## Implementation Architecture
+## Context Integration
 
-### Storage Layer (Daggy Integration)
+### Event Flow Between Contexts
 
-```rust
-pub struct GraphStorage {
-    graphs: HashMap<GraphIdentity, daggy::Dag<NodeData, EdgeData>>,
-    node_indices: HashMap<(GraphIdentity, NodeIdentity), daggy::NodeIndex>,
-    edge_indices: HashMap<(GraphIdentity, EdgeIdentity), daggy::EdgeIndex>,
-}
+```
+Graph Management → (GraphCreated) → Visualization
+                                 → Analysis
+                                 → Animation
+
+Visualization → (NodeSelected) → Graph Management
+                             → Analysis
+
+Analysis → (PatternDetected) → Visualization
+                           → Graph Management
 ```
 
-### Event Store
+### Integration Patterns
 
-```rust
-pub struct EventStore {
-    events: HashMap<GraphIdentity, Vec<DomainEvent>>,
-    projections: HashMap<ProjectionType, Projection>,
-}
-```
+1. **Event-Driven**: Contexts communicate through domain events
+2. **Eventual Consistency**: Each context maintains its own view
+3. **No Shared State**: Contexts are completely autonomous
+4. **Clear Boundaries**: No direct dependencies between contexts
 
-### ECS Integration (Bevy)
+## Implementation Guidelines
 
-```rust
-// Reference components for visualization
-#[derive(Component)]
-struct NodeReference {
-    graph: GraphIdentity,
-    node: NodeIdentity,
-    dag_index: daggy::NodeIndex,
-}
+### Domain Model Implementation
+- Use strong typing for all identities
+- Implement value objects as immutable
+- Validate invariants in constructors
+- Keep aggregates small and focused
 
-#[derive(Component)]
-struct EdgeReference {
-    graph: GraphIdentity,
-    edge: EdgeIdentity,
-    dag_index: daggy::EdgeIndex,
-}
-```
+### Service Implementation
+- Services should be stateless when possible
+- Use dependency injection for storage
+- Return events or results, not void
+- Handle errors with domain-specific types
 
-## Example Usage
+### Event Implementation
+- Events must be immutable
+- Include all necessary data for replay
+- Use primitive types or value objects
+- Design for schema evolution
 
-```rust
-// Creating a graph
-let graphs = Graphs::new();
-let create_graph = CreateGraph::new(graphs);
-let graph_created = create_graph.execute(GraphMetadata {
-    name: "Knowledge Graph".into(),
-    domain: "research".into(),
-    ..default()
-});
-
-// Adding nodes
-let add_node = AddNodeToGraph::new(graphs);
-let node_added = add_node.execute(
-    graph_created.graph,
-    NodeContent {
-        label: "Rust".into(),
-        category: "Technology".into(),
-        properties: Properties::new(),
-    },
-    SpatialPosition::at(0.0, 0.0, 0.0),
-);
-
-// Applying layout
-let layout_engine = ApplyGraphLayout::new();
-let layout_calculated = layout_engine.execute(
-    graph_created.graph,
-    LayoutType::ForceDirected,
-);
-```
+### Storage Implementation
+- Abstract storage behind domain interfaces
+- Use appropriate data structures (Daggy for graphs)
+- Implement proper indexing for performance
+- Support event sourcing patterns
 
 ## Key Principles
 
-1. **Pure Domain Language**: No technical suffixes or patterns
-2. **Verb Phrases for Services**: Components that do things use ServiceContext pattern
-3. **Plural for Storage**: Storage components use plural domain terms
-4. **Event as Facts**: Events are named as past-tense facts without "Event" suffix
-5. **Clear Intent**: All names reveal their purpose in domain terms
+1. **Pure Domain Language**: No technical terms or patterns
+2. **Verb Phrases for Actions**: Services that do things
+3. **Plural for Collections**: Storage of multiple items
+4. **Past-Tense for Facts**: Events that happened
+5. **Clear Intent**: Names reveal business purpose
 
-This design ensures consistency with DDD principles and enables reliable knowledge graph extraction from the codebase.
+This design enables reliable domain model extraction and maintains consistency with business language throughout the system.
