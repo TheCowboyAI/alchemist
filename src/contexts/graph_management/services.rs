@@ -18,19 +18,24 @@ impl CreateGraph {
         let identity = GraphIdentity::new();
         let journey = GraphJourney::default();
 
-        let graph = Graph {
+        // Create graph entity
+        let graph = crate::contexts::graph_management::domain::Graph {
             identity,
             metadata: metadata.clone(),
             journey: journey.clone(),
         };
 
-        // Spawn the graph entity
-        commands.spawn(GraphBundle {
-            graph,
-            identity,
-            metadata: metadata.clone(),
-            journey,
-        });
+        // Spawn the graph entity with Transform for hierarchy
+        commands.spawn((
+            GraphBundle {
+                graph,
+                identity,
+                metadata: metadata.clone(),
+                journey,
+            },
+            Transform::default(),
+            GlobalTransform::default(),
+        ));
 
         // Emit the domain event
         events.write(GraphCreated {
@@ -57,6 +62,7 @@ impl AddNodeToGraph {
     ) -> NodeIdentity {
         let node_id = NodeIdentity::new();
 
+        // Create the node entity with all fields
         let node = crate::contexts::graph_management::domain::Node {
             identity: node_id,
             graph: graph_id,
@@ -64,17 +70,17 @@ impl AddNodeToGraph {
             position,
         };
 
-        // Spawn the node entity
+        // Spawn the node with components
         commands.spawn(NodeBundle {
             node,
             identity: node_id,
-            position,
             content: content.clone(),
+            position,
             transform: Transform::from_translation(position.coordinates_3d),
             global_transform: GlobalTransform::default(),
         });
 
-        // Emit the domain event
+        // Emit event
         events.write(NodeAdded {
             graph: graph_id,
             node: node_id,
@@ -83,6 +89,25 @@ impl AddNodeToGraph {
         });
 
         node_id
+    }
+}
+
+/// Service to establish parent-child relationships in the scene graph
+pub struct EstablishGraphHierarchy;
+
+impl EstablishGraphHierarchy {
+    /// System that establishes parent-child relationships between graphs and nodes
+    pub fn organize_hierarchy(
+        mut commands: Commands,
+        graphs: Query<(Entity, &GraphIdentity)>,
+        nodes: Query<(Entity, &crate::contexts::graph_management::domain::Node), Without<bevy::prelude::Parent>>,
+    ) {
+        // For each node, find its parent graph and establish relationship
+        for (node_entity, node) in nodes.iter() {
+            if let Some((graph_entity, _)) = graphs.iter().find(|(_, graph_id)| graph_id.0 == node.graph.0) {
+                commands.entity(graph_entity).add_child(node_entity);
+            }
+        }
     }
 }
 
@@ -110,7 +135,7 @@ impl ConnectGraphNodes {
             properties: HashMap::new(),
         };
 
-        let edge = Edge {
+        let edge = crate::contexts::graph_management::domain::Edge {
             identity: edge_id,
             graph: graph_id,
             relationship: relationship.clone(),

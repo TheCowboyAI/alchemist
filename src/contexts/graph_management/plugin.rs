@@ -22,6 +22,8 @@ impl Plugin for GraphManagementPlugin {
             .add_event::<SubgraphImported>()
             .add_event::<SubgraphExtracted>()
             .add_event::<InterSubgraphEdgeCreated>()
+            // Add hierarchy system
+            .add_systems(Update, EstablishGraphHierarchy::organize_hierarchy)
             // Add startup system to create example
             .add_systems(Startup, create_example_graph);
     }

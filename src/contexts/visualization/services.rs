@@ -5,6 +5,46 @@ use crate::contexts::graph_management::events::*;
 // ============= Visualization Services =============
 // Services that handle visual representation
 
+// ============= Animation Components =============
+// Components to track animations at different hierarchy levels
+
+/// Animation state for entire graphs
+#[derive(Component)]
+pub struct GraphAnimation {
+    pub rotation_speed: f32,
+    pub oscillation_amplitude: f32,
+    pub oscillation_frequency: f32,
+    pub scale_factor: f32,
+}
+
+impl Default for GraphAnimation {
+    fn default() -> Self {
+        Self {
+            rotation_speed: 0.0,
+            oscillation_amplitude: 0.0,
+            oscillation_frequency: 0.0,
+            scale_factor: 1.0,
+        }
+    }
+}
+
+/// Animation state for subgraphs
+#[derive(Component)]
+pub struct SubgraphAnimation {
+    pub local_rotation_speed: f32,
+    pub orbit_radius: f32,
+    pub orbit_speed: f32,
+}
+
+/// Animation state for individual nodes
+#[derive(Component)]
+pub struct NodeAnimation {
+    pub bounce_height: f32,
+    pub bounce_speed: f32,
+    pub pulse_scale: f32,
+    pub pulse_speed: f32,
+}
+
 /// Service to render graph elements in 3D space
 pub struct RenderGraphElements;
 
@@ -83,16 +123,105 @@ impl HandleUserInput {
     }
 }
 
-/// Service to animate transitions between states
-pub struct AnimateTransitions;
+/// Service to animate graph elements at all hierarchy levels
+pub struct AnimateGraphElements;
 
-impl AnimateTransitions {
-    /// Animates node movement - will need to track movement state separately
-    pub fn animate_position(
-        _time: Res<Time>,
-        // TODO: Create a MovementAnimation component to track animations
+impl AnimateGraphElements {
+    /// Animates entire graphs (rotation, oscillation, scaling)
+    pub fn animate_graphs(
+        time: Res<Time>,
+        mut graphs: Query<(&mut Transform, &GraphAnimation), With<Graph>>,
     ) {
-        // TODO: Implement smooth position interpolation
+        for (mut transform, animation) in graphs.iter_mut() {
+            let elapsed = time.elapsed_secs();
+
+            // Apply continuous rotation
+            if animation.rotation_speed != 0.0 {
+                transform.rotate_y(animation.rotation_speed * time.delta_secs());
+            }
+
+            // Apply oscillation
+            if animation.oscillation_amplitude > 0.0 {
+                let oscillation = animation.oscillation_amplitude
+                    * (elapsed * animation.oscillation_frequency).sin();
+                transform.translation.y = oscillation;
+            }
+
+            // Apply scaling
+            if animation.scale_factor != 1.0 {
+                let scale = Vec3::splat(animation.scale_factor);
+                transform.scale = scale;
+            }
+        }
+    }
+
+    /// Animates subgraphs (local rotation, orbiting)
+    pub fn animate_subgraphs(
+        time: Res<Time>,
+        mut subgraphs: Query<(&mut Transform, &SubgraphAnimation), Without<Graph>>,
+    ) {
+        for (mut transform, animation) in subgraphs.iter_mut() {
+            let elapsed = time.elapsed_secs();
+
+            // Apply local rotation
+            if animation.local_rotation_speed != 0.0 {
+                transform.rotate_y(animation.local_rotation_speed * time.delta_secs());
+            }
+
+            // Apply orbital motion
+            if animation.orbit_radius > 0.0 {
+                let angle = elapsed * animation.orbit_speed;
+                let x = angle.cos() * animation.orbit_radius;
+                let z = angle.sin() * animation.orbit_radius;
+                transform.translation.x = x;
+                transform.translation.z = z;
+            }
+        }
+    }
+
+    /// Animates individual nodes (bouncing, pulsing)
+    pub fn animate_nodes(
+        time: Res<Time>,
+        mut nodes: Query<(&mut Transform, &NodeAnimation), With<crate::contexts::graph_management::domain::Node>>,
+    ) {
+        for (mut transform, animation) in nodes.iter_mut() {
+            let elapsed = time.elapsed_secs();
+
+            // Apply bouncing
+            if animation.bounce_height > 0.0 {
+                let bounce = animation.bounce_height
+                    * (elapsed * animation.bounce_speed).sin().abs();
+                transform.translation.y += bounce;
+            }
+
+            // Apply pulsing
+            if animation.pulse_scale > 0.0 {
+                let pulse = 1.0 + animation.pulse_scale
+                    * (elapsed * animation.pulse_speed).sin();
+                transform.scale = Vec3::splat(pulse);
+            }
+        }
+    }
+
+    /// Start graph rotation on event
+    pub fn handle_graph_animation_events(
+        mut events: EventReader<GraphCreated>,
+        mut graphs: Query<(Entity, &GraphIdentity)>,
+        mut commands: Commands,
+    ) {
+        for event in events.read() {
+            // Find the graph entity and add animation
+            for (entity, identity) in graphs.iter_mut() {
+                if identity.0 == event.graph.0 {
+                    commands.entity(entity).insert(GraphAnimation {
+                        rotation_speed: 0.5, // Rotate at 0.5 rad/s
+                        ..default()
+                    });
+                    info!("Started rotation animation for graph: {}", identity.0);
+                    break;
+                }
+            }
+        }
     }
 }
 
