@@ -402,6 +402,160 @@
 - **Usage Context**: Dynamic graph visualization
 - **Code Reference**: `src/contexts/visualization/services.rs`
 
+### Term: UpdateVisualizationState
+- **Category**: Visualization Service
+- **Type**: Service
+- **Taxonomy**: Graph Visualization
+- **Definition**: Service responsible for handling visualization state updates based on events
+- **Relationships**:
+  * Responds-To: EdgeTypeChanged, RenderModeChanged
+  * Updates: CurrentVisualizationSettings
+  * Follows: Event-driven pattern
+- **Usage Context**: Managing visualization state changes through events
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: ControlCamera
+- **Category**: Visualization Service
+- **Type**: Service
+- **Taxonomy**: Graph Visualization
+- **Definition**: Service responsible for camera setup and control in 3D graph visualization
+- **Relationships**:
+  * Controls: Camera3d
+  * Responds-To: Keyboard input
+  * Enables: User navigation
+- **Usage Context**: Camera manipulation for graph exploration
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: EdgeVisual
+- **Category**: Domain Object
+- **Type**: Component
+- **Taxonomy**: Graph Visualization
+- **Definition**: Component containing visual properties for edge rendering including color, thickness, and edge type
+- **Relationships**:
+  * Attached-To: Edge entities
+  * Contains: Color, Thickness, EdgeType
+  * Used-By: RenderGraphElements
+- **Usage Context**: Defining visual appearance of edges
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: EdgeType
+- **Category**: Domain Object
+- **Type**: Enum
+- **Taxonomy**: Graph Visualization
+- **Definition**: Enumeration of different edge rendering styles: Line, Cylinder, Arc, Bezier
+- **Relationships**:
+  * Part-Of: EdgeVisual
+  * Options: Line, Cylinder, Arc, Bezier
+  * Default: Cylinder
+- **Usage Context**: Selecting edge visualization style
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: RenderMode
+- **Category**: Domain Object
+- **Type**: Enum
+- **Taxonomy**: Graph Visualization
+- **Definition**: Enumeration of different rendering modes for graph elements: Mesh, PointCloud, Wireframe, Billboard
+- **Relationships**:
+  * Part-Of: VisualizationCapability
+  * Options: Mesh, PointCloud, Wireframe, Billboard
+  * Default: Mesh
+- **Usage Context**: Selecting overall rendering approach
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: VisualizationCapability
+- **Category**: Domain Object
+- **Type**: Component
+- **Taxonomy**: Graph Visualization
+- **Definition**: Component describing rendering capabilities including render mode, instancing support, and level of detail
+- **Relationships**:
+  * Attached-To: Visual entities
+  * Contains: RenderMode, instancing flags, LOD settings
+  * Supports: Future rendering extensions
+- **Usage Context**: Defining rendering capabilities and options
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: CurrentVisualizationSettings
+- **Category**: Domain Object
+- **Type**: Component
+- **Taxonomy**: Graph Visualization
+- **Definition**: Component holding current visualization state including active edge type and render mode
+- **Relationships**:
+  * Contains: EdgeType, RenderMode
+  * Updated-By: UpdateVisualizationState
+  * Stored-On: Settings entity
+- **Usage Context**: Maintaining current visualization preferences
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: NodePointCloud
+- **Category**: Domain Object
+- **Type**: Component
+- **Taxonomy**: Graph Visualization
+- **Definition**: Component containing point cloud data for node visualization including points, colors, and sizes
+- **Relationships**:
+  * Represents: Node as point cloud
+  * Contains: Vec<Vec3> points, Vec<Color> colors, Vec<f32> sizes
+  * Generated-By: RenderGraphElements
+- **Usage Context**: Point cloud representation of nodes (future feature)
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: EdgePointCloud
+- **Category**: Domain Object
+- **Type**: Component
+- **Taxonomy**: Graph Visualization
+- **Definition**: Component containing point cloud data for edge visualization with interpolation samples
+- **Relationships**:
+  * Represents: Edge as point cloud
+  * Contains: Points, Colors, Sizes, Interpolation samples
+  * Generated-By: RenderGraphElements
+- **Usage Context**: Point cloud representation of edges (future feature)
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: EdgeTypeChanged
+- **Category**: Domain Event
+- **Type**: Event
+- **Taxonomy**: Graph Visualization Events
+- **Definition**: Event recording that the default edge rendering type has been changed
+- **Relationships**:
+  * Contains: New EdgeType
+  * Handled-By: UpdateVisualizationState
+  * Triggered-By: User input
+- **Usage Context**: Changing edge visualization style
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: RenderModeChanged
+- **Category**: Domain Event
+- **Type**: Event
+- **Taxonomy**: Graph Visualization Events
+- **Definition**: Event recording that the default render mode has been changed
+- **Relationships**:
+  * Contains: New RenderMode
+  * Handled-By: UpdateVisualizationState
+  * Triggered-By: User input
+- **Usage Context**: Changing overall rendering approach
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: VisualizationUpdateRequested
+- **Category**: Domain Event
+- **Type**: Event
+- **Taxonomy**: Graph Visualization Events
+- **Definition**: Request event to update visualization for a specific entity
+- **Relationships**:
+  * Contains: Entity, RenderMode
+  * For: Future per-entity updates
+- **Usage Context**: Requesting visualization changes for specific entities
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
+### Term: ConvertToPointCloud
+- **Category**: Domain Event
+- **Type**: Event
+- **Taxonomy**: Graph Visualization Events
+- **Definition**: Request event to convert an entity to point cloud representation
+- **Relationships**:
+  * Contains: Entity, Density
+  * For: Future point cloud conversion
+- **Usage Context**: Converting entities to point cloud visualization
+- **Code Reference**: `src/contexts/visualization/services.rs`
+
 ### Term: GraphConstraintViolation
 - **Category**: Domain Object
 - **Type**: Error Type
