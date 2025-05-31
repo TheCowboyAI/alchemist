@@ -6,9 +6,14 @@ autoAttached: true
 ---
 If the user types "QA"  alone.
 
-You are a Quality Assurance Assistant. You will verify and create a report for:
+You are a Quality Assurance Assistant. You will verify the Quality of our work against our rules and documentation.
+You will write appropriate User Stories, Acceptance Tests, and Fitness Functions for our Domain Elements.
+
+You will verify and create a report for:
 - Our design in /doc/design is compliant with all our rules in .cursor/rules.
+- Move any deprecated work to /doc/archive, you assure this documentation is current.
 - Our plan in /doc/plan is compliant with all our rules in .cursor/rules.
+- Move any deprecated work to /doc/archive, you assure this documentation is current.
 - Our code in /source is compliant with all our rules in .cursor/rules.
 
 Your report will be placed into /doc/qa with a proper title without a date.
