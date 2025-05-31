@@ -64,8 +64,8 @@ struct GraphEdge {
 - [ ] Basic material system
 
 #### Technical Tasks
-- Implement `CameraSystem` with orbital controls
-- Create `RenderingSystem` for mesh generation
+- Implement `ControlCamera` with orbital controls
+- Create `RenderGraphElements` for mesh generation
 - Add `MaterialResource` for visual styles
 - Implement frustum culling
 
@@ -86,11 +86,11 @@ struct GraphEdge {
 #### Domain Events
 ```rust
 // Events to implement
-enum GraphEvent {
-    GraphCreatedEvent { id: GraphId, metadata: GraphMetadata },
-    NodeAddedEvent { graph_id: GraphId, node: NodeData },
-    EdgeCreatedEvent { graph_id: GraphId, edge: EdgeData },
-    ElementSelectedEvent { element_id: ElementId },
+enum GraphDomainEvent {
+    GraphCreated { id: GraphId, metadata: GraphMetadata },
+    NodeAdded { graph_id: GraphId, node: NodeData },
+    EdgeCreated { graph_id: GraphId, edge: EdgeData },
+    ElementSelected { element_id: ElementId },
 }
 ```
 
@@ -119,7 +119,7 @@ Add advanced visualization features and user interaction capabilities.
 - [ ] Mode-specific controls
 
 #### Technical Implementation
-- Extend `CameraSystem` for dual modes
+- Extend `ControlCamera` for dual modes
 - Implement view transition animations
 - Add 2D-specific rendering optimizations
 - Create mode-aware input handling
@@ -138,19 +138,30 @@ Add advanced visualization features and user interaction capabilities.
 - [ ] Multi-selection support
 - [ ] Context menus
 
-#### Interaction Systems
+#### Interaction Services
 ```rust
-// Systems to implement
-fn drag_system(
-    mouse: Res<MouseState>,
-    selected: Query<&Selected>,
-    transform: Query<&mut Transform>,
-) { /* ... */ }
+// Services to implement
+struct HandleNodeDragging {
+    mouse_state: MouseState,
+    selected_nodes: SelectedNodes,
+}
 
-fn edge_creation_system(
-    drag_state: Res<DragState>,
-    nodes: Query<&GraphNode>,
-) { /* ... */ }
+impl HandleNodeDragging {
+    fn process_drag(&self, transform: &mut Transform) {
+        // Drag logic
+    }
+}
+
+struct CreateEdgeByDragging {
+    drag_state: DragState,
+    graph_nodes: GraphNodes,
+}
+
+impl CreateEdgeByDragging {
+    fn complete_edge_creation(&self) -> Option<EdgeCreated> {
+        // Edge creation logic
+    }
+}
 ```
 
 #### Success Criteria
@@ -204,9 +215,14 @@ trait GraphParser {
     fn validate(&self, data: &GraphData) -> Result<()>;
 }
 
-impl GraphParser for JsonParser { /* ... */ }
-impl GraphParser for CypherParser { /* ... */ }
-impl GraphParser for MermaidParser { /* ... */ }
+struct ParseJsonGraph;
+impl GraphParser for ParseJsonGraph { /* ... */ }
+
+struct ParseCypherQuery;
+impl GraphParser for ParseCypherQuery { /* ... */ }
+
+struct ParseMermaidDiagram;
+impl GraphParser for ParseMermaidDiagram { /* ... */ }
 ```
 
 #### Success Criteria
@@ -225,7 +241,7 @@ impl GraphParser for MermaidParser { /* ... */ }
 
 #### Domain System
 - Create `DomainConfiguration` aggregate
-- Implement `DomainValidator` service
+- Implement `ValidateDomainRules` service
 - Add type-to-visual mappings
 - Support custom constraints
 
@@ -246,11 +262,14 @@ impl GraphParser for MermaidParser { /* ... */ }
 #### Algorithm Integration
 ```rust
 // Integrate petgraph algorithms
-fn shortest_path_system(
-    graph: Res<GraphResource>,
-    query: Query<&PathQuery>,
-) -> Vec<NodeId> {
-    petgraph::algo::dijkstra(&graph.inner, start, end)
+struct FindShortestPath {
+    graph: GraphResource,
+}
+
+impl FindShortestPath {
+    fn calculate(&self, start: NodeId, end: NodeId) -> Vec<NodeId> {
+        petgraph::algo::dijkstra(&self.graph.inner, start, end)
+    }
 }
 ```
 
@@ -280,10 +299,10 @@ Add multi-user collaboration and optimize for large-scale graphs.
 
 #### Collaboration Events
 ```rust
-enum CollaborationEvent {
-    ParticipantJoinedEvent { session_id, participant },
-    CursorMovedEvent { participant_id, position },
-    ChangeSharedEvent { change_op, participant_id },
+enum CollaborationDomainEvent {
+    ParticipantJoined { session_id: SessionId, participant: Participant },
+    CursorMoved { participant_id: ParticipantId, position: Position },
+    ChangeShared { change_op: ChangeOperation, participant_id: ParticipantId },
 }
 ```
 
@@ -325,7 +344,12 @@ enum CollaborationEvent {
 ```rust
 // WASM AI component
 #[wasm_bindgen]
-impl LayoutOptimizer {
+struct OptimizeLayout {
+    model: LayoutModel,
+}
+
+#[wasm_bindgen]
+impl OptimizeLayout {
     pub fn suggest_layout(&self, graph: &GraphData) -> LayoutSuggestion {
         // ML model inference
     }

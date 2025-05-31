@@ -81,20 +81,20 @@ The core context responsible for graph structure and topology.
 
 #### Domain Events
 
-- **GraphCreatedEvent**: New graph initialized
-- **NodeAddedEvent**: Node added to graph
-- **NodeRemovedEvent**: Node removed from graph
-- **NodeMovedEvent**: Node position changed
-- **EdgeCreatedEvent**: Edge added between nodes
-- **EdgeRemovedEvent**: Edge removed from graph
-- **EdgeReversedEvent**: Edge direction swapped
-- **PropertyUpdatedEvent**: Property added/modified
-- **LabelAppliedEvent**: Label added to node/edge
-- **SubgraphImportedEvent**: External graph loaded as subgraph
-- **SubgraphMergedEvent**: Subgraph integrated into parent
-- **SubgraphExtractedEvent**: Subgraph exported as independent graph
-- **InterSubgraphEdgeCreatedEvent**: Edge created between subgraphs
-- **SubgraphBoundaryUpdatedEvent**: Subgraph boundary recalculated
+- **GraphCreated**: New graph initialized
+- **NodeAdded**: Node added to graph
+- **NodeRemoved**: Node removed from graph
+- **NodeMoved**: Node position changed
+- **EdgeCreated**: Edge added between nodes
+- **EdgeRemoved**: Edge removed from graph
+- **EdgeReversed**: Edge direction swapped
+- **PropertyUpdated**: Property added/modified
+- **LabelApplied**: Label added to node/edge
+- **SubgraphImported**: External graph loaded as subgraph
+- **SubgraphMerged**: Subgraph integrated into parent
+- **SubgraphExtracted**: Subgraph exported as independent graph
+- **InterSubgraphEdgeCreated**: Edge created between subgraphs
+- **SubgraphBoundaryUpdated**: Subgraph boundary recalculated
 
 ### 2. Visualization Context
 
@@ -148,16 +148,16 @@ Manages the visual representation and rendering of graphs.
 
 #### Domain Events
 
-- **ViewModeChangedEvent**: Switch between 2D/3D
-- **ElementSelectedEvent**: User selected element
-- **ElementDeselectedEvent**: User deselected element
-- **CameraMovedEvent**: Camera position changed
-- **StyleAppliedEvent**: Visual style updated
-- **AnimationStartedEvent**: Animation began
-- **AnimationCompletedEvent**: Animation finished
-- **SubgraphCollapsedEvent**: Subgraph collapsed to node
-- **SubgraphExpandedEvent**: Subgraph expanded from node
-- **SubgraphHighlightedEvent**: Subgraph visually emphasized
+- **ViewModeChanged**: Switch between 2D/3D
+- **ElementSelected**: User selected element
+- **ElementDeselected**: User deselected element
+- **CameraMoved**: Camera position changed
+- **StyleApplied**: Visual style updated
+- **AnimationStarted**: Animation began
+- **AnimationCompleted**: Animation finished
+- **SubgraphCollapsed**: Subgraph collapsed to node
+- **SubgraphExpanded**: Subgraph expanded from node
+- **SubgraphHighlighted**: Subgraph visually emphasized
 
 ### 3. Layout Engine Context
 
@@ -217,14 +217,14 @@ Handles graph layout algorithms and physics simulation.
 
 #### Domain Events
 
-- **LayoutStartedEvent**: Layout algorithm initiated
-- **LayoutIterationEvent**: Single physics step completed
-- **LayoutConvergedEvent**: Layout reached stable state
-- **ConstraintAppliedEvent**: User constraint added
-- **ConstraintRemovedEvent**: User constraint removed
-- **ForceAppliedEvent**: External force applied
-- **SubgraphLayoutStartedEvent**: Subgraph-specific layout begun
-- **SubgraphBoundaryConstraintViolatedEvent**: Node escaped subgraph
+- **LayoutStarted**: Layout algorithm initiated
+- **LayoutIteration**: Single physics step completed
+- **LayoutConverged**: Layout reached stable state
+- **ConstraintApplied**: User constraint added
+- **ConstraintRemoved**: User constraint removed
+- **ForceApplied**: External force applied
+- **SubgraphLayoutStarted**: Subgraph-specific layout begun
+- **SubgraphBoundaryConstraintViolated**: Node escaped subgraph
 
 ### 4. Domain Integration Context
 
@@ -264,12 +264,12 @@ Manages domain-specific customizations and business logic.
 
 #### Domain Events
 
-- **DomainRegisteredEvent**: New domain added
-- **TypeDefinedEvent**: Domain type created
-- **RuleAddedEvent**: Validation rule added
-- **MappingCreatedEvent**: Visual mapping defined
-- **ValidationFailedEvent**: Rule violation detected
-- **SubgraphTypeDefinedEvent**: New subgraph type registered
+- **DomainRegistered**: New domain added
+- **TypeDefined**: Domain type created
+- **RuleAdded**: Validation rule added
+- **MappingCreated**: Visual mapping defined
+- **ValidationFailed**: Rule violation detected
+- **SubgraphTypeDefined**: New subgraph type registered
 
 ### 5. Collaboration Context
 
@@ -309,13 +309,13 @@ Handles multi-user scenarios and change synchronization.
 
 #### Domain Events
 
-- **ParticipantJoinedEvent**: User joined session
-- **ParticipantLeftEvent**: User left session
-- **ChangeSharedEvent**: Modification broadcast
-- **ConflictDetectedEvent**: Concurrent edit conflict
-- **ConflictResolvedEvent**: Conflict resolution applied
-- **SubgraphLockedEvent**: Subgraph locked for editing
-- **SubgraphUnlockedEvent**: Subgraph edit lock released
+- **ParticipantJoined**: User joined session
+- **ParticipantLeft**: User left session
+- **ChangeShared**: Modification broadcast
+- **ConflictDetected**: Concurrent edit conflict
+- **ConflictResolved**: Conflict resolution applied
+- **SubgraphLocked**: Subgraph locked for editing
+- **SubgraphUnlocked**: Subgraph edit lock released
 
 ## Event Flow
 
@@ -348,6 +348,6 @@ All domain events follow this flow:
 - **Aggregate**: Cluster of domain objects treated as a unit
 - **Entity**: Object with unique identity
 - **Value Object**: Immutable object without identity
-- **Domain Event**: Something that happened in the domain
+- **Domain Event**: Something that happened in the domain (past-tense fact)
 - **Bounded Context**: Explicit boundary within which a domain model applies
 - **Subgraph**: A graph contained within another graph, maintaining its own structure and identity

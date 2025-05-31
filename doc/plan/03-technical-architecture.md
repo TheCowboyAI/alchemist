@@ -15,16 +15,16 @@ Information Alchemist employs a dual-layer architecture that separates computati
 ┌─────────────────────────────────────────────────────────────┐
 │                    Visualization Layer (Bevy)                 │
 │  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │  Rendering  │  │  Interaction │  │    Animation     │   │
-│  │   Systems   │  │   Systems    │  │     Systems      │   │
+│  │    Render   │  │   Interact   │  │     Animate      │   │
+│  │   Elements  │  │  With Graph  │  │   Transitions    │   │
 │  └─────────────┘  └──────────────┘  └──────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
 │                    Computational Layer                        │
 │  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │  Petgraph   │  │    Daggy     │  │  Layout Engine   │   │
-│  │ Algorithms  │  │  DAG Ops     │  │    Physics       │   │
+│  │  Petgraph   │  │    Daggy     │  │   Apply Graph    │   │
+│  │ Algorithms  │  │  DAG Ops     │  │     Layouts      │   │
 │  └─────────────┘  └──────────────┘  └──────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -65,27 +65,27 @@ World
     └── EdgeData (Component)
 ```
 
-#### Core Systems
+#### Core Services
 
-##### RenderingSystem
+##### RenderGraphElements
 - Manages mesh generation and updates
 - Handles LOD (Level of Detail) switching
 - Performs frustum culling
 - Batches draw calls for performance
 
-##### InteractionSystem
+##### HandleUserInput
 - Processes mouse/keyboard input
 - Manages selection state
 - Handles drag operations
 - Triggers interaction events
 
-##### AnimationSystem
+##### AnimateTransitions
 - Interpolates position changes
 - Manages transition animations
 - Handles camera movements
 - Queues and sequences animations
 
-##### CameraSystem
+##### ControlCamera
 - Manages camera state and controls
 - Switches between 2D/3D modes
 - Handles zoom, pan, orbit
@@ -93,7 +93,7 @@ World
 
 ### 2. Computational Layer
 
-#### Graph Engine
+#### ProcessGraphOperations
 - **Storage**: Petgraph data structures
 - **Algorithms**:
   - Shortest path (Dijkstra, A*)
@@ -102,7 +102,7 @@ World
   - Connected components
   - Minimum spanning tree
 
-#### Layout Engine
+#### ApplyGraphLayouts
 - **Force-Directed Layout**:
   ```rust
   // Hooke's Law (Spring Forces)
@@ -115,7 +115,7 @@ World
 - **Circular Layout**: Nodes arranged in circles
 - **Grid Layout**: Regular grid positioning
 
-#### Physics Simulation
+#### SimulatePhysics
 - Velocity Verlet integration
 - Spatial indexing (R-tree) for collision detection
 - Configurable force parameters
@@ -195,7 +195,7 @@ Event Handler
     ↓
 ECS Component Update
     ↓
-System Processing
+Service Processing
     ↓
 Frame Render
 ```
@@ -220,7 +220,7 @@ Frame Render
 - Arena allocators for temporary data
 
 ### 4. Concurrency
-- Parallel ECS systems
+- Parallel ECS services
 - Lock-free data structures
 - Work-stealing job system
 - GPU compute for physics
@@ -231,13 +231,13 @@ Frame Render
 
 ```rust
 // Event Publishing
-struct EventPublisher {
+struct PublishEvents {
     connection: nats::Connection,
     stream: Stream,
 }
 
 // Event Subscription
-struct EventSubscriber {
+struct SubscribeToEvents {
     subscription: Subscription,
     handler: Box<dyn EventHandler>,
 }
@@ -248,13 +248,13 @@ struct EventSubscriber {
 ```rust
 // Domain Logic Component
 #[wasm_bindgen]
-pub struct DomainValidator {
+pub struct ValidateDomainRules {
     rules: Vec<Rule>,
 }
 
 // AI Agent Component
 #[wasm_bindgen]
-pub struct LayoutOptimizer {
+pub struct OptimizeLayout {
     model: Model,
 }
 ```
@@ -262,16 +262,16 @@ pub struct LayoutOptimizer {
 ### 3. Storage Abstraction
 
 ```rust
-trait GraphStorage {
+trait Graphs {
     async fn save_graph(&self, graph: &Graph) -> Result<()>;
     async fn load_graph(&self, id: GraphId) -> Result<Graph>;
     async fn list_graphs(&self) -> Result<Vec<GraphMetadata>>;
 }
 
 // Implementations
-struct NatsStorage { /* ... */ }
-struct FileStorage { /* ... */ }
-struct S3Storage { /* ... */ }
+struct NatsGraphs { /* ... */ }
+struct FileGraphs { /* ... */ }
+struct S3Graphs { /* ... */ }
 ```
 
 ## Security Architecture
@@ -332,12 +332,12 @@ alchemist/
 │   ├── events/         # Event definitions
 │   └── commands/       # Command handlers
 ├── visualization/
-│   ├── systems/        # ECS systems
+│   ├── services/       # ECS services
 │   ├── components/     # ECS components
 │   └── resources/      # Shared resources
 ├── computational/
 │   ├── algorithms/     # Graph algorithms
-│   ├── layout/         # Layout engines
+│   ├── layout/         # Layout services
 │   └── physics/        # Physics simulation
 └── integration/
     ├── nats/          # NATS integration

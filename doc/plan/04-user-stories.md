@@ -41,7 +41,7 @@ This document captures user stories for Information Alchemist organized by user 
 - [ ] Creation event is logged for audit
 
 #### Technical Notes:
-- Trigger `GraphCreatedEvent`
+- Trigger `GraphCreated`
 - Initialize with default `PhysicsConfiguration`
 - Create initial `VisualizationSession`
 
@@ -76,7 +76,7 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Capture mouse position in 3D space
-- Trigger `NodeAddedEvent`
+- Trigger `NodeAdded`
 - Apply domain-specific `VisualStyle`
 
 ### User Story 1.4: Compose Multiple Graphs
@@ -93,7 +93,7 @@ This document captures user stories for Information Alchemist organized by user 
 - [ ] Position new subgraphs without overlapping existing ones
 
 #### Technical Notes:
-- Trigger `SubgraphImportedEvent` for each import
+- Trigger `SubgraphImported` for each import
 - Create `Subgraph` entity with boundary
 - Preserve original node/edge IDs with namespace
 - Apply `GraphCompositionStrategy`
@@ -112,7 +112,7 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Set `CrossSubgraph` flag on edges
-- Trigger `InterSubgraphEdgeCreatedEvent`
+- Trigger `InterSubgraphEdgeCreated`
 - Apply distinct visual style for boundary-crossing edges
 
 ### User Story 1.6: Extract Subgraph
@@ -129,7 +129,7 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Create subgraph from selection
-- Trigger `SubgraphExtractedEvent`
+- Trigger `SubgraphExtracted`
 - Generate new graph with preserved structure
 
 ## Epic 2: Visualization and Navigation
@@ -147,7 +147,7 @@ This document captures user stories for Information Alchemist organized by user 
 - [ ] Performance remains smooth during transition
 
 #### Technical Notes:
-- Trigger `ViewModeChangedEvent`
+- Trigger `ViewModeChanged`
 - Interpolate camera position/projection
 - Switch between perspective/orthographic
 
@@ -182,7 +182,7 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Store styles in `DomainConfiguration`
-- Apply through `StyleAppliedEvent`
+- Apply through `StyleApplied`
 - Support material presets
 
 ### User Story 2.4: Collapse and Expand Subgraphs
@@ -199,7 +199,7 @@ This document captures user stories for Information Alchemist organized by user 
 - [ ] Smooth animation during collapse/expand
 
 #### Technical Notes:
-- Trigger `SubgraphCollapsedEvent`/`SubgraphExpandedEvent`
+- Trigger `SubgraphCollapsed`/`SubgraphExpanded`
 - Update `SubgraphVisual` collapsed state
 - Reroute edges to collapsed node representation
 
@@ -218,9 +218,9 @@ This document captures user stories for Information Alchemist organized by user 
 - [ ] Edge appears with appropriate styling
 
 #### Technical Notes:
-- Track drag state in `InteractionSystem`
-- Validate with `DomainValidator`
-- Trigger `EdgeCreatedEvent`
+- Track drag state in `HandleUserInput`
+- Validate with `ValidateDomainRules`
+- Trigger `EdgeCreated`
 
 ### User Story 3.2: Edit Properties
 **As** Alex the System Architect
@@ -236,7 +236,7 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Use bevy_egui for property panel
-- Trigger `PropertyUpdatedEvent`
+- Trigger `PropertyUpdated`
 - Update visual elements reactively
 
 ### User Story 3.3: Apply Layout Algorithms
@@ -253,7 +253,7 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Implement force-directed, hierarchical, circular
-- Use `LayoutEngine` with configurable parameters
+- Use `ApplyGraphLayouts` with configurable parameters
 - Support layout constraints
 
 ### User Story 3.4: Manage Subgraph Boundaries
@@ -271,7 +271,7 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Update node `SubgraphId` on move
-- Trigger `SubgraphBoundaryUpdatedEvent`
+- Trigger `SubgraphBoundaryUpdated`
 - Recalculate convex hull and bounding box
 
 ## Epic 4: Collaboration Features
@@ -343,8 +343,8 @@ This document captures user stories for Information Alchemist organized by user 
 
 #### Technical Notes:
 - Store rules in `DomainConfiguration`
-- Validate through `DomainValidator`
-- Trigger `ValidationFailedEvent`
+- Validate through `ValidateDomainRules`
+- Trigger `ValidationFailed`
 
 ### User Story 5.3: Integrate AI Assistance
 **As** Alex the System Architect
@@ -361,7 +361,7 @@ This document captures user stories for Information Alchemist organized by user 
 #### Technical Notes:
 - Integrate AI agent via WASM
 - Use graph embeddings for analysis
-- Apply suggestions through layout engine
+- Apply suggestions through layout service
 
 ## Epic 6: Performance and Scale
 
