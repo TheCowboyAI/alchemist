@@ -12,6 +12,12 @@ pub mod domain_isolated_tests;
 #[cfg(test)]
 pub mod tdd_compliant_ecs_tests;
 
+#[cfg(test)]
+pub mod event_validation_helpers;
+
+#[cfg(test)]
+pub mod repository_integration_tests;
+
 #[cfg(feature = "integration-tests")]
 pub mod enigo_integration;
 

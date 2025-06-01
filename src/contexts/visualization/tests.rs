@@ -1,19 +1,26 @@
 #[cfg(test)]
 mod tests {
-    use super::super::services::*;
+    use super::*;
+    use crate::contexts::graph_management::domain::*;
+    use crate::contexts::graph_management::events::*;
+    use crate::contexts::visualization::services::*;
     use bevy::prelude::*;
     use bevy::ecs::system::SystemState;
-    use crate::contexts::graph_management::domain::NodeIdentity;
 
-    /// Helper to setup test app with minimal requirements
+    /// Helper to create a test app with visualization events
     fn setup_test_app() -> App {
         let mut app = App::new();
-        app.add_event::<NodeSelected>()
-            .add_event::<NodeDeselected>()
-            .add_event::<RenderModeChanged>()
+        app.add_event::<NodeAdded>()
+            .add_event::<EdgeConnected>()
+            .add_event::<GraphCreated>()
             .add_event::<EdgeTypeChanged>()
+            .add_event::<RenderModeChanged>()
+            .add_event::<NodeSelected>()
+            .add_event::<NodeDeselected>()
             .add_event::<VisualizationUpdateRequested>()
-            .add_event::<ConvertToPointCloud>();
+            .add_event::<ConvertToPointCloud>()
+            .init_resource::<Assets<Mesh>>()
+            .init_resource::<Assets<StandardMaterial>>();
         app
     }
 
@@ -416,5 +423,371 @@ mod tests {
         // - Emissive glow effect
         // - Right-click to deselect all
         // - Original material restoration on deselection
+    }
+
+    #[test]
+    fn test_edge_type_rendering() {
+        let mut app = setup_test_app();
+
+        // Test that all edge types can be rendered
+        let edge_types = vec![
+            EdgeType::Line,
+            EdgeType::Cylinder,
+            EdgeType::Arc,
+            EdgeType::Bezier,
+        ];
+
+        for edge_type in edge_types {
+            let world = app.world_mut();
+            let edge_entity = world.spawn_empty().id();
+
+            // Use SystemState to get proper resource types
+            let mut system_state: SystemState<(
+                Commands,
+                ResMut<Assets<Mesh>>,
+                ResMut<Assets<StandardMaterial>>,
+            )> = SystemState::new(world);
+
+            let (mut commands, mut meshes, mut materials) = system_state.get_mut(world);
+
+            RenderGraphElements::render_edge(
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+                Vec3::new(0.0, 0.0, 0.0),
+                Vec3::new(1.0, 1.0, 1.0),
+                edge_entity,
+                edge_type,
+            );
+
+            system_state.apply(world);
+
+            // Verify edge was configured
+            app.update();
+            let edge_visual = app.world().get::<EdgeVisual>(edge_entity);
+            assert!(edge_visual.is_some());
+            assert_eq!(edge_visual.unwrap().edge_type, edge_type);
+        }
+    }
+
+    #[test]
+    fn test_render_mode_changes() {
+        let mut app = setup_test_app();
+
+        // Create settings entity
+        let settings_entity = app.world_mut().spawn(CurrentVisualizationSettings::default()).id();
+
+        // Test changing render modes
+        let render_modes = vec![
+            RenderMode::Mesh,
+            RenderMode::PointCloud,
+            RenderMode::Wireframe,
+            RenderMode::Billboard,
+        ];
+
+        for mode in render_modes {
+            app.world_mut().send_event(RenderModeChanged {
+                new_render_mode: mode,
+            });
+
+            // Run the handler
+            let world = app.world_mut();
+            let mut system_state: SystemState<(
+                EventReader<RenderModeChanged>,
+                Query<&mut CurrentVisualizationSettings>,
+            )> = SystemState::new(world);
+
+            let (mut events, mut settings) = system_state.get_mut(world);
+            UpdateVisualizationState::handle_render_mode_changed(events, settings);
+
+            system_state.apply(world);
+
+            // Verify settings updated
+            let settings = app.world().get::<CurrentVisualizationSettings>(settings_entity).unwrap();
+            assert_eq!(settings.render_mode, mode);
+        }
+    }
+
+    #[test]
+    fn test_edge_type_changes() {
+        let mut app = setup_test_app();
+
+        // Create settings entity
+        let settings_entity = app.world_mut().spawn(CurrentVisualizationSettings::default()).id();
+
+        // Test changing edge types
+        let edge_types = vec![
+            EdgeType::Line,
+            EdgeType::Cylinder,
+            EdgeType::Arc,
+            EdgeType::Bezier,
+        ];
+
+        for edge_type in edge_types {
+            app.world_mut().send_event(EdgeTypeChanged {
+                new_edge_type: edge_type,
+            });
+
+            // Run the handler
+            let world = app.world_mut();
+            let mut system_state: SystemState<(
+                EventReader<EdgeTypeChanged>,
+                Query<&mut CurrentVisualizationSettings>,
+            )> = SystemState::new(world);
+
+            let (mut events, mut settings) = system_state.get_mut(world);
+            UpdateVisualizationState::handle_edge_type_changed(events, settings);
+
+            system_state.apply(world);
+
+            // Verify settings updated
+            let settings = app.world().get::<CurrentVisualizationSettings>(settings_entity).unwrap();
+            assert_eq!(settings.edge_type, edge_type);
+        }
+    }
+
+    #[test]
+    fn test_node_visualization_with_different_render_modes() {
+        let mut app = setup_test_app();
+
+        let render_modes = vec![
+            RenderMode::Mesh,
+            RenderMode::PointCloud,
+            RenderMode::Wireframe,
+            RenderMode::Billboard,
+        ];
+
+        for mode in render_modes {
+            let world = app.world_mut();
+            let node_entity = world.spawn_empty().id();
+
+            // Use SystemState to get proper resource types
+            let mut system_state: SystemState<(
+                Commands,
+                ResMut<Assets<Mesh>>,
+                ResMut<Assets<StandardMaterial>>,
+            )> = SystemState::new(world);
+
+            let (mut commands, mut meshes, mut materials) = system_state.get_mut(world);
+
+            RenderGraphElements::render_node(
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+                node_entity,
+                Vec3::new(1.0, 2.0, 3.0),
+                "Test Node",
+                mode,
+            );
+
+            system_state.apply(world);
+            app.update();
+
+            // Verify node has visualization capability
+            let viz_cap = app.world().get::<VisualizationCapability>(node_entity);
+            assert!(viz_cap.is_some());
+            assert_eq!(viz_cap.unwrap().render_mode, mode);
+
+            // Check specific components based on render mode
+            match mode {
+                RenderMode::Mesh | RenderMode::Wireframe => {
+                    assert!(app.world().get::<Mesh3d>(node_entity).is_some());
+                    assert!(app.world().get::<MeshMaterial3d<StandardMaterial>>(node_entity).is_some());
+                }
+                RenderMode::PointCloud => {
+                    assert!(app.world().get::<NodePointCloud>(node_entity).is_some());
+                }
+                RenderMode::Billboard => {
+                    assert!(app.world().get::<Text2d>(node_entity).is_some());
+                    assert!(app.world().get::<Billboard>(node_entity).is_some());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_point_cloud_generation() {
+        // Test node point cloud
+        let node_cloud = RenderGraphElements::generate_node_point_cloud(
+            Vec3::ZERO,
+            100.0,  // density
+            1.0,    // radius
+        );
+
+        // Should have approximately density * 4π * r² points
+        let expected_points = (100.0 * 4.0 * std::f32::consts::PI) as usize;
+        assert!(node_cloud.points.len() > expected_points / 2);
+        assert!(node_cloud.points.len() < expected_points * 2);
+        assert_eq!(node_cloud.points.len(), node_cloud.colors.len());
+        assert_eq!(node_cloud.points.len(), node_cloud.sizes.len());
+
+        // Test edge point cloud
+        let edge_cloud = RenderGraphElements::generate_edge_point_cloud(
+            Vec3::ZERO,
+            Vec3::new(1.0, 0.0, 0.0),
+            10,    // samples
+            50.0,  // density
+        );
+
+        assert!(edge_cloud.points.len() > 0);
+        assert_eq!(edge_cloud.points.len(), edge_cloud.colors.len());
+        assert_eq!(edge_cloud.points.len(), edge_cloud.sizes.len());
+        assert_eq!(edge_cloud.interpolation_samples, 10);
+    }
+
+    #[test]
+    fn test_selection_system() {
+        let mut app = setup_test_app();
+
+        // Create a node with selection components
+        let node_id = NodeIdentity::new();
+        let node_entity = app.world_mut().spawn((
+            node_id,
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            GlobalTransform::default(),
+        )).id();
+
+        // Create material handle for testing
+        let material_handle = app.world_mut().resource_mut::<Assets<StandardMaterial>>()
+            .add(StandardMaterial::default());
+
+        app.world_mut().entity_mut(node_entity)
+            .insert(MeshMaterial3d(material_handle));
+
+        // Fire selection event
+        app.world_mut().send_event(NodeSelected {
+            entity: node_entity,
+            node: node_id,
+        });
+
+        // Run selection handler
+        let world = app.world_mut();
+        let mut system_state: SystemState<(
+            Commands,
+            EventReader<NodeSelected>,
+            ResMut<Assets<StandardMaterial>>,
+            Query<&MeshMaterial3d<StandardMaterial>, Without<Selected>>,
+        )> = SystemState::new(world);
+
+        let (mut commands, mut events, mut materials, query) = system_state.get_mut(world);
+        SelectionVisualization::handle_node_selection(commands, events, materials, query);
+
+        system_state.apply(world);
+        app.update();
+
+        // Verify selection components added
+        assert!(app.world().get::<Selected>(node_entity).is_some());
+        assert!(app.world().get::<OriginalMaterial>(node_entity).is_some());
+    }
+
+    #[test]
+    fn test_animation_components() {
+        let mut app = setup_test_app();
+
+        // Test graph animation
+        let graph_id = GraphIdentity::new();
+        let graph_entity = app.world_mut().spawn((
+            Graph {
+                identity: graph_id,
+                metadata: GraphMetadata {
+                    name: "Test".to_string(),
+                    description: "Test".to_string(),
+                    domain: "test".to_string(),
+                    created: std::time::SystemTime::now(),
+                    modified: std::time::SystemTime::now(),
+                    tags: vec![],
+                },
+                journey: GraphJourney::default(),
+            },
+            Transform::default(),
+            GraphMotion {
+                rotation_speed: 1.0,
+                oscillation_amplitude: 0.5,
+                oscillation_frequency: 2.0,
+                scale_factor: 1.0,
+            },
+        )).id();
+
+        // Run animation system
+        let world = app.world_mut();
+        let time = Time::default();
+        world.insert_resource(time);
+
+        let mut system_state: SystemState<(
+            Res<Time>,
+            Query<(&mut Transform, &GraphMotion), With<Graph>>,
+        )> = SystemState::new(world);
+
+        let (time, mut query) = system_state.get_mut(world);
+        AnimateGraphElements::animate_graphs(time, query);
+
+        system_state.apply(world);
+
+        // Transform should be modified by animation
+        let transform = app.world().get::<Transform>(graph_entity).unwrap();
+        // Note: Without proper time delta, transform might not change significantly
+        assert!(transform.rotation != Quat::IDENTITY || transform.translation.y != 0.0);
+    }
+
+    #[test]
+    fn test_edge_visual_bundle() {
+        let edge_bundle = EdgeVisualBundle {
+            edge_visual: EdgeVisual::default(),
+            transform: Transform::default(),
+            global_transform: GlobalTransform::default(),
+            visualization_capability: VisualizationCapability::default(),
+        };
+
+        assert_eq!(edge_bundle.edge_visual.edge_type, EdgeType::Cylinder);
+        assert_eq!(edge_bundle.edge_visual.thickness, 0.05);
+    }
+
+    #[test]
+    fn test_edge_animations() {
+        // Test edge pulse defaults
+        let edge_pulse = EdgePulse::default();
+        assert_eq!(edge_pulse.pulse_scale, 0.2);
+        assert_eq!(edge_pulse.pulse_speed, 2.0);
+        assert_eq!(edge_pulse.phase_offset, 0.0);
+
+        // Test edge wave defaults
+        let edge_wave = EdgeWave::default();
+        assert_eq!(edge_wave.wave_speed, 3.0);
+        assert_eq!(edge_wave.wave_amplitude, 0.1);
+        assert_eq!(edge_wave.wave_frequency, 2.0);
+
+        // Test edge color cycle defaults
+        let edge_color = EdgeColorCycle::default();
+        assert_eq!(edge_color.cycle_speed, 1.0);
+        assert_eq!(edge_color.current_phase, 0.0);
+    }
+
+    #[test]
+    fn test_raycasting_sphere_intersection() {
+        let ray = Ray3d {
+            origin: Vec3::new(0.0, 0.0, -5.0),
+            direction: Dir3::new(Vec3::new(0.0, 0.0, 1.0)).unwrap(),
+        };
+
+        // Ray hits sphere at origin
+        let distance = PerformRaycast::ray_intersects_sphere(
+            &ray,
+            Vec3::ZERO,
+            1.0,
+        );
+        assert!(distance.is_some());
+        assert!((distance.unwrap() - 4.0).abs() < 0.001);
+
+        // Ray misses sphere
+        let miss_ray = Ray3d {
+            origin: Vec3::new(5.0, 0.0, -5.0),
+            direction: Dir3::new(Vec3::new(0.0, 0.0, 1.0)).unwrap(),
+        };
+        let miss = PerformRaycast::ray_intersects_sphere(
+            &miss_ray,
+            Vec3::ZERO,
+            1.0,
+        );
+        assert!(miss.is_none());
     }
 }

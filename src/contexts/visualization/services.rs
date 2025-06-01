@@ -1,8 +1,6 @@
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
 use bevy::prelude::*;
-use bevy::render::mesh::{Indices, PrimitiveTopology};
-use bevy::render::render_asset::RenderAssetUsages;
 
 // ============= Visualization Services =============
 // Services that handle visual representation
@@ -473,14 +471,23 @@ impl RenderGraphElements {
         let length = direction.length();
         let midpoint = source_pos + direction * 0.5;
 
+        // Use a thin cuboid for the line
         let mesh = meshes.add(Cuboid::new(
-            edge_visual.thickness,
-            edge_visual.thickness,
+            edge_visual.thickness * 0.5,  // Make it thinner than cylinder
+            edge_visual.thickness * 0.5,
             length,
         ));
 
-        // Calculate rotation to align with edge direction
-        let rotation = Quat::from_rotation_arc(Vec3::Z, direction.normalize());
+        // Calculate rotation to align the cuboid along the edge
+        // The cuboid's default orientation is along Z axis
+        let mut rotation = Quat::IDENTITY;
+        if direction.length_squared() > 0.0001 {
+            let normalized_dir = direction.normalize();
+            // Only rotate if not already aligned with Z
+            if (normalized_dir - Vec3::Z).length_squared() > 0.0001 {
+                rotation = Quat::from_rotation_arc(Vec3::Z, normalized_dir);
+            }
+        }
 
         commands
             .entity(edge_entity)
@@ -540,36 +547,52 @@ impl RenderGraphElements {
         let chord_length = chord.length();
         let arc_height = chord_length * 0.3; // Arc height as 30% of chord length
 
-        // Create arc mesh using line segments
+        // Create arc using cylinder segments
         let segments = 20;
-        let mut positions = Vec::new();
-        let mut indices = Vec::new();
+        let segment_commands = &mut commands.entity(edge_entity);
 
-        for i in 0..=segments {
-            let t = i as f32 / segments as f32;
-            let angle = t * std::f32::consts::PI;
-
-            // Interpolate along chord and add arc height
-            let pos = source_pos + chord * t + Vec3::Y * (angle.sin() * arc_height);
-            positions.push([pos.x, pos.y, pos.z]);
-
-            if i < segments {
-                // Create line segments
-                indices.push(i as u32);
-                indices.push((i + 1) as u32);
-            }
-        }
-
-        let mut mesh = Mesh::new(PrimitiveTopology::LineList, RenderAssetUsages::RENDER_WORLD);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
-        mesh.insert_indices(Indices::U32(indices));
-
-        commands
-            .entity(edge_entity)
-            .insert(Mesh3d(meshes.add(mesh)))
-            .insert(MeshMaterial3d(material))
+        // We'll create a parent entity and add cylinder segments as children
+        segment_commands
             .insert(Transform::default())
-            .insert(edge_visual.clone());
+            .insert(GlobalTransform::default())
+            .insert(edge_visual.clone())
+            .with_children(|parent| {
+                for i in 0..segments {
+                    let t1 = i as f32 / segments as f32;
+                    let t2 = (i + 1) as f32 / segments as f32;
+                    let angle1 = t1 * std::f32::consts::PI;
+                    let angle2 = t2 * std::f32::consts::PI;
+
+                    // Calculate positions along the arc
+                    let pos1 = source_pos + chord * t1 + Vec3::Y * (angle1.sin() * arc_height);
+                    let pos2 = source_pos + chord * t2 + Vec3::Y * (angle2.sin() * arc_height);
+
+                    let segment_dir = pos2 - pos1;
+                    let segment_length = segment_dir.length();
+                    let segment_midpoint = pos1 + segment_dir * 0.5;
+
+                    if segment_length > 0.001 {
+                        // Create a small cylinder for this segment
+                        let segment_mesh = meshes.add(Cylinder::new(edge_visual.thickness * 0.8, segment_length));
+
+                        let rotation = if segment_dir.normalize() != Vec3::Y {
+                            Quat::from_rotation_arc(Vec3::Y, segment_dir.normalize())
+                        } else {
+                            Quat::IDENTITY
+                        };
+
+                        parent.spawn((
+                            Mesh3d(segment_mesh),
+                            MeshMaterial3d(material.clone()),
+                            Transform {
+                                translation: segment_midpoint,
+                                rotation,
+                                scale: Vec3::ONE,
+                            },
+                        ));
+                    }
+                }
+            });
     }
 
     /// Renders a bezier curve edge
@@ -584,43 +607,68 @@ impl RenderGraphElements {
     ) {
         // Calculate control points for bezier curve
         let midpoint = (source_pos + target_pos) * 0.5;
-        let offset = (target_pos - source_pos).cross(Vec3::Y).normalize() * 0.5;
+        let direction = (target_pos - source_pos).normalize();
 
-        let control1 = midpoint + offset + Vec3::Y * 0.3;
-        let control2 = midpoint - offset + Vec3::Y * 0.3;
+        // Create perpendicular offset for curve
+        let offset = if direction.dot(Vec3::Y).abs() < 0.99 {
+            direction.cross(Vec3::Y).normalize() * 1.0
+        } else {
+            direction.cross(Vec3::X).normalize() * 1.0
+        };
 
-        // Generate bezier curve points
+        let control1 = midpoint + offset + Vec3::Y * 0.5;
+        let control2 = midpoint - offset + Vec3::Y * 0.5;
+
+        // Generate bezier curve using cylinder segments
         let segments = 30;
-        let mut positions = Vec::new();
-        let mut indices = Vec::new();
+        let segment_commands = &mut commands.entity(edge_entity);
 
-        for i in 0..=segments {
-            let t = i as f32 / segments as f32;
-
-            // Cubic bezier curve formula
-            let pos = (1.0 - t).powi(3) * source_pos
-                + 3.0 * (1.0 - t).powi(2) * t * control1
-                + 3.0 * (1.0 - t) * t.powi(2) * control2
-                + t.powi(3) * target_pos;
-
-            positions.push([pos.x, pos.y, pos.z]);
-
-            if i < segments {
-                indices.push(i as u32);
-                indices.push((i + 1) as u32);
-            }
-        }
-
-        let mut mesh = Mesh::new(PrimitiveTopology::LineList, RenderAssetUsages::RENDER_WORLD);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
-        mesh.insert_indices(Indices::U32(indices));
-
-        commands
-            .entity(edge_entity)
-            .insert(Mesh3d(meshes.add(mesh)))
-            .insert(MeshMaterial3d(material))
+        segment_commands
             .insert(Transform::default())
-            .insert(edge_visual.clone());
+            .insert(GlobalTransform::default())
+            .insert(edge_visual.clone())
+            .with_children(|parent| {
+                for i in 0..segments {
+                    let t1 = i as f32 / segments as f32;
+                    let t2 = (i + 1) as f32 / segments as f32;
+
+                    // Cubic bezier curve formula
+                    let pos1 = (1.0 - t1).powi(3) * source_pos
+                        + 3.0 * (1.0 - t1).powi(2) * t1 * control1
+                        + 3.0 * (1.0 - t1) * t1.powi(2) * control2
+                        + t1.powi(3) * target_pos;
+
+                    let pos2 = (1.0 - t2).powi(3) * source_pos
+                        + 3.0 * (1.0 - t2).powi(2) * t2 * control1
+                        + 3.0 * (1.0 - t2) * t2.powi(2) * control2
+                        + t2.powi(3) * target_pos;
+
+                    let segment_dir = pos2 - pos1;
+                    let segment_length = segment_dir.length();
+                    let segment_midpoint = pos1 + segment_dir * 0.5;
+
+                    if segment_length > 0.001 {
+                        // Create a small cylinder for this segment
+                        let segment_mesh = meshes.add(Cylinder::new(edge_visual.thickness * 0.7, segment_length));
+
+                        let rotation = if segment_dir.normalize() != Vec3::Y {
+                            Quat::from_rotation_arc(Vec3::Y, segment_dir.normalize())
+                        } else {
+                            Quat::IDENTITY
+                        };
+
+                        parent.spawn((
+                            Mesh3d(segment_mesh),
+                            MeshMaterial3d(material.clone()),
+                            Transform {
+                                translation: segment_midpoint,
+                                rotation,
+                                scale: Vec3::ONE,
+                            },
+                        ));
+                    }
+                }
+            });
     }
 
     /// Creates visual representation for nodes
@@ -1007,6 +1055,18 @@ impl UpdateVisualizationState {
         }
     }
 
+    /// Updates settings based on RenderModeChanged events
+    pub fn handle_render_mode_changed(
+        mut events: EventReader<RenderModeChanged>,
+        mut settings: Query<&mut CurrentVisualizationSettings>,
+    ) {
+        for event in events.read() {
+            for mut setting in settings.iter_mut() {
+                setting.render_mode = event.new_render_mode;
+            }
+        }
+    }
+
     /// Re-renders edges when edge type changes
     pub fn update_existing_edges(
         mut commands: Commands,
@@ -1014,6 +1074,7 @@ impl UpdateVisualizationState {
         settings: Query<&CurrentVisualizationSettings>,
         edges: Query<(Entity, &EdgeRelationship, &EdgeVisual), With<crate::contexts::graph_management::domain::Edge>>,
         nodes: Query<(&NodeIdentity, &SpatialPosition)>,
+        children_query: Query<&Children>,
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<StandardMaterial>>,
     ) {
@@ -1022,13 +1083,16 @@ impl UpdateVisualizationState {
             return;
         }
 
+        // Consume events to clear them
+        edge_type_events.clear();
+
         // Get current settings
         let Ok(current_settings) = settings.single() else {
             return;
         };
 
         // Update all existing edges with new edge type
-        for (edge_entity, edge_relationship, edge_visual) in edges.iter() {
+        for (edge_entity, edge_relationship, _edge_visual) in edges.iter() {
             // Find source and target positions
             let mut source_pos = None;
             let mut target_pos = None;
@@ -1043,9 +1107,27 @@ impl UpdateVisualizationState {
             }
 
             if let (Some(source), Some(target)) = (source_pos, target_pos) {
-                // Remove old visual components
-                commands.entity(edge_entity).remove::<Mesh3d>();
-                commands.entity(edge_entity).remove::<MeshMaterial3d<StandardMaterial>>();
+                // First, despawn all children (for Arc and Bezier edges)
+                if let Ok(children) = children_query.get(edge_entity) {
+                    for child in children.iter() {
+                        commands.entity(child).despawn();
+                    }
+                }
+
+                // Remove all visual components
+                commands.entity(edge_entity)
+                    .remove::<Mesh3d>()
+                    .remove::<MeshMaterial3d<StandardMaterial>>()
+                    .remove::<Transform>()
+                    .remove::<GlobalTransform>()
+                    .remove::<EdgeVisual>();
+
+                // Remove any animation components that might exist
+                commands.entity(edge_entity)
+                    .remove::<EdgePulse>()
+                    .remove::<EdgeWave>()
+                    .remove::<EdgeColorCycle>()
+                    .remove::<EdgeFlow>();
 
                 // Re-render with new edge type
                 RenderGraphElements::render_edge(
@@ -1059,18 +1141,6 @@ impl UpdateVisualizationState {
                 );
 
                 info!("Updated edge {:?} to type {:?}", edge_entity, current_settings.edge_type);
-            }
-        }
-    }
-
-    /// Updates settings based on RenderModeChanged events
-    pub fn handle_render_mode_changed(
-        mut events: EventReader<RenderModeChanged>,
-        mut settings: Query<&mut CurrentVisualizationSettings>,
-    ) {
-        for event in events.read() {
-            for mut setting in settings.iter_mut() {
-                setting.render_mode = event.new_render_mode;
             }
         }
     }
@@ -1143,9 +1213,9 @@ impl SelectionVisualization {
         selected: Query<(Entity, &NodeIdentity), With<Selected>>,
         mut deselect_events: EventWriter<NodeDeselected>,
         // Check if we clicked on nothing
-        windows: Query<&Window>,
-        camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
-        nodes: Query<&Transform, With<crate::contexts::graph_management::domain::Node>>,
+        _windows: Query<&Window>,
+        _camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
+        _nodes: Query<&Transform, With<crate::contexts::graph_management::domain::Node>>,
     ) {
         if mouse_button.just_pressed(MouseButton::Right) {
             // Deselect all on right click
@@ -1374,3 +1444,32 @@ impl ControlCamera {
         }
     }
 }
+
+// TODO: These functions are incomplete and need to be implemented
+/*
+pub fn highlight_edge_on_hover(
+    mut edge_hover_events: EventReader<EdgeHoverEvent>,
+    mut edge_type_events: EventReader<EdgeTypeChanged>,
+    mut edges: Query<(&EdgeRelationship, &EdgeVisual), With<EdgeBundle>>,
+) {
+    // Handle edge type changes
+    for _event in edge_type_events.read() {
+
+    }
+
+    for (edge_entity, edge_relationship, _edge_visual) in edges.iter() {
+
+    }
+}
+
+pub fn draw_graph_ui(
+    mut contexts: EguiContexts,
+    mut commands: Commands,
+    _windows: Query<&Window>,
+    _camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
+    _nodes: Query<&Transform, With<crate::contexts::graph_management::domain::Node>>,
+    mut graph_state: ResMut<GraphState>,
+) {
+    self.reset();
+}
+*/

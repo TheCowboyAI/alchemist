@@ -1,6 +1,21 @@
 #[cfg(test)]
 mod tests {
-    use super::super::{domain::*, events::*, repositories::*, services::*};
+    use super::*;
+    use crate::contexts::graph_management::{
+        domain::{
+            EdgeIdentity, EdgeRelationship, GraphIdentity, GraphJourney, GraphMetadata,
+            NodeContent, NodeIdentity, SpatialPosition,
+        },
+        events::{EdgeConnected, GraphCreated, NodeAdded},
+        repositories::{
+            GraphData, GraphEvent, GraphEvents, GraphSnapshot, Graphs, NodeLocation,
+            Nodes, Edges, EdgeReference,
+        },
+        services::{
+            AddNodeToGraph, ConnectGraphNodes, CreateGraph, EstablishGraphHierarchy,
+            GraphConstraintViolation, ValidateGraph,
+        },
+    };
     use bevy::ecs::system::SystemState;
     use bevy::prelude::*;
     use std::collections::HashMap;
@@ -45,10 +60,44 @@ mod tests {
         // Apply commands
         app.update();
 
-        // Verify entity was created
-        let mut query = app.world_mut().query::<&GraphIdentity>();
-        let count = query.iter(&app.world()).count();
-        assert_eq!(count, 1);
+        // Verify entity was created with correct components
+        let mut query = app.world_mut().query::<(&GraphIdentity, &GraphMetadata, &GraphJourney)>();
+        let results: Vec<_> = query.iter(&app.world()).collect();
+        assert_eq!(results.len(), 1);
+
+        let (stored_id, stored_metadata, stored_journey) = results[0];
+        assert_eq!(*stored_id, graph_id);
+        assert_eq!(stored_metadata.name, metadata.name);
+        assert_eq!(stored_metadata.description, metadata.description);
+        assert_eq!(stored_metadata.domain, metadata.domain);
+        assert_eq!(stored_metadata.tags, metadata.tags);
+
+        // Verify journey was initialized
+        assert_eq!(stored_journey.version, 1); // Default is 1
+        assert_eq!(stored_journey.event_count, 0);
+        assert!(stored_journey.last_event.is_none());
+
+        // Verify event was fired with all fields populated
+        // Create an event reader manually
+        let world = app.world_mut();
+        let mut system_state: SystemState<EventReader<GraphCreated>> = SystemState::new(world);
+        let mut event_reader = system_state.get_mut(world);
+
+        let fired_events: Vec<_> = event_reader.read().collect();
+        assert_eq!(fired_events.len(), 1);
+
+        let event = &fired_events[0];
+        assert_eq!(event.graph, graph_id);
+        assert_eq!(event.metadata.name, metadata.name);
+        assert_eq!(event.metadata.description, metadata.description);
+        assert_eq!(event.metadata.domain, metadata.domain);
+
+        // Validate all event fields are properly set
+        assert_ne!(event.graph.0, uuid::Uuid::nil());
+        assert!(!event.metadata.name.is_empty());
+        assert!(!event.metadata.domain.is_empty());
+        assert!(event.timestamp <= std::time::SystemTime::now());
+        assert!(event.metadata.created <= event.metadata.modified);
     }
 
     #[test]
