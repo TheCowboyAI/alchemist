@@ -1,4 +1,7 @@
 use bevy::prelude::*;
+use bevy::input::ButtonState;
+use bevy::input::mouse::MouseButtonInput;
+use bevy::input::keyboard::{Key, KeyboardInput, NativeKey};
 use std::collections::VecDeque;
 
 /// Test action that can be performed
@@ -15,14 +18,14 @@ pub enum TestAction {
 }
 
 /// Test result
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TestResult {
     Pass,
     Fail(String),
 }
 
 /// Test scenario with a series of actions
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 pub struct TestScenario {
     pub name: String,
     pub actions: VecDeque<TestAction>,
@@ -74,7 +77,7 @@ struct TestRunner {
 
 fn run_test_scenarios(
     mut runner: ResMut<TestRunner>,
-    mut windows: Query<&mut Window>,
+    windows: Query<Entity, With<Window>>,
     mut mouse_events: EventWriter<CursorMoved>,
     mut mouse_button_events: EventWriter<MouseButtonInput>,
     mut keyboard_events: EventWriter<KeyboardInput>,
@@ -96,42 +99,46 @@ fn run_test_scenarios(
         if let Some(action) = scenario.actions.pop_front() {
             match action {
                 TestAction::MoveMouse { x, y } => {
-                    if let Ok(mut window) = windows.get_single_mut() {
-                        mouse_events.send(CursorMoved {
-                            window: window.id(),
+                    if let Ok(window_entity) = windows.get_single() {
+                        mouse_events.write(CursorMoved {
+                            window: window_entity,
                             position: Vec2::new(x, y),
                             delta: None,
                         });
                     }
                 }
                 TestAction::Click { button } => {
-                    if let Ok(window) = windows.get_single() {
-                        mouse_button_events.send(MouseButtonInput {
+                    if let Ok(window_entity) = windows.get_single() {
+                        mouse_button_events.write(MouseButtonInput {
                             button,
                             state: ButtonState::Pressed,
-                            window: window.id(),
+                            window: window_entity,
                         });
-                        mouse_button_events.send(MouseButtonInput {
+                        mouse_button_events.write(MouseButtonInput {
                             button,
                             state: ButtonState::Released,
-                            window: window.id(),
+                            window: window_entity,
                         });
                     }
                 }
                 TestAction::KeyPress { key } => {
-                    keyboard_events.send(KeyboardInput {
+                    keyboard_events.write(KeyboardInput {
                         key_code: key,
                         logical_key: Key::Unidentified(NativeKey::Unidentified),
                         state: ButtonState::Pressed,
                         window: Entity::PLACEHOLDER,
+                        text: None,
+                        repeat: false,
                     });
                 }
                 TestAction::KeyRelease { key } => {
-                    keyboard_events.send(KeyboardInput {
+                    keyboard_events.write(KeyboardInput {
                         key_code: key,
                         logical_key: Key::Unidentified(NativeKey::Unidentified),
                         state: ButtonState::Released,
                         window: Entity::PLACEHOLDER,
+                        text: None,
+                        repeat: false,
                     });
                 }
                 TestAction::Wait { frames } => {
@@ -173,7 +180,7 @@ fn handle_test_completion(
 ) {
     if !runner.is_running && runner.scenarios.is_empty() {
         info!("All tests completed!");
-        app_exit.send(AppExit::Success);
+        app_exit.write(AppExit::Success);
     }
 }
 

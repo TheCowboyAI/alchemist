@@ -5,6 +5,8 @@ mod tests {
     use bevy::render::RenderPlugin;
     use bevy::window::WindowPlugin;
     use bevy::winit::WinitPlugin;
+    use bevy::input::ButtonState;
+    use bevy::input::mouse::MouseButtonInput;
     use std::time::Duration;
 
     fn setup_headless_app() -> App {
@@ -36,6 +38,7 @@ mod tests {
         // Add your UI components
         app.add_systems(Startup, setup_ui);
         app.add_systems(Update, button_interaction_system);
+        app.insert_resource(ButtonClickState::default());
 
         // Simulate mouse click
         app.world_mut().send_event(CursorMoved {
@@ -78,7 +81,7 @@ mod tests {
     }
 
     fn button_interaction_system(
-        mut interaction_query: Query<&Interaction, Changed<Interaction>>,
+        interaction_query: Query<&Interaction, Changed<Interaction>>,
         mut state: ResMut<ButtonClickState>,
     ) {
         for interaction in &interaction_query {
