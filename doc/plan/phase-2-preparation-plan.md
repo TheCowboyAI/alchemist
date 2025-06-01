@@ -29,27 +29,110 @@ pub fn highlight_selected_nodes(
 
 ### 2. Document Keyboard Controls
 **Priority**: Medium
-**Estimated Time**: 1 hour
-
-Create `doc/user-guide/keyboard-controls.md`:
-- Edge type switching (1-4)
-- Render mode switching (M/P/W/B)
-- Camera controls (←/→)
-- Selection (Left Click)
-
-### 3. Dead Code Annotations
-**Priority**: Low
 **Estimated Time**: 30 minutes
 
-Add appropriate annotations to domain entities:
+Create user documentation for:
+- Number keys 1-4: Change edge types
+- M, P, W, B keys: Change render modes
+- Arrow keys: Orbit camera
+- Mouse left click: Select node
+
+### 3. Implement Edge Animation ��
+**Priority**: High
+**Estimated Time**: 4-6 hours
+
+**Missing Feature Discovered**: Edge animation is completely missing!
+
+**Implementation Plan**:
 ```rust
-#[allow(dead_code)] // Used for event sourcing and future features
-pub struct Graph {
-    pub identity: GraphIdentity,
-    pub metadata: GraphMetadata,
-    pub journey: GraphJourney,
+// Add edge animation components
+#[derive(Component)]
+pub struct EdgePulse {
+    pub pulse_speed: f32,
+    pub pulse_intensity: f32,
+    pub color_variation: f32,
+}
+
+#[derive(Component)]
+pub struct EdgeFlow {
+    pub flow_speed: f32,
+    pub particle_density: f32,
+    pub particle_size: f32,
+}
+
+// Add animation system to AnimateGraphElements
+impl AnimateGraphElements {
+    pub fn animate_edges(
+        time: Res<Time>,
+        mut edges: Query<(&mut Transform, &EdgePulse), With<Edge>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+    ) {
+        // Implement edge pulsing, flowing, color cycling
+    }
 }
 ```
+
+### 4. Fix Selection Visual Feedback Loop
+**Priority**: Low
+**Estimated Time**: 1 hour
+
+The current selection only emits events but doesn't update visual state. Add a system to consume `NodeSelected` events and update materials.
+
+## Phase 2 Core Implementation
+
+### 1. Multi-Selection Support
+- Ctrl+Click for adding to selection
+- Shift+Click for range selection
+- Drag box selection
+
+### 2. Selection State Management
+- Maintain selection set
+- Provide selection queries
+- Handle selection clearing
+
+### 3. Selection Visualization
+- Outline/glow effects
+- Color highlighting
+- Selection box rendering
+
+### 4. Edge Selection
+- Implement edge raycasting
+- Edge hover effects
+- Edge selection feedback
+
+## Technical Debt from Phase 1
+
+1. **Ray3d Type Issues**: Consider creating wrapper types for cleaner raycasting API
+2. **Event System Migration**: Complete migration to `write()` pattern
+3. **Result Handling**: Add proper error handling for systems
+
+## Success Criteria
+
+- [ ] All nodes and edges can be selected
+- [ ] Visual feedback clearly shows selection state
+- [ ] Multi-selection works intuitively
+- [ ] Edge animation enhances visualization
+- [ ] Keyboard/mouse controls are documented
+- [ ] All tests pass including new selection tests
+
+## Testing Requirements
+
+1. **Unit Tests**:
+   - Selection raycasting accuracy
+   - Multi-selection state management
+   - Edge animation components
+
+2. **Integration Tests**:
+   - Full selection workflow
+   - Visual feedback updates
+   - Animation performance
+
+## Timeline
+
+- Week 1: Edge animation + selection visual feedback
+- Week 2: Multi-selection implementation
+- Week 3: Edge selection + testing
+- Week 4: Documentation + polish
 
 ## Phase 2 Readiness Checklist
 

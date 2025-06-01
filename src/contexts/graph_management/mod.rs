@@ -6,3 +6,6 @@ pub mod events;
 pub mod services;
 pub mod repositories;
 pub mod plugin;
+
+#[cfg(test)]
+mod tests;

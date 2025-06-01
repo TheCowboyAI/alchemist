@@ -24,24 +24,13 @@ impl Default for RenderMode {
     }
 }
 
-/// Capabilities for visualization
-#[derive(Component, Clone)]
+/// Component to track visualization capabilities
+#[derive(Component, Clone, Default)]
 pub struct VisualizationCapability {
     pub render_mode: RenderMode,
     pub supports_instancing: bool,
     pub level_of_detail: Option<u8>,
     pub point_cloud_density: Option<f32>, // Points per unit for point cloud mode
-}
-
-impl Default for VisualizationCapability {
-    fn default() -> Self {
-        Self {
-            render_mode: RenderMode::default(),
-            supports_instancing: false,
-            level_of_detail: None,
-            point_cloud_density: None,
-        }
-    }
 }
 
 /// Point cloud data for nodes
@@ -144,6 +133,20 @@ pub struct ConvertToPointCloud {
     pub density: f32,
 }
 
+/// Event fired when a node is selected
+#[derive(Event, Debug, Clone)]
+pub struct NodeSelected {
+    pub entity: Entity,
+    pub node: NodeIdentity,
+}
+
+/// Event fired when a node is deselected
+#[derive(Event, Debug, Clone)]
+pub struct NodeDeselected {
+    pub entity: Entity,
+    pub node: NodeIdentity,
+}
+
 // ============= State Components =============
 
 /// Current visualization settings (attached to a settings entity)
@@ -193,7 +196,7 @@ pub struct SubgraphOrbit {
     pub orbit_speed: f32,
 }
 
-/// Pulse dynamics for individual nodes
+/// Animation component for node pulsing effects
 #[derive(Component)]
 pub struct NodePulse {
     pub bounce_height: f32,
@@ -201,6 +204,10 @@ pub struct NodePulse {
     pub pulse_scale: f32,
     pub pulse_speed: f32,
 }
+
+/// Component to mark entities that should always face the camera
+#[derive(Component)]
+pub struct Billboard;
 
 /// Service to render graph elements in 3D space
 pub struct RenderGraphElements;
@@ -524,14 +531,15 @@ impl RenderGraphElements {
                 info!("Point cloud data generated for node - rendering requires point cloud plugin");
             }
             RenderMode::Wireframe => {
-                // Wireframe rendering - use mesh with wireframe material
-                let mesh = meshes.add(Sphere::new(0.3).mesh());
+                // Wireframe rendering - use lines to show mesh edges
+                let mesh = meshes.add(Sphere::new(0.3).mesh().ico(2).unwrap());
 
                 let material = materials.add(StandardMaterial {
                     base_color: Color::srgb(0.3, 0.5, 0.9),
                     metallic: 0.0,
                     perceptual_roughness: 1.0,
                     alpha_mode: AlphaMode::Opaque,
+                    emissive: Color::srgb(0.1, 0.2, 0.4).into(),
                     ..default()
                 });
 
@@ -543,18 +551,29 @@ impl RenderGraphElements {
                         render_mode,
                         ..default()
                     });
+
+                info!("Wireframe mode enabled for node");
             }
             RenderMode::Billboard => {
-                // Billboard rendering - sprite that always faces camera
-                commands.entity(node_entity)
-                    .insert(Transform::from_translation(position))
-                    .insert(VisualizationCapability {
-                        render_mode,
-                        ..default()
-                    });
+                // Billboard rendering - text that always faces camera
+                let text_style = TextFont {
+                    font_size: 20.0,
+                    ..default()
+                };
 
-                // Note: Billboard rendering would need custom shader or sprite setup
-                info!("Billboard mode selected - requires custom implementation");
+                commands.entity(node_entity)
+                    .insert((
+                        Text2d::new(_label),
+                        text_style,
+                        Transform::from_translation(position),
+                        Billboard,
+                        VisualizationCapability {
+                            render_mode,
+                            ..default()
+                        },
+                    ));
+
+                info!("Billboard mode enabled for node: {}", _label);
             }
         }
     }
@@ -570,7 +589,7 @@ impl RenderGraphElements {
     ) {
         // Get current settings or use defaults
         let render_mode = settings
-            .get_single()
+            .single()
             .map(|s| s.render_mode)
             .unwrap_or(RenderMode::Mesh);
 
@@ -607,7 +626,7 @@ impl RenderGraphElements {
     ) {
         // Get current settings or use defaults
         let edge_type = settings
-            .get_single()
+            .single()
             .map(|s| s.edge_type)
             .unwrap_or(EdgeType::Cylinder);
 
@@ -651,22 +670,111 @@ impl RenderGraphElements {
     }
 }
 
+/// Service to perform raycasting for selection
+pub struct PerformRaycast;
+
+impl PerformRaycast {
+    /// Converts screen coordinates to a ray in world space
+    pub fn screen_to_ray(
+        camera: &Camera,
+        camera_transform: &GlobalTransform,
+        screen_pos: Vec2,
+    ) -> Option<Ray3d> {
+        camera.viewport_to_world(camera_transform, screen_pos).ok()
+    }
+
+    /// Checks ray-sphere intersection
+    pub fn ray_intersects_sphere(
+        ray: &Ray3d,
+        sphere_center: Vec3,
+        sphere_radius: f32,
+    ) -> Option<f32> {
+        // Vector from ray origin to sphere center
+        let oc = ray.origin - sphere_center;
+
+        // Coefficients for quadratic equation
+        let direction = ray.direction.as_vec3();
+        let a = direction.dot(direction);
+        let b = 2.0 * oc.dot(direction);
+        let c = oc.dot(oc) - sphere_radius * sphere_radius;
+
+        // Discriminant
+        let discriminant = b * b - 4.0 * a * c;
+
+        if discriminant < 0.0 {
+            // No intersection
+            None
+        } else {
+            // Calculate the two intersection points
+            let sqrt_discriminant = discriminant.sqrt();
+            let t1 = (-b - sqrt_discriminant) / (2.0 * a);
+            let t2 = (-b + sqrt_discriminant) / (2.0 * a);
+
+            // Return the closest positive intersection
+            if t1 > 0.0 {
+                Some(t1)
+            } else if t2 > 0.0 {
+                Some(t2)
+            } else {
+                None
+            }
+        }
+    }
+}
+
 /// Service to handle user input and interactions
 pub struct HandleUserInput;
 
 impl HandleUserInput {
     /// Process mouse clicks for selection
     pub fn process_selection(
-        _windows: Query<&Window>,
-        _camera: Query<(&Camera, &GlobalTransform)>,
-        _nodes: Query<(Entity, &Transform, &NodeIdentity)>,
+        windows: Query<&Window>,
+        camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
+        nodes: Query<(Entity, &Transform, &NodeIdentity), With<crate::contexts::graph_management::domain::Node>>,
         mouse_button: Res<ButtonInput<MouseButton>>,
+        mut events: EventWriter<NodeSelected>,
     ) {
-        if !mouse_button.just_pressed(MouseButton::Left) {
-            return;
-        }
+        if mouse_button.just_pressed(MouseButton::Left) {
+            // Get the primary window
+            let Ok(window) = windows.single() else { return };
 
-        // TODO: Implement raycasting for node selection
+            // Get camera info
+            let Ok((camera, camera_transform)) = camera.single() else { return };
+
+            // Get cursor position
+            let Some(cursor_position) = window.cursor_position() else { return };
+
+            // Convert screen position to ray
+            let Some(ray) = PerformRaycast::screen_to_ray(camera, camera_transform, cursor_position) else { return };
+
+            // Find the closest intersecting node
+            let mut closest_hit: Option<(Entity, NodeIdentity, f32)> = None;
+
+            for (entity, transform, node_id) in nodes.iter() {
+                let sphere_center = transform.translation;
+                let sphere_radius = 0.3; // Match the sphere radius used in rendering
+
+                if let Some(distance) = PerformRaycast::ray_intersects_sphere(&ray, sphere_center, sphere_radius) {
+                    match &closest_hit {
+                        None => closest_hit = Some((entity, *node_id, distance)),
+                        Some((_, _, closest_distance)) => {
+                            if distance < *closest_distance {
+                                closest_hit = Some((entity, *node_id, distance));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Emit selection event for the closest hit
+            if let Some((entity, node_id, _)) = closest_hit {
+                events.write(NodeSelected {
+                    entity,
+                    node: node_id,
+                });
+                info!("Node selected: {:?}", node_id);
+            }
+        }
     }
 
     /// Change edge rendering type with keyboard
@@ -675,16 +783,16 @@ impl HandleUserInput {
         mut events: EventWriter<EdgeTypeChanged>,
     ) {
         if keyboard.just_pressed(KeyCode::Digit1) {
-            events.send(EdgeTypeChanged { new_edge_type: EdgeType::Line });
+            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Line });
             info!("Edge type changed to: Line");
         } else if keyboard.just_pressed(KeyCode::Digit2) {
-            events.send(EdgeTypeChanged { new_edge_type: EdgeType::Cylinder });
+            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Cylinder });
             info!("Edge type changed to: Cylinder");
         } else if keyboard.just_pressed(KeyCode::Digit3) {
-            events.send(EdgeTypeChanged { new_edge_type: EdgeType::Arc });
+            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Arc });
             info!("Edge type changed to: Arc");
         } else if keyboard.just_pressed(KeyCode::Digit4) {
-            events.send(EdgeTypeChanged { new_edge_type: EdgeType::Bezier });
+            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Bezier });
             info!("Edge type changed to: Bezier");
         }
     }
@@ -695,16 +803,16 @@ impl HandleUserInput {
         mut events: EventWriter<RenderModeChanged>,
     ) {
         if keyboard.just_pressed(KeyCode::KeyM) {
-            events.send(RenderModeChanged { new_render_mode: RenderMode::Mesh });
+            events.write(RenderModeChanged { new_render_mode: RenderMode::Mesh });
             info!("Render mode changed to: Mesh");
         } else if keyboard.just_pressed(KeyCode::KeyP) {
-            events.send(RenderModeChanged { new_render_mode: RenderMode::PointCloud });
+            events.write(RenderModeChanged { new_render_mode: RenderMode::PointCloud });
             info!("Render mode changed to: PointCloud (requires point cloud plugin)");
         } else if keyboard.just_pressed(KeyCode::KeyW) {
-            events.send(RenderModeChanged { new_render_mode: RenderMode::Wireframe });
+            events.write(RenderModeChanged { new_render_mode: RenderMode::Wireframe });
             info!("Render mode changed to: Wireframe");
         } else if keyboard.just_pressed(KeyCode::KeyB) {
-            events.send(RenderModeChanged { new_render_mode: RenderMode::Billboard });
+            events.write(RenderModeChanged { new_render_mode: RenderMode::Billboard });
             info!("Render mode changed to: Billboard");
         }
     }
@@ -884,6 +992,21 @@ impl ControlCamera {
                 let rotation = Quat::from_rotation_y(-rotation_speed);
                 camera_transform.translation = rotation * camera_transform.translation;
                 *camera_transform = camera_transform.looking_at(Vec3::ZERO, Vec3::Y);
+            }
+        }
+    }
+
+    /// System to make billboards face camera
+    pub fn update_billboards(
+        camera: Query<&Transform, With<Camera3d>>,
+        mut billboards: Query<&mut Transform, (With<Billboard>, Without<Camera3d>)>,
+    ) {
+        if let Ok(camera_transform) = camera.single() {
+            for mut transform in billboards.iter_mut() {
+                // Make billboard face camera while preserving its position
+                let position = transform.translation;
+                transform.look_at(camera_transform.translation, Vec3::Y);
+                transform.translation = position;
             }
         }
     }

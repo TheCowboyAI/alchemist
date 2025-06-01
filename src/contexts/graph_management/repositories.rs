@@ -207,11 +207,11 @@ impl Edges {
         }
     }
 
-    /// Add an edge to the adjacency index
+    /// Adds an edge reference from a source node
     pub fn add_edge(&mut self, source: NodeIdentity, reference: EdgeReference) {
         self.adjacency
             .entry(source.0)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(reference);
     }
 

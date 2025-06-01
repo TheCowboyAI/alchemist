@@ -169,23 +169,101 @@ impl ConnectGraphNodes {
 pub struct ValidateGraph;
 
 impl ValidateGraph {
+    /// Maximum nodes allowed per graph
+    const MAX_NODES_PER_GRAPH: usize = 10_000;
+
+    /// Maximum edges allowed per node
+    const MAX_EDGES_PER_NODE: usize = 100;
+
     /// Validates that an operation is allowed
-    pub fn can_add_node(&self, _graph_id: GraphIdentity) -> Result<(), GraphConstraintViolation> {
-        // TODO: Implement domain rules
+    pub fn can_add_node(
+        &self,
+        graph_id: GraphIdentity,
+        graphs: &Query<(&GraphIdentity, &GraphJourney)>,
+        nodes: &Query<&crate::contexts::graph_management::domain::Node>,
+    ) -> Result<(), GraphConstraintViolation> {
+        // Check if graph exists
+        let graph_found = graphs.iter().any(|(id, _)| id.0 == graph_id.0);
+        if !graph_found {
+            return Err(GraphConstraintViolation::GraphNotFound);
+        }
+
+        // Note: Since GraphJourney doesn't have deleted_at, we'll skip deletion check for now
+        // In a real system, you'd track deletion status separately
+
+        // Check node count limits
+        let current_node_count = nodes.iter()
+            .filter(|node| node.graph.0 == graph_id.0)
+            .count();
+
+        if current_node_count >= Self::MAX_NODES_PER_GRAPH {
+            return Err(GraphConstraintViolation::NodeLimitExceeded {
+                limit: Self::MAX_NODES_PER_GRAPH,
+                current: current_node_count,
+            });
+        }
+
+        // Check if graph is locked (could be based on some metadata)
+        // For now, we'll assume graphs are not locked
+
         Ok(())
     }
 
     pub fn can_connect_nodes(
         &self,
+        graph: GraphIdentity,
         source: NodeIdentity,
         target: NodeIdentity,
+        nodes: &Query<&crate::contexts::graph_management::domain::Node>,
+        edges: &Query<&crate::contexts::graph_management::domain::Edge>,
     ) -> Result<(), GraphConstraintViolation> {
         // Check for self-referencing edges
         if source == target {
-            return Err(GraphConstraintViolation::SelfReferencingEdge { node: source });
+            return Err(GraphConstraintViolation::SelfLoopNotAllowed);
         }
 
-        // TODO: Implement additional domain rules
+        // Check if nodes exist and get their data
+        let source_node = nodes.iter().find(|n| n.identity.0 == source.0);
+        let target_node = nodes.iter().find(|n| n.identity.0 == target.0);
+
+        if source_node.is_none() {
+            return Err(GraphConstraintViolation::NodeNotFound(source));
+        }
+        if target_node.is_none() {
+            return Err(GraphConstraintViolation::NodeNotFound(target));
+        }
+
+        // Check if nodes are in the same graph
+        let source_graph = source_node.unwrap().graph;
+        let target_graph = target_node.unwrap().graph;
+
+        if source_graph != target_graph || source_graph != graph {
+            return Err(GraphConstraintViolation::NodesInDifferentGraphs);
+        }
+
+        // Check edge count limits for source node
+        let source_edge_count = edges.iter()
+            .filter(|e| e.relationship.source.0 == source.0)
+            .count();
+
+        if source_edge_count >= Self::MAX_EDGES_PER_NODE {
+            return Err(GraphConstraintViolation::EdgeLimitExceeded {
+                node: source,
+                limit: Self::MAX_EDGES_PER_NODE,
+                current: source_edge_count,
+            });
+        }
+
+        // Check for duplicate edges (optional)
+        let duplicate_exists = edges.iter().any(|e| {
+            e.relationship.source.0 == source.0 &&
+            e.relationship.target.0 == target.0
+        });
+
+        if duplicate_exists {
+            return Err(GraphConstraintViolation::DuplicateEdgeNotAllowed);
+        }
+
         Ok(())
     }
 }
@@ -193,8 +271,35 @@ impl ValidateGraph {
 /// Domain-specific constraint violations for graph operations
 #[derive(Debug, Clone)]
 pub enum GraphConstraintViolation {
+    /// Graph not found
+    GraphNotFound,
+
+    /// Graph has been deleted
+    GraphDeleted,
+
+    /// Node limit exceeded for graph
+    NodeLimitExceeded { limit: usize, current: usize },
+
+    /// Graph is locked for modifications
+    GraphLocked,
+
+    /// Node not found
+    NodeNotFound(NodeIdentity),
+
+    /// Nodes are in different graphs
+    NodesInDifferentGraphs,
+
     /// Attempted to create an edge from a node to itself
     SelfReferencingEdge { node: NodeIdentity },
+
+    /// Self-loops are not allowed
+    SelfLoopNotAllowed,
+
+    /// Edge limit exceeded for node
+    EdgeLimitExceeded { node: NodeIdentity, limit: usize, current: usize },
+
+    /// Duplicate edge not allowed
+    DuplicateEdgeNotAllowed,
 
     /// Node exists without any connections
     DisconnectedNode { node: NodeIdentity },
@@ -208,10 +313,4 @@ pub enum GraphConstraintViolation {
         target: NodeIdentity,
         category: String
     },
-
-    /// Maximum node count exceeded for graph
-    NodeLimitExceeded { limit: usize, current: usize },
-
-    /// Maximum edge count exceeded for node
-    EdgeLimitExceeded { node: NodeIdentity, limit: usize },
 }

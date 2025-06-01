@@ -1,4 +1,5 @@
 use crate::contexts::visualization::services::*;
+use crate::contexts::visualization::point_cloud::PointCloudPlugin;
 use bevy::prelude::*;
 
 /// Plugin for the Visualization bounded context
@@ -7,11 +8,16 @@ pub struct VisualizationPlugin;
 impl Plugin for VisualizationPlugin {
     fn build(&self, app: &mut App) {
         app
+            // Add the point cloud plugin
+            .add_plugins(PointCloudPlugin)
+
             // Events
             .add_event::<EdgeTypeChanged>()
             .add_event::<RenderModeChanged>()
             .add_event::<VisualizationUpdateRequested>()
             .add_event::<ConvertToPointCloud>()
+            .add_event::<NodeSelected>()
+            .add_event::<NodeDeselected>()
 
             // Startup systems
             .add_systems(Startup, (
@@ -27,6 +33,7 @@ impl Plugin for VisualizationPlugin {
                 HandleUserInput::change_edge_type,
                 HandleUserInput::change_render_mode,
                 ControlCamera::orbit_camera,
+                ControlCamera::update_billboards,
 
                 // State update systems
                 UpdateVisualizationState::handle_edge_type_changed,
