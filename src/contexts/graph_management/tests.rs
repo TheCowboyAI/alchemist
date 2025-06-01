@@ -387,7 +387,8 @@ mod tests {
         // Verify parent-child relationship
         let children = app.world().get::<Children>(graph_entity);
         assert!(children.is_some());
-        assert!(children.unwrap().contains(&node_entity));
+        let children = children.expect("Graph entity should have children");
+        assert!(children.contains(&node_entity));
     }
 
     // ===== REPOSITORY TESTS =====
@@ -418,7 +419,8 @@ mod tests {
         // Test finding graph
         let found = repo.find(graph_id);
         assert!(found.is_some());
-        assert_eq!(found.unwrap().metadata.name, "Test Graph");
+        let found = found.expect("Graph should be found after storing");
+        assert_eq!(found.metadata.name, "Test Graph");
 
         // Test listing graphs
         let list = repo.list();
@@ -430,7 +432,8 @@ mod tests {
         // Test removing graph
         let removed = repo.remove(graph_id);
         assert!(removed.is_some());
-        assert_eq!(removed.unwrap().metadata.name, "Test Graph");
+        let removed = removed.expect("Graph should be removable");
+        assert_eq!(removed.metadata.name, "Test Graph");
         assert!(!repo.exists(graph_id));
     }
 
@@ -501,7 +504,8 @@ mod tests {
         // Test retrieving latest snapshot
         let latest = repo.latest_snapshot(graph_id);
         assert!(latest.is_some());
-        assert_eq!(latest.unwrap().version, 2);
+        let latest = latest.expect("Latest snapshot should be available");
+        assert_eq!(latest.version, 2);
     }
 
     #[test]
@@ -518,12 +522,14 @@ mod tests {
         // Test locating node
         let found = repo.locate(node_id);
         assert!(found.is_some());
-        assert_eq!(found.unwrap().graph_id, graph_id);
+        let found = found.expect("Node should be found after indexing");
+        assert_eq!(found.graph_id, graph_id);
 
         // Test removing node
         let removed = repo.remove(node_id);
         assert!(removed.is_some());
-        assert_eq!(removed.unwrap().node_id, node_id);
+        let removed = removed.expect("Node should be removable");
+        assert_eq!(removed.node_id, node_id);
 
         // Verify node is gone
         assert!(repo.locate(node_id).is_none());
