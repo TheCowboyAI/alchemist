@@ -1,0 +1,33 @@
+# Example Cargo.toml additions for automated UI testing
+
+[dev-dependencies]
+# For external input simulation (Wayland/X11/Windows/macOS)
+enigo = "0.3"
+
+# For taking screenshots during tests
+image = "0.25"
+
+# For test assertions
+pretty_assertions = "1.4"
+
+# For async test scenarios (if needed)
+tokio = { version = "1", features = ["full"] }
+
+# For generating test data
+rand = "0.8"
+fake = "2.9"
+
+[features]
+# Feature flag for headless testing
+headless = []
+
+# Feature flag for integration tests
+integration-tests = []
+
+[[test]]
+name = "headless_tests"
+required-features = ["headless"]
+
+[[test]]
+name = "e2e_tests"
+required-features = ["integration-tests"]
