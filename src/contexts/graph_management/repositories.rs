@@ -209,10 +209,7 @@ impl Edges {
 
     /// Adds an edge reference from a source node
     pub fn add_edge(&mut self, source: NodeIdentity, reference: EdgeReference) {
-        self.adjacency
-            .entry(source.0)
-            .or_default()
-            .push(reference);
+        self.adjacency.entry(source.0).or_default().push(reference);
     }
 
     /// Get all edges from a node
@@ -225,9 +222,7 @@ impl Edges {
 
     /// Remove all edges from a node
     pub fn remove_edges_from(&mut self, node: NodeIdentity) -> Vec<EdgeReference> {
-        self.adjacency
-            .remove(&node.0)
-            .unwrap_or_default()
+        self.adjacency.remove(&node.0).unwrap_or_default()
     }
 }
 

@@ -1,5 +1,5 @@
-use crate::contexts::visualization::services::*;
 use crate::contexts::visualization::point_cloud::PointCloudPlugin;
+use crate::contexts::visualization::services::*;
 use bevy::prelude::*;
 
 /// Plugin for the Visualization bounded context
@@ -10,7 +10,6 @@ impl Plugin for VisualizationPlugin {
         app
             // Add the point cloud plugin
             .add_plugins(PointCloudPlugin)
-
             // Events
             .add_event::<EdgeTypeChanged>()
             .add_event::<RenderModeChanged>()
@@ -18,39 +17,40 @@ impl Plugin for VisualizationPlugin {
             .add_event::<ConvertToPointCloud>()
             .add_event::<NodeSelected>()
             .add_event::<NodeDeselected>()
-
             // Startup systems
-            .add_systems(Startup, (
-                ControlCamera::setup_camera,
-                Self::setup_visualization_settings,
-            ))
-
+            .add_systems(
+                Startup,
+                (
+                    ControlCamera::setup_camera,
+                    Self::setup_visualization_settings,
+                ),
+            )
             // Visualization systems
-            .add_systems(Update, (
-                RenderGraphElements::visualize_new_nodes,
-                RenderGraphElements::visualize_new_edges,
-                HandleUserInput::process_selection,
-                HandleUserInput::change_edge_type,
-                HandleUserInput::change_render_mode,
-                ControlCamera::orbit_camera,
-                ControlCamera::update_billboards,
-
-                // State update systems
-                UpdateVisualizationState::handle_edge_type_changed,
-                UpdateVisualizationState::handle_render_mode_changed,
-
-                // Selection visualization systems
-                SelectionVisualization::handle_node_selection,
-                SelectionVisualization::handle_node_deselection,
-                SelectionVisualization::handle_deselect_all,
-
-                // Animation systems - hierarchical order matters
-                AnimateGraphElements::animate_graphs,
-                AnimateGraphElements::animate_subgraphs,
-                AnimateGraphElements::animate_nodes,
-                AnimateGraphElements::animate_edges,
-                AnimateGraphElements::handle_graph_animation_events,
-            ));
+            .add_systems(
+                Update,
+                (
+                    RenderGraphElements::visualize_new_nodes,
+                    RenderGraphElements::visualize_new_edges,
+                    HandleUserInput::process_selection,
+                    HandleUserInput::change_edge_type,
+                    HandleUserInput::change_render_mode,
+                    ControlCamera::orbit_camera,
+                    ControlCamera::update_billboards,
+                    // State update systems
+                    UpdateVisualizationState::handle_edge_type_changed,
+                    UpdateVisualizationState::handle_render_mode_changed,
+                    // Selection visualization systems
+                    SelectionVisualization::handle_node_selection,
+                    SelectionVisualization::handle_node_deselection,
+                    SelectionVisualization::handle_deselect_all,
+                    // Animation systems - hierarchical order matters
+                    AnimateGraphElements::animate_graphs,
+                    AnimateGraphElements::animate_subgraphs,
+                    AnimateGraphElements::animate_nodes,
+                    AnimateGraphElements::animate_edges,
+                    AnimateGraphElements::handle_graph_animation_events,
+                ),
+            );
     }
 }
 

@@ -32,7 +32,7 @@ pub fn automated_ui_test() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::process::{Command, Child};
+    use std::process::{Child, Command};
 
     struct AppHandle {
         child: Child,

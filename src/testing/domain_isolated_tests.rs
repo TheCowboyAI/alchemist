@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod domain_isolated_tests {
     use crate::contexts::graph_management::domain::*;
-    use uuid::Uuid;
-    use std::collections::HashMap;
     use serde_json;
+    use std::collections::HashMap;
+    use uuid::Uuid;
 
     // ===== PURE DOMAIN LOGIC TESTS (No Bevy Dependencies) =====
 
@@ -31,7 +31,10 @@ mod domain_isolated_tests {
 
         // Then: Distance calculations should be correct
         assert!((distance_from_origin - 3.74165).abs() < 0.001);
-        assert_eq!(origin_pos.coordinates_3d.x + origin_pos.coordinates_3d.y + origin_pos.coordinates_3d.z, 0.0);
+        assert_eq!(
+            origin_pos.coordinates_3d.x + origin_pos.coordinates_3d.y + origin_pos.coordinates_3d.z,
+            0.0
+        );
         assert!(negative_pos.coordinates_3d.x < 0.0);
     }
 
@@ -67,14 +70,29 @@ mod domain_isolated_tests {
         };
 
         // When: Adding properties
-        content.properties.insert("color".to_string(), serde_json::json!("blue"));
-        content.properties.insert("weight".to_string(), serde_json::json!(42));
-        content.properties.insert("active".to_string(), serde_json::json!(true));
+        content
+            .properties
+            .insert("color".to_string(), serde_json::json!("blue"));
+        content
+            .properties
+            .insert("weight".to_string(), serde_json::json!(42));
+        content
+            .properties
+            .insert("active".to_string(), serde_json::json!(true));
 
         // Then: Properties should be retrievable
-        assert_eq!(content.properties.get("color"), Some(&serde_json::json!("blue")));
-        assert_eq!(content.properties.get("weight"), Some(&serde_json::json!(42)));
-        assert_eq!(content.properties.get("active"), Some(&serde_json::json!(true)));
+        assert_eq!(
+            content.properties.get("color"),
+            Some(&serde_json::json!("blue"))
+        );
+        assert_eq!(
+            content.properties.get("weight"),
+            Some(&serde_json::json!(42))
+        );
+        assert_eq!(
+            content.properties.get("active"),
+            Some(&serde_json::json!(true))
+        );
         assert_eq!(content.properties.len(), 3);
     }
 
@@ -149,10 +167,14 @@ mod domain_isolated_tests {
         graph.edges.push((n2, n3));
 
         // Then: We should be able to find paths
-        let has_path_from_n1_to_n3 = graph.edges.iter()
-            .any(|(from, to)| *from == n1 && *to == n2) &&
-            graph.edges.iter()
-            .any(|(from, to)| *from == n2 && *to == n3);
+        let has_path_from_n1_to_n3 = graph
+            .edges
+            .iter()
+            .any(|(from, to)| *from == n1 && *to == n2)
+            && graph
+                .edges
+                .iter()
+                .any(|(from, to)| *from == n2 && *to == n3);
 
         assert!(has_path_from_n1_to_n3);
     }

@@ -1,17 +1,17 @@
 #[cfg(test)]
 mod automated_graph_tests {
-    use bevy::prelude::*;
-    use bevy::render::settings::{RenderCreation, WgpuSettings};
-    use bevy::render::RenderPlugin;
-    use bevy::window::WindowPlugin;
-    use bevy::winit::WinitPlugin;
-    use bevy::input::ButtonState;
-    use bevy::input::mouse::MouseButtonInput;
-    use bevy::input::keyboard::{Key, KeyboardInput, NativeKey};
     use crate::contexts::graph_management::domain as gm_domain;
     use crate::contexts::graph_management::events::*;
     use crate::contexts::graph_management::services::*;
     use crate::contexts::visualization::services::*;
+    use bevy::input::ButtonState;
+    use bevy::input::keyboard::{Key, KeyboardInput, NativeKey};
+    use bevy::input::mouse::MouseButtonInput;
+    use bevy::prelude::*;
+    use bevy::render::RenderPlugin;
+    use bevy::render::settings::{RenderCreation, WgpuSettings};
+    use bevy::window::WindowPlugin;
+    use bevy::winit::WinitPlugin;
     use std::collections::HashMap;
 
     /// Automated test for graph creation and node addition workflow
@@ -24,7 +24,11 @@ mod automated_graph_tests {
         app.update();
 
         // Verify graph was created
-        let graph_count = app.world_mut().query::<&gm_domain::GraphIdentity>().iter(&app.world()).count();
+        let graph_count = app
+            .world_mut()
+            .query::<&gm_domain::GraphIdentity>()
+            .iter(&app.world())
+            .count();
         assert_eq!(graph_count, 1);
 
         // Simulate adding nodes
@@ -33,7 +37,11 @@ mod automated_graph_tests {
         app.update();
 
         // Verify nodes were added
-        let node_count = app.world_mut().query::<&gm_domain::Node>().iter(&app.world()).count();
+        let node_count = app
+            .world_mut()
+            .query::<&gm_domain::Node>()
+            .iter(&app.world())
+            .count();
         assert_eq!(node_count, 2);
 
         // Simulate connecting nodes
@@ -41,7 +49,11 @@ mod automated_graph_tests {
         app.update();
 
         // Verify edge was created
-        let edge_count = app.world_mut().query::<&gm_domain::Edge>().iter(&app.world()).count();
+        let edge_count = app
+            .world_mut()
+            .query::<&gm_domain::Edge>()
+            .iter(&app.world())
+            .count();
         assert_eq!(edge_count, 1);
     }
 
@@ -58,7 +70,11 @@ mod automated_graph_tests {
         app.update();
 
         // Verify selection changed
-        let selected_count = app.world_mut().query::<&Selected>().iter(&app.world()).count();
+        let selected_count = app
+            .world_mut()
+            .query::<&Selected>()
+            .iter(&app.world())
+            .count();
         assert_eq!(selected_count, 1);
 
         // Test arrow key navigation
@@ -88,21 +104,25 @@ mod automated_graph_tests {
         let mut app = setup_headless_test_app();
 
         // Create nodes in specific positions
-        create_nodes_at_positions(&mut app, vec![
-            Vec2::new(100.0, 100.0),
-            Vec2::new(150.0, 150.0),
-            Vec2::new(200.0, 200.0),
-        ]);
+        create_nodes_at_positions(
+            &mut app,
+            vec![
+                Vec2::new(100.0, 100.0),
+                Vec2::new(150.0, 150.0),
+                Vec2::new(200.0, 200.0),
+            ],
+        );
 
         // Simulate box selection drag
-        simulate_box_selection(&mut app,
-            Vec2::new(90.0, 90.0),
-            Vec2::new(160.0, 160.0)
-        );
+        simulate_box_selection(&mut app, Vec2::new(90.0, 90.0), Vec2::new(160.0, 160.0));
         app.update();
 
         // Verify correct nodes selected
-        let selected_count = app.world_mut().query::<&Selected>().iter(&app.world()).count();
+        let selected_count = app
+            .world_mut()
+            .query::<&Selected>()
+            .iter(&app.world())
+            .count();
         assert_eq!(selected_count, 2); // Should select first two nodes
     }
 
@@ -115,20 +135,32 @@ mod automated_graph_tests {
         simulate_add_node_at_position(&mut app, Vec2::new(100.0, 100.0));
         app.update();
 
-        let nodes_before = app.world_mut().query::<&gm_domain::Node>().iter(&app.world()).count();
+        let nodes_before = app
+            .world_mut()
+            .query::<&gm_domain::Node>()
+            .iter(&app.world())
+            .count();
 
         // Undo
         simulate_key_combo(&mut app, &[KeyCode::ControlLeft, KeyCode::KeyZ]);
         app.update();
 
-        let nodes_after_undo = app.world_mut().query::<&gm_domain::Node>().iter(&app.world()).count();
+        let nodes_after_undo = app
+            .world_mut()
+            .query::<&gm_domain::Node>()
+            .iter(&app.world())
+            .count();
         assert_eq!(nodes_after_undo, nodes_before - 1);
 
         // Redo
         simulate_key_combo(&mut app, &[KeyCode::ControlLeft, KeyCode::KeyY]);
         app.update();
 
-        let nodes_after_redo = app.world_mut().query::<&gm_domain::Node>().iter(&app.world()).count();
+        let nodes_after_redo = app
+            .world_mut()
+            .query::<&gm_domain::Node>()
+            .iter(&app.world())
+            .count();
         assert_eq!(nodes_after_redo, nodes_before);
     }
 
@@ -150,15 +182,15 @@ mod automated_graph_tests {
                 .set(WindowPlugin {
                     primary_window: None,
                     ..default()
-                })
+                }),
         );
 
         // Add our plugins (simplified - in real app would add full plugins)
         app.add_event::<GraphCreated>()
-           .add_event::<NodeAdded>()
-           .add_event::<EdgeConnected>()
-           .add_event::<NodeSelected>()
-           .add_event::<RenderModeChanged>();
+            .add_event::<NodeAdded>()
+            .add_event::<EdgeConnected>()
+            .add_event::<NodeSelected>()
+            .add_event::<RenderModeChanged>();
 
         app
     }

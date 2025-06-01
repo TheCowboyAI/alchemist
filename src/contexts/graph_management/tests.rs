@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use super::super::{domain::*, events::*, services::*, repositories::*};
-    use bevy::prelude::*;
+    use super::super::{domain::*, events::*, repositories::*, services::*};
     use bevy::ecs::system::SystemState;
-    use uuid::Uuid;
+    use bevy::prelude::*;
     use std::collections::HashMap;
+    use uuid::Uuid;
 
     /// Helper to create a test app with required plugins
     fn setup_test_app() -> App {
@@ -35,11 +35,7 @@ mod tests {
             SystemState::new(world);
         let (mut commands, mut event_writer) = system_state.get_mut(world);
 
-        let graph_id = CreateGraph::execute(
-            metadata.clone(),
-            &mut commands,
-            &mut event_writer,
-        );
+        let graph_id = CreateGraph::execute(metadata.clone(), &mut commands, &mut event_writer);
 
         // Then: Graph ID should be valid
         assert_ne!(graph_id.0, Uuid::nil());
@@ -209,14 +205,14 @@ mod tests {
         let edges = edge_state.get(world);
 
         let result = validator.can_connect_nodes(
-            graph_id,
-            node_id,
-            node_id, // Same node
-            &nodes,
-            &edges,
+            graph_id, node_id, node_id, // Same node
+            &nodes, &edges,
         );
 
-        assert!(matches!(result, Err(GraphConstraintViolation::SelfLoopNotAllowed)));
+        assert!(matches!(
+            result,
+            Err(GraphConstraintViolation::SelfLoopNotAllowed)
+        ));
     }
 
     #[test]
@@ -276,15 +272,12 @@ mod tests {
         let nodes = node_state.get(world);
         let edges = edge_state.get(world);
 
-        let result = validator.can_connect_nodes(
-            graph_id,
-            source_id,
-            target_id,
-            &nodes,
-            &edges,
-        );
+        let result = validator.can_connect_nodes(graph_id, source_id, target_id, &nodes, &edges);
 
-        assert!(matches!(result, Err(GraphConstraintViolation::DuplicateEdgeNotAllowed)));
+        assert!(matches!(
+            result,
+            Err(GraphConstraintViolation::DuplicateEdgeNotAllowed)
+        ));
     }
 
     #[test]
@@ -296,11 +289,10 @@ mod tests {
         let node_id = NodeIdentity::new();
 
         // Spawn graph entity
-        let graph_entity = app.world_mut().spawn((
-            graph_id,
-            Transform::default(),
-            GlobalTransform::default(),
-        )).id();
+        let graph_entity = app
+            .world_mut()
+            .spawn((graph_id, Transform::default(), GlobalTransform::default()))
+            .id();
 
         // Spawn node entity
         let node = crate::contexts::graph_management::domain::Node {
@@ -313,11 +305,10 @@ mod tests {
             },
             position: SpatialPosition::at_3d(0.0, 0.0, 0.0),
         };
-        let node_entity = app.world_mut().spawn((
-            node,
-            Transform::default(),
-            GlobalTransform::default(),
-        )).id();
+        let node_entity = app
+            .world_mut()
+            .spawn((node, Transform::default(), GlobalTransform::default()))
+            .id();
 
         // Manually run the hierarchy organization logic
         // Since run_system_once is not available, we'll directly call the system
@@ -325,7 +316,7 @@ mod tests {
         let mut system_state: SystemState<(
             Query<(Entity, &GraphIdentity)>,
             Query<(Entity, &crate::contexts::graph_management::domain::Node)>,
-            Commands
+            Commands,
         )> = SystemState::new(world);
 
         let (graphs, nodes, mut commands) = system_state.get_mut(world);
@@ -470,10 +461,7 @@ mod tests {
 
         let node_id = NodeIdentity::new();
         let graph_id = GraphIdentity::new();
-        let location = NodeLocation {
-            graph_id,
-            node_id,
-        };
+        let location = NodeLocation { graph_id, node_id };
 
         // Test indexing node
         repo.index_node(node_id, location.clone());
@@ -603,7 +591,10 @@ mod tests {
         assert_eq!(content.label, "Test Node");
         assert_eq!(content.category, "example");
         assert_eq!(content.properties.len(), 2);
-        assert_eq!(content.properties.get("color"), Some(&serde_json::json!("red")));
+        assert_eq!(
+            content.properties.get("color"),
+            Some(&serde_json::json!("red"))
+        );
     }
 
     #[test]
@@ -625,6 +616,9 @@ mod tests {
         assert_eq!(relationship.target, target);
         assert_eq!(relationship.category, "dependency");
         assert_eq!(relationship.strength, 0.8);
-        assert_eq!(relationship.properties.get("type"), Some(&serde_json::json!("depends_on")));
+        assert_eq!(
+            relationship.properties.get("type"),
+            Some(&serde_json::json!("depends_on"))
+        );
     }
 }

@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use bevy::render::mesh::{PrimitiveTopology, Indices};
-use bevy::render::render_asset::RenderAssetUsages;
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
+use bevy::prelude::*;
+use bevy::render::mesh::{Indices, PrimitiveTopology};
+use bevy::render::render_asset::RenderAssetUsages;
 
 // ============= Visualization Services =============
 // Services that handle visual representation
@@ -53,10 +53,10 @@ pub struct EdgePointCloud {
 /// Different visual styles for edges
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub enum EdgeType {
-    Line,      // Simple straight line
-    Cylinder,  // 3D cylinder (current implementation)
-    Arc,       // Curved arc
-    Bezier,    // Bezier curve
+    Line,     // Simple straight line
+    Cylinder, // 3D cylinder (current implementation)
+    Arc,      // Curved arc
+    Bezier,   // Bezier curve
 }
 
 impl Default for EdgeType {
@@ -225,10 +225,10 @@ pub struct EdgePulse {
 impl Default for EdgePulse {
     fn default() -> Self {
         Self {
-            pulse_scale: 0.2,      // 20% scale variation
-            pulse_speed: 2.0,      // 2 Hz
-            color_intensity: 0.3,  // 30% brightness variation
-            phase_offset: 0.0,     // Random phase for variety
+            pulse_scale: 0.2,     // 20% scale variation
+            pulse_speed: 2.0,     // 2 Hz
+            color_intensity: 0.3, // 30% brightness variation
+            phase_offset: 0.0,    // Random phase for variety
         }
     }
 }
@@ -286,8 +286,8 @@ impl Default for EdgeColorCycle {
         Self {
             cycle_speed: 1.0,
             color_range: (
-                Color::srgb(0.3, 0.5, 0.9),  // Blue
-                Color::srgb(0.9, 0.3, 0.5),  // Red
+                Color::srgb(0.3, 0.5, 0.9), // Blue
+                Color::srgb(0.9, 0.3, 0.5), // Red
             ),
             current_phase: 0.0,
         }
@@ -303,11 +303,7 @@ pub struct RenderGraphElements;
 
 impl RenderGraphElements {
     /// Generates point cloud data for a node
-    pub fn generate_node_point_cloud(
-        position: Vec3,
-        density: f32,
-        radius: f32,
-    ) -> NodePointCloud {
+    pub fn generate_node_point_cloud(position: Vec3, density: f32, radius: f32) -> NodePointCloud {
         let mut points = Vec::new();
         let mut colors = Vec::new();
         let mut sizes = Vec::new();
@@ -401,16 +397,40 @@ impl RenderGraphElements {
 
         match edge_type {
             EdgeType::Line => Self::render_line_edge(
-                commands, meshes, material, source_pos, target_pos, edge_entity, &edge_visual
+                commands,
+                meshes,
+                material,
+                source_pos,
+                target_pos,
+                edge_entity,
+                &edge_visual,
             ),
             EdgeType::Cylinder => Self::render_cylinder_edge(
-                commands, meshes, material, source_pos, target_pos, edge_entity, &edge_visual
+                commands,
+                meshes,
+                material,
+                source_pos,
+                target_pos,
+                edge_entity,
+                &edge_visual,
             ),
             EdgeType::Arc => Self::render_arc_edge(
-                commands, meshes, material, source_pos, target_pos, edge_entity, &edge_visual
+                commands,
+                meshes,
+                material,
+                source_pos,
+                target_pos,
+                edge_entity,
+                &edge_visual,
             ),
             EdgeType::Bezier => Self::render_bezier_edge(
-                commands, meshes, material, source_pos, target_pos, edge_entity, &edge_visual
+                commands,
+                meshes,
+                material,
+                source_pos,
+                target_pos,
+                edge_entity,
+                &edge_visual,
             ),
         }
 
@@ -431,7 +451,9 @@ impl RenderGraphElements {
             });
         } else if random < 0.7 {
             // 20% chance of color cycle
-            commands.entity(edge_entity).insert(EdgeColorCycle::default());
+            commands
+                .entity(edge_entity)
+                .insert(EdgeColorCycle::default());
         }
         // 30% chance of no animation
     }
@@ -451,12 +473,17 @@ impl RenderGraphElements {
         let length = direction.length();
         let midpoint = source_pos + direction * 0.5;
 
-        let mesh = meshes.add(Cuboid::new(edge_visual.thickness, edge_visual.thickness, length));
+        let mesh = meshes.add(Cuboid::new(
+            edge_visual.thickness,
+            edge_visual.thickness,
+            length,
+        ));
 
         // Calculate rotation to align with edge direction
         let rotation = Quat::from_rotation_arc(Vec3::Z, direction.normalize());
 
-        commands.entity(edge_entity)
+        commands
+            .entity(edge_entity)
             .insert(Mesh3d(mesh))
             .insert(MeshMaterial3d(material))
             .insert(Transform {
@@ -486,7 +513,8 @@ impl RenderGraphElements {
         let up = Vec3::Y;
         let rotation = Quat::from_rotation_arc(up, direction.normalize());
 
-        commands.entity(edge_entity)
+        commands
+            .entity(edge_entity)
             .insert(Mesh3d(mesh))
             .insert(MeshMaterial3d(material))
             .insert(Transform {
@@ -536,7 +564,8 @@ impl RenderGraphElements {
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
         mesh.insert_indices(Indices::U32(indices));
 
-        commands.entity(edge_entity)
+        commands
+            .entity(edge_entity)
             .insert(Mesh3d(meshes.add(mesh)))
             .insert(MeshMaterial3d(material))
             .insert(Transform::default())
@@ -586,7 +615,8 @@ impl RenderGraphElements {
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
         mesh.insert_indices(Indices::U32(indices));
 
-        commands.entity(edge_entity)
+        commands
+            .entity(edge_entity)
             .insert(Mesh3d(meshes.add(mesh)))
             .insert(MeshMaterial3d(material))
             .insert(Transform::default())
@@ -615,7 +645,8 @@ impl RenderGraphElements {
                     ..default()
                 });
 
-                commands.entity(node_entity)
+                commands
+                    .entity(node_entity)
                     .insert(Mesh3d(mesh))
                     .insert(MeshMaterial3d(material))
                     .insert(Transform::from_translation(position))
@@ -628,7 +659,8 @@ impl RenderGraphElements {
                 // Generate point cloud data
                 let point_cloud = Self::generate_node_point_cloud(position, 50.0, 0.3);
 
-                commands.entity(node_entity)
+                commands
+                    .entity(node_entity)
                     .insert(Transform::from_translation(position))
                     .insert(point_cloud)
                     .insert(VisualizationCapability {
@@ -638,7 +670,9 @@ impl RenderGraphElements {
                     });
 
                 // Note: Actual point cloud rendering would be implemented in a dedicated plugin
-                info!("Point cloud data generated for node - rendering requires point cloud plugin");
+                info!(
+                    "Point cloud data generated for node - rendering requires point cloud plugin"
+                );
             }
             RenderMode::Wireframe => {
                 // Wireframe rendering - use lines to show mesh edges
@@ -653,7 +687,8 @@ impl RenderGraphElements {
                     ..default()
                 });
 
-                commands.entity(node_entity)
+                commands
+                    .entity(node_entity)
                     .insert(Mesh3d(mesh))
                     .insert(MeshMaterial3d(material))
                     .insert(Transform::from_translation(position))
@@ -671,17 +706,16 @@ impl RenderGraphElements {
                     ..default()
                 };
 
-                commands.entity(node_entity)
-                    .insert((
-                        Text2d::new(_label),
-                        text_style,
-                        Transform::from_translation(position),
-                        Billboard,
-                        VisualizationCapability {
-                            render_mode,
-                            ..default()
-                        },
-                    ));
+                commands.entity(node_entity).insert((
+                    Text2d::new(_label),
+                    text_style,
+                    Transform::from_translation(position),
+                    Billboard,
+                    VisualizationCapability {
+                        render_mode,
+                        ..default()
+                    },
+                ));
 
                 info!("Billboard mode enabled for node: {}", _label);
             }
@@ -840,7 +874,10 @@ impl HandleUserInput {
     pub fn process_selection(
         windows: Query<&Window>,
         camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
-        nodes: Query<(Entity, &Transform, &NodeIdentity), With<crate::contexts::graph_management::domain::Node>>,
+        nodes: Query<
+            (Entity, &Transform, &NodeIdentity),
+            With<crate::contexts::graph_management::domain::Node>,
+        >,
         mouse_button: Res<ButtonInput<MouseButton>>,
         mut events: EventWriter<NodeSelected>,
     ) {
@@ -849,13 +886,21 @@ impl HandleUserInput {
             let Ok(window) = windows.single() else { return };
 
             // Get camera info
-            let Ok((camera, camera_transform)) = camera.single() else { return };
+            let Ok((camera, camera_transform)) = camera.single() else {
+                return;
+            };
 
             // Get cursor position
-            let Some(cursor_position) = window.cursor_position() else { return };
+            let Some(cursor_position) = window.cursor_position() else {
+                return;
+            };
 
             // Convert screen position to ray
-            let Some(ray) = PerformRaycast::screen_to_ray(camera, camera_transform, cursor_position) else { return };
+            let Some(ray) =
+                PerformRaycast::screen_to_ray(camera, camera_transform, cursor_position)
+            else {
+                return;
+            };
 
             // Find the closest intersecting node
             let mut closest_hit: Option<(Entity, NodeIdentity, f32)> = None;
@@ -864,7 +909,9 @@ impl HandleUserInput {
                 let sphere_center = transform.translation;
                 let sphere_radius = 0.3; // Match the sphere radius used in rendering
 
-                if let Some(distance) = PerformRaycast::ray_intersects_sphere(&ray, sphere_center, sphere_radius) {
+                if let Some(distance) =
+                    PerformRaycast::ray_intersects_sphere(&ray, sphere_center, sphere_radius)
+                {
                     match &closest_hit {
                         None => closest_hit = Some((entity, *node_id, distance)),
                         Some((_, _, closest_distance)) => {
@@ -893,16 +940,24 @@ impl HandleUserInput {
         mut events: EventWriter<EdgeTypeChanged>,
     ) {
         if keyboard.just_pressed(KeyCode::Digit1) {
-            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Line });
+            events.write(EdgeTypeChanged {
+                new_edge_type: EdgeType::Line,
+            });
             info!("Edge type changed to: Line");
         } else if keyboard.just_pressed(KeyCode::Digit2) {
-            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Cylinder });
+            events.write(EdgeTypeChanged {
+                new_edge_type: EdgeType::Cylinder,
+            });
             info!("Edge type changed to: Cylinder");
         } else if keyboard.just_pressed(KeyCode::Digit3) {
-            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Arc });
+            events.write(EdgeTypeChanged {
+                new_edge_type: EdgeType::Arc,
+            });
             info!("Edge type changed to: Arc");
         } else if keyboard.just_pressed(KeyCode::Digit4) {
-            events.write(EdgeTypeChanged { new_edge_type: EdgeType::Bezier });
+            events.write(EdgeTypeChanged {
+                new_edge_type: EdgeType::Bezier,
+            });
             info!("Edge type changed to: Bezier");
         }
     }
@@ -913,16 +968,24 @@ impl HandleUserInput {
         mut events: EventWriter<RenderModeChanged>,
     ) {
         if keyboard.just_pressed(KeyCode::KeyM) {
-            events.write(RenderModeChanged { new_render_mode: RenderMode::Mesh });
+            events.write(RenderModeChanged {
+                new_render_mode: RenderMode::Mesh,
+            });
             info!("Render mode changed to: Mesh");
         } else if keyboard.just_pressed(KeyCode::KeyP) {
-            events.write(RenderModeChanged { new_render_mode: RenderMode::PointCloud });
+            events.write(RenderModeChanged {
+                new_render_mode: RenderMode::PointCloud,
+            });
             info!("Render mode changed to: PointCloud (requires point cloud plugin)");
         } else if keyboard.just_pressed(KeyCode::KeyW) {
-            events.write(RenderModeChanged { new_render_mode: RenderMode::Wireframe });
+            events.write(RenderModeChanged {
+                new_render_mode: RenderMode::Wireframe,
+            });
             info!("Render mode changed to: Wireframe");
         } else if keyboard.just_pressed(KeyCode::KeyB) {
-            events.write(RenderModeChanged { new_render_mode: RenderMode::Billboard });
+            events.write(RenderModeChanged {
+                new_render_mode: RenderMode::Billboard,
+            });
             info!("Render mode changed to: Billboard");
         }
     }
@@ -971,7 +1034,8 @@ impl SelectionVisualization {
         for event in events.read() {
             if let Ok(material_handle) = query.get(event.entity) {
                 // Store original material
-                commands.entity(event.entity)
+                commands
+                    .entity(event.entity)
                     .insert(Selected)
                     .insert(OriginalMaterial(material_handle.0.clone()));
 
@@ -985,7 +1049,8 @@ impl SelectionVisualization {
                 });
 
                 // Apply highlight material
-                commands.entity(event.entity)
+                commands
+                    .entity(event.entity)
                     .insert(MeshMaterial3d(highlight_material));
 
                 info!("Applied selection highlight to entity: {:?}", event.entity);
@@ -1002,12 +1067,16 @@ impl SelectionVisualization {
         for event in events.read() {
             if let Ok(original_material) = query.get(event.entity) {
                 // Restore original material
-                commands.entity(event.entity)
+                commands
+                    .entity(event.entity)
                     .remove::<Selected>()
                     .insert(MeshMaterial3d(original_material.0.clone()))
                     .remove::<OriginalMaterial>();
 
-                info!("Removed selection highlight from entity: {:?}", event.entity);
+                info!(
+                    "Removed selection highlight from entity: {:?}",
+                    event.entity
+                );
             }
         }
     }
@@ -1094,22 +1163,24 @@ impl AnimateGraphElements {
     /// Animates individual nodes (bouncing, pulsing)
     pub fn animate_nodes(
         time: Res<Time>,
-        mut nodes: Query<(&mut Transform, &NodePulse), With<crate::contexts::graph_management::domain::Node>>,
+        mut nodes: Query<
+            (&mut Transform, &NodePulse),
+            With<crate::contexts::graph_management::domain::Node>,
+        >,
     ) {
         for (mut transform, animation) in nodes.iter_mut() {
             let elapsed = time.elapsed_secs();
 
             // Apply bouncing
             if animation.bounce_height > 0.0 {
-                let bounce = animation.bounce_height
-                    * (elapsed * animation.bounce_speed).sin().abs();
+                let bounce =
+                    animation.bounce_height * (elapsed * animation.bounce_speed).sin().abs();
                 transform.translation.y += bounce;
             }
 
             // Apply pulsing
             if animation.pulse_scale > 0.0 {
-                let pulse = 1.0 + animation.pulse_scale
-                    * (elapsed * animation.pulse_speed).sin();
+                let pulse = 1.0 + animation.pulse_scale * (elapsed * animation.pulse_speed).sin();
                 transform.scale = Vec3::splat(pulse);
             }
         }
@@ -1118,20 +1189,24 @@ impl AnimateGraphElements {
     /// Animates edges with various effects
     pub fn animate_edges(
         time: Res<Time>,
-        mut edges: Query<(
-            &mut Transform,
-            Option<&EdgePulse>,
-            Option<&EdgeWave>,
-            Option<&mut EdgeColorCycle>,
-        ), With<EdgeVisual>>,
+        mut edges: Query<
+            (
+                &mut Transform,
+                Option<&EdgePulse>,
+                Option<&EdgeWave>,
+                Option<&mut EdgeColorCycle>,
+            ),
+            With<EdgeVisual>,
+        >,
     ) {
         let elapsed = time.elapsed_secs();
 
         for (mut transform, pulse, wave, color_cycle) in edges.iter_mut() {
             // Apply edge pulsing
             if let Some(pulse_anim) = pulse {
-                let pulse_factor = 1.0 + pulse_anim.pulse_scale
-                    * (elapsed * pulse_anim.pulse_speed + pulse_anim.phase_offset).sin();
+                let pulse_factor = 1.0
+                    + pulse_anim.pulse_scale
+                        * (elapsed * pulse_anim.pulse_speed + pulse_anim.phase_offset).sin();
 
                 // Scale the edge thickness
                 transform.scale.x = pulse_factor;
@@ -1192,8 +1267,7 @@ impl ControlCamera {
         // Camera
         commands.spawn((
             Camera3d::default(),
-            Transform::from_xyz(0.0, 5.0, 10.0)
-                .looking_at(Vec3::ZERO, Vec3::Y),
+            Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
         ));
 
         // Light
@@ -1203,8 +1277,7 @@ impl ControlCamera {
                 shadows_enabled: true,
                 ..default()
             },
-            Transform::from_xyz(4.0, 8.0, 4.0)
-                .looking_at(Vec3::ZERO, Vec3::Y),
+            Transform::from_xyz(4.0, 8.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
         ));
     }
 

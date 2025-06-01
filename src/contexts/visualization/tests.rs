@@ -349,6 +349,10 @@ mod tests {
         // Check if camera moved
         let final_pos = app.world().get::<Transform>(camera_entity).unwrap().translation;
 
+        let movement = final_pos - initial_pos;
+        assert!(movement.length() > 0.0);
+
+
         // Note: Camera might not move without proper time delta
         // This test documents the functionality exists but may need debugging
     }

@@ -1,4 +1,4 @@
-use crate::contexts::visualization::services::{NodePointCloud, EdgePointCloud};
+use crate::contexts::visualization::services::{EdgePointCloud, NodePointCloud};
 use bevy::prelude::*;
 
 /// Plugin for point cloud rendering
@@ -6,10 +6,7 @@ pub struct PointCloudPlugin;
 
 impl Plugin for PointCloudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (
-            render_node_point_clouds,
-            render_edge_point_clouds,
-        ));
+        app.add_systems(Update, (render_node_point_clouds, render_edge_point_clouds));
     }
 }
 
@@ -38,7 +35,11 @@ fn render_edge_point_clouds(
     for (cloud, transform) in point_clouds.iter() {
         for (i, point) in cloud.points.iter().enumerate() {
             let world_pos = transform.transform_point(*point);
-            let color = cloud.colors.get(i).copied().unwrap_or(Color::srgb(0.7, 0.7, 0.7));
+            let color = cloud
+                .colors
+                .get(i)
+                .copied()
+                .unwrap_or(Color::srgb(0.7, 0.7, 0.7));
             let size = cloud.sizes.get(i).copied().unwrap_or(0.01);
 
             // Draw point as a small sphere

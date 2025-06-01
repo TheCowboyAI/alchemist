@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> { } }:
 
 pkgs.writeShellScriptBin "run-tdd-tests" ''
   #!${pkgs.bash}/bin/bash

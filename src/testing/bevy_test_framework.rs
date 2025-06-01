@@ -1,7 +1,7 @@
-use bevy::prelude::*;
 use bevy::input::ButtonState;
-use bevy::input::mouse::MouseButtonInput;
 use bevy::input::keyboard::{Key, KeyboardInput, NativeKey};
+use bevy::input::mouse::MouseButtonInput;
+use bevy::prelude::*;
 use std::collections::VecDeque;
 
 /// Test action that can be performed
@@ -61,10 +61,7 @@ impl Plugin for AutomatedTestPlugin {
             current_scenario: 0,
             is_running: true,
         })
-        .add_systems(Update, (
-            run_test_scenarios,
-            handle_test_completion,
-        ).chain());
+        .add_systems(Update, (run_test_scenarios, handle_test_completion).chain());
     }
 }
 
@@ -151,12 +148,16 @@ fn run_test_scenarios(
                     } else {
                         TestResult::Fail(format!("Node '{}' not found", tag))
                     };
-                    scenario.results.push((format!("Assert node exists: {}", tag), result));
+                    scenario
+                        .results
+                        .push((format!("Assert node exists: {}", tag), result));
                 }
                 TestAction::AssertNodeSelected { tag } => {
                     // This would check for Selected component
                     let result = TestResult::Pass; // Simplified
-                    scenario.results.push((format!("Assert node selected: {}", tag), result));
+                    scenario
+                        .results
+                        .push((format!("Assert node selected: {}", tag), result));
                 }
                 TestAction::TakeScreenshot { name } => {
                     info!("Screenshot would be taken: {}", name);
@@ -174,10 +175,7 @@ fn run_test_scenarios(
     }
 }
 
-fn handle_test_completion(
-    runner: Res<TestRunner>,
-    mut app_exit: EventWriter<AppExit>,
-) {
+fn handle_test_completion(runner: Res<TestRunner>, mut app_exit: EventWriter<AppExit>) {
     if !runner.is_running && runner.scenarios.is_empty() {
         info!("All tests completed!");
         app_exit.write(AppExit::Success);
@@ -200,15 +198,26 @@ pub fn create_test_scenarios() -> Vec<TestScenario> {
         TestScenario::new("Test Node Selection")
             .add_action(TestAction::Wait { frames: 10 })
             .add_action(TestAction::MoveMouse { x: 100.0, y: 100.0 })
-            .add_action(TestAction::Click { button: MouseButton::Left })
+            .add_action(TestAction::Click {
+                button: MouseButton::Left,
+            })
             .add_action(TestAction::Wait { frames: 5 })
-            .add_action(TestAction::AssertNodeSelected { tag: "node_1".into() })
-            .add_action(TestAction::TakeScreenshot { name: "selection_test".into() }),
-
+            .add_action(TestAction::AssertNodeSelected {
+                tag: "node_1".into(),
+            })
+            .add_action(TestAction::TakeScreenshot {
+                name: "selection_test".into(),
+            }),
         TestScenario::new("Test Keyboard Navigation")
-            .add_action(TestAction::KeyPress { key: KeyCode::ArrowRight })
+            .add_action(TestAction::KeyPress {
+                key: KeyCode::ArrowRight,
+            })
             .add_action(TestAction::Wait { frames: 5 })
-            .add_action(TestAction::KeyRelease { key: KeyCode::ArrowRight })
-            .add_action(TestAction::AssertNodeExists { tag: "graph_1".into() }),
+            .add_action(TestAction::KeyRelease {
+                key: KeyCode::ArrowRight,
+            })
+            .add_action(TestAction::AssertNodeExists {
+                tag: "graph_1".into(),
+            }),
     ]
 }

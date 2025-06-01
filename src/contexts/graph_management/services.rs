@@ -110,7 +110,10 @@ impl EstablishGraphHierarchy {
                 continue;
             }
 
-            if let Some((graph_entity, _)) = graphs.iter().find(|(_, graph_id)| graph_id.0 == node.graph.0) {
+            if let Some((graph_entity, _)) = graphs
+                .iter()
+                .find(|(_, graph_id)| graph_id.0 == node.graph.0)
+            {
                 commands.entity(graph_entity).add_child(node_entity);
             }
         }
@@ -192,7 +195,8 @@ impl ValidateGraph {
         // In a real system, you'd track deletion status separately
 
         // Check node count limits
-        let current_node_count = nodes.iter()
+        let current_node_count = nodes
+            .iter()
             .filter(|node| node.graph.0 == graph_id.0)
             .count();
 
@@ -242,7 +246,8 @@ impl ValidateGraph {
         }
 
         // Check edge count limits for source node
-        let source_edge_count = edges.iter()
+        let source_edge_count = edges
+            .iter()
             .filter(|e| e.relationship.source.0 == source.0)
             .count();
 
@@ -255,10 +260,9 @@ impl ValidateGraph {
         }
 
         // Check for duplicate edges (optional)
-        let duplicate_exists = edges.iter().any(|e| {
-            e.relationship.source.0 == source.0 &&
-            e.relationship.target.0 == target.0
-        });
+        let duplicate_exists = edges
+            .iter()
+            .any(|e| e.relationship.source.0 == source.0 && e.relationship.target.0 == target.0);
 
         if duplicate_exists {
             return Err(GraphConstraintViolation::DuplicateEdgeNotAllowed);
@@ -296,7 +300,11 @@ pub enum GraphConstraintViolation {
     SelfLoopNotAllowed,
 
     /// Edge limit exceeded for node
-    EdgeLimitExceeded { node: NodeIdentity, limit: usize, current: usize },
+    EdgeLimitExceeded {
+        node: NodeIdentity,
+        limit: usize,
+        current: usize,
+    },
 
     /// Duplicate edge not allowed
     DuplicateEdgeNotAllowed,
@@ -311,6 +319,6 @@ pub enum GraphConstraintViolation {
     InvalidEdgeCategory {
         source: NodeIdentity,
         target: NodeIdentity,
-        category: String
+        category: String,
     },
 }

@@ -3,9 +3,9 @@
 
 pub mod domain;
 pub mod events;
-pub mod services;
-pub mod repositories;
 pub mod plugin;
+pub mod repositories;
+pub mod services;
 
 #[cfg(test)]
 mod tests;

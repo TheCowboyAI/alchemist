@@ -1,16 +1,16 @@
 #[cfg(test)]
 mod tdd_ecs_tests {
-    use bevy::prelude::*;
-    use bevy::render::settings::{RenderCreation, WgpuSettings};
-    use bevy::render::RenderPlugin;
-    use bevy::window::WindowPlugin;
-    use bevy::winit::WinitPlugin;
-    use bevy::input::keyboard::KeyboardInput;
-    use bevy::input::ButtonState;
     use crate::contexts::graph_management::domain as gm_domain;
     use crate::contexts::graph_management::events::*;
     use crate::contexts::graph_management::services::*;
     use crate::contexts::visualization::services::*;
+    use bevy::input::ButtonState;
+    use bevy::input::keyboard::KeyboardInput;
+    use bevy::prelude::*;
+    use bevy::render::RenderPlugin;
+    use bevy::render::settings::{RenderCreation, WgpuSettings};
+    use bevy::window::WindowPlugin;
+    use bevy::winit::WinitPlugin;
     use std::collections::HashMap;
 
     // ===== REQUIRED test setup pattern from TDD rule =====
@@ -31,7 +31,7 @@ mod tdd_ecs_tests {
                 .set(WindowPlugin {
                     primary_window: None,
                     ..default()
-                })
+                }),
         );
 
         app
@@ -42,7 +42,7 @@ mod tdd_ecs_tests {
         // Given: A headless test app
         let mut app = test_ecs_system();
         app.add_event::<GraphCreated>()
-           .add_systems(Update, handle_graph_creation);
+            .add_systems(Update, handle_graph_creation);
 
         // When: Graph metadata is created and system runs
         let metadata = gm_domain::GraphMetadata {
@@ -54,7 +54,8 @@ mod tdd_ecs_tests {
             tags: vec!["test".to_string()],
         };
 
-        app.world_mut().insert_resource(PendingGraphCreation(metadata));
+        app.world_mut()
+            .insert_resource(PendingGraphCreation(metadata));
 
         // Then: System should process the creation
         app.update();
@@ -68,7 +69,7 @@ mod tdd_ecs_tests {
         // Given: Test app with selection system
         let mut app = test_ecs_system();
         app.add_event::<NodeSelected>()
-           .add_systems(Update, handle_node_selection);
+            .add_systems(Update, handle_node_selection);
 
         // And: A node entity exists
         let node_entity = app.world_mut().spawn(gm_domain::NodeIdentity::new()).id();
@@ -94,11 +95,14 @@ mod tdd_ecs_tests {
         app.insert_resource(Time::<()>::default());
 
         // And: An edge with animation components
-        let edge_entity = app.world_mut().spawn((
-            EdgeVisual::default(),
-            EdgePulse::default(),
-            Transform::default(),
-        )).id();
+        let edge_entity = app
+            .world_mut()
+            .spawn((
+                EdgeVisual::default(),
+                EdgePulse::default(),
+                Transform::default(),
+            ))
+            .id();
 
         // When: Animation system runs
         app.update();
@@ -113,8 +117,8 @@ mod tdd_ecs_tests {
         // Given: Test app with render mode handling
         let mut app = test_ecs_system();
         app.add_event::<RenderModeChanged>()
-           .insert_resource(CurrentRenderMode::default())
-           .add_systems(Update, handle_render_mode_changes);
+            .insert_resource(CurrentRenderMode::default())
+            .add_systems(Update, handle_render_mode_changes);
 
         // When: Render mode change event is sent
         app.world_mut().send_event(RenderModeChanged {
@@ -137,28 +141,28 @@ mod tdd_ecs_tests {
         let graph_id = gm_domain::GraphIdentity::new();
 
         // And: A graph with nodes
-        app.world_mut().spawn((graph_id, gm_domain::GraphJourney::default()));
+        app.world_mut()
+            .spawn((graph_id, gm_domain::GraphJourney::default()));
 
         for _ in 0..5 {
-            app.world_mut().spawn((
-                gm_domain::Node {
-                    identity: gm_domain::NodeIdentity::new(),
-                    graph: graph_id,
-                    content: gm_domain::NodeContent {
-                        label: "Test".to_string(),
-                        category: "test".to_string(),
-                        properties: HashMap::new(),
-                    },
-                    position: gm_domain::SpatialPosition::at_3d(0.0, 0.0, 0.0),
+            app.world_mut().spawn((gm_domain::Node {
+                identity: gm_domain::NodeIdentity::new(),
+                graph: graph_id,
+                content: gm_domain::NodeContent {
+                    label: "Test".to_string(),
+                    category: "test".to_string(),
+                    properties: HashMap::new(),
                 },
-            ));
+                position: gm_domain::SpatialPosition::at_3d(0.0, 0.0, 0.0),
+            },));
         }
 
         // When: Validation runs
         app.update();
 
         // Then: No panics should occur (validation passed)
-        let node_count = app.world_mut()
+        let node_count = app
+            .world_mut()
             .query::<&gm_domain::Node>()
             .iter(&app.world())
             .filter(|n| n.graph == graph_id)
@@ -174,13 +178,15 @@ mod tdd_ecs_tests {
         app.insert_resource(ButtonInput::<KeyCode>::default());
 
         // And: A camera entity
-        let camera_entity = app.world_mut().spawn((
-            Camera3d::default(),
-            Transform::from_xyz(0.0, 0.0, 10.0),
-        )).id();
+        let camera_entity = app
+            .world_mut()
+            .spawn((Camera3d::default(), Transform::from_xyz(0.0, 0.0, 10.0)))
+            .id();
 
         // When: Arrow key is pressed (simulate via resource)
-        app.world_mut().resource_mut::<ButtonInput<KeyCode>>().press(KeyCode::ArrowRight);
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::ArrowRight);
 
         // Then: Camera should move
         app.update();
@@ -245,9 +251,9 @@ mod tdd_ecs_tests {
         // Given: Test app with NATS handling
         let mut app = test_ecs_system();
         app.insert_resource(TestNatsClient::new())
-           .add_event::<NatsIncoming>()
-           .add_event::<NatsOutgoing>()
-           .add_systems(Update, validate_nats_message_handling);
+            .add_event::<NatsIncoming>()
+            .add_event::<NatsOutgoing>()
+            .add_systems(Update, validate_nats_message_handling);
 
         // When: NATS message is received
         app.world_mut().send_event(NatsIncoming {
@@ -257,7 +263,11 @@ mod tdd_ecs_tests {
         // Then: Message should be processed
         app.update();
 
-        let results_count = app.world_mut().query::<&TestMarker>().iter(&app.world()).count();
+        let results_count = app
+            .world_mut()
+            .query::<&TestMarker>()
+            .iter(&app.world())
+            .count();
         assert_eq!(results_count, 1);
 
         let outgoing_events = app.world().resource::<Events<NatsOutgoing>>();
@@ -284,10 +294,7 @@ mod tdd_ecs_tests {
         }
     }
 
-    fn handle_node_selection(
-        mut events: EventReader<NodeSelected>,
-        mut commands: Commands,
-    ) {
+    fn handle_node_selection(mut events: EventReader<NodeSelected>, mut commands: Commands) {
         for event in events.read() {
             commands.entity(event.entity).insert(Selected);
         }
@@ -312,9 +319,7 @@ mod tdd_ecs_tests {
         nodes: Query<&gm_domain::Node>,
     ) {
         for (graph_id, _journey) in graphs.iter() {
-            let node_count = nodes.iter()
-                .filter(|n| n.graph == *graph_id)
-                .count();
+            let node_count = nodes.iter().filter(|n| n.graph == *graph_id).count();
 
             assert!(node_count <= 1000, "Graph exceeds node limit");
         }

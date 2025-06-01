@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-    use bevy::prelude::*;
-    use bevy::render::settings::{RenderCreation, WgpuSettings};
-    use bevy::render::RenderPlugin;
-    use bevy::window::WindowPlugin;
-    use bevy::winit::WinitPlugin;
     use bevy::input::ButtonState;
     use bevy::input::mouse::MouseButtonInput;
+    use bevy::prelude::*;
+    use bevy::render::RenderPlugin;
+    use bevy::render::settings::{RenderCreation, WgpuSettings};
+    use bevy::window::WindowPlugin;
+    use bevy::winit::WinitPlugin;
     use std::time::Duration;
 
     fn setup_headless_app() -> App {
@@ -25,7 +25,7 @@ mod tests {
                 .set(WindowPlugin {
                     primary_window: None,
                     ..default()
-                })
+                }),
         );
 
         app
