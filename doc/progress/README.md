@@ -26,7 +26,7 @@ This directory should contain ONLY documentation for work that is currently in p
 ### Today's Progress:
 1. ✅ Updated manual testing checklist with exact instructions
 2. ✅ Verified what features are actually implemented vs documented
-3. 🔄 Building application for manual testing
+3. ✅ Built application for manual testing
 4. [ ] Run through updated checklist to verify functionality
 
 ### Key Findings:
@@ -35,11 +35,12 @@ This directory should contain ONLY documentation for work that is currently in p
 - Some render modes and edge types may not work visually
 - Headless tests can't verify visual features
 
-## Previous Work
+## Recently Completed Work
 
-*Phase 1: Core features have been implemented and tested*
-- See `/doc/completed/` for completed phase 1 work
-- See `/doc/qa/` for quality assurance reports
+The following work was recently completed and moved to `/doc/completed/`:
+- `phase-1-testing-improvements.md` - Test infrastructure enhancement
+- `phase-1-completed-features.md` - Phase 1 feature implementation
+- `phase-1-implementation-summary.md` - Phase 1 summary
 
 ## Document Format
 
@@ -54,3 +55,4 @@ Progress documents should include:
 
 For completed work, see `/doc/completed/`
 For implementation plans, see `/doc/plan/`
+For project overview, see `progress-graph.md`
