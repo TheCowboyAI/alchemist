@@ -147,6 +147,14 @@ pub struct NodeDeselected {
     pub node: NodeIdentity,
 }
 
+/// Component to mark selected entities
+#[derive(Component)]
+pub struct Selected;
+
+/// Component to store original material for restoration on deselection
+#[derive(Component)]
+pub struct OriginalMaterial(pub Handle<StandardMaterial>);
+
 // ============= State Components =============
 
 /// Current visualization settings (attached to a settings entity)
@@ -203,6 +211,87 @@ pub struct NodePulse {
     pub bounce_speed: f32,
     pub pulse_scale: f32,
     pub pulse_speed: f32,
+}
+
+/// Animation component for edge pulsing effects
+#[derive(Component)]
+pub struct EdgePulse {
+    pub pulse_scale: f32,
+    pub pulse_speed: f32,
+    pub color_intensity: f32,
+    pub phase_offset: f32,
+}
+
+impl Default for EdgePulse {
+    fn default() -> Self {
+        Self {
+            pulse_scale: 0.2,      // 20% scale variation
+            pulse_speed: 2.0,      // 2 Hz
+            color_intensity: 0.3,  // 30% brightness variation
+            phase_offset: 0.0,     // Random phase for variety
+        }
+    }
+}
+
+/// Animation component for directional flow along edges
+#[derive(Component)]
+pub struct EdgeFlow {
+    pub flow_speed: f32,
+    pub particle_density: f32,
+    pub particle_size: f32,
+    pub flow_direction: bool, // true = source to target, false = reverse
+}
+
+impl Default for EdgeFlow {
+    fn default() -> Self {
+        Self {
+            flow_speed: 5.0,
+            particle_density: 10.0,
+            particle_size: 0.02,
+            flow_direction: true,
+        }
+    }
+}
+
+/// Animation component for wave effects along edges
+#[derive(Component)]
+pub struct EdgeWave {
+    pub wave_speed: f32,
+    pub wave_amplitude: f32,
+    pub wave_frequency: f32,
+    pub wave_offset: f32,
+}
+
+impl Default for EdgeWave {
+    fn default() -> Self {
+        Self {
+            wave_speed: 3.0,
+            wave_amplitude: 0.1,
+            wave_frequency: 2.0,
+            wave_offset: 0.0,
+        }
+    }
+}
+
+/// Animation component for color cycling effects
+#[derive(Component)]
+pub struct EdgeColorCycle {
+    pub cycle_speed: f32,
+    pub color_range: (Color, Color),
+    pub current_phase: f32,
+}
+
+impl Default for EdgeColorCycle {
+    fn default() -> Self {
+        Self {
+            cycle_speed: 1.0,
+            color_range: (
+                Color::srgb(0.3, 0.5, 0.9),  // Blue
+                Color::srgb(0.9, 0.3, 0.5),  // Red
+            ),
+            current_phase: 0.0,
+        }
+    }
 }
 
 /// Component to mark entities that should always face the camera
@@ -324,6 +413,27 @@ impl RenderGraphElements {
                 commands, meshes, material, source_pos, target_pos, edge_entity, &edge_visual
             ),
         }
+
+        // Randomly add animation components to make edges more dynamic
+        let random = rand::random::<f32>();
+
+        if random < 0.3 {
+            // 30% chance of pulse animation
+            commands.entity(edge_entity).insert(EdgePulse {
+                phase_offset: rand::random::<f32>() * std::f32::consts::PI * 2.0,
+                ..default()
+            });
+        } else if random < 0.5 {
+            // 20% chance of wave animation
+            commands.entity(edge_entity).insert(EdgeWave {
+                wave_offset: rand::random::<f32>() * std::f32::consts::PI * 2.0,
+                ..default()
+            });
+        } else if random < 0.7 {
+            // 20% chance of color cycle
+            commands.entity(edge_entity).insert(EdgeColorCycle::default());
+        }
+        // 30% chance of no animation
     }
 
     /// Renders a simple line edge
@@ -847,6 +957,84 @@ impl UpdateVisualizationState {
     }
 }
 
+/// Service to handle selection visualization
+pub struct SelectionVisualization;
+
+impl SelectionVisualization {
+    /// Updates visual appearance when nodes are selected
+    pub fn handle_node_selection(
+        mut commands: Commands,
+        mut events: EventReader<NodeSelected>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        query: Query<&MeshMaterial3d<StandardMaterial>, Without<Selected>>,
+    ) {
+        for event in events.read() {
+            if let Ok(material_handle) = query.get(event.entity) {
+                // Store original material
+                commands.entity(event.entity)
+                    .insert(Selected)
+                    .insert(OriginalMaterial(material_handle.0.clone()));
+
+                // Create highlight material
+                let highlight_material = materials.add(StandardMaterial {
+                    base_color: Color::srgb(1.0, 0.8, 0.2), // Golden highlight
+                    emissive: LinearRgba::rgb(0.5, 0.4, 0.1),
+                    metallic: 0.5,
+                    perceptual_roughness: 0.3,
+                    ..default()
+                });
+
+                // Apply highlight material
+                commands.entity(event.entity)
+                    .insert(MeshMaterial3d(highlight_material));
+
+                info!("Applied selection highlight to entity: {:?}", event.entity);
+            }
+        }
+    }
+
+    /// Removes visual feedback when nodes are deselected
+    pub fn handle_node_deselection(
+        mut commands: Commands,
+        mut events: EventReader<NodeDeselected>,
+        query: Query<&OriginalMaterial, With<Selected>>,
+    ) {
+        for event in events.read() {
+            if let Ok(original_material) = query.get(event.entity) {
+                // Restore original material
+                commands.entity(event.entity)
+                    .remove::<Selected>()
+                    .insert(MeshMaterial3d(original_material.0.clone()))
+                    .remove::<OriginalMaterial>();
+
+                info!("Removed selection highlight from entity: {:?}", event.entity);
+            }
+        }
+    }
+
+    /// System to handle clicking on empty space to deselect
+    pub fn handle_deselect_all(
+        mouse_button: Res<ButtonInput<MouseButton>>,
+        selected: Query<(Entity, &NodeIdentity), With<Selected>>,
+        mut deselect_events: EventWriter<NodeDeselected>,
+        // Check if we clicked on nothing
+        windows: Query<&Window>,
+        camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
+        nodes: Query<&Transform, With<crate::contexts::graph_management::domain::Node>>,
+    ) {
+        if mouse_button.just_pressed(MouseButton::Right) {
+            // Deselect all on right click
+            for (entity, node_id) in selected.iter() {
+                deselect_events.write(NodeDeselected {
+                    entity,
+                    node: *node_id,
+                });
+            }
+            info!("Deselected all nodes");
+        }
+    }
+}
+
 /// Service to animate graph elements at all hierarchy levels
 pub struct AnimateGraphElements;
 
@@ -923,6 +1111,52 @@ impl AnimateGraphElements {
                 let pulse = 1.0 + animation.pulse_scale
                     * (elapsed * animation.pulse_speed).sin();
                 transform.scale = Vec3::splat(pulse);
+            }
+        }
+    }
+
+    /// Animates edges with various effects
+    pub fn animate_edges(
+        time: Res<Time>,
+        mut edges: Query<(
+            &mut Transform,
+            Option<&EdgePulse>,
+            Option<&EdgeWave>,
+            Option<&mut EdgeColorCycle>,
+        ), With<EdgeVisual>>,
+    ) {
+        let elapsed = time.elapsed_secs();
+
+        for (mut transform, pulse, wave, color_cycle) in edges.iter_mut() {
+            // Apply edge pulsing
+            if let Some(pulse_anim) = pulse {
+                let pulse_factor = 1.0 + pulse_anim.pulse_scale
+                    * (elapsed * pulse_anim.pulse_speed + pulse_anim.phase_offset).sin();
+
+                // Scale the edge thickness
+                transform.scale.x = pulse_factor;
+                transform.scale.y = pulse_factor;
+
+                // Note: Material emissive changes would require accessing MeshMaterial3d component
+                // This is handled separately if needed
+            }
+
+            // Apply wave animation
+            if let Some(wave_anim) = wave {
+                let wave_offset = wave_anim.wave_amplitude
+                    * (elapsed * wave_anim.wave_speed + wave_anim.wave_offset).sin();
+                transform.translation.y += wave_offset;
+            }
+
+            // Apply color cycling
+            if let Some(mut color_anim) = color_cycle {
+                color_anim.current_phase += color_anim.cycle_speed * time.delta_secs();
+                if color_anim.current_phase > 1.0 {
+                    color_anim.current_phase -= 1.0;
+                }
+
+                // Note: To update material colors, we would need a separate system
+                // that queries for both EdgeColorCycle and MeshMaterial3d components
             }
         }
     }

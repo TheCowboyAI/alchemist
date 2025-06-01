@@ -39,10 +39,16 @@ impl Plugin for VisualizationPlugin {
                 UpdateVisualizationState::handle_edge_type_changed,
                 UpdateVisualizationState::handle_render_mode_changed,
 
+                // Selection visualization systems
+                SelectionVisualization::handle_node_selection,
+                SelectionVisualization::handle_node_deselection,
+                SelectionVisualization::handle_deselect_all,
+
                 // Animation systems - hierarchical order matters
                 AnimateGraphElements::animate_graphs,
                 AnimateGraphElements::animate_subgraphs,
                 AnimateGraphElements::animate_nodes,
+                AnimateGraphElements::animate_edges,
                 AnimateGraphElements::handle_graph_animation_events,
             ));
     }
