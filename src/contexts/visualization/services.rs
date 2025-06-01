@@ -1007,6 +1007,62 @@ impl UpdateVisualizationState {
         }
     }
 
+    /// Re-renders edges when edge type changes
+    pub fn update_existing_edges(
+        mut commands: Commands,
+        mut edge_type_events: EventReader<EdgeTypeChanged>,
+        settings: Query<&CurrentVisualizationSettings>,
+        edges: Query<(Entity, &EdgeRelationship, &EdgeVisual), With<crate::contexts::graph_management::domain::Edge>>,
+        nodes: Query<(&NodeIdentity, &SpatialPosition)>,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+    ) {
+        // Only proceed if edge type changed
+        if edge_type_events.is_empty() {
+            return;
+        }
+
+        // Get current settings
+        let Ok(current_settings) = settings.single() else {
+            return;
+        };
+
+        // Update all existing edges with new edge type
+        for (edge_entity, edge_relationship, edge_visual) in edges.iter() {
+            // Find source and target positions
+            let mut source_pos = None;
+            let mut target_pos = None;
+
+            for (node_id, position) in nodes.iter() {
+                if node_id.0 == edge_relationship.source.0 {
+                    source_pos = Some(position.coordinates_3d);
+                }
+                if node_id.0 == edge_relationship.target.0 {
+                    target_pos = Some(position.coordinates_3d);
+                }
+            }
+
+            if let (Some(source), Some(target)) = (source_pos, target_pos) {
+                // Remove old visual components
+                commands.entity(edge_entity).remove::<Mesh3d>();
+                commands.entity(edge_entity).remove::<MeshMaterial3d<StandardMaterial>>();
+
+                // Re-render with new edge type
+                RenderGraphElements::render_edge(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    source,
+                    target,
+                    edge_entity,
+                    current_settings.edge_type,
+                );
+
+                info!("Updated edge {:?} to type {:?}", edge_entity, current_settings.edge_type);
+            }
+        }
+    }
+
     /// Updates settings based on RenderModeChanged events
     pub fn handle_render_mode_changed(
         mut events: EventReader<RenderModeChanged>,

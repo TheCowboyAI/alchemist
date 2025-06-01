@@ -39,6 +39,7 @@ impl Plugin for VisualizationPlugin {
                     // State update systems
                     UpdateVisualizationState::handle_edge_type_changed,
                     UpdateVisualizationState::handle_render_mode_changed,
+                    UpdateVisualizationState::update_existing_edges.after(UpdateVisualizationState::handle_edge_type_changed),
                     // Selection visualization systems
                     SelectionVisualization::handle_node_selection,
                     SelectionVisualization::handle_node_deselection,
