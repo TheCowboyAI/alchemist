@@ -7,9 +7,16 @@ pub mod plugin;
 pub mod repositories;
 pub mod services;
 pub mod storage;
-
-#[cfg(debug_assertions)]
 pub mod verify_storage;
+pub mod importer;
 
 #[cfg(test)]
 mod tests;
+
+pub use domain::*;
+pub use events::*;
+pub use plugin::GraphManagementPlugin;
+pub use services::*;
+pub use storage::*;
+pub use verify_storage::*;
+pub use importer::*;

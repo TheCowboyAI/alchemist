@@ -1,9 +1,11 @@
-// Visualization Context
-// Manages the visual representation and rendering of graphs
+// Visualization context module
 
 pub mod plugin;
 pub mod point_cloud;
 pub mod services;
+pub mod layout;
+
+pub use plugin::VisualizationPlugin;
 
 #[cfg(test)]
 mod tests;

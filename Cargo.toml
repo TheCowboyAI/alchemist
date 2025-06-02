@@ -54,7 +54,3 @@ path = "src/lib.rs"
 [[bin]]
 name = "ia"
 path = "src/main.rs"
-
-[[bin]]
-name = "verify_storage"
-path = "src/bin/verify_storage.rs"

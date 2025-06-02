@@ -3,7 +3,7 @@ use super::events::*;
 use crate::contexts::graph_management::domain::{Edge, EdgeIdentity, Node, NodeIdentity};
 use crate::contexts::visualization::services::{EdgeVisual, PerformRaycast};
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
+use bevy::transform::components::GlobalTransform;
 
 // ============= Selection Services =============
 

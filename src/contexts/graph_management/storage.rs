@@ -6,8 +6,9 @@
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
 use bevy::prelude::*;
-use daggy::{Dag, NodeIndex, EdgeIndex};
+use daggy::{Dag, EdgeIndex, NodeIndex};
 use std::collections::HashMap;
+
 
 /// Node data stored in Daggy
 #[derive(Clone, Debug)]
@@ -54,14 +55,16 @@ impl GraphStorage {
         graph_id: GraphIdentity,
         node_data: NodeData,
     ) -> Result<NodeIndex, StorageError> {
-        let dag = self.graphs
+        let dag = self
+            .graphs
             .get_mut(&graph_id)
             .ok_or(StorageError::GraphNotFound(graph_id))?;
 
         let node_identity = node_data.identity;
         let node_index = dag.add_node(node_data);
 
-        self.node_indices.insert((graph_id, node_identity), node_index);
+        self.node_indices
+            .insert((graph_id, node_identity), node_index);
         Ok(node_index)
     }
 
@@ -73,23 +76,28 @@ impl GraphStorage {
         target: NodeIdentity,
         edge_data: EdgeData,
     ) -> Result<EdgeIndex, StorageError> {
-        let source_index = self.node_indices
+        let source_index = self
+            .node_indices
             .get(&(graph_id, source))
             .ok_or(StorageError::NodeNotFound(source))?;
 
-        let target_index = self.node_indices
+        let target_index = self
+            .node_indices
             .get(&(graph_id, target))
             .ok_or(StorageError::NodeNotFound(target))?;
 
-        let dag = self.graphs
+        let dag = self
+            .graphs
             .get_mut(&graph_id)
             .ok_or(StorageError::GraphNotFound(graph_id))?;
 
         let edge_identity = edge_data.identity;
-        let edge_index = dag.add_edge(*source_index, *target_index, edge_data)
+        let edge_index = dag
+            .add_edge(*source_index, *target_index, edge_data)
             .map_err(|_| StorageError::CycleDetected)?;
 
-        self.edge_indices.insert((graph_id, edge_identity), edge_index);
+        self.edge_indices
+            .insert((graph_id, edge_identity), edge_index);
         Ok(edge_index)
     }
 
@@ -112,7 +120,10 @@ impl GraphStorage {
     }
 
     /// Gets all edges in a graph
-    pub fn get_edges(&self, graph_id: GraphIdentity) -> Vec<(NodeIdentity, NodeIdentity, EdgeData)> {
+    pub fn get_edges(
+        &self,
+        graph_id: GraphIdentity,
+    ) -> Vec<(NodeIdentity, NodeIdentity, EdgeData)> {
         self.graphs
             .get(&graph_id)
             .map(|dag| {
@@ -128,7 +139,7 @@ impl GraphStorage {
                         Some((
                             source_data.identity,
                             target_data.identity,
-                            edge.weight.clone()
+                            edge.weight.clone(),
                         ))
                     })
                     .collect()
@@ -138,7 +149,8 @@ impl GraphStorage {
 
     /// Removes a graph from storage
     pub fn remove_graph(&mut self, graph_id: GraphIdentity) -> Result<(), StorageError> {
-        self.graphs.remove(&graph_id)
+        self.graphs
+            .remove(&graph_id)
             .ok_or(StorageError::GraphNotFound(graph_id))?;
 
         // Clean up indices
@@ -146,6 +158,11 @@ impl GraphStorage {
         self.edge_indices.retain(|(g, _), _| g != &graph_id);
 
         Ok(())
+    }
+
+    /// Clear all graphs from storage
+    pub fn clear(&mut self) {
+        self.graphs.clear();
     }
 }
 
@@ -176,10 +193,7 @@ impl SyncGraphWithStorage {
     }
 
     /// Syncs node addition events to storage
-    pub fn sync_node_added(
-        mut storage: ResMut<GraphStorage>,
-        mut events: EventReader<NodeAdded>,
-    ) {
+    pub fn sync_node_added(mut storage: ResMut<GraphStorage>, mut events: EventReader<NodeAdded>) {
         for event in events.read() {
             let node_data = NodeData {
                 identity: event.node,
@@ -225,7 +239,8 @@ impl SyncGraphWithStorage {
         event_writer: &mut EventWriter<GraphCreated>,
     ) -> Result<Entity, StorageError> {
         // Verify graph exists
-        let _dag = storage.get_graph(graph_id)
+        let _dag = storage
+            .get_graph(graph_id)
             .ok_or(StorageError::GraphNotFound(graph_id))?;
 
         // Create graph metadata
@@ -239,20 +254,22 @@ impl SyncGraphWithStorage {
         };
 
         // Create graph entity
-        let graph_entity = commands.spawn((
-            GraphBundle {
-                graph: Graph {
+        let graph_entity = commands
+            .spawn((
+                GraphBundle {
+                    graph: Graph {
+                        identity: graph_id,
+                        metadata: metadata.clone(),
+                        journey: GraphJourney::default(),
+                    },
                     identity: graph_id,
                     metadata: metadata.clone(),
                     journey: GraphJourney::default(),
                 },
-                identity: graph_id,
-                metadata: metadata.clone(),
-                journey: GraphJourney::default(),
-            },
-            Transform::default(),
-            GlobalTransform::default(),
-        )).id();
+                Transform::default(),
+                GlobalTransform::default(),
+            ))
+            .id();
 
         // Emit creation event
         event_writer.write(GraphCreated {
@@ -266,8 +283,8 @@ impl SyncGraphWithStorage {
         let mut node_entities = HashMap::new();
 
         for node_data in nodes {
-            let node_entity = commands.spawn((
-                NodeBundle {
+            let node_entity = commands
+                .spawn((NodeBundle {
                     node: crate::contexts::graph_management::domain::Node {
                         identity: node_data.identity,
                         graph: graph_id,
@@ -279,8 +296,8 @@ impl SyncGraphWithStorage {
                     position: node_data.position,
                     transform: Transform::from_translation(node_data.position.coordinates_3d),
                     global_transform: GlobalTransform::default(),
-                },
-            )).id();
+                },))
+                .id();
 
             node_entities.insert(node_data.identity, node_entity);
         }
@@ -290,19 +307,17 @@ impl SyncGraphWithStorage {
 
         for (source_id, target_id, edge_data) in edges {
             if let (Some(&_source_entity), Some(&_target_entity)) =
-                (node_entities.get(&source_id), node_entities.get(&target_id)) {
-
-                commands.spawn((
-                    EdgeBundle {
-                        edge: crate::contexts::graph_management::domain::Edge {
-                            identity: edge_data.identity,
-                            graph: graph_id,
-                            relationship: edge_data.relationship.clone(),
-                        },
+                (node_entities.get(&source_id), node_entities.get(&target_id))
+            {
+                commands.spawn((EdgeBundle {
+                    edge: crate::contexts::graph_management::domain::Edge {
                         identity: edge_data.identity,
-                        relationship: edge_data.relationship,
+                        graph: graph_id,
+                        relationship: edge_data.relationship.clone(),
                     },
-                ));
+                    identity: edge_data.identity,
+                    relationship: edge_data.relationship,
+                },));
             }
         }
 
@@ -312,6 +327,7 @@ impl SyncGraphWithStorage {
 
 #[cfg(test)]
 mod tests {
+    use uuid::Uuid;
     use super::*;
 
     fn create_test_graph_identity() -> GraphIdentity {
@@ -399,12 +415,9 @@ mod tests {
 
         // Add edge
         let edge_data = create_test_edge_data(node1_id, node2_id);
-        let edge_index = storage.add_edge(
-            graph_id,
-            node1_id,
-            node2_id,
-            edge_data.clone()
-        ).unwrap();
+        let edge_index = storage
+            .add_edge(graph_id, node1_id, node2_id, edge_data.clone())
+            .unwrap();
 
         // Verify edge was added
         assert_eq!(edge_index.index(), 0);
@@ -513,7 +526,9 @@ mod tests {
         storage.add_node(graph_id, node2).unwrap();
 
         let edge = create_test_edge_data(node1_id, node2_id);
-        storage.add_edge(graph_id, node1_id, node2_id, edge).unwrap();
+        storage
+            .add_edge(graph_id, node1_id, node2_id, edge)
+            .unwrap();
 
         // Load from storage - basic test without full ECS setup
         let result = storage.get_graph(graph_id);

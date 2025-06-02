@@ -303,7 +303,7 @@ impl Edges {
     pub fn add_edge(&mut self, source: NodeIdentity, edge_ref: EdgeReference) {
         self.adjacency
             .entry(source)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(edge_ref);
     }
 

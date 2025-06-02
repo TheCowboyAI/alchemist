@@ -293,6 +293,10 @@ impl Default for EdgeColorCycle {
 #[derive(Component)]
 pub struct Billboard;
 
+/// Component to mark edge segment children (for Arc and Bezier edges)
+#[derive(Component)]
+pub struct EdgeSegment;
+
 /// Service to render graph elements in 3D space
 pub struct RenderGraphElements;
 
@@ -607,6 +611,7 @@ impl RenderGraphElements {
                                 rotation,
                                 scale: Vec3::ONE,
                             },
+                            EdgeSegment,
                         ));
                     }
                 }
@@ -684,6 +689,7 @@ impl RenderGraphElements {
                                 rotation,
                                 scale: Vec3::ONE,
                             },
+                            EdgeSegment,
                         ));
                     }
                 }
@@ -817,6 +823,11 @@ impl RenderGraphElements {
         nodes: Query<(Entity, &NodeIdentity, &NodeContent, &SpatialPosition)>,
         settings: Query<&CurrentVisualizationSettings>,
     ) {
+        let event_count = events.len();
+        if event_count > 0 {
+            info!("visualize_new_nodes: Processing {} NodeAdded events", event_count);
+        }
+
         // Get current settings or use defaults
         let render_mode = settings
             .single()
@@ -824,11 +835,14 @@ impl RenderGraphElements {
             .unwrap_or(RenderMode::Mesh);
 
         for event in events.read() {
-            info!("Visualizing node: {}", event.content.label);
+            info!("Visualizing node: {} with ID {:?}", event.content.label, event.node);
 
             // Find the entity that was just created
+            let mut found = false;
             for (entity, identity, content, position) in nodes.iter() {
                 if identity.0 == event.node.0 {
+                    info!("Found node entity {:?} at position {:?}", entity, position.coordinates_3d);
+                    found = true;
                     Self::render_node(
                         &mut commands,
                         &mut meshes,
@@ -840,6 +854,9 @@ impl RenderGraphElements {
                     );
                     break;
                 }
+            }
+            if !found {
+                warn!("Could not find entity for node {:?} in query!", event.node);
             }
         }
     }
@@ -854,6 +871,11 @@ impl RenderGraphElements {
         nodes: Query<(&NodeIdentity, &SpatialPosition)>,
         settings: Query<&CurrentVisualizationSettings>,
     ) {
+        let event_count = events.len();
+        if event_count > 0 {
+            info!("visualize_new_edges: Processing {} EdgeConnected events", event_count);
+        }
+
         // Get current settings or use defaults
         let edge_type = settings
             .single()
@@ -861,11 +883,14 @@ impl RenderGraphElements {
             .unwrap_or(EdgeType::Cylinder);
 
         for event in events.read() {
-            info!("Visualizing edge: {:?}", event.edge);
+            info!("Visualizing edge: {:?} from {:?} to {:?}", event.edge, event.relationship.source, event.relationship.target);
 
             // Find the edge entity that was just created
+            let mut found = false;
             for (edge_entity, edge_identity, relationship) in edges.iter() {
                 if edge_identity.0 == event.edge.0 {
+                    info!("Found edge entity {:?}", edge_entity);
+                    found = true;
                     // Find source and target node positions
                     let mut source_pos = None;
                     let mut target_pos = None;
@@ -896,8 +921,213 @@ impl RenderGraphElements {
                     break;
                 }
             }
+            if !found {
+                warn!("Could not find entity for edge {:?} in query!", event.edge);
+            }
         }
     }
+
+    /// Handles visualization update requests for specific entities
+    pub fn handle_visualization_update_requests(
+        mut commands: Commands,
+        mut events: EventReader<VisualizationUpdateRequested>,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        nodes: Query<(&NodeContent, &SpatialPosition), With<crate::contexts::graph_management::domain::Node>>,
+        children_query: Query<&Children>,
+    ) {
+        for event in events.read() {
+            // Find if this is a node entity
+            if let Ok((content, position)) = nodes.get(event.entity) {
+                // First, despawn all children
+                if let Ok(children) = children_query.get(event.entity) {
+                    for child in children.iter() {
+                        commands.entity(child).despawn();
+                    }
+                }
+
+                // Remove all visual components
+                commands
+                    .entity(event.entity)
+                    .remove::<Mesh3d>()
+                    .remove::<MeshMaterial3d<StandardMaterial>>()
+                    .remove::<Billboard>()
+                    .remove::<NodePointCloud>()
+                    .remove::<VisualizationCapability>();
+
+                // Re-render with requested render mode
+                RenderGraphElements::render_node(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    event.entity,
+                    position.coordinates_3d,
+                    &content.label,
+                    event.render_mode,
+                );
+
+                info!(
+                    "Updated entity {:?} to render mode: {:?}",
+                    event.entity, event.render_mode
+                );
+            }
+        }
+    }
+
+    /// Handles requests to convert entities to point clouds
+    pub fn handle_convert_to_point_cloud(
+        mut commands: Commands,
+        mut events: EventReader<ConvertToPointCloud>,
+        nodes: Query<&SpatialPosition, With<crate::contexts::graph_management::domain::Node>>,
+        edges: Query<(&EdgeRelationship,), With<crate::contexts::graph_management::domain::Edge>>,
+        node_positions: Query<(&NodeIdentity, &SpatialPosition)>,
+    ) {
+        for event in events.read() {
+            // Check if it's a node
+            if let Ok(position) = nodes.get(event.entity) {
+                let point_cloud = RenderGraphElements::generate_node_point_cloud(
+                    position.coordinates_3d,
+                    event.density,
+                    0.3, // Default radius
+                );
+
+                commands
+                    .entity(event.entity)
+                    .insert(point_cloud)
+                    .insert(VisualizationCapability {
+                        render_mode: RenderMode::PointCloud,
+                        point_cloud_density: Some(event.density),
+                        ..default()
+                    });
+
+                info!("Converted node {:?} to point cloud", event.entity);
+            }
+            // Check if it's an edge
+            else if let Ok((relationship,)) = edges.get(event.entity) {
+                // Find source and target positions
+                let mut source_pos = None;
+                let mut target_pos = None;
+
+                for (node_id, position) in node_positions.iter() {
+                    if node_id.0 == relationship.source.0 {
+                        source_pos = Some(position.coordinates_3d);
+                    }
+                    if node_id.0 == relationship.target.0 {
+                        target_pos = Some(position.coordinates_3d);
+                    }
+                }
+
+                if let (Some(source), Some(target)) = (source_pos, target_pos) {
+                    let point_cloud = RenderGraphElements::generate_edge_point_cloud(
+                        source,
+                        target,
+                        50, // Default samples
+                        event.density,
+                    );
+
+                    commands
+                        .entity(event.entity)
+                        .insert(point_cloud)
+                        .insert(VisualizationCapability {
+                            render_mode: RenderMode::PointCloud,
+                            point_cloud_density: Some(event.density),
+                            ..default()
+                        });
+
+                    info!("Converted edge {:?} to point cloud", event.entity);
+                }
+            }
+        }
+    }
+
+    /// Renders flow particles for edges with EdgeFlow component
+    pub fn render_edge_flow_particles(
+        mut commands: Commands,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        time: Res<Time>,
+        edges: Query<(Entity, &EdgeRelationship, &EdgeFlow), With<EdgeVisual>>,
+        nodes: Query<(&NodeIdentity, &SpatialPosition)>,
+        mut flow_particles: Query<(&mut Transform, &FlowParticle)>,
+    ) {
+        let elapsed = time.elapsed_secs();
+
+        for (edge_entity, relationship, flow) in edges.iter() {
+            // Find source and target positions
+            let mut source_pos = None;
+            let mut target_pos = None;
+
+            for (node_id, position) in nodes.iter() {
+                if node_id.0 == relationship.source.0 {
+                    source_pos = Some(position.coordinates_3d);
+                }
+                if node_id.0 == relationship.target.0 {
+                    target_pos = Some(position.coordinates_3d);
+                }
+            }
+
+            if let (Some(source), Some(target)) = (source_pos, target_pos) {
+                // Spawn particles if they don't exist yet
+                let particle_count = (flow.particle_density as usize).max(1);
+
+                // Check if we need to spawn particles for this edge
+                let mut has_particles = false;
+                for (_, particle) in flow_particles.iter() {
+                    if particle.edge_entity == edge_entity {
+                        has_particles = true;
+                        break;
+                    }
+                }
+
+                if !has_particles {
+                    // Spawn flow particles
+                    for i in 0..particle_count {
+                        let offset = i as f32 / particle_count as f32;
+
+                        let particle_mesh = meshes.add(Sphere::new(flow.particle_size).mesh());
+                        let particle_material = materials.add(StandardMaterial {
+                            base_color: Color::srgb(0.9, 0.9, 1.0),
+                            emissive: LinearRgba::rgb(0.3, 0.3, 0.5),
+                            ..default()
+                        });
+
+                        commands.spawn((
+                            Mesh3d(particle_mesh),
+                            MeshMaterial3d(particle_material),
+                            Transform::from_translation(source),
+                            GlobalTransform::default(),
+                            FlowParticle {
+                                edge_entity,
+                                offset,
+                                speed: flow.flow_speed,
+                            },
+                        ));
+                    }
+                }
+
+                // Update existing particles
+                for (mut transform, particle) in flow_particles.iter_mut() {
+                    if particle.edge_entity == edge_entity {
+                        // Calculate position along edge
+                        let mut t = (elapsed * particle.speed / 10.0 + particle.offset) % 1.0;
+                        if !flow.flow_direction {
+                            t = 1.0 - t;
+                        }
+
+                        transform.translation = source.lerp(target, t);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Component to mark flow particles and track their parent edge
+#[derive(Component)]
+pub struct FlowParticle {
+    pub edge_entity: Entity,
+    pub offset: f32,
+    pub speed: f32,
 }
 
 /// Service to perform raycasting for selection
@@ -1009,6 +1239,115 @@ impl HandleUserInput {
                 new_render_mode: RenderMode::Billboard,
             });
             info!("Render mode changed to: Billboard");
+        }
+    }
+
+    /// Trigger force-directed layout with keyboard
+    pub fn trigger_layout(
+        keyboard: Res<ButtonInput<KeyCode>>,
+        mut layout_events: EventWriter<crate::contexts::visualization::layout::LayoutRequested>,
+        graphs: Query<&GraphIdentity>,
+    ) {
+        if keyboard.just_pressed(KeyCode::KeyL) {
+            let graph_count = graphs.iter().count();
+            info!("Layout key pressed. Found {} graphs", graph_count);
+
+            // Find the first graph (in a real app, you might want to target a specific graph)
+            if let Some(graph_id) = graphs.iter().next() {
+                layout_events.write(crate::contexts::visualization::layout::LayoutRequested {
+                    graph: *graph_id,
+                    algorithm:
+                        crate::contexts::visualization::layout::LayoutAlgorithm::ForceDirected,
+                });
+                info!("Force-directed layout requested for graph: {:?}", graph_id);
+            } else {
+                warn!("No graph found to apply layout to");
+            }
+        }
+    }
+
+    /// Trigger visualization update for selected entities
+    pub fn trigger_visualization_update(
+        keyboard: Res<ButtonInput<KeyCode>>,
+        mut events: EventWriter<VisualizationUpdateRequested>,
+        selected_nodes: Query<Entity, (With<crate::contexts::selection::domain::Selected>, With<crate::contexts::graph_management::domain::Node>)>,
+    ) {
+        // Check for key combinations to change render mode for selected nodes
+        if keyboard.pressed(KeyCode::ControlLeft) || keyboard.pressed(KeyCode::ControlRight) {
+            if keyboard.just_pressed(KeyCode::Digit1) {
+                // Ctrl+1: Change selected nodes to Mesh mode
+                for entity in selected_nodes.iter() {
+                    events.write(VisualizationUpdateRequested {
+                        entity,
+                        render_mode: RenderMode::Mesh,
+                    });
+                }
+                info!("Changed selected nodes to Mesh mode");
+            } else if keyboard.just_pressed(KeyCode::Digit2) {
+                // Ctrl+2: Change selected nodes to PointCloud mode
+                for entity in selected_nodes.iter() {
+                    events.write(VisualizationUpdateRequested {
+                        entity,
+                        render_mode: RenderMode::PointCloud,
+                    });
+                }
+                info!("Changed selected nodes to PointCloud mode");
+            } else if keyboard.just_pressed(KeyCode::Digit3) {
+                // Ctrl+3: Change selected nodes to Wireframe mode
+                for entity in selected_nodes.iter() {
+                    events.write(VisualizationUpdateRequested {
+                        entity,
+                        render_mode: RenderMode::Wireframe,
+                    });
+                }
+                info!("Changed selected nodes to Wireframe mode");
+            } else if keyboard.just_pressed(KeyCode::Digit4) {
+                // Ctrl+4: Change selected nodes to Billboard mode
+                for entity in selected_nodes.iter() {
+                    events.write(VisualizationUpdateRequested {
+                        entity,
+                        render_mode: RenderMode::Billboard,
+                    });
+                }
+                info!("Changed selected nodes to Billboard mode");
+            }
+        }
+    }
+
+    /// Trigger point cloud conversion for selected entities
+    pub fn trigger_point_cloud_conversion(
+        keyboard: Res<ButtonInput<KeyCode>>,
+        mut events: EventWriter<ConvertToPointCloud>,
+        selected_nodes: Query<Entity, (With<crate::contexts::selection::domain::Selected>, With<crate::contexts::graph_management::domain::Node>)>,
+        selected_edges: Query<Entity, (With<crate::contexts::selection::domain::Selected>, With<crate::contexts::graph_management::domain::Edge>)>,
+    ) {
+        if keyboard.just_pressed(KeyCode::KeyC) {
+            // C key: Convert selected entities to point clouds
+            let mut converted_count = 0;
+
+            // Convert selected nodes
+            for entity in selected_nodes.iter() {
+                events.write(ConvertToPointCloud {
+                    entity,
+                    density: 50.0, // Default density
+                });
+                converted_count += 1;
+            }
+
+            // Convert selected edges
+            for entity in selected_edges.iter() {
+                events.write(ConvertToPointCloud {
+                    entity,
+                    density: 30.0, // Lower density for edges
+                });
+                converted_count += 1;
+            }
+
+            if converted_count > 0 {
+                info!("Converting {} selected entities to point clouds", converted_count);
+            } else {
+                info!("No entities selected for point cloud conversion. Select nodes or edges first.");
+            }
         }
     }
 }
@@ -1341,8 +1680,10 @@ impl AnimateGraphElements {
 
             // Apply wave animation
             if let Some(wave_anim) = wave {
+                // Use wave frequency to create more complex wave patterns
                 let wave_offset = wave_anim.wave_amplitude
-                    * (elapsed * wave_anim.wave_speed + wave_anim.wave_offset).sin();
+                    * (elapsed * wave_anim.wave_speed + wave_anim.wave_offset).sin()
+                    * (elapsed * wave_anim.wave_frequency).cos(); // Use frequency for modulation
                 transform.translation.y += wave_offset;
             }
 

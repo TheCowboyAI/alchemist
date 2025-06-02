@@ -15,6 +15,12 @@ impl GraphIdentity {
     }
 }
 
+impl Default for GraphIdentity {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Unique identifier for a node
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct NodeIdentity(pub Uuid);
@@ -25,6 +31,12 @@ impl NodeIdentity {
     }
 }
 
+impl Default for NodeIdentity {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Unique identifier for an edge
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EdgeIdentity(pub Uuid);
@@ -32,6 +44,12 @@ pub struct EdgeIdentity(pub Uuid);
 impl EdgeIdentity {
     pub fn new() -> Self {
         Self(Uuid::new_v4())
+    }
+}
+
+impl Default for EdgeIdentity {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

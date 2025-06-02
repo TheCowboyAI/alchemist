@@ -1,5 +1,7 @@
+use crate::contexts::visualization::layout::LayoutPlugin;
 use crate::contexts::visualization::point_cloud::PointCloudPlugin;
 use crate::contexts::visualization::services::*;
+use crate::contexts::graph_management::plugin::GraphManagementSet;
 use bevy::prelude::*;
 use bevy_panorbit_camera::PanOrbitCameraPlugin;
 
@@ -13,6 +15,8 @@ impl Plugin for VisualizationPlugin {
             .add_plugins(PanOrbitCameraPlugin)
             // Add the point cloud plugin
             .add_plugins(PointCloudPlugin)
+            // Add the layout plugin
+            .add_plugins(LayoutPlugin)
             // Events
             .add_event::<EdgeTypeChanged>()
             .add_event::<RenderModeChanged>()
@@ -26,13 +30,17 @@ impl Plugin for VisualizationPlugin {
                     Self::setup_visualization_settings,
                 ),
             )
-            // Basic visualization systems
+            // Basic visualization systems - run after graph management completes
             .add_systems(
                 Update,
                 (
                     RenderGraphElements::visualize_new_nodes,
                     RenderGraphElements::visualize_new_edges,
-                ),
+                    RenderGraphElements::handle_visualization_update_requests,
+                    RenderGraphElements::handle_convert_to_point_cloud,
+                    RenderGraphElements::render_edge_flow_particles,
+                )
+                .after(GraphManagementSet::Hierarchy),
             )
             // User input systems
             .add_systems(
@@ -40,6 +48,9 @@ impl Plugin for VisualizationPlugin {
                 (
                     HandleUserInput::change_edge_type,
                     HandleUserInput::change_render_mode,
+                    HandleUserInput::trigger_layout,
+                    HandleUserInput::trigger_visualization_update,
+                    HandleUserInput::trigger_point_cloud_conversion,
                     ControlCamera::update_billboards,
                 ),
             )

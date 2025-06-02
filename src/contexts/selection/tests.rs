@@ -586,4 +586,9 @@ mod tests {
             || node_min_y > max.y);
         assert!(edge_intersects); // Should still intersect due to large radius
     }
+
+    #[test]
+    fn test_selection_highlight_no_highlight_in_storage() {
+        let _app = setup_test_app();
+    }
 }

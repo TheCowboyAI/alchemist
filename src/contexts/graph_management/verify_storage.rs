@@ -1,11 +1,11 @@
 //! Verification of storage implementation
 //! This is a simple verification module to ensure our storage works
 
-use super::storage::*;
 use super::domain::*;
-use super::events::*;
-use uuid::Uuid;
+use super::storage::*;
+use bevy::prelude::*;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// Verify basic storage operations
 pub fn verify_storage_operations() {
@@ -18,8 +18,8 @@ pub fn verify_storage_operations() {
     // Create a graph
     let graph_id = GraphIdentity(Uuid::new_v4());
     match storage.create_graph(graph_id) {
-        Ok(_) => println!("✓ Created graph: {:?}", graph_id),
-        Err(e) => println!("✗ Failed to create graph: {:?}", e),
+        Ok(_) => println!("✓ Created graph: {graph_id:?}"),
+        Err(e) => println!("✗ Failed to create graph: {e:?}"),
     }
 
     // Add nodes
@@ -35,8 +35,8 @@ pub fn verify_storage_operations() {
     };
 
     match storage.add_node(graph_id, node1_data) {
-        Ok(idx) => println!("✓ Added node1 at index: {:?}", idx),
-        Err(e) => println!("✗ Failed to add node1: {:?}", e),
+        Ok(idx) => println!("✓ Added node1 at index: {idx:?}"),
+        Err(e) => println!("✗ Failed to add node1: {e:?}"),
     }
 
     let node2_id = NodeIdentity(Uuid::new_v4());
@@ -51,8 +51,8 @@ pub fn verify_storage_operations() {
     };
 
     match storage.add_node(graph_id, node2_data) {
-        Ok(idx) => println!("✓ Added node2 at index: {:?}", idx),
-        Err(e) => println!("✗ Failed to add node2: {:?}", e),
+        Ok(idx) => println!("✓ Added node2 at index: {idx:?}"),
+        Err(e) => println!("✗ Failed to add node2: {e:?}"),
     }
 
     // Add edge
@@ -68,8 +68,8 @@ pub fn verify_storage_operations() {
     };
 
     match storage.add_edge(graph_id, node1_id, node2_id, edge_data) {
-        Ok(idx) => println!("✓ Added edge at index: {:?}", idx),
-        Err(e) => println!("✗ Failed to add edge: {:?}", e),
+        Ok(idx) => println!("✓ Added edge at index: {idx:?}"),
+        Err(e) => println!("✗ Failed to add edge: {e:?}"),
     }
 
     // Verify storage
@@ -92,7 +92,9 @@ pub fn verify_storage_operations() {
     };
 
     match storage.add_node(non_existent_graph, test_node_data) {
-        Err(StorageError::GraphNotFound(_)) => println!("✓ Correctly errored on non-existent graph"),
+        Err(StorageError::GraphNotFound(_)) => {
+            println!("✓ Correctly errored on non-existent graph")
+        }
         _ => println!("✗ Should have errored on non-existent graph"),
     }
 

@@ -2,7 +2,19 @@ use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
 use crate::contexts::graph_management::services::*;
 use crate::contexts::graph_management::storage::*;
+use crate::contexts::graph_management::importer::import_graph_from_file;
 use bevy::prelude::*;
+
+/// System sets for proper ordering
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GraphManagementSet {
+    /// Systems that import or create graph data
+    Import,
+    /// Systems that sync with storage
+    Storage,
+    /// Systems that organize hierarchy
+    Hierarchy,
+}
 
 /// Plugin for the Graph Management bounded context
 pub struct GraphManagementPlugin;
@@ -26,22 +38,37 @@ impl Plugin for GraphManagementPlugin {
         app.add_systems(
             Update,
             (
-                // Storage sync systems
-                SyncGraphWithStorage::sync_graph_created,
-                SyncGraphWithStorage::sync_node_added,
-                SyncGraphWithStorage::sync_edge_connected,
+                // Import system runs first
+                import_graph_from_file
+                    .in_set(GraphManagementSet::Import),
 
-                // Hierarchy system
-                EstablishGraphHierarchy::organize_hierarchy,
+                // Apply commands before running other systems
+                apply_deferred
+                    .after(GraphManagementSet::Import)
+                    .before(GraphManagementSet::Storage),
+
+                // Storage sync systems run after import
+                (
+                    SyncGraphWithStorage::sync_graph_created,
+                    SyncGraphWithStorage::sync_node_added,
+                    SyncGraphWithStorage::sync_edge_connected,
+                )
+                    .in_set(GraphManagementSet::Storage),
+
+                // Hierarchy system runs after storage
+                EstablishGraphHierarchy::organize_hierarchy
+                    .in_set(GraphManagementSet::Hierarchy)
+                    .after(GraphManagementSet::Storage),
             ),
         );
 
-        // Add startup system to create example
-        app.add_systems(Startup, create_example_graph);
+        // Remove the startup system to avoid creating duplicate graphs
+        // app.add_systems(Startup, create_example_graph);
     }
 }
 
-/// Creates an example graph on startup
+/// Creates an example graph (not used as startup system anymore)
+#[allow(dead_code)]
 fn create_example_graph(
     mut commands: Commands,
     mut graph_created: EventWriter<GraphCreated>,

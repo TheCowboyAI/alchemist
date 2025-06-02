@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::contexts::graph_management::domain::*;
-    use crate::contexts::graph_management::events::*;
-    use crate::contexts::selection::domain::Selected;
+    use crate::contexts::graph_management::domain::{
+        NodeIdentity, GraphIdentity, Graph, GraphMetadata, GraphJourney
+    };
     use crate::contexts::visualization::services::*;
+    use crate::contexts::graph_management::events::*;
     use bevy::ecs::system::SystemState;
     use bevy::prelude::*;
 
@@ -362,7 +362,7 @@ mod tests {
             .id();
 
         // Get initial camera position
-        let initial_pos = app
+        let _initial_pos = app
             .world()
             .get::<Transform>(camera_entity)
             .unwrap()
