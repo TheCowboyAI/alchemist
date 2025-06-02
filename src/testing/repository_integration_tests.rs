@@ -95,9 +95,7 @@ mod tests {
             content: NodeContent {
                 label: "Node 1".to_string(),
                 category: "test".to_string(),
-                properties: HashMap::from([
-                    ("key".to_string(), serde_json::json!("value")),
-                ]),
+                properties: HashMap::from([("key".to_string(), serde_json::json!("value"))]),
             },
             position: SpatialPosition::at_3d(10.0, 20.0, 0.0),
         });
@@ -166,7 +164,9 @@ mod tests {
         event_store.store_snapshot(snapshot);
 
         // Verify snapshot retrieval
-        let latest = event_store.latest_snapshot(graph_id).expect("Should have snapshot");
+        let latest = event_store
+            .latest_snapshot(graph_id)
+            .expect("Should have snapshot");
         assert_eq!(latest.version, 2);
         assert_eq!(latest.data.nodes.len(), 1);
         assert_eq!(latest.data.journey.event_count, 2);
@@ -175,7 +175,7 @@ mod tests {
         let recent_events = event_store.events_since(graph_id, 1);
         assert_eq!(recent_events.len(), 1);
         match recent_events[0] {
-            GraphEvent::NodeAdded(_) => {},
+            GraphEvent::NodeAdded(_) => {}
             _ => panic!("Event after version 1 should be NodeAdded"),
         }
     }
@@ -191,18 +191,27 @@ mod tests {
         let node3 = NodeIdentity::new();
 
         // Index nodes
-        node_index.index_node(node1, NodeLocation {
-            graph_id: graph1,
-            node_id: node1
-        });
-        node_index.index_node(node2, NodeLocation {
-            graph_id: graph1,
-            node_id: node2
-        });
-        node_index.index_node(node3, NodeLocation {
-            graph_id: graph2,
-            node_id: node3
-        });
+        node_index.index_node(
+            node1,
+            NodeLocation {
+                graph_id: graph1,
+                node_id: node1,
+            },
+        );
+        node_index.index_node(
+            node2,
+            NodeLocation {
+                graph_id: graph1,
+                node_id: node2,
+            },
+        );
+        node_index.index_node(
+            node3,
+            NodeLocation {
+                graph_id: graph2,
+                node_id: node3,
+            },
+        );
 
         assert_eq!(node_index.count(), 3);
 
@@ -244,17 +253,23 @@ mod tests {
         let edge2 = EdgeIdentity::new();
 
         // Add edges
-        edge_index.add_edge(node1, EdgeReference {
-            edge_id: edge1,
-            target_node: node2,
-            category: "depends_on".to_string(),
-        });
+        edge_index.add_edge(
+            node1,
+            EdgeReference {
+                edge_id: edge1,
+                target_node: node2,
+                category: "depends_on".to_string(),
+            },
+        );
 
-        edge_index.add_edge(node1, EdgeReference {
-            edge_id: edge2,
-            target_node: node3,
-            category: "relates_to".to_string(),
-        });
+        edge_index.add_edge(
+            node1,
+            EdgeReference {
+                edge_id: edge2,
+                target_node: node3,
+                category: "relates_to".to_string(),
+            },
+        );
 
         // Test out_degree
         assert_eq!(edge_index.out_degree(node1), 2);
@@ -367,10 +382,13 @@ mod tests {
                 content: e.content.clone(),
                 position: e.position,
             });
-            nodes.index_node(e.node, NodeLocation {
-                graph_id: e.graph,
-                node_id: e.node,
-            });
+            nodes.index_node(
+                e.node,
+                NodeLocation {
+                    graph_id: e.graph,
+                    node_id: e.node,
+                },
+            );
         }
 
         if let GraphEvent::NodeAdded(e) = &node2_event {
@@ -379,10 +397,13 @@ mod tests {
                 content: e.content.clone(),
                 position: e.position,
             });
-            nodes.index_node(e.node, NodeLocation {
-                graph_id: e.graph,
-                node_id: e.node,
-            });
+            nodes.index_node(
+                e.node,
+                NodeLocation {
+                    graph_id: e.graph,
+                    node_id: e.node,
+                },
+            );
         }
 
         // Connect nodes
@@ -407,11 +428,14 @@ mod tests {
                 identity: e.edge,
                 relationship: e.relationship.clone(),
             });
-            edges.add_edge(e.relationship.source, EdgeReference {
-                edge_id: e.edge,
-                target_node: e.relationship.target,
-                category: e.relationship.category.clone(),
-            });
+            edges.add_edge(
+                e.relationship.source,
+                EdgeReference {
+                    edge_id: e.edge,
+                    target_node: e.relationship.target,
+                    category: e.relationship.category.clone(),
+                },
+            );
         }
 
         // Update graph journey
@@ -439,7 +463,9 @@ mod tests {
         events.store_snapshot(snapshot);
 
         // Verify we can retrieve from snapshot
-        let latest_snapshot = events.latest_snapshot(graph_id).expect("Should have snapshot");
+        let latest_snapshot = events
+            .latest_snapshot(graph_id)
+            .expect("Should have snapshot");
         assert_eq!(latest_snapshot.version, 4);
         assert_eq!(latest_snapshot.data.nodes.len(), 2);
         assert_eq!(latest_snapshot.data.edges.len(), 1);

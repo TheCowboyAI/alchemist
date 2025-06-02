@@ -8,8 +8,8 @@ mod tests {
         },
         events::{EdgeConnected, GraphCreated, NodeAdded},
         repositories::{
-            GraphData, GraphEvent, GraphEvents, GraphSnapshot, Graphs, NodeLocation,
-            Nodes, Edges, EdgeReference,
+            EdgeReference, Edges, GraphData, GraphEvent, GraphEvents, GraphSnapshot, Graphs,
+            NodeLocation, Nodes,
         },
         services::{
             AddNodeToGraph, ConnectGraphNodes, CreateGraph, EstablishGraphHierarchy,
@@ -61,7 +61,9 @@ mod tests {
         app.update();
 
         // Verify entity was created with correct components
-        let mut query = app.world_mut().query::<(&GraphIdentity, &GraphMetadata, &GraphJourney)>();
+        let mut query = app
+            .world_mut()
+            .query::<(&GraphIdentity, &GraphMetadata, &GraphJourney)>();
         let results: Vec<_> = query.iter(&app.world()).collect();
         assert_eq!(results.len(), 1);
 

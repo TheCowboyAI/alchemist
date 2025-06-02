@@ -1,8 +1,8 @@
 //! Event Validation Helpers for Comprehensive Testing
 //! These helpers ensure all event fields are properly tested
 
-use crate::contexts::graph_management::events::*;
 use crate::contexts::graph_management::domain::*;
+use crate::contexts::graph_management::events::*;
 use std::collections::HashMap;
 
 /// Trait for validating events have all required fields populated
@@ -59,7 +59,10 @@ impl EventValidation for NodeAdded {
         }
 
         // Validate position
-        if self.position.coordinates_3d.x.is_nan() || self.position.coordinates_3d.y.is_nan() || self.position.coordinates_3d.z.is_nan() {
+        if self.position.coordinates_3d.x.is_nan()
+            || self.position.coordinates_3d.y.is_nan()
+            || self.position.coordinates_3d.z.is_nan()
+        {
             return Err("Position contains NaN values".to_string());
         }
 
@@ -88,8 +91,10 @@ impl EventValidation for EdgeConnected {
             return Err("Edge category is empty".to_string());
         }
         if self.relationship.strength < 0.0 || self.relationship.strength > 1.0 {
-            return Err(format!("Edge strength {} is outside valid range [0.0, 1.0]",
-                             self.relationship.strength));
+            return Err(format!(
+                "Edge strength {} is outside valid range [0.0, 1.0]",
+                self.relationship.strength
+            ));
         }
 
         Ok(())
@@ -108,7 +113,10 @@ impl EventValidation for NodeMoved {
 
         // Validate positions
         for (name, pos) in [("from", &self.from_position), ("to", &self.to_position)] {
-            if pos.coordinates_3d.x.is_nan() || pos.coordinates_3d.y.is_nan() || pos.coordinates_3d.z.is_nan() {
+            if pos.coordinates_3d.x.is_nan()
+                || pos.coordinates_3d.y.is_nan()
+                || pos.coordinates_3d.z.is_nan()
+            {
                 return Err(format!("{} position contains NaN values", name));
             }
         }
@@ -165,7 +173,7 @@ impl EventValidation for GraphDeleted {
 macro_rules! assert_event_valid {
     ($event:expr) => {
         match $event.validate_fields() {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(e) => panic!("Event validation failed: {}", e),
         }
     };
@@ -220,9 +228,7 @@ impl TestEventBuilder {
                 target,
                 category: "test-relationship".to_string(),
                 strength: 0.75,
-                properties: HashMap::from([
-                    ("weight".to_string(), serde_json::json!(1.0)),
-                ]),
+                properties: HashMap::from([("weight".to_string(), serde_json::json!(1.0))]),
             },
         }
     }

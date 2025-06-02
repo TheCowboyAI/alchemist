@@ -1,9 +1,29 @@
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
 use bevy::prelude::*;
+use bevy::text::{Text2d, TextFont};
+use bevy_panorbit_camera::PanOrbitCamera;
 
 // ============= Visualization Services =============
 // Services that handle visual representation
+
+// Simple random number generator to avoid dependency conflicts
+fn random_f32() -> f32 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .subsec_nanos();
+    ((nanos % 1000000) as f32) / 1000000.0
+}
+
+fn random_bool() -> bool {
+    random_f32() > 0.5
+}
+
+fn random_usize(max: usize) -> usize {
+    (random_f32() * max as f32) as usize
+}
 
 // ============= Visual Components =============
 
@@ -130,29 +150,6 @@ pub struct ConvertToPointCloud {
     pub entity: Entity,
     pub density: f32,
 }
-
-/// Event fired when a node is selected
-#[derive(Event, Debug, Clone)]
-pub struct NodeSelected {
-    pub entity: Entity,
-    pub node: NodeIdentity,
-}
-
-/// Event fired when a node is deselected
-#[derive(Event, Debug, Clone)]
-pub struct NodeDeselected {
-    pub entity: Entity,
-    pub node: NodeIdentity,
-}
-
-/// Component to mark selected entities
-#[derive(Component)]
-pub struct Selected;
-
-/// Component to store original material for restoration on deselection
-#[derive(Component)]
-pub struct OriginalMaterial(pub Handle<StandardMaterial>);
-
 // ============= State Components =============
 
 /// Current visualization settings (attached to a settings entity)
@@ -311,9 +308,9 @@ impl RenderGraphElements {
 
         for _ in 0..num_points {
             // Random point on sphere surface
-            let theta = rand::random::<f32>() * 2.0 * std::f32::consts::PI;
-            let phi = (rand::random::<f32>() * 2.0 - 1.0).acos();
-            let r = radius * rand::random::<f32>().powf(1.0 / 3.0);
+            let theta = random_f32() * 2.0 * std::f32::consts::PI;
+            let phi = (random_f32() * 2.0 - 1.0).acos();
+            let r = radius * random_f32().powf(1.0 / 3.0);
 
             let x = r * phi.sin() * theta.cos();
             let y = r * phi.sin() * theta.sin();
@@ -321,7 +318,7 @@ impl RenderGraphElements {
 
             points.push(position + Vec3::new(x, y, z));
             colors.push(Color::srgb(0.3, 0.5, 0.9));
-            sizes.push(0.02 + rand::random::<f32>() * 0.03);
+            sizes.push(0.02 + random_f32() * 0.03);
         }
 
         NodePointCloud {
@@ -351,14 +348,14 @@ impl RenderGraphElements {
             let jitter_points = (density * 0.5) as usize;
             for _ in 0..jitter_points {
                 let jitter = Vec3::new(
-                    (rand::random::<f32>() - 0.5) * 0.1,
-                    (rand::random::<f32>() - 0.5) * 0.1,
-                    (rand::random::<f32>() - 0.5) * 0.1,
+                    (random_f32() - 0.5) * 0.1,
+                    (random_f32() - 0.5) * 0.1,
+                    (random_f32() - 0.5) * 0.1,
                 );
 
                 points.push(base_point + jitter);
                 colors.push(Color::srgb(0.7, 0.7, 0.7));
-                sizes.push(0.01 + rand::random::<f32>() * 0.02);
+                sizes.push(0.01 + random_f32() * 0.02);
             }
         }
 
@@ -433,27 +430,47 @@ impl RenderGraphElements {
         }
 
         // Randomly add animation components to make edges more dynamic
-        let random = rand::random::<f32>();
+        let random = random_f32();
 
         if random < 0.3 {
             // 30% chance of pulse animation
             commands.entity(edge_entity).insert(EdgePulse {
-                phase_offset: rand::random::<f32>() * std::f32::consts::PI * 2.0,
+                phase_offset: random_f32() * std::f32::consts::PI * 2.0,
+                pulse_speed: 1.5 + random_f32() * 2.0, // Vary speed between 1.5-3.5 Hz
+                color_intensity: 0.2 + random_f32() * 0.3, // Vary intensity 0.2-0.5
                 ..default()
             });
         } else if random < 0.5 {
             // 20% chance of wave animation
             commands.entity(edge_entity).insert(EdgeWave {
-                wave_offset: rand::random::<f32>() * std::f32::consts::PI * 2.0,
+                wave_offset: random_f32() * std::f32::consts::PI * 2.0,
+                wave_speed: 2.0 + random_f32() * 2.0, // Vary speed
+                wave_amplitude: 0.05 + random_f32() * 0.1, // Vary amplitude
                 ..default()
             });
         } else if random < 0.7 {
             // 20% chance of color cycle
-            commands
-                .entity(edge_entity)
-                .insert(EdgeColorCycle::default());
+            let color_pairs = [
+                (Color::srgb(0.3, 0.5, 0.9), Color::srgb(0.9, 0.3, 0.5)), // Blue to Red
+                (Color::srgb(0.2, 0.8, 0.4), Color::srgb(0.8, 0.8, 0.2)), // Green to Yellow
+                (Color::srgb(0.7, 0.3, 0.9), Color::srgb(0.3, 0.9, 0.7)), // Purple to Cyan
+            ];
+            let color_pair = color_pairs[random_usize(color_pairs.len())];
+
+            commands.entity(edge_entity).insert(EdgeColorCycle {
+                cycle_speed: 0.5 + random_f32() * 1.5, // Vary speed 0.5-2.0
+                color_range: color_pair,
+                current_phase: random_f32(),
+            });
+        } else if random < 0.85 {
+            // 15% chance of flow animation
+            commands.entity(edge_entity).insert(EdgeFlow {
+                flow_speed: 2.0 + random_f32() * 4.0, // Vary speed 2.0-6.0
+                flow_direction: random_bool(),
+                ..default()
+            });
         }
-        // 30% chance of no animation
+        // 15% chance of no animation (reduced from 30%)
     }
 
     /// Renders a simple line edge
@@ -473,7 +490,7 @@ impl RenderGraphElements {
 
         // Use a thin cuboid for the line
         let mesh = meshes.add(Cuboid::new(
-            edge_visual.thickness * 0.5,  // Make it thinner than cylinder
+            edge_visual.thickness * 0.5, // Make it thinner than cylinder
             edge_visual.thickness * 0.5,
             length,
         ));
@@ -573,7 +590,8 @@ impl RenderGraphElements {
 
                     if segment_length > 0.001 {
                         // Create a small cylinder for this segment
-                        let segment_mesh = meshes.add(Cylinder::new(edge_visual.thickness * 0.8, segment_length));
+                        let segment_mesh =
+                            meshes.add(Cylinder::new(edge_visual.thickness * 0.8, segment_length));
 
                         let rotation = if segment_dir.normalize() != Vec3::Y {
                             Quat::from_rotation_arc(Vec3::Y, segment_dir.normalize())
@@ -649,7 +667,8 @@ impl RenderGraphElements {
 
                     if segment_length > 0.001 {
                         // Create a small cylinder for this segment
-                        let segment_mesh = meshes.add(Cylinder::new(edge_visual.thickness * 0.7, segment_length));
+                        let segment_mesh =
+                            meshes.add(Cylinder::new(edge_visual.thickness * 0.7, segment_length));
 
                         let rotation = if segment_dir.normalize() != Vec3::Y {
                             Quat::from_rotation_arc(Vec3::Y, segment_dir.normalize())
@@ -671,7 +690,7 @@ impl RenderGraphElements {
             });
     }
 
-    /// Creates visual representation for nodes
+    /// Renders a node with the specified render mode
     pub fn render_node(
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
@@ -693,11 +712,12 @@ impl RenderGraphElements {
                     ..default()
                 });
 
+                // Don't add Transform as it's already added in graph_management
+                // Just insert visual components
                 commands
                     .entity(node_entity)
                     .insert(Mesh3d(mesh))
                     .insert(MeshMaterial3d(material))
-                    .insert(Transform::from_translation(position))
                     .insert(VisualizationCapability {
                         render_mode,
                         ..default()
@@ -709,7 +729,6 @@ impl RenderGraphElements {
 
                 commands
                     .entity(node_entity)
-                    .insert(Transform::from_translation(position))
                     .insert(point_cloud)
                     .insert(VisualizationCapability {
                         render_mode,
@@ -739,7 +758,6 @@ impl RenderGraphElements {
                     .entity(node_entity)
                     .insert(Mesh3d(mesh))
                     .insert(MeshMaterial3d(material))
-                    .insert(Transform::from_translation(position))
                     .insert(VisualizationCapability {
                         render_mode,
                         ..default()
@@ -748,24 +766,44 @@ impl RenderGraphElements {
                 info!("Wireframe mode enabled for node");
             }
             RenderMode::Billboard => {
-                // Billboard rendering - text that always faces camera
-                let text_style = TextFont {
-                    font_size: 20.0,
-                    ..default()
+                // Billboard rendering - brightly colored spheres that are easy to spot
+                // TODO: Add proper 3D text rendering in Phase 2
+
+                // Create a smaller sphere for billboard mode
+                let mesh = meshes.add(Sphere::new(0.25).mesh());
+
+                // Use different bright colors based on node label hash for variety
+                let color_index = _label.len() % 5;
+                let base_color = match color_index {
+                    0 => Color::srgb(1.0, 0.2, 0.2), // Red
+                    1 => Color::srgb(0.2, 1.0, 0.2), // Green
+                    2 => Color::srgb(0.2, 0.2, 1.0), // Blue
+                    3 => Color::srgb(1.0, 1.0, 0.2), // Yellow
+                    _ => Color::srgb(1.0, 0.2, 1.0), // Magenta
                 };
 
-                commands.entity(node_entity).insert((
-                    Text2d::new(_label),
-                    text_style,
-                    Transform::from_translation(position),
-                    Billboard,
-                    VisualizationCapability {
+                let material = materials.add(StandardMaterial {
+                    base_color,
+                    emissive: LinearRgba::from(base_color) * 0.3, // Emissive glow for visibility
+                    metallic: 0.0,
+                    perceptual_roughness: 0.4,
+                    ..default()
+                });
+
+                commands
+                    .entity(node_entity)
+                    .insert(Mesh3d(mesh))
+                    .insert(MeshMaterial3d(material))
+                    .insert(Billboard) // Mark as billboard for potential future use
+                    .insert(VisualizationCapability {
                         render_mode,
                         ..default()
-                    },
-                ));
+                    });
 
-                info!("Billboard mode enabled for node: {}", _label);
+                info!(
+                    "Billboard mode enabled for node '{}' with color index {}",
+                    _label, color_index
+                );
             }
         }
     }
@@ -918,70 +956,6 @@ impl PerformRaycast {
 pub struct HandleUserInput;
 
 impl HandleUserInput {
-    /// Process mouse clicks for selection
-    pub fn process_selection(
-        windows: Query<&Window>,
-        camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
-        nodes: Query<
-            (Entity, &Transform, &NodeIdentity),
-            With<crate::contexts::graph_management::domain::Node>,
-        >,
-        mouse_button: Res<ButtonInput<MouseButton>>,
-        mut events: EventWriter<NodeSelected>,
-    ) {
-        if mouse_button.just_pressed(MouseButton::Left) {
-            // Get the primary window
-            let Ok(window) = windows.single() else { return };
-
-            // Get camera info
-            let Ok((camera, camera_transform)) = camera.single() else {
-                return;
-            };
-
-            // Get cursor position
-            let Some(cursor_position) = window.cursor_position() else {
-                return;
-            };
-
-            // Convert screen position to ray
-            let Some(ray) =
-                PerformRaycast::screen_to_ray(camera, camera_transform, cursor_position)
-            else {
-                return;
-            };
-
-            // Find the closest intersecting node
-            let mut closest_hit: Option<(Entity, NodeIdentity, f32)> = None;
-
-            for (entity, transform, node_id) in nodes.iter() {
-                let sphere_center = transform.translation;
-                let sphere_radius = 0.3; // Match the sphere radius used in rendering
-
-                if let Some(distance) =
-                    PerformRaycast::ray_intersects_sphere(&ray, sphere_center, sphere_radius)
-                {
-                    match &closest_hit {
-                        None => closest_hit = Some((entity, *node_id, distance)),
-                        Some((_, _, closest_distance)) => {
-                            if distance < *closest_distance {
-                                closest_hit = Some((entity, *node_id, distance));
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Emit selection event for the closest hit
-            if let Some((entity, node_id, _)) = closest_hit {
-                events.write(NodeSelected {
-                    entity,
-                    node: node_id,
-                });
-                info!("Node selected: {:?}", node_id);
-            }
-        }
-    }
-
     /// Change edge rendering type with keyboard
     pub fn change_edge_type(
         keyboard: Res<ButtonInput<KeyCode>>,
@@ -1072,7 +1046,10 @@ impl UpdateVisualizationState {
         mut commands: Commands,
         mut edge_type_events: EventReader<EdgeTypeChanged>,
         settings: Query<&CurrentVisualizationSettings>,
-        edges: Query<(Entity, &EdgeRelationship, &EdgeVisual), With<crate::contexts::graph_management::domain::Edge>>,
+        edges: Query<
+            (Entity, &EdgeRelationship, &EdgeVisual),
+            With<crate::contexts::graph_management::domain::Edge>,
+        >,
         nodes: Query<(&NodeIdentity, &SpatialPosition)>,
         children_query: Query<&Children>,
         mut meshes: ResMut<Assets<Mesh>>,
@@ -1115,7 +1092,8 @@ impl UpdateVisualizationState {
                 }
 
                 // Remove all visual components
-                commands.entity(edge_entity)
+                commands
+                    .entity(edge_entity)
                     .remove::<Mesh3d>()
                     .remove::<MeshMaterial3d<StandardMaterial>>()
                     .remove::<Transform>()
@@ -1123,7 +1101,8 @@ impl UpdateVisualizationState {
                     .remove::<EdgeVisual>();
 
                 // Remove any animation components that might exist
-                commands.entity(edge_entity)
+                commands
+                    .entity(edge_entity)
                     .remove::<EdgePulse>()
                     .remove::<EdgeWave>()
                     .remove::<EdgeColorCycle>()
@@ -1140,92 +1119,110 @@ impl UpdateVisualizationState {
                     current_settings.edge_type,
                 );
 
-                info!("Updated edge {:?} to type {:?}", edge_entity, current_settings.edge_type);
-            }
-        }
-    }
-}
-
-/// Service to handle selection visualization
-pub struct SelectionVisualization;
-
-impl SelectionVisualization {
-    /// Updates visual appearance when nodes are selected
-    pub fn handle_node_selection(
-        mut commands: Commands,
-        mut events: EventReader<NodeSelected>,
-        mut materials: ResMut<Assets<StandardMaterial>>,
-        query: Query<&MeshMaterial3d<StandardMaterial>, Without<Selected>>,
-    ) {
-        for event in events.read() {
-            if let Ok(material_handle) = query.get(event.entity) {
-                // Store original material
-                commands
-                    .entity(event.entity)
-                    .insert(Selected)
-                    .insert(OriginalMaterial(material_handle.0.clone()));
-
-                // Create highlight material
-                let highlight_material = materials.add(StandardMaterial {
-                    base_color: Color::srgb(1.0, 0.8, 0.2), // Golden highlight
-                    emissive: LinearRgba::rgb(0.5, 0.4, 0.1),
-                    metallic: 0.5,
-                    perceptual_roughness: 0.3,
-                    ..default()
-                });
-
-                // Apply highlight material
-                commands
-                    .entity(event.entity)
-                    .insert(MeshMaterial3d(highlight_material));
-
-                info!("Applied selection highlight to entity: {:?}", event.entity);
-            }
-        }
-    }
-
-    /// Removes visual feedback when nodes are deselected
-    pub fn handle_node_deselection(
-        mut commands: Commands,
-        mut events: EventReader<NodeDeselected>,
-        query: Query<&OriginalMaterial, With<Selected>>,
-    ) {
-        for event in events.read() {
-            if let Ok(original_material) = query.get(event.entity) {
-                // Restore original material
-                commands
-                    .entity(event.entity)
-                    .remove::<Selected>()
-                    .insert(MeshMaterial3d(original_material.0.clone()))
-                    .remove::<OriginalMaterial>();
-
                 info!(
-                    "Removed selection highlight from entity: {:?}",
-                    event.entity
+                    "Updated edge {:?} to type {:?}",
+                    edge_entity, current_settings.edge_type
                 );
             }
         }
     }
 
-    /// System to handle clicking on empty space to deselect
-    pub fn handle_deselect_all(
-        mouse_button: Res<ButtonInput<MouseButton>>,
-        selected: Query<(Entity, &NodeIdentity), With<Selected>>,
-        mut deselect_events: EventWriter<NodeDeselected>,
-        // Check if we clicked on nothing
-        _windows: Query<&Window>,
-        _camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
-        _nodes: Query<&Transform, With<crate::contexts::graph_management::domain::Node>>,
+    /// Re-renders nodes when render mode changes
+    pub fn update_existing_nodes(
+        mut commands: Commands,
+        mut render_mode_events: EventReader<RenderModeChanged>,
+        settings: Query<&CurrentVisualizationSettings>,
+        nodes: Query<
+            (Entity, &NodeIdentity, &NodeContent, &SpatialPosition),
+            With<crate::contexts::graph_management::domain::Node>,
+        >,
+        children_query: Query<&Children>,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
     ) {
-        if mouse_button.just_pressed(MouseButton::Right) {
-            // Deselect all on right click
-            for (entity, node_id) in selected.iter() {
-                deselect_events.write(NodeDeselected {
-                    entity,
-                    node: *node_id,
-                });
+        // Only proceed if render mode changed
+        if render_mode_events.is_empty() {
+            return;
+        }
+
+        // Consume events to clear them
+        render_mode_events.clear();
+
+        // Get current settings
+        let Ok(current_settings) = settings.single() else {
+            return;
+        };
+
+        // Update all existing nodes with new render mode
+        for (node_entity, _node_identity, node_content, spatial_position) in nodes.iter() {
+            // First, despawn all children (in case node has child entities)
+            if let Ok(children) = children_query.get(node_entity) {
+                for child in children.iter() {
+                    commands.entity(child).despawn();
+                }
             }
-            info!("Deselected all nodes");
+
+            // Remove all visual components
+            commands
+                .entity(node_entity)
+                .remove::<Mesh3d>()
+                .remove::<MeshMaterial3d<StandardMaterial>>()
+                .remove::<Text2d>()
+                .remove::<TextFont>()
+                .remove::<Billboard>()
+                .remove::<NodePointCloud>()
+                .remove::<VisualizationCapability>();
+
+            // Remove all animation components (they are mode-specific)
+            commands
+                .entity(node_entity)
+                .remove::<NodePulse>()
+                .remove::<GraphMotion>()
+                .remove::<SubgraphOrbit>();
+
+            // Re-render with new render mode
+            RenderGraphElements::render_node(
+                &mut commands,
+                &mut meshes,
+                &mut materials,
+                node_entity,
+                spatial_position.coordinates_3d,
+                &node_content.label,
+                current_settings.render_mode,
+            );
+
+            info!(
+                "Updated node '{}' to render mode: {:?}",
+                node_content.label, current_settings.render_mode
+            );
+        }
+    }
+
+    /// Manages graph animations based on render mode
+    pub fn manage_graph_animations_on_mode_change(
+        mut render_mode_events: EventReader<RenderModeChanged>,
+        mut graphs: Query<&mut GraphMotion, With<Graph>>,
+    ) {
+        for event in render_mode_events.read() {
+            match event.new_render_mode {
+                RenderMode::Billboard => {
+                    // Pause all graph animations in billboard mode
+                    for mut motion in graphs.iter_mut() {
+                        motion.rotation_speed = 0.0;
+                        motion.oscillation_amplitude = 0.0;
+                        info!("Paused graph animations for billboard mode");
+                    }
+                }
+                _ => {
+                    // Resume graph animations for other modes
+                    for mut motion in graphs.iter_mut() {
+                        if motion.rotation_speed == 0.0 {
+                            motion.rotation_speed = 0.5; // Restore default rotation
+                            info!("Resumed graph animations");
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -1362,6 +1359,74 @@ impl AnimateGraphElements {
         }
     }
 
+    /// Animates edge materials based on animation components
+    pub fn animate_edge_materials(
+        time: Res<Time>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        edges: Query<
+            (
+                &MeshMaterial3d<StandardMaterial>,
+                Option<&EdgePulse>,
+                Option<&EdgeColorCycle>,
+                Option<&EdgeFlow>,
+            ),
+            With<EdgeVisual>,
+        >,
+    ) {
+        let elapsed = time.elapsed_secs();
+
+        for (material_handle, pulse, color_cycle, flow) in edges.iter() {
+            if let Some(material) = materials.get_mut(&material_handle.0) {
+                // Apply pulse animation to emissive
+                if let Some(pulse_anim) = pulse {
+                    let intensity = pulse_anim.color_intensity
+                        * (0.5
+                            + 0.5
+                                * (elapsed * pulse_anim.pulse_speed + pulse_anim.phase_offset)
+                                    .sin());
+                    material.emissive =
+                        LinearRgba::rgb(intensity * 0.8, intensity * 0.8, intensity);
+                }
+
+                // Apply color cycling
+                if let Some(color_anim) = color_cycle {
+                    let t = color_anim.current_phase;
+                    // Lerp between the two colors
+                    let start_rgba = LinearRgba::from(color_anim.color_range.0);
+                    let end_rgba = LinearRgba::from(color_anim.color_range.1);
+
+                    material.base_color = Color::from(LinearRgba::new(
+                        start_rgba.red + (end_rgba.red - start_rgba.red) * t,
+                        start_rgba.green + (end_rgba.green - start_rgba.green) * t,
+                        start_rgba.blue + (end_rgba.blue - start_rgba.blue) * t,
+                        1.0,
+                    ));
+                }
+
+                // Apply flow animation (visual indication through emissive pulsing along edge)
+                if let Some(flow_anim) = flow {
+                    // Create a moving pulse effect
+                    let flow_position = (elapsed * flow_anim.flow_speed) % 1.0;
+                    let pulse_intensity = if flow_anim.flow_direction {
+                        (flow_position * std::f32::consts::PI * 2.0).sin().max(0.0)
+                    } else {
+                        ((1.0 - flow_position) * std::f32::consts::PI * 2.0)
+                            .sin()
+                            .max(0.0)
+                    };
+
+                    // Add to existing emissive
+                    let current_emissive = material.emissive;
+                    material.emissive = LinearRgba::rgb(
+                        current_emissive.red + pulse_intensity * 0.3,
+                        current_emissive.green + pulse_intensity * 0.3,
+                        current_emissive.blue + pulse_intensity * 0.5,
+                    );
+                }
+            }
+        }
+    }
+
     /// Start graph rotation on event
     pub fn handle_graph_animation_events(
         mut events: EventReader<GraphCreated>,
@@ -1388,12 +1453,24 @@ impl AnimateGraphElements {
 pub struct ControlCamera;
 
 impl ControlCamera {
-    /// Initialize camera for 3D graph viewing
+    /// Initialize camera for 3D graph viewing with Panorbit Camera
     pub fn setup_camera(mut commands: Commands) {
-        // Camera
+        // Camera with Panorbit controls
         commands.spawn((
             Camera3d::default(),
             Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
+            PanOrbitCamera {
+                // Set the focus point
+                focus: Vec3::ZERO,
+                // Set camera movement settings
+                radius: Some(10.0f32),
+                // Control settings
+                button_orbit: MouseButton::Right,
+                button_pan: MouseButton::Middle,
+                // Allow upside down camera
+                allow_upside_down: false,
+                ..default()
+            },
         ));
 
         // Light
@@ -1405,28 +1482,6 @@ impl ControlCamera {
             },
             Transform::from_xyz(4.0, 8.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
         ));
-    }
-
-    /// Handle camera orbit controls
-    pub fn orbit_camera(
-        time: Res<Time>,
-        mut query: Query<&mut Transform, With<Camera3d>>,
-        input: Res<ButtonInput<KeyCode>>,
-    ) {
-        if let Ok(mut camera_transform) = query.single_mut() {
-            let rotation_speed = 2.0 * time.delta().as_secs_f32();
-
-            if input.pressed(KeyCode::ArrowLeft) {
-                let rotation = Quat::from_rotation_y(rotation_speed);
-                camera_transform.translation = rotation * camera_transform.translation;
-                *camera_transform = camera_transform.looking_at(Vec3::ZERO, Vec3::Y);
-            }
-            if input.pressed(KeyCode::ArrowRight) {
-                let rotation = Quat::from_rotation_y(-rotation_speed);
-                camera_transform.translation = rotation * camera_transform.translation;
-                *camera_transform = camera_transform.looking_at(Vec3::ZERO, Vec3::Y);
-            }
-        }
     }
 
     /// System to make billboards face camera

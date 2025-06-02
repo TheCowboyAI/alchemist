@@ -12,6 +12,7 @@ fn main() {
         .add_plugins((
             contexts::graph_management::plugin::GraphManagementPlugin,
             contexts::visualization::plugin::VisualizationPlugin,
+            contexts::selection::plugin::SelectionPlugin,
         ))
         .run();
 }

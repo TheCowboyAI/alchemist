@@ -1,4 +1,5 @@
 use crate::contexts::graph_management::{domain::*, events::*};
+use crate::contexts::selection::domain::{Selectable, SelectionHighlight};
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -71,14 +72,18 @@ impl AddNodeToGraph {
         };
 
         // Spawn the node with components
-        commands.spawn(NodeBundle {
-            node,
-            identity: node_id,
-            content: content.clone(),
-            position,
-            transform: Transform::from_translation(position.coordinates_3d),
-            global_transform: GlobalTransform::default(),
-        });
+        commands.spawn((
+            NodeBundle {
+                node,
+                identity: node_id,
+                content: content.clone(),
+                position,
+                transform: Transform::from_translation(position.coordinates_3d),
+                global_transform: GlobalTransform::default(),
+            },
+            Selectable,
+            SelectionHighlight::default(),
+        ));
 
         // Emit event
         events.write(NodeAdded {
@@ -151,11 +156,15 @@ impl ConnectGraphNodes {
         };
 
         // Spawn the edge entity
-        commands.spawn(EdgeBundle {
-            edge,
-            identity: edge_id,
-            relationship: relationship.clone(),
-        });
+        commands.spawn((
+            EdgeBundle {
+                edge,
+                identity: edge_id,
+                relationship: relationship.clone(),
+            },
+            Selectable,
+            SelectionHighlight::default(),
+        ));
 
         // Emit the domain event
         events.write(EdgeConnected {

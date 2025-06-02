@@ -209,10 +209,7 @@ impl GraphEvents {
 
     /// Get event count for a specific graph
     pub fn event_count_for_graph(&self, graph_id: GraphIdentity) -> usize {
-        self.events
-            .iter()
-            .filter(|(id, _)| *id == graph_id)
-            .count()
+        self.events.iter().filter(|(id, _)| *id == graph_id).count()
     }
 
     /// Clear events older than snapshot
@@ -221,10 +218,7 @@ impl GraphEvents {
             let cutoff_version = snapshot.version as usize;
 
             // Count events for the graph before compaction
-            let graph_event_count = self.events
-                .iter()
-                .filter(|(id, _)| *id == graph_id)
-                .count();
+            let graph_event_count = self.events.iter().filter(|(id, _)| *id == graph_id).count();
 
             // Only compact if we have more events than the snapshot version
             if graph_event_count > cutoff_version {
@@ -233,7 +227,8 @@ impl GraphEvents {
 
                 // Collect indices of events to remove
                 let mut remove_count = 0;
-                let indices_to_remove: Vec<usize> = self.events
+                let indices_to_remove: Vec<usize> = self
+                    .events
                     .iter()
                     .enumerate()
                     .filter_map(|(idx, (id, _))| {

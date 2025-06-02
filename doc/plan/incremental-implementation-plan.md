@@ -16,31 +16,47 @@ src/contexts/
 │   ├── services.rs      # CreateGraph, AddNodeToGraph, etc.
 │   ├── repositories.rs  # Graphs, GraphEvents, Nodes, Edges
 │   └── plugin.rs
-└── visualization/       # Supporting domain
-    ├── services.rs      # RenderGraphElements, AnimateGraphElements
-    └── plugin.rs
+├── visualization/       # Supporting domain
+│   ├── services.rs      # RenderGraphElements, AnimateGraphElements
+│   └── plugin.rs
+└── selection/           # Selection domain ✅ PHASE 2 COMPLETE
+    ├── domain.rs        # SelectionState, SelectionMode, etc.
+    ├── events.rs        # NodeSelected, EdgeDeselected, etc.
+    ├── services.rs      # ManageSelection, ProcessSelectionInput, etc.
+    ├── plugin.rs        # Selection plugin integration
+    ├── tests.rs         # Comprehensive test coverage
+    └── test_utils.rs    # Test isolation utilities
 ```
 
 ### Working Features
 - ✅ Graph creation with metadata
 - ✅ Node creation and positioning
-- ✅ Edge creation (events only, no rendering)
+- ✅ Edge creation and rendering
 - ✅ 3D node visualization (blue spheres)
-- ✅ Camera controls (arrow keys)
+- ✅ Edge visualization (lines between nodes)
+- ✅ Camera controls (Panorbit integration)
 - ✅ Graph rotation animation
 - ✅ Event-driven architecture
+- ✅ **PHASE 2 COMPLETE**: Full selection system
+  - ✅ Mouse selection with raycasting
+  - ✅ Keyboard shortcuts (Ctrl+A, Ctrl+I, Tab)
+  - ✅ Box selection (Shift+drag)
+  - ✅ Multi-selection modes
+  - ✅ Visual feedback and highlighting
+  - ✅ Animation-aware selection
+  - ✅ Connected nodes selection
 
 ## Implementation Phases
 
 Each phase focuses on implementing one component or service at a time, ensuring we can test and validate each addition.
 
-## Phase 1: Edge Visualization (Current Priority)
+## Phase 1: Edge Visualization ✅ COMPLETE
 
-### Component 1.1: Edge Rendering Service
+### Component 1.1: Edge Rendering Service ✅
 
 **File**: `src/contexts/visualization/services.rs`
 
-**Add Service**: `RenderGraphEdges`
+**Add Service**: `RenderGraphEdges` ✅
 
 ```rust
 pub struct RenderGraphEdges;
@@ -72,16 +88,16 @@ impl RenderGraphEdges {
 }
 ```
 
-**Success Criteria**:
-- Edges render as lines between nodes
-- Edge color differs from nodes
-- System responds to EdgeConnected events
+**Success Criteria** ✅:
+- ✅ Edges render as lines between nodes
+- ✅ Edge color differs from nodes
+- ✅ System responds to EdgeConnected events
 
-### Component 1.2: Edge Components
+### Component 1.2: Edge Components ✅
 
 **File**: `src/contexts/graph_management/domain.rs`
 
-**Add Components**:
+**Add Components** ✅:
 ```rust
 /// Visual representation of an edge
 #[derive(Component)]
@@ -101,17 +117,17 @@ pub struct EdgeVisualBundle {
 }
 ```
 
-**Success Criteria**:
-- Edge entities can have visual components
-- Bundles properly integrate with Bevy
+**Success Criteria** ✅:
+- ✅ Edge entities can have visual components
+- ✅ Bundles properly integrate with Bevy
 
-## Phase 2: Selection System
+## Phase 2: Selection System ✅ COMPLETE
 
-### Component 2.1: Selection Components
+### Component 2.1: Selection Components ✅
 
-**File**: `src/contexts/visualization/services.rs`
+**File**: `src/contexts/selection/domain.rs`
 
-**Add Components**:
+**Add Components** ✅:
 ```rust
 /// Marks an entity as selectable
 #[derive(Component)]
@@ -129,14 +145,14 @@ pub struct SelectionHighlight {
 }
 ```
 
-### Component 2.2: Selection Service
+### Component 2.2: Selection Service ✅
 
-**Add to**: `HandleUserInput`
+**File**: `src/contexts/selection/services.rs`
 
 ```rust
-impl HandleUserInput {
+impl ProcessSelectionInput {
     /// Enhanced selection with raycasting
-    pub fn process_selection_with_raycast(
+    pub fn handle_mouse_selection(
         windows: Query<&Window>,
         camera: Query<(&Camera, &GlobalTransform)>,
         selectables: Query<(Entity, &Transform, &Selectable), Without<Selected>>,
@@ -158,12 +174,16 @@ impl HandleUserInput {
 }
 ```
 
-**Success Criteria**:
-- Click on node to select
-- Selected nodes change color
-- Click empty space to deselect
+**Success Criteria** ✅:
+- ✅ Click on node to select
+- ✅ Selected nodes change color
+- ✅ Click empty space to deselect
+- ✅ Multi-selection with Ctrl
+- ✅ Box selection with Shift
+- ✅ Keyboard shortcuts work
+- ✅ Animation-aware selection
 
-## Phase 3: Storage Layer
+## Phase 3: Storage Layer 🚧 CURRENT PRIORITY
 
 ### Component 3.1: Daggy Integration
 

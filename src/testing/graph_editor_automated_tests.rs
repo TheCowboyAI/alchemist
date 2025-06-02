@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod automated_graph_tests {
-    use crate::contexts::graph_management::domain as gm_domain;
+    use crate::contexts::graph_management::domain::*;
     use crate::contexts::graph_management::events::*;
     use crate::contexts::graph_management::services::*;
+    use crate::contexts::selection::domain::Selected;
     use crate::contexts::visualization::services::*;
     use bevy::input::ButtonState;
     use bevy::input::keyboard::{Key, KeyboardInput, NativeKey};
@@ -10,7 +11,7 @@ mod automated_graph_tests {
     use bevy::prelude::*;
     use bevy::render::RenderPlugin;
     use bevy::render::settings::{RenderCreation, WgpuSettings};
-    use bevy::window::WindowPlugin;
+    use bevy::window::{CursorMoved, WindowPlugin};
     use bevy::winit::WinitPlugin;
     use std::collections::HashMap;
 
@@ -26,7 +27,7 @@ mod automated_graph_tests {
         // Verify graph was created
         let graph_count = app
             .world_mut()
-            .query::<&gm_domain::GraphIdentity>()
+            .query::<&GraphIdentity>()
             .iter(&app.world())
             .count();
         assert_eq!(graph_count, 1);
@@ -37,11 +38,7 @@ mod automated_graph_tests {
         app.update();
 
         // Verify nodes were added
-        let node_count = app
-            .world_mut()
-            .query::<&gm_domain::Node>()
-            .iter(&app.world())
-            .count();
+        let node_count = app.world_mut().query::<&Node>().iter(&app.world()).count();
         assert_eq!(node_count, 2);
 
         // Simulate connecting nodes
@@ -49,11 +46,7 @@ mod automated_graph_tests {
         app.update();
 
         // Verify edge was created
-        let edge_count = app
-            .world_mut()
-            .query::<&gm_domain::Edge>()
-            .iter(&app.world())
-            .count();
+        let edge_count = app.world_mut().query::<&Edge>().iter(&app.world()).count();
         assert_eq!(edge_count, 1);
     }
 
@@ -135,32 +128,20 @@ mod automated_graph_tests {
         simulate_add_node_at_position(&mut app, Vec2::new(100.0, 100.0));
         app.update();
 
-        let nodes_before = app
-            .world_mut()
-            .query::<&gm_domain::Node>()
-            .iter(&app.world())
-            .count();
+        let nodes_before = app.world_mut().query::<&Node>().iter(&app.world()).count();
 
         // Undo
         simulate_key_combo(&mut app, &[KeyCode::ControlLeft, KeyCode::KeyZ]);
         app.update();
 
-        let nodes_after_undo = app
-            .world_mut()
-            .query::<&gm_domain::Node>()
-            .iter(&app.world())
-            .count();
+        let nodes_after_undo = app.world_mut().query::<&Node>().iter(&app.world()).count();
         assert_eq!(nodes_after_undo, nodes_before - 1);
 
         // Redo
         simulate_key_combo(&mut app, &[KeyCode::ControlLeft, KeyCode::KeyY]);
         app.update();
 
-        let nodes_after_redo = app
-            .world_mut()
-            .query::<&gm_domain::Node>()
-            .iter(&app.world())
-            .count();
+        let nodes_after_redo = app.world_mut().query::<&Node>().iter(&app.world()).count();
         assert_eq!(nodes_after_redo, nodes_before);
     }
 
@@ -189,7 +170,6 @@ mod automated_graph_tests {
         app.add_event::<GraphCreated>()
             .add_event::<NodeAdded>()
             .add_event::<EdgeConnected>()
-            .add_event::<NodeSelected>()
             .add_event::<RenderModeChanged>();
 
         app
@@ -197,7 +177,7 @@ mod automated_graph_tests {
 
     fn simulate_create_graph(app: &mut App) {
         // In a real app, this would trigger UI or service
-        let metadata = gm_domain::GraphMetadata {
+        let metadata = GraphMetadata {
             name: "Test Graph".to_string(),
             description: "Test Description".to_string(),
             domain: "test".to_string(),
@@ -206,12 +186,12 @@ mod automated_graph_tests {
             tags: vec!["test".to_string()],
         };
 
-        let graph_id = gm_domain::GraphIdentity::new();
+        let graph_id = GraphIdentity::new();
         app.world_mut().spawn((
-            gm_domain::Graph {
+            Graph {
                 identity: graph_id,
                 metadata,
-                journey: gm_domain::GraphJourney::default(),
+                journey: GraphJourney::default(),
             },
             graph_id,
         ));
@@ -313,11 +293,11 @@ mod automated_graph_tests {
     }
 
     fn create_test_graph_with_nodes(app: &mut App, node_count: usize) {
-        let graph_id = gm_domain::GraphIdentity::new();
+        let graph_id = GraphIdentity::new();
         app.world_mut().spawn((
-            gm_domain::Graph {
+            Graph {
                 identity: graph_id,
-                metadata: gm_domain::GraphMetadata {
+                metadata: GraphMetadata {
                     name: "Test Graph".to_string(),
                     description: "Test Description".to_string(),
                     domain: "test".to_string(),
@@ -325,31 +305,32 @@ mod automated_graph_tests {
                     modified: std::time::SystemTime::now(),
                     tags: vec!["test".to_string()],
                 },
-                journey: gm_domain::GraphJourney::default(),
+                journey: GraphJourney::default(),
             },
             graph_id,
         ));
 
         for i in 0..node_count {
-            app.world_mut().spawn(gm_domain::Node {
-                identity: gm_domain::NodeIdentity::new(),
-                position: gm_domain::SpatialPosition::at_3d((i as f32) * 100.0, 0.0, 0.0),
-                graph: graph_id,
-                content: gm_domain::NodeContent {
-                    label: format!("Node {}", i),
-                    category: "test".to_string(),
-                    properties: HashMap::new(),
-                },
-            });
+            app.world_mut()
+                .spawn(crate::contexts::graph_management::domain::Node {
+                    identity: NodeIdentity::new(),
+                    position: SpatialPosition::at_3d((i as f32) * 100.0, 0.0, 0.0),
+                    graph: graph_id,
+                    content: NodeContent {
+                        label: format!("Node {}", i),
+                        category: "test".to_string(),
+                        properties: HashMap::new(),
+                    },
+                });
         }
     }
 
     fn create_nodes_at_positions(app: &mut App, positions: Vec<Vec2>) {
-        let graph_id = gm_domain::GraphIdentity::new();
+        let graph_id = GraphIdentity::new();
         app.world_mut().spawn((
-            gm_domain::Graph {
+            Graph {
                 identity: graph_id,
-                metadata: gm_domain::GraphMetadata {
+                metadata: GraphMetadata {
                     name: "Test Graph".to_string(),
                     description: "Test Description".to_string(),
                     domain: "test".to_string(),
@@ -357,22 +338,23 @@ mod automated_graph_tests {
                     modified: std::time::SystemTime::now(),
                     tags: vec!["test".to_string()],
                 },
-                journey: gm_domain::GraphJourney::default(),
+                journey: GraphJourney::default(),
             },
             graph_id,
         ));
 
         for pos in positions {
-            app.world_mut().spawn(gm_domain::Node {
-                identity: gm_domain::NodeIdentity::new(),
-                position: gm_domain::SpatialPosition::at_3d(pos.x, pos.y, 0.0),
-                graph: graph_id,
-                content: gm_domain::NodeContent {
-                    label: "Test Node".to_string(),
-                    category: "test".to_string(),
-                    properties: HashMap::new(),
-                },
-            });
+            app.world_mut()
+                .spawn(crate::contexts::graph_management::domain::Node {
+                    identity: NodeIdentity::new(),
+                    position: SpatialPosition::at_3d(pos.x, pos.y, 0.0),
+                    graph: graph_id,
+                    content: NodeContent {
+                        label: "Test Node".to_string(),
+                        category: "test".to_string(),
+                        properties: HashMap::new(),
+                    },
+                });
         }
     }
 }

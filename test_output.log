@@ -1,0 +1,777 @@
+   Compiling ia v0.1.0 (/git/thecowboyai/alchemist)
+warning: unused import: `super::*`
+ --> src/contexts/graph_management/tests.rs:3:9
+  |
+3 |     use super::*;
+  |         ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `EstablishGraphHierarchy`
+  --> src/contexts/graph_management/tests.rs:15:61
+   |
+15 |             AddNodeToGraph, ConnectGraphNodes, CreateGraph, EstablishGraphHierarchy,
+   |                                                             ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `EdgeVisual`
+ --> src/contexts/selection/tests.rs:7:52
+  |
+7 |     use crate::contexts::visualization::services::{EdgeVisual, PerformRaycast};
+  |                                                    ^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src/contexts/selection/tests.rs:10:9
+   |
+10 |     use std::collections::HashMap;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `plugin::SelectionPlugin`
+ --> src/contexts/selection/mod.rs:9:9
+  |
+9 | pub use plugin::SelectionPlugin;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `super::*`
+ --> src/contexts/visualization/tests.rs:3:9
+  |
+3 |     use super::*;
+  |         ^^^^^^^^
+
+warning: unused import: `crate::contexts::selection::domain::Selected`
+ --> src/contexts/visualization/tests.rs:6:9
+  |
+6 |     use crate::contexts::selection::domain::Selected;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: `integration-tests`
+  --> src/testing/mod.rs:21:7
+   |
+21 | #[cfg(feature = "integration-tests")]
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `default` and `dev`
+   = help: consider adding `integration-tests` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unused import: `std::time::Duration`
+  --> src/testing/headless_integration_test.rs:10:9
+   |
+10 |     use std::time::Duration;
+   |         ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::contexts::graph_management::services::*`
+ --> src/testing/graph_editor_automated_tests.rs:5:9
+  |
+5 |     use crate::contexts::graph_management::services::*;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `Node` is ambiguous
+  --> src/testing/graph_editor_automated_tests.rs:41:51
+   |
+41 |         let node_count = app.world_mut().query::<&Node>().iter(&app.world()).count();
+   |                                                   ^^^^ ambiguous name
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+   = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Node` could refer to the struct imported here
+  --> src/testing/graph_editor_automated_tests.rs:11:9
+   |
+11 |     use bevy::prelude::*;
+   |         ^^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `Node` to disambiguate
+note: `Node` could also refer to the struct imported here
+  --> src/testing/graph_editor_automated_tests.rs:3:9
+   |
+3  |     use crate::contexts::graph_management::domain::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider adding an explicit import of `Node` to disambiguate
+   = note: `#[warn(ambiguous_glob_imports)]` on by default
+
+warning: `Node` is ambiguous
+   --> src/testing/graph_editor_automated_tests.rs:131:53
+    |
+131 |         let nodes_before = app.world_mut().query::<&Node>().iter(&app.world()).count();
+    |                                                     ^^^^ ambiguous name
+    |
+    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+    = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Node` could refer to the struct imported here
+   --> src/testing/graph_editor_automated_tests.rs:11:9
+    |
+11  |     use bevy::prelude::*;
+    |         ^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Node` to disambiguate
+note: `Node` could also refer to the struct imported here
+   --> src/testing/graph_editor_automated_tests.rs:3:9
+    |
+3   |     use crate::contexts::graph_management::domain::*;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Node` to disambiguate
+
+warning: `Node` is ambiguous
+   --> src/testing/graph_editor_automated_tests.rs:137:57
+    |
+137 |         let nodes_after_undo = app.world_mut().query::<&Node>().iter(&app.world()).count();
+    |                                                         ^^^^ ambiguous name
+    |
+    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+    = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Node` could refer to the struct imported here
+   --> src/testing/graph_editor_automated_tests.rs:11:9
+    |
+11  |     use bevy::prelude::*;
+    |         ^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Node` to disambiguate
+note: `Node` could also refer to the struct imported here
+   --> src/testing/graph_editor_automated_tests.rs:3:9
+    |
+3   |     use crate::contexts::graph_management::domain::*;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Node` to disambiguate
+
+warning: `Node` is ambiguous
+   --> src/testing/graph_editor_automated_tests.rs:144:57
+    |
+144 |         let nodes_after_redo = app.world_mut().query::<&Node>().iter(&app.world()).count();
+    |                                                         ^^^^ ambiguous name
+    |
+    = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+    = note: for more information, see issue #114095 <https://github.com/rust-lang/rust/issues/114095>
+    = note: ambiguous because of multiple glob imports of a name in the same module
+note: `Node` could refer to the struct imported here
+   --> src/testing/graph_editor_automated_tests.rs:11:9
+    |
+11  |     use bevy::prelude::*;
+    |         ^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Node` to disambiguate
+note: `Node` could also refer to the struct imported here
+   --> src/testing/graph_editor_automated_tests.rs:3:9
+    |
+3   |     use crate::contexts::graph_management::domain::*;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: consider adding an explicit import of `Node` to disambiguate
+
+warning: unused import: `crate::contexts::graph_management::services::*`
+ --> src/testing/tdd_compliant_ecs_tests.rs:5:9
+  |
+5 |     use crate::contexts::graph_management::services::*;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::contexts::selection::domain::Selected`
+ --> src/testing/tdd_compliant_ecs_tests.rs:6:9
+  |
+6 |     use crate::contexts::selection::domain::Selected;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `bevy::input::ButtonState`
+ --> src/testing/tdd_compliant_ecs_tests.rs:8:9
+  |
+8 |     use bevy::input::ButtonState;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `bevy::input::keyboard::KeyboardInput`
+ --> src/testing/tdd_compliant_ecs_tests.rs:9:9
+  |
+9 |     use bevy::input::keyboard::KeyboardInput;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
+  --> src/testing/bevy_test_framework.rs:99:56
+   |
+99 |                     if let Ok(window_entity) = windows.get_single() {
+   |                                                        ^^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
+   --> src/testing/bevy_test_framework.rs:108:56
+    |
+108 |                     if let Ok(window_entity) = windows.get_single() {
+    |                                                        ^^^^^^^^^^
+
+warning: unused variable: `app`
+   --> src/contexts/selection/tests.rs:552:17
+    |
+552 |         let mut app = setup_test_app();
+    |                 ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+   --> src/contexts/selection/tests.rs:552:13
+    |
+552 |         let mut app = setup_test_app();
+    |             ----^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `initial_pos`
+   --> src/contexts/visualization/tests.rs:365:13
+    |
+365 |         let initial_pos = app
+    |             ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_initial_pos`
+
+warning: variable does not need to be mutable
+   --> src/contexts/visualization/tests.rs:510:18
+    |
+510 |             let (mut events, mut settings) = system_state.get_mut(world);
+    |                  ----^^^^^^
+    |                  |
+    |                  help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/contexts/visualization/tests.rs:510:30
+    |
+510 |             let (mut events, mut settings) = system_state.get_mut(world);
+    |                              ----^^^^^^^^
+    |                              |
+    |                              help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/contexts/visualization/tests.rs:554:18
+    |
+554 |             let (mut events, mut settings) = system_state.get_mut(world);
+    |                  ----^^^^^^
+    |                  |
+    |                  help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/contexts/visualization/tests.rs:554:30
+    |
+554 |             let (mut events, mut settings) = system_state.get_mut(world);
+    |                              ----^^^^^^^^
+    |                              |
+    |                              help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/contexts/visualization/tests.rs:702:20
+    |
+702 |         let (time, mut query) = system_state.get_mut(world);
+    |                    ----^^^^^
+    |                    |
+    |                    help: remove this `mut`
+
+warning: fields `identity`, `metadata`, and `journey` are never read
+   --> src/contexts/graph_management/domain.rs:106:9
+    |
+105 | pub struct Graph {
+    |            ----- fields in this struct
+106 |     pub identity: GraphIdentity,
+    |         ^^^^^^^^
+107 |     pub metadata: GraphMetadata,
+    |         ^^^^^^^^
+108 |     pub journey: GraphJourney,
+    |         ^^^^^^^
+    |
+    = note: `Graph` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: fields `content` and `position` are never read
+   --> src/contexts/graph_management/domain.rs:116:9
+    |
+113 | pub struct Node {
+    |            ---- fields in this struct
+...
+116 |     pub content: NodeContent,
+    |         ^^^^^^^
+117 |     pub position: SpatialPosition,
+    |         ^^^^^^^^
+    |
+    = note: `Node` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `identity` and `graph` are never read
+   --> src/contexts/graph_management/domain.rs:123:9
+    |
+122 | pub struct Edge {
+    |            ---- fields in this struct
+123 |     pub identity: EdgeIdentity,
+    |         ^^^^^^^^
+124 |     pub graph: GraphIdentity,
+    |         ^^^^^
+    |
+    = note: `Edge` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `node` is never read
+  --> src/contexts/graph_management/events.rs:37:9
+   |
+35 | pub struct NodeRemoved {
+   |            ----------- field in this struct
+36 |     pub graph: GraphIdentity,
+37 |     pub node: NodeIdentity,
+   |         ^^^^
+   |
+   = note: `NodeRemoved` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `edge` is never read
+  --> src/contexts/graph_management/events.rs:44:9
+   |
+42 | pub struct EdgeDisconnected {
+   |            ---------------- field in this struct
+43 |     pub graph: GraphIdentity,
+44 |     pub edge: EdgeIdentity,
+   |         ^^^^
+   |
+   = note: `EdgeDisconnected` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `node` and `label` are never read
+  --> src/contexts/graph_management/events.rs:70:9
+   |
+68 | pub struct LabelApplied {
+   |            ------------ fields in this struct
+69 |     pub graph: GraphIdentity,
+70 |     pub node: NodeIdentity,
+   |         ^^^^
+71 |     pub label: String,
+   |         ^^^^^
+   |
+   = note: `LabelApplied` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `reason` is never read
+  --> src/contexts/graph_management/events.rs:78:9
+   |
+76 | pub struct GraphDeleted {
+   |            ------------ field in this struct
+77 |     pub graph: GraphIdentity,
+78 |     pub reason: DeletionReason,
+   |         ^^^^^^
+   |
+   = note: `GraphDeleted` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `UserRequested`, `SystemMaintenance`, and `PolicyViolation` are never constructed
+  --> src/contexts/graph_management/events.rs:83:5
+   |
+82 | pub enum DeletionReason {
+   |          -------------- variants in this enum
+83 |     UserRequested,
+   |     ^^^^^^^^^^^^^
+84 |     SystemMaintenance,
+   |     ^^^^^^^^^^^^^^^^^
+85 |     PolicyViolation,
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `DeletionReason` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `parent_graph`, `subgraph`, `source_file`, and `position_offset` are never read
+  --> src/contexts/graph_management/events.rs:93:9
+   |
+92 | pub struct SubgraphImported {
+   |            ---------------- fields in this struct
+93 |     pub parent_graph: GraphIdentity,
+   |         ^^^^^^^^^^^^
+94 |     pub subgraph: GraphIdentity,
+   |         ^^^^^^^^
+95 |     pub source_file: String,
+   |         ^^^^^^^^^^^
+96 |     pub position_offset: Vec3,
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `SubgraphImported` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `parent_graph`, `extracted_graph`, and `node_ids` are never read
+   --> src/contexts/graph_management/events.rs:102:9
+    |
+101 | pub struct SubgraphExtracted {
+    |            ----------------- fields in this struct
+102 |     pub parent_graph: GraphIdentity,
+    |         ^^^^^^^^^^^^
+103 |     pub extracted_graph: GraphIdentity,
+    |         ^^^^^^^^^^^^^^^
+104 |     pub node_ids: Vec<NodeIdentity>,
+    |         ^^^^^^^^
+    |
+    = note: `SubgraphExtracted` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `graph`, `edge`, `from_subgraph`, and `to_subgraph` are never read
+   --> src/contexts/graph_management/events.rs:110:9
+    |
+109 | pub struct InterSubgraphEdgeCreated {
+    |            ------------------------ fields in this struct
+110 |     pub graph: GraphIdentity,
+    |         ^^^^^
+111 |     pub edge: EdgeIdentity,
+    |         ^^^^
+112 |     pub from_subgraph: GraphIdentity,
+    |         ^^^^^^^^^^^^^
+113 |     pub to_subgraph: GraphIdentity,
+    |         ^^^^^^^^^^^
+    |
+    = note: `InterSubgraphEdgeCreated` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `identity`, `content`, and `position` are never read
+  --> src/contexts/graph_management/repositories.rs:43:9
+   |
+42 | pub struct NodeData {
+   |            -------- fields in this struct
+43 |     pub identity: NodeIdentity,
+   |         ^^^^^^^^
+44 |     pub content: NodeContent,
+   |         ^^^^^^^
+45 |     pub position: SpatialPosition,
+   |         ^^^^^^^^
+   |
+   = note: `NodeData` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: fields `identity` and `relationship` are never read
+  --> src/contexts/graph_management/repositories.rs:51:9
+   |
+50 | pub struct EdgeData {
+   |            -------- fields in this struct
+51 |     pub identity: EdgeIdentity,
+   |         ^^^^^^^^
+52 |     pub relationship: EdgeRelationship,
+   |         ^^^^^^^^^^^^
+   |
+   = note: `EdgeData` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `edge_id` is never read
+  --> src/contexts/graph_management/repositories.rs:65:9
+   |
+64 | pub struct EdgeReference {
+   |            ------------- field in this struct
+65 |     pub edge_id: EdgeIdentity,
+   |         ^^^^^^^
+   |
+   = note: `EdgeReference` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: variants `NodeRemoved`, `EdgeDisconnected`, `NodeMoved`, `PropertyUpdated`, `LabelApplied`, and `Deleted` are never constructed
+  --> src/contexts/graph_management/repositories.rs:76:5
+   |
+72 | pub enum GraphEvent {
+   |          ---------- variants in this enum
+...
+76 |     NodeRemoved(NodeRemoved),
+   |     ^^^^^^^^^^^
+77 |     EdgeDisconnected(EdgeDisconnected),
+   |     ^^^^^^^^^^^^^^^^
+78 |     NodeMoved(NodeMoved),
+   |     ^^^^^^^^^
+79 |     PropertyUpdated(PropertyUpdated),
+   |     ^^^^^^^^^^^^^^^
+80 |     LabelApplied(LabelApplied),
+   |     ^^^^^^^^^^^^
+81 |     Deleted(GraphDeleted),
+   |     ^^^^^^^
+   |
+   = note: `GraphEvent` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `timestamp` is never read
+  --> src/contexts/graph_management/repositories.rs:89:9
+   |
+86 | pub struct GraphSnapshot {
+   |            ------------- field in this struct
+...
+89 |     pub timestamp: std::time::SystemTime,
+   |         ^^^^^^^^^
+   |
+   = note: `GraphSnapshot` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `find_mut` is never used
+   --> src/contexts/graph_management/repositories.rs:113:12
+    |
+95  | impl Graphs {
+    | ----------- method in this implementation
+...
+113 |     pub fn find_mut(&mut self, id: GraphIdentity) -> Option<&mut GraphData> {
+    |            ^^^^^^^^
+
+warning: method `compact_events` is never used
+   --> src/contexts/graph_management/repositories.rs:216:12
+    |
+156 | impl GraphEvents {
+    | ---------------- method in this implementation
+...
+216 |     pub fn compact_events(&mut self, graph_id: GraphIdentity) {
+    |            ^^^^^^^^^^^^^^
+
+warning: fields `limit` and `current` are never read
+   --> src/contexts/graph_management/services.rs:294:25
+    |
+294 |     NodeLimitExceeded { limit: usize, current: usize },
+    |     -----------------   ^^^^^         ^^^^^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `0` is never read
+   --> src/contexts/graph_management/services.rs:300:18
+    |
+300 |     NodeNotFound(NodeIdentity),
+    |     ------------ ^^^^^^^^^^^^
+    |     |
+    |     field in this variant
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+help: consider changing the field to be of unit type to suppress this warning while preserving the field numbering, or remove the field
+    |
+300 -     NodeNotFound(NodeIdentity),
+300 +     NodeNotFound(()),
+    |
+
+warning: fields `node`, `limit`, and `current` are never read
+   --> src/contexts/graph_management/services.rs:313:9
+    |
+312 |     EdgeLimitExceeded {
+    |     ----------------- fields in this variant
+313 |         node: NodeIdentity,
+    |         ^^^^
+314 |         limit: usize,
+    |         ^^^^^
+315 |         current: usize,
+    |         ^^^^^^^
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `GraphDeleted`, `GraphLocked`, `SelfReferencingEdge`, `DisconnectedNode`, `CyclicDependency`, and `InvalidEdgeCategory` are never constructed
+   --> src/contexts/graph_management/services.rs:291:5
+    |
+286 | pub enum GraphConstraintViolation {
+    |          ------------------------ variants in this enum
+...
+291 |     GraphDeleted,
+    |     ^^^^^^^^^^^^
+...
+297 |     GraphLocked,
+    |     ^^^^^^^^^^^
+...
+306 |     SelfReferencingEdge { node: NodeIdentity },
+    |     ^^^^^^^^^^^^^^^^^^^
+...
+322 |     DisconnectedNode { node: NodeIdentity },
+    |     ^^^^^^^^^^^^^^^^
+...
+325 |     CyclicDependency { path: Vec<NodeIdentity> },
+    |     ^^^^^^^^^^^^^^^^
+...
+328 |     InvalidEdgeCategory {
+    |     ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variant `Lasso` is never constructed
+  --> src/contexts/selection/domain.rs:77:5
+   |
+72 | pub enum SelectionMode {
+   |          ------------- variant in this enum
+...
+77 |     Lasso,    // Lasso selection mode (future feature)
+   |     ^^^^^
+   |
+   = note: `SelectionMode` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `0` is never read
+   --> src/contexts/selection/domain.rs:146:29
+    |
+146 | pub struct OriginalMaterial(pub Handle<StandardMaterial>);
+    |            ---------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |            |
+    |            field in this struct
+    |
+    = help: consider removing this field
+
+warning: fields `added_nodes`, `removed_nodes`, `added_edges`, and `removed_edges` are never read
+  --> src/contexts/selection/events.rs:10:9
+   |
+9  | pub struct SelectionChanged {
+   |            ---------------- fields in this struct
+10 |     pub added_nodes: Vec<NodeIdentity>,
+   |         ^^^^^^^^^^^
+11 |     pub removed_nodes: Vec<NodeIdentity>,
+   |         ^^^^^^^^^^^^^
+12 |     pub added_edges: Vec<EdgeIdentity>,
+   |         ^^^^^^^^^^^
+13 |     pub removed_edges: Vec<EdgeIdentity>,
+   |         ^^^^^^^^^^^^^
+   |
+   = note: `SelectionChanged` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `previous_mode` is never read
+  --> src/contexts/selection/events.rs:24:9
+   |
+22 | pub struct SelectionModeChanged {
+   |            -------------------- field in this struct
+23 |     pub new_mode: SelectionMode,
+24 |     pub previous_mode: SelectionMode,
+   |         ^^^^^^^^^^^^^
+   |
+   = note: `SelectionModeChanged` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `entity` and `edge` are never read
+  --> src/contexts/selection/events.rs:53:9
+   |
+52 | pub struct DeselectEdge {
+   |            ------------ fields in this struct
+53 |     pub entity: Entity,
+   |         ^^^^^^
+54 |     pub edge: EdgeIdentity,
+   |         ^^^^
+   |
+   = note: `DeselectEdge` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `entity`, `is_node`, and `is_edge` are never read
+  --> src/contexts/selection/events.rs:82:9
+   |
+81 | pub struct EntityHovered {
+   |            ------------- fields in this struct
+82 |     pub entity: Entity,
+   |         ^^^^^^
+83 |     pub is_node: bool,
+   |         ^^^^^^^
+84 |     pub is_edge: bool,
+   |         ^^^^^^^
+   |
+   = note: `EntityHovered` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `entity` is never read
+  --> src/contexts/selection/events.rs:90:9
+   |
+89 | pub struct EntityUnhovered {
+   |            --------------- field in this struct
+90 |     pub entity: Entity,
+   |         ^^^^^^
+   |
+   = note: `EntityUnhovered` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `from_node` and `depth` are never read
+   --> src/contexts/selection/events.rs:104:9
+    |
+103 | pub struct SelectConnected {
+    |            --------------- fields in this struct
+104 |     pub from_node: NodeIdentity,
+    |         ^^^^^^^^^
+105 |     pub depth: u32, // How many hops to select
+    |         ^^^^^
+    |
+    = note: `SelectConnected` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `entity` and `render_mode` are never read
+   --> src/contexts/visualization/services.rs:143:9
+    |
+142 | pub struct VisualizationUpdateRequested {
+    |            ---------------------------- fields in this struct
+143 |     pub entity: Entity,
+    |         ^^^^^^
+144 |     pub render_mode: RenderMode,
+    |         ^^^^^^^^^^^
+    |
+    = note: `VisualizationUpdateRequested` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `entity` and `density` are never read
+   --> src/contexts/visualization/services.rs:150:9
+    |
+149 | pub struct ConvertToPointCloud {
+    |            ------------------- fields in this struct
+150 |     pub entity: Entity,
+    |         ^^^^^^
+151 |     pub density: f32,
+    |         ^^^^^^^
+    |
+    = note: `ConvertToPointCloud` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `particle_density` and `particle_size` are never read
+   --> src/contexts/visualization/services.rs:235:9
+    |
+233 | pub struct EdgeFlow {
+    |            -------- fields in this struct
+234 |     pub flow_speed: f32,
+235 |     pub particle_density: f32,
+    |         ^^^^^^^^^^^^^^^^
+236 |     pub particle_size: f32,
+    |         ^^^^^^^^^^^^^
+
+warning: field `messages_sent` is never read
+   --> src/testing/tdd_compliant_ecs_tests.rs:205:9
+    |
+204 |     struct TestNatsClient {
+    |            -------------- field in this struct
+205 |         messages_sent: Vec<String>,
+    |         ^^^^^^^^^^^^^
+
+warning: field `payload` is never read
+   --> src/testing/tdd_compliant_ecs_tests.rs:226:9
+    |
+225 |     struct NatsOutgoing {
+    |            ------------ field in this struct
+226 |         payload: serde_json::Value,
+    |         ^^^^^^^
+
+warning: associated function `node_moved` is never used
+   --> src/testing/event_validation_helpers.rs:236:12
+    |
+185 | impl TestEventBuilder {
+    | --------------------- associated function in this implementation
+...
+236 |     pub fn node_moved(
+    |            ^^^^^^^^^^
+
+warning: multiple variants are never constructed
+  --> src/testing/bevy_test_framework.rs:10:5
+   |
+9  | pub enum TestAction {
+   |          ---------- variants in this enum
+10 |     MoveMouse { x: f32, y: f32 },
+   |     ^^^^^^^^^
+11 |     Click { button: MouseButton },
+   |     ^^^^^
+12 |     KeyPress { key: KeyCode },
+   |     ^^^^^^^^
+13 |     KeyRelease { key: KeyCode },
+   |     ^^^^^^^^^^
+14 |     Wait { frames: u32 },
+   |     ^^^^
+15 |     AssertNodeExists { tag: String },
+   |     ^^^^^^^^^^^^^^^^
+16 |     AssertNodeSelected { tag: String },
+   |     ^^^^^^^^^^^^^^^^^^
+17 |     TakeScreenshot { name: String },
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `TestAction` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `new` and `add_action` are never used
+  --> src/testing/bevy_test_framework.rs:37:12
+   |
+36 | impl TestScenario {
+   | ----------------- associated items in this implementation
+37 |     pub fn new(name: impl Into<String>) -> Self {
+   |            ^^^
+...
+46 |     pub fn add_action(mut self, action: TestAction) -> Self {
+   |            ^^^^^^^^^^
+
+warning: function `create_test_scenarios` is never used
+   --> src/testing/bevy_test_framework.rs:196:8
+    |
+196 | pub fn create_test_scenarios() -> Vec<TestScenario> {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+error: linking with `clang` failed: exit status: 1
+  |
+  = note:  "clang" "-m64" "/tmp/rustcddT4TK/symbols.o" "<180 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libtest-*,libgetopts-*,libunicode_width-*,librustc_std_workspace_std-*}.rlib" "/git/thecowboyai/alchemist/target/debug/deps/{libbevy_panorbit_camera-160dc3c93bce9906.rlib,libbevy-334c62c563aed175.rlib,libbevy_internal-950ae0138cb302be.rlib,libbevy_winit-7583748906993a1b.rlib,libapprox-726919b0a4c7b30f.rlib,libaccesskit_winit-ccae9effdcd6dedb.rlib,libwinit-3cedf4cf9edf5b65.rlib,libsctk_adwaita-2207e2585f1e662d.rlib,libab_glyph-96b076a82f882406.rlib,libowned_ttf_parser-157833d414f7d047.rlib,libttf_parser-36c870cc6dd4625b.rlib,libab_glyph_rasterizer-2f02df69db6e9b8b.rlib,libtiny_skia-8db8aaaec81f6e54.rlib,libtiny_skia_path-33e49d41a845138c.rlib,libstrict_num-b15836a6188fa6e2.rlib,libx11rb-e5f5182050263066.rlib,libas_raw_xcb_connection-1abe32e35524118a.rlib,libx11rb_protocol-b24ccb499cbcce01.rlib,libwayland_protocols_plasma-08c8b89101eb31be.rlib,libahash-7f930fba63d14bf2.rlib,libsmithay_client_toolkit-0a972d4ba4948e2f.rlib,libwayland_cursor-588ea74038721ea7.rlib,libxcursor-67b50ab8554d75aa.rlib,libwayland_protocols_wlr-1b4aab358f41250c.rlib,libwayland_protocols-eb590f444d254d38.rlib,libwayland_csd_frame-c4a109755b971607.rlib,libcalloop_wayland_source-94a2f3ae3b336d80.rlib,libwayland_client-5f9e6a13b3a1a374.rlib,libwayland_backend-ddcb90fc215071b2.rlib,libdowncast_rs-d3fb2f14f2b37cbd.rlib,libscoped_tls-628e843c2dda2418.rlib,libwayland_sys-223341440f5492f2.rlib,libcalloop-e5754f0f0754b70f.rlib,librustix-58ff90277ace9713.rlib,liblinux_raw_sys-af037831a441c4bc.rlib,libpolling-335e1864bb1c2eef.rlib,librustix-98f4355a5e60bf0f.rlib,liblinux_raw_sys-015e5f25a1335158.rlib,libx11_dl-ce9353ca46911b92.rlib,libxkbcommon_dl-fc31bdb3de97f8dd.rlib,libxkeysym-33cbbf2fb25c45ef.rlib,libdlib-5bec351e9710c0cd.rlib,libcursor_icon-a1f7bcb0fa0bdfcb.rlib,libdpi-09ef3fef5e506826.rlib,libbevy_ui-fea575d0cff26338.rlib,libtaffy-4a4a109292ed5dbb.rlib,libgrid-acc20c2ade39706c.rlib,libbevy_text-e1b3cff5780f07ce.rlib,libcosmic_text-48fc84c7e54cc2d5.rlib,libunicode_linebreak-5c2fd76fd9f71a43.rlib,libsys_locale-0494eb98ab491aaf.rlib,libswash-354e8028d73b993d.rlib,libyazi-d761bdc6b2cc3967.rlib,libskrifa-e70eaf502cb5bd09.rlib,libread_fonts-bbfb0bab00f139c6.rlib,libfont_types-c0b6deac554b8f31.rlib,libzeno-6b3c8ab1e1ef748e.rlib,libself_cell-340ee22db7936165.rlib,librustybuzz-73540fd35780cde0.rlib,libunicode_bidi_mirroring-7c541dddb3abf421.rlib,libunicode_ccc-7299bb0e2582c50a.rlib,libunicode_properties-f56efe34b3f2738e.rlib,libttf_parser-81645a19f2ddd136.rlib,libunicode_script-1203f3c1fefcd7a8.rlib,libunicode_segmentation-d4c9256845f855c6.rlib,libunicode_bidi-e03437e3804e4969.rlib,libfontdb-21bbbe083e3e6fdc.rlib,libfontconfig_parser-9accc997572542b3.rlib,libroxmltree-20e3f1ff8da1b5aa.rlib,libmemmap2-6e0a100539413034.rlib,libslotmap-2e0333d750d3f465.rlib,libttf_parser-b3f72ca6b8ade790.rlib,librangemap-76626987a39ee8f0.rlib,libbevy_state-4b6e83c68f2205bc.rlib,libbevy_input_focus-ee0d7b9dc1c6b94b.rlib,libbevy_gltf-8e9365b221ed6bcf.rlib,libbase64-c3a5902faa1a6bc1.rlib,libpercent_encoding-ee5d2e14016c5e66.rlib,libgltf-dd93309f834f17b3.rlib,libgltf_json-38888455b6432399.rlib,libserde_json-98b76638528d95d9.rlib,libitoa-79239dec603dc548.rlib,libryu-81db3dac2e10c5bd.rlib,libbevy_scene-9de167d375e75cc3.rlib,libbevy_gizmos-300c96ca8747786c.rlib,libbevy_sprite-a551327caabe099d.rlib,libbevy_picking-4f9e2eed8672762c.rlib,libbevy_pbr-913fff16af250a01.rlib,libbevy_gilrs-e6d9d2153aba1c14.rlib,libgilrs-809c415add472e68.rlib,libfnv-90d27970b61c9c87.rlib,libgilrs_core-1fcba89ddc9265b4.rlib,liblibudev_sys-779b82bcd70c9320.rlib,libinotify-2c17b7e5ddaa8f9e.rlib,libinotify_sys-eef90dc481395048.rlib,libvec_map-2e4882e959ff1f9e.rlib,libnix-c8bc87219c6cfca4.rlib,libmemoffset-e96fb0e140004525.rlib,libbevy_core_pipeline-3a0b0e06d8046fb2.rlib,libradsort-22a72a7275696d45.rlib,libbevy_audio-4a1673a5a8dc8a96.rlib,librodio-bd83e4c9d7d31519.rlib,liblewton-3c2e99cc9c1695e6.rlib,libogg-8f59e3ec776a4131.rlib,libtinyvec-e78ecf9418d27155.rlib,libtinyvec_macros-32328626ba2ebc93.rlib,libbyteorder-ab7b910cead8730d.rlib,libcpal-85c5f7b329a1dcc3.rlib,libdasp_sample-1881dca7aadc7dff.rlib,libalsa-98c4f33aca226d62.rlib,libalsa_sys-cbfb1325075333b6.rlib,libbevy_animation-919f9fcf7c5e5a2a.rlib,libbevy_render-4d58af2dab2417d1.rlib,libnaga_oil-f890533f94f7c54e.rlib,libdata_encoding-3f2c6a21ca7fb866.rlib,libunicode_ident-989359b369dc2d98.rlib,liboffset_allocator-b457acfaabd83fde.rlib,libbevy_diagnostic-6935e29f43f1f9c8.rlib,libsysinfo-f714c5266adecf98.rlib,libconst_fnv1a_hash-9de4621f5732eb8f.rlib,libbevy_window-34c0ed8727b9017a.rlib,libbevy_input-286cce43e3559e69.rlib,libwgpu-c8286b89dceaa90d.rlib,libstatic_assertions-554541c54a0116f9.rlib,libwgpu_core-fd0e47d8a562c117.rlib,libwgpu_hal-44ca27e8b8ea3d68.rlib,librenderdoc_sys-ea75f526b86a98ce.rlib,libkhronos_egl-0ec68399b8288aa7.rlib,libprofiling-1cfa8dc3eecadc12.rlib,libordered_float-300ec7397297e090.rlib,libgpu_descriptor-7d9389c535ef5854.rlib,libgpu_descriptor_types-5180696969149176.rlib,libgpu_alloc-92f42966c064329d.rlib,libgpu_alloc_types-9cb3098bee427ce7.rlib,libash-fe5ede2a46efc80b.rlib,liblibloading-bfcc257d40d793df.rlib,libnaga-50a2588c5b64894f.rlib,librustc_hash-c2ea87d88e1f2ed4.rlib,libhexf_parse-4128c4bbaec914dc.rlib,libunicode_xid-f70152c907f7a451.rlib,libbit_set-45be719f062f64f6.rlib,libbit_vec-7364059ddbb8f9ae.rlib,libstrum-9c5c1194d48a2353.rlib,libcodespan_reporting-ecf1cc686fa5649e.rlib,libunicode_width-2ea4dd31a6cb7eee.rlib,libtermcolor-f10140d78fe9fe5b.rlib,libspirv-3b3a62a85e2ca2e7.rlib,libglow-3fd1dcb13ee2a1be.rlib,libraw_window_handle-e7f42047ce88ba27.rlib,libbevy_time-3506f3b9e6f2a504.rlib,libbevy_mesh-f47b990f2961d541.rlib,libbevy_mikktspace-5e9b98fcc70637c1.rlib,libhexasphere-ecac281f0860b7dc.rlib,libconstgebra-042766086d3d22b9.rlib,libconst_soft_float-b4c0357b9d2df3d7.rlib,libbevy_image-3ef42a2eeebe0947.rlib,libruzstd-243c2220128d5bb0.rlib,libtwox_hash-fa07d23bfce8c171.rlib,libhalf-06c25509fef3779b.rlib,librectangle_pack-065e1d50b28097fb.rlib,libktx2-af13fc76e3fe085e.rlib,libimage-006b1b70e998a9cb.rlib,libbyteorder_lite-4c9cf467cd5cfbc7.rlib,libpng-20548bfcc5713ffc.rlib,libbitflags-fb3b538e91bd2754.rlib,libflate2-d851ecc96a7aa3d1.rlib,libminiz_oxide-a8418017b61d169a.rlib,libfdeflate-4083373402434963.rlib,libsimd_adler32-146a90ef8eaedc35.rlib,libcrc32fast-35a2c60a5b6cf1b1.rlib,libzune_jpeg-9477893b3b8cd9d0.rlib,libzune_core-debefea6ec1882e9.rlib,libguillotiere-3e10748cc04b08c1.rlib,libsvg_fmt-df7b0267215c2603.rlib,libeuclid-9d2151c642bc06dd.rlib,libbevy_asset-2e02b0eec2471ed0.rlib,libblake3-07f03c85f2dadc49.rlib,libconstant_time_eq-22566b1c29c5cb6c.rlib,libarrayref-099b7acc065c9e65.rlib,libasync_broadcast-fa282f85fcb805f6.rlib,libron-e0aa02924c06bf81.rlib,libbase64-112775c48703c654.rlib,libstackfuture-f7e5a42fb90712af.rlib,libatomicow-1c56c3b26bc9766e.rlib,libparking_lot-7bb9b7c54920454f.rlib,libparking_lot_core-94dcbcf6885e1570.rlib,liblock_api-d1e7c56111835459.rlib,libscopeguard-eefbb519b5d44692.rlib,libcrossbeam_channel-2a718b5a7093d991.rlib,libasync_fs-97cc3aa2c0371183.rlib,libblocking-097651e87a17f095.rlib,libpiper-41a02729838f2138.rlib,libatomic_waker-f0d837315f47d385.rlib,libasync_lock-ba4960479a832e42.rlib,libbevy_transform-a79a730e58cb2d73.rlib,libbevy_log-7cb8d16aaba85eb0.rlib,libtracing_subscriber-6cf2d2f3053fa69b.rlib,libsharded_slab-873ad2e902246c90.rlib,liblazy_static-601f680ebcb06158.rlib,libmatchers-d26043eab2a88095.rlib,libregex_automata-a5712e7cd306b0f7.rlib,libregex_syntax-87852e2534de25f6.rlib,libregex-c6f8bc3733d6dc0c.rlib,libregex_automata-e6505c360914d3ff.rlib,libaho_corasick-c86253b2087109e1.rlib,libmemchr-aac33c9ebdd79c3a.rlib,libregex_syntax-8aee3ae7f017d530.rlib,libnu_ansi_term-f99c5a36de80e0a7.rlib,liboverload-907d9b251ececbb1.rlib,libtracing_log-9dda1baf8b1d7841.rlib,libtracing-48088347250a66a1.rlib,libtracing_core-79a36dfbd4e02ebb.rlib,libbevy_color-e11650d5a1b5949a.rlib,libencase-e496bf2ba39f18ad.rlib,libconst_panic-4df4de5b1db8ee97.rlib,libthiserror-83148f3db3260557.rlib,libwgpu_types-4f6860a7e4cfcdd7.rlib,libbevy_math-15e40dade603842a.rlib,librand_distr-fee05c9335ff1cf6.rlib,libnum_traits-ad8b6bcd2b44d24e.rlib,libitertools-6b4beb4f059cccc0.rlib,libeither-cf99cc64732ed216.rlib,libbevy_a11y-91148672b0081eed.rlib,libaccesskit-171d731dc6cb4bf4.rlib,libbevy_app-a012af286573be03.rlib,libctrlc-6e8375d93362d14f.rlib,libnix-56162540664ba1ec.rlib,libbevy_ecs-cf43c9dde3e26883.rlib,libbitflags-3f9f40aa268eb6c2.rlib,libnonmax-3b1da9b7100accf7.rlib,libbevy_tasks-b683656f40863081.rlib,libasync_channel-a465f8f589964fa7.rlib,libevent_listener_strategy-e3e01943fc1fa8c3.rlib,libevent_listener-dc56dbab202ae5cd.rlib,libasync_executor-14a5d3ea5a8ea7f8.rlib,libslab-875fbe74e76c1286.rlib,libconcurrent_queue-85dc04298444d936.rlib,libcrossbeam_utils-41bd7c0ffd04988f.rlib,libfutures_lite-f76e1aee6922d2d3.rlib,libfutures_io-d4f3a34d458d8ccf.rlib,libfutures_core-166d6e2a46aff1fa.rlib,libparking-204d726842c471a9.rlib,libfastrand-58cdf87a8864bbb6.rlib,libpin_project_lite-bee8088e2ba92394.rlib,libasync_task-97c40f92ca1dd672.rlib,libarrayvec-652c727916cb0e36.rlib,liblog-ae2a21381e53eb1d.rlib,libbumpalo-701c509c910a38c2.rlib,libdisqualified-2339cf9f9f4ff81e.rlib,libbevy_reflect-226f3c93bf97e1d0.rlib,libuuid-da6c38300433c893.rlib,libgetrandom-435316af44eb7e0e.rlib,libsmol_str-e0860b21c3bd6781.rlib,libpetgraph-7d4211cad7ca6158.rlib,libindexmap-fd6abba57f8635b8.rlib,libfixedbitset-c3b219052181edfd.rlib,liberased_serde-adf8da1a78bcce2a.rlib,libtypeid-10924a07ec0833b2.rlib,libsmallvec-2ebeb96d44e9fa66.rlib,libglam-dea47e035e4228d3.rlib,librand-a6490d86211f1956.rlib,librand_chacha-33f3130bdacc30e8.rlib,libppv_lite86-2e86ac5e66721ca8.rlib,libzerocopy-b53623cf988453d1.rlib,librand_core-ba5f402e8789cd4c.rlib,libgetrandom-ebc4d83e4263209e.rlib,liblibc-e56bc220069fdcd8.rlib,libbytemuck-52d04a7cf9afd3fb.rlib,libdowncast_rs-ece6aadd3247d72b.rlib,libderive_more-d0f281d77ad92205.rlib,libthiserror-eb5fed7f82e5e52a.rlib,libbevy_utils-b4ef5d20c46b6e53.rlib,libthread_local-22bd1642887835e4.rlib,libonce_cell-37d451da8bff5f65.rlib,libbevy_ptr-cfddf63322048852.rlib,libbevy_platform-95463813209d85aa.rlib,libcfg_if-3d1906dafc949792.rlib,libhashbrown-e742375a234541c8.rlib,libequivalent-51b297eec1bda70a.rlib,libserde-9d2102c3b14c9c8a.rlib,liballocator_api2-e2b4c7e128d86660.rlib,libfoldhash-ae0c353e294b69d3.rlib}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libstd-*,libpanic_unwind-*,libobject-*,libmemchr-*,libaddr2line-*,libgimli-*,librustc_demangle-*,libstd_detect-*,libhashbrown-*,librustc_std_workspace_alloc-*,libminiz_oxide-*,libadler2-*,libunwind-*,libcfg_if-*,liblibc-*,liballoc-*,librustc_std_workspace_core-*,libcore-*,libcompiler_builtins-*}.rlib" "-Wl,-Bdynamic" "-ldl" "-ludev" "-lasound" "-ldl" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/tmp/rustcddT4TK/raw-dylibs" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "/git/thecowboyai/alchemist/target/debug/build/blake3-5b69b574fe0819cb/out" "-L" "/git/thecowboyai/alchemist/target/debug/build/blake3-5b69b574fe0819cb/out" "-L" "/nix/store/ap1g7dnwz1pyinx0wlj0m0z9ypzl7pyw-alsa-lib-1.2.13/lib" "-L" "/nix/store/v03zr9slrp64psxlpwh7gn0m5gcdglwm-systemd-minimal-libs-257.5/lib" "-L" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib" "-o" "/git/thecowboyai/alchemist/target/debug/deps/ia-bec54188ec6a01a0" "-Wl,--gc-sections" "-pie" "-Wl,-z,relro,-z,now" "-nodefaultlibs" "-fuse-ld=lld"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: ld.lld: error: undefined symbol: _$LT$bevy_render..view..ViewDepthTexture$u20$as$u20$bevy_ecs..component..Component$GT$::register_required_components::h4a343d5115c4dad1
+          >>> referenced by component.rs:1769 (/home/steele/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_ecs-0.16.0/src/component.rs:1769)
+          >>>               bevy_core_pipeline-3a0b0e06d8046fb2.bevy_core_pipeline.cfc9a63f5e3600b3-cgu.12.rcgu.o:(_$LT$bevy_ecs..query..filter..Or$LT$$LP$F0$C$F1$RP$$GT$$u20$as$u20$bevy_ecs..query..world_query..WorldQuery$GT$::init_state::h318f651f3ab0ca29) in archive /git/thecowboyai/alchemist/target/debug/deps/libbevy_core_pipeline-3a0b0e06d8046fb2.rlib
+          >>> referenced by component.rs:1769 (/home/steele/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_ecs-0.16.0/src/component.rs:1769)
+          >>>               bevy_core_pipeline-3a0b0e06d8046fb2.bevy_core_pipeline.cfc9a63f5e3600b3-cgu.04.rcgu.o:(bevy_ecs::component::ComponentsRegistrator::register_component::h8acf60f0cffdc995 (.llvm.546444788626194668)) in archive /git/thecowboyai/alchemist/target/debug/deps/libbevy_core_pipeline-3a0b0e06d8046fb2.rlib
+          >>> referenced by component.rs:1769 (/home/steele/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_ecs-0.16.0/src/component.rs:1769)
+          >>>               bevy_pbr-913fff16af250a01.bevy_pbr.fc26ce2d1fea2fb-cgu.02.rcgu.o:(bevy_ecs::query::fetch::_$LT$impl$u20$bevy_ecs..query..world_query..WorldQuery$u20$for$u20$$RF$T$GT$::init_state::h28126ff895268eac) in archive /git/thecowboyai/alchemist/target/debug/deps/libbevy_pbr-913fff16af250a01.rlib
+          
+          ld.lld: error: undefined symbol: _$LT$bevy_render..experimental..occlusion_culling..OcclusionCullingSubview$u20$as$u20$bevy_ecs..component..Component$GT$::register_required_components::h5016e8b8d3da2cbf
+          >>> referenced by component.rs:1769 (/home/steele/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_ecs-0.16.0/src/component.rs:1769)
+          >>>               bevy_core_pipeline-3a0b0e06d8046fb2.bevy_core_pipeline.cfc9a63f5e3600b3-cgu.12.rcgu.o:(_$LT$bevy_ecs..query..filter..Or$LT$$LP$F0$C$F1$RP$$GT$$u20$as$u20$bevy_ecs..query..world_query..WorldQuery$GT$::init_state::h318f651f3ab0ca29) in archive /git/thecowboyai/alchemist/target/debug/deps/libbevy_core_pipeline-3a0b0e06d8046fb2.rlib
+          >>> referenced by component.rs:1769 (/home/steele/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_ecs-0.16.0/src/component.rs:1769)
+          >>>               bevy_core_pipeline-3a0b0e06d8046fb2.bevy_core_pipeline.cfc9a63f5e3600b3-cgu.08.rcgu.o:(bevy_ecs::query::fetch::_$LT$impl$u20$bevy_ecs..query..world_query..WorldQuery$u20$for$u20$$RF$T$GT$::init_state::h1d92270e593c87a7) in archive /git/thecowboyai/alchemist/target/debug/deps/libbevy_core_pipeline-3a0b0e06d8046fb2.rlib
+          >>> referenced by component.rs:1769 (/home/steele/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bevy_ecs-0.16.0/src/component.rs:1769)
+          >>>               bevy_pbr-913fff16af250a01.bevy_pbr.fc26ce2d1fea2fb-cgu.03.rcgu.o:(_$LT$$LP$B0$C$B1$RP$$u20$as$u20$bevy_ecs..bundle..Bundle$GT$::component_ids::h038c893054a13d71) in archive /git/thecowboyai/alchemist/target/debug/deps/libbevy_pbr-913fff16af250a01.rlib
+          clang: error: linker command failed with exit code 1 (use -v to see invocation)
+          
+
+warning: `ia` (bin "ia" test) generated 67 warnings
+error: could not compile `ia` (bin "ia" test) due to 1 previous error; 67 warnings emitted
