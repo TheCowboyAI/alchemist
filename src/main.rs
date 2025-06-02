@@ -6,13 +6,14 @@ mod contexts;
 mod testing;
 
 fn main() {
-    App::new()
+    let mut app = App::new()
         .add_plugins(DefaultPlugins)
         // Add our domain contexts
         .add_plugins((
             contexts::graph_management::plugin::GraphManagementPlugin,
             contexts::visualization::plugin::VisualizationPlugin,
             contexts::selection::plugin::SelectionPlugin,
-        ))
-        .run();
+        ));
+
+    app.run();
 }

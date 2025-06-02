@@ -1,6 +1,7 @@
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
 use crate::contexts::graph_management::services::*;
+use crate::contexts::graph_management::storage::*;
 use bevy::prelude::*;
 
 /// Plugin for the Graph Management bounded context
@@ -8,24 +9,35 @@ pub struct GraphManagementPlugin;
 
 impl Plugin for GraphManagementPlugin {
     fn build(&self, app: &mut App) {
-        app
-            // Register domain events (no Event suffix!)
-            .add_event::<GraphCreated>()
+        // Register resources
+        app.insert_resource(GraphStorage::new());
+
+        // Register events
+        app.add_event::<GraphCreated>()
             .add_event::<NodeAdded>()
             .add_event::<EdgeConnected>()
             .add_event::<NodeRemoved>()
             .add_event::<EdgeDisconnected>()
-            .add_event::<NodeMoved>()
-            .add_event::<PropertyUpdated>()
-            .add_event::<LabelApplied>()
             .add_event::<GraphDeleted>()
-            .add_event::<SubgraphImported>()
             .add_event::<SubgraphExtracted>()
-            .add_event::<InterSubgraphEdgeCreated>()
-            // Add hierarchy system
-            .add_systems(Update, EstablishGraphHierarchy::organize_hierarchy)
-            // Add startup system to create example
-            .add_systems(Startup, create_example_graph);
+            .add_event::<InterSubgraphEdgeCreated>();
+
+        // Register domain service systems
+        app.add_systems(
+            Update,
+            (
+                // Storage sync systems
+                SyncGraphWithStorage::sync_graph_created,
+                SyncGraphWithStorage::sync_node_added,
+                SyncGraphWithStorage::sync_edge_connected,
+
+                // Hierarchy system
+                EstablishGraphHierarchy::organize_hierarchy,
+            ),
+        );
+
+        // Add startup system to create example
+        app.add_systems(Startup, create_example_graph);
     }
 }
 

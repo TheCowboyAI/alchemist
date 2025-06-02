@@ -20,7 +20,6 @@ exclude = ["examples/"]
 [features]
 default = []
 dev = [
-  "bevy/dynamic_linking",
   "bevy/asset_processor",
   "bevy/file_watcher"
 ]
@@ -47,3 +46,15 @@ rand_chacha = "0.9.0"
 bevy_panorbit_camera = "0.26.0"
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
+
+[lib]
+name = "ia"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ia"
+path = "src/main.rs"
+
+[[bin]]
+name = "verify_storage"
+path = "src/bin/verify_storage.rs"
