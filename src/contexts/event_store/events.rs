@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
+use uuid::Uuid;
 
 /// Content Identifier for Merkle DAG structure
 /// This is a placeholder - in production this would be a proper CID
@@ -21,7 +21,7 @@ impl Cid {
         let hash = hasher.finish();
 
         // Placeholder CID format
-        Cid(format!("cid:v1:dag-cbor:{:x}", hash))
+        Cid(format!("cid:v1:dag-cbor:{hash:x}"))
     }
 }
 

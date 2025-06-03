@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use super::store::EventStore;
 use super::events::DomainEventOccurred;
-use super::replay::{handle_replay_requests, ReplayGraphRequest, ReplayFromCidRequest};
+use super::replay::{ReplayFromCidRequest, ReplayGraphRequest, handle_replay_requests};
+use super::store::EventStore;
 use crate::contexts::graph_management::capture_graph_events;
+use bevy::prelude::*;
 
 /// Plugin for the Event Store bounded context
 /// Provides local event sourcing with Merkle DAG structure
@@ -19,14 +19,18 @@ impl Plugin for EventStorePlugin {
         app.add_event::<ReplayFromCidRequest>();
 
         // Add systems
-        app.add_systems(Update, (
-            // Capture graph events and convert to domain events
-            capture_graph_events,
-            // Handle replay requests
-            handle_replay_requests,
-            // Handle domain events and log them
-            handle_domain_events,
-        ).chain());
+        app.add_systems(
+            Update,
+            (
+                // Capture graph events and convert to domain events
+                capture_graph_events,
+                // Handle replay requests
+                handle_replay_requests,
+                // Handle domain events and log them
+                handle_domain_events,
+            )
+                .chain(),
+        );
 
         info!("Event Store plugin initialized with Merkle DAG support");
     }
@@ -34,10 +38,7 @@ impl Plugin for EventStorePlugin {
 
 /// System to debug the event store state
 #[allow(dead_code)]
-pub fn debug_event_store(
-    event_store: Res<EventStore>,
-    keyboard: Res<ButtonInput<KeyCode>>,
-) {
+pub fn debug_event_store(event_store: Res<EventStore>, keyboard: Res<ButtonInput<KeyCode>>) {
     if keyboard.just_pressed(KeyCode::F9) {
         match event_store.get_heads() {
             Ok(heads) => {
@@ -60,9 +61,7 @@ pub fn debug_event_store(
 }
 
 /// System to handle domain events and log them
-fn handle_domain_events(
-    mut events: EventReader<DomainEventOccurred>,
-) {
+fn handle_domain_events(mut events: EventReader<DomainEventOccurred>) {
     for event in events.read() {
         let domain_event = &event.0;
         info!(

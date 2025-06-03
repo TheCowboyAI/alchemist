@@ -1,13 +1,12 @@
-use bevy::prelude::*;
-use super::events::{DomainEvent, EventPayload, Cid};
+use super::events::{Cid, DomainEvent, EventPayload};
 use super::store::EventStore;
 use crate::contexts::graph_management::domain::{
-    Node as GraphNode, Edge, NodeIdentity, EdgeIdentity, NodeContent,
-    EdgeRelationship, GraphIdentity, SpatialPosition, NodeBundle, EdgeBundle
+    Edge, EdgeBundle, EdgeIdentity, EdgeRelationship, GraphIdentity, Node as GraphNode, NodeBundle,
+    NodeContent, NodeIdentity, SpatialPosition,
 };
-use uuid::Uuid;
+use bevy::prelude::*;
 use std::collections::HashMap;
-use serde_json::Value as JsonValue;
+use uuid::Uuid;
 
 /// Replays events from the Merkle DAG to reconstruct state
 pub struct EventReplayer;
@@ -56,13 +55,14 @@ impl EventReplayer {
     }
 
     /// Apply a single event to reconstruct state
-    fn apply_event(
+    pub fn apply_event(
         event: &DomainEvent,
         event_store: &EventStore,
         commands: &mut Commands,
     ) -> Result<(), String> {
         // Get the payload from the object store
-        let payload = event_store.get_event_payload(event)?
+        let payload = event_store
+            .get_event_payload(event)?
             .ok_or_else(|| format!("Payload not found for event {}", event.id))?;
 
         match event.event_type.as_str() {
@@ -175,10 +175,7 @@ impl EventReplayer {
             .and_then(|s| s.parse::<Uuid>().ok())
             .ok_or("Invalid target")?;
 
-        let edge_type = data["edge_type"]
-            .as_str()
-            .unwrap_or("default")
-            .to_string();
+        let edge_type = data["edge_type"].as_str().unwrap_or("default").to_string();
 
         let properties = data["properties"]
             .as_object()
@@ -284,7 +281,8 @@ pub fn handle_replay_requests(
     mut cid_requests: EventReader<ReplayFromCidRequest>,
 ) {
     for request in graph_requests.read() {
-        if let Err(e) = EventReplayer::replay_graph(&*event_store, request.graph_id, &mut commands) {
+        if let Err(e) = EventReplayer::replay_graph(&*event_store, request.graph_id, &mut commands)
+        {
             error!("Failed to replay graph {}: {}", request.graph_id, e);
         }
     }
@@ -294,7 +292,7 @@ pub fn handle_replay_requests(
             &*event_store,
             &request.start_cid,
             request.max_depth,
-            &mut commands
+            &mut commands,
         ) {
             error!("Failed to replay from CID {:?}: {}", request.start_cid, e);
         }

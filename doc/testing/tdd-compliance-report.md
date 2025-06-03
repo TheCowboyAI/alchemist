@@ -2,7 +2,7 @@
 
 ## Overview
 
-This report tracks our progress towards achieving 70% Test-Driven Development (TDD) compliance as required by the `tdd.mdc` rule.
+This report tracks our progress towards achieving 80% Test-Driven Development (TDD) compliance as required by the `tdd.mdc` rule.
 
 ## Test Categories and Compliance
 

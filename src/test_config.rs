@@ -1,5 +1,4 @@
 // Test configuration module for minimal Bevy setup
-#![cfg(test)]
 
 use bevy::prelude::*;
 

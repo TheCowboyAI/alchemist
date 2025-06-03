@@ -3,19 +3,14 @@
 //! README claims "Handles 250k+ elements at 60 FPS through advanced rendering optimizations"
 //! These tests verify those claims (spoiler: they will fail)
 
-use bevy::prelude::*;
-use std::time::{Duration, Instant};
-
 #[cfg(test)]
 mod performance_benchmarks {
-    use super::*;
-    use crate::contexts::graph_management::domain::*;
 
     #[test]
     #[should_panic(expected = "Cannot handle 10k nodes")]
     fn test_10k_nodes_performance() {
         // Start with a modest 10k nodes
-        let mut app = crate::testing::create_headless_test_app();
+        let _app = crate::testing::create_headless_test_app();
 
         // This would already be slow without optimizations
         panic!("Cannot handle 10k nodes: No performance optimizations");
@@ -55,7 +50,6 @@ mod performance_benchmarks {
 
 #[cfg(test)]
 mod rendering_optimization_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "No LOD system")]
@@ -100,7 +94,6 @@ mod rendering_optimization_tests {
 
 #[cfg(test)]
 mod scalability_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "No progressive loading")]
@@ -129,7 +122,6 @@ mod scalability_tests {
 
 #[cfg(test)]
 mod stress_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "No stress testing")]
@@ -154,4 +146,10 @@ mod stress_tests {
         // Reality: No performance tracking
         panic!("No performance regression testing: Performance could degrade");
     }
+}
+
+#[test]
+#[should_panic(expected = "No large graph support")]
+fn test_large_graph_performance() {
+    let _app = crate::testing::create_headless_test_app();
 }

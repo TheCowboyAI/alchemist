@@ -488,7 +488,15 @@ mod tests {
                     tags: vec!["test".to_string()],
                 },
                 journey: GraphJourney::default(),
-                nodes: vec![],
+                nodes: vec![NodeData {
+                    identity: NodeIdentity::new(),
+                    content: NodeContent {
+                        label: "Test Node".to_string(),
+                        category: "test".to_string(),
+                        properties: HashMap::new(),
+                    },
+                    position: SpatialPosition::at_3d(10.0, 20.0, 30.0),
+                }],
                 edges: vec![],
             },
         };
@@ -674,12 +682,16 @@ mod tests {
 
 #[cfg(test)]
 mod import_export_tests {
-    use super::*;
-    use crate::contexts::graph_management::exporter::{GraphExporter, JsonGraph};
-    use crate::contexts::graph_management::importer::{ExternalGraphFormat, GraphImporter};
-    use crate::contexts::graph_management::repositories::GraphData;
+    use crate::contexts::graph_management::{
+        domain::{
+            EdgeIdentity, EdgeRelationship, GraphIdentity, GraphJourney, GraphMetadata,
+            NodeContent, NodeIdentity, SpatialPosition,
+        },
+        exporter::{GraphExporter, JsonGraph},
+        repositories::{EdgeData, GraphData, NodeData},
+    };
+    use std::collections::HashMap;
     use std::fs;
-    use std::path::Path;
     use tempfile::TempDir;
 
     #[test]
@@ -699,7 +711,7 @@ mod import_export_tests {
                 tags: vec!["test".to_string(), "export".to_string()],
             },
             journey: GraphJourney::default(),
-            nodes: vec![crate::contexts::graph_management::repositories::NodeData {
+            nodes: vec![NodeData {
                 identity: node_id,
                 content: NodeContent {
                     label: "Test Node".to_string(),
@@ -777,7 +789,7 @@ mod import_export_tests {
             },
             journey: GraphJourney::default(),
             nodes: vec![
-                crate::contexts::graph_management::repositories::NodeData {
+                NodeData {
                     identity: node1_id,
                     content: NodeContent {
                         label: "Node One".to_string(),
@@ -786,7 +798,7 @@ mod import_export_tests {
                     },
                     position: SpatialPosition::at_3d(1.0, 2.0, 3.0),
                 },
-                crate::contexts::graph_management::repositories::NodeData {
+                NodeData {
                     identity: node2_id,
                     content: NodeContent {
                         label: "Node Two".to_string(),
@@ -796,7 +808,7 @@ mod import_export_tests {
                     position: SpatialPosition::at_3d(4.0, 5.0, 6.0),
                 },
             ],
-            edges: vec![crate::contexts::graph_management::repositories::EdgeData {
+            edges: vec![EdgeData {
                 identity: edge_id,
                 relationship: EdgeRelationship {
                     source: node1_id,

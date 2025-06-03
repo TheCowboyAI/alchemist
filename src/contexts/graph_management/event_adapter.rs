@@ -1,6 +1,7 @@
 use super::events::*;
-use crate::contexts::graph_management::domain::*;
-use crate::contexts::event_store::{DomainEvent, events::EventPayload, EventStore, DomainEventOccurred};
+use crate::contexts::event_store::{
+    DomainEvent, DomainEventOccurred, EventStore, events::EventPayload,
+};
 use bevy::prelude::*;
 use serde_json::json;
 use std::time::SystemTime;
@@ -23,11 +24,7 @@ impl GraphEventAdapter {
             created_at: SystemTime::now(),
         };
 
-        event_store.append_with_payload(
-            event.graph.0,
-            "GraphCreated".to_string(),
-            payload,
-        )
+        event_store.append_with_payload(event.graph.0, "GraphCreated".to_string(), payload)
     }
 
     /// Convert a NodeAdded event to a domain event
@@ -52,11 +49,7 @@ impl GraphEventAdapter {
             created_at: SystemTime::now(),
         };
 
-        event_store.append_with_payload(
-            event.graph.0,
-            "NodeAdded".to_string(),
-            payload,
-        )
+        event_store.append_with_payload(event.graph.0, "NodeAdded".to_string(), payload)
     }
 
     /// Convert an EdgeConnected event to a domain event
@@ -75,11 +68,7 @@ impl GraphEventAdapter {
             created_at: SystemTime::now(),
         };
 
-        event_store.append_with_payload(
-            event.graph.0,
-            "EdgeConnected".to_string(),
-            payload,
-        )
+        event_store.append_with_payload(event.graph.0, "EdgeConnected".to_string(), payload)
     }
 
     /// Convert a NodeRemoved event to a domain event
@@ -94,11 +83,7 @@ impl GraphEventAdapter {
             created_at: SystemTime::now(),
         };
 
-        event_store.append_with_payload(
-            event.graph.0,
-            "NodeRemoved".to_string(),
-            payload,
-        )
+        event_store.append_with_payload(event.graph.0, "NodeRemoved".to_string(), payload)
     }
 
     /// Convert a NodeMoved event to a domain event
@@ -123,11 +108,7 @@ impl GraphEventAdapter {
             created_at: SystemTime::now(),
         };
 
-        event_store.append_with_payload(
-            event.graph.0,
-            "NodeMoved".to_string(),
-            payload,
-        )
+        event_store.append_with_payload(event.graph.0, "NodeMoved".to_string(), payload)
     }
 }
 
@@ -143,7 +124,7 @@ pub fn capture_graph_events(
 ) {
     // Process GraphCreated events
     for event in graph_created.read() {
-        match GraphEventAdapter::graph_created_to_domain_event(event, &*event_store) {
+        match GraphEventAdapter::graph_created_to_domain_event(event, &event_store) {
             Ok(domain_event) => {
                 domain_events.write(DomainEventOccurred(domain_event));
             }
@@ -155,7 +136,7 @@ pub fn capture_graph_events(
 
     // Process NodeAdded events
     for event in node_added.read() {
-        match GraphEventAdapter::node_added_to_domain_event(event, &*event_store) {
+        match GraphEventAdapter::node_added_to_domain_event(event, &event_store) {
             Ok(domain_event) => {
                 domain_events.write(DomainEventOccurred(domain_event));
             }
@@ -167,7 +148,7 @@ pub fn capture_graph_events(
 
     // Process EdgeConnected events
     for event in edge_connected.read() {
-        match GraphEventAdapter::edge_connected_to_domain_event(event, &*event_store) {
+        match GraphEventAdapter::edge_connected_to_domain_event(event, &event_store) {
             Ok(domain_event) => {
                 domain_events.write(DomainEventOccurred(domain_event));
             }
@@ -179,7 +160,7 @@ pub fn capture_graph_events(
 
     // Process NodeRemoved events
     for event in node_removed.read() {
-        match GraphEventAdapter::node_removed_to_domain_event(event, &*event_store) {
+        match GraphEventAdapter::node_removed_to_domain_event(event, &event_store) {
             Ok(domain_event) => {
                 domain_events.write(DomainEventOccurred(domain_event));
             }
@@ -191,7 +172,7 @@ pub fn capture_graph_events(
 
     // Process NodeMoved events
     for event in node_moved.read() {
-        match GraphEventAdapter::node_moved_to_domain_event(event, &*event_store) {
+        match GraphEventAdapter::node_moved_to_domain_event(event, &event_store) {
             Ok(domain_event) => {
                 domain_events.write(DomainEventOccurred(domain_event));
             }

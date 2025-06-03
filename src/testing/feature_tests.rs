@@ -3,11 +3,8 @@
 //! These tests document the gap between what's advertised and what exists.
 //! They are expected to FAIL until features are implemented.
 
-use bevy::prelude::*;
-
 #[cfg(test)]
 mod visualization_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "2D mode not implemented")]
@@ -34,7 +31,6 @@ mod visualization_tests {
 
 #[cfg(test)]
 mod subgraph_composition_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "Multiple graph loading not implemented")]
@@ -61,7 +57,6 @@ mod subgraph_composition_tests {
 
 #[cfg(test)]
 mod collaboration_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "Multi-user connection not implemented")]
@@ -88,7 +83,6 @@ mod collaboration_tests {
 
 #[cfg(test)]
 mod ai_integration_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "AI agents not implemented")]
@@ -115,7 +109,6 @@ mod ai_integration_tests {
 
 #[cfg(test)]
 mod plugin_system_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "WASM plugin loading not implemented")]
@@ -142,7 +135,6 @@ mod plugin_system_tests {
 
 #[cfg(test)]
 mod event_driven_architecture_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "Event audit trail not implemented")]
@@ -169,7 +161,6 @@ mod event_driven_architecture_tests {
 
 #[cfg(test)]
 mod performance_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "Large graph handling not implemented")]
@@ -196,7 +187,6 @@ mod performance_tests {
 
 #[cfg(test)]
 mod editing_capability_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "Interactive node creation not implemented")]
@@ -237,7 +227,6 @@ mod editing_capability_tests {
 
 #[cfg(test)]
 mod file_io_tests {
-    use super::*;
 
     #[test]
     #[should_panic(expected = "File dialog import not implemented")]

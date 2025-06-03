@@ -4,8 +4,6 @@
 //! starting with JSON format that preserves all graph data for round-trip operations.
 
 use bevy::prelude::*;
-use bevy::render::mesh::{Indices, PrimitiveTopology};
-use bevy::render::render_asset::RenderAssetUsages;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -13,8 +11,8 @@ use std::path::Path;
 
 // Import graph types with explicit alias to avoid ambiguity
 use crate::contexts::graph_management::domain::{
-    Node as GraphNode, Edge, NodeIdentity, EdgeIdentity, NodeContent,
-    EdgeRelationship, GraphIdentity, SpatialPosition, GraphMetadata, GraphJourney
+    Edge, EdgeIdentity, EdgeRelationship, GraphIdentity, GraphJourney, GraphMetadata,
+    Node as GraphNode, NodeContent, NodeIdentity, SpatialPosition,
 };
 use crate::contexts::graph_management::repositories::GraphData;
 use crate::contexts::graph_management::storage::GraphStorage;
@@ -101,7 +99,7 @@ impl GraphExporter {
         };
 
         serde_json::to_string_pretty(&json_graph)
-            .map_err(|e| format!("Failed to serialize graph: {}", e))
+            .map_err(|e| format!("Failed to serialize graph: {e}"))
     }
 
     /// Export a graph to a JSON file
@@ -110,20 +108,20 @@ impl GraphExporter {
 
         // Ensure parent directory exists
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {e}"))?;
         }
 
-        fs::write(path, json_content).map_err(|e| format!("Failed to write file: {}", e))
+        fs::write(path, json_content).map_err(|e| format!("Failed to write file: {e}"))
     }
 }
 
 /// System to handle export requests
 pub fn handle_export_request(
     keyboard: Res<ButtonInput<KeyCode>>,
-    storage: Res<GraphStorage>,
+    _storage: Res<GraphStorage>,
     graphs: Query<(&GraphIdentity, &GraphMetadata, &GraphJourney)>,
-    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<GraphNode>>,
-    edges: Query<(&EdgeIdentity, &EdgeRelationship), With<Edge>>,
+    _nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<GraphNode>>,
+    _edges: Query<(&EdgeIdentity, &EdgeRelationship), With<Edge>>,
     mut export_events: EventWriter<ExportGraphEvent>,
 ) {
     // Ctrl+S for save/export
@@ -203,16 +201,11 @@ pub fn process_export_events(
 
         if let Some(graph_data) = graph_data {
             // Use file dialog to get save location
-            let safe_name = graph_data
-                .metadata
-                .name
-                .replace(' ', "_")
-                .replace('/', "_")
-                .replace('\\', "_");
+            let safe_name = graph_data.metadata.name.replace([' ', '/', '\\'], "_");
 
             // Create file dialog
             let file_dialog = rfd::FileDialog::new()
-                .set_file_name(&format!("{}.json", safe_name))
+                .set_file_name(format!("{safe_name}.json"))
                 .add_filter("JSON files", &["json"])
                 .add_filter("All files", &["*"]);
 
@@ -232,7 +225,7 @@ pub fn process_export_events(
                             graph_id: event.graph_id,
                             path: path.display().to_string(),
                             success: false,
-                            message: format!("Export failed: {}", e),
+                            message: format!("Export failed: {e}"),
                         });
                     }
                 }
