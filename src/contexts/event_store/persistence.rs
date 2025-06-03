@@ -1,9 +1,10 @@
-use super::events::{DomainEvent, Cid};
-use super::store::{EventStore, ObjectStore};
+use super::events::{Cid, DomainEvent};
+use super::store::EventStore;
+use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 /// Persistence format for the Merkle DAG
 #[derive(Serialize, Deserialize)]
@@ -25,24 +26,35 @@ impl EventPersistence {
     /// Save the entire event store to a file
     pub fn save_store(event_store: &EventStore, path: &Path) -> Result<(), String> {
         // Extract data from the event store
-        let events = event_store.events.read()
-            .map_err(|e| format!("Lock error: {}", e))?;
+        let events = event_store
+            .events
+            .read()
+            .map_err(|e| format!("Lock error: {e}"))?;
 
-        let objects = event_store.object_store.objects.read()
-            .map_err(|e| format!("Lock error: {}", e))?;
+        let objects = event_store
+            .object_store
+            .objects
+            .read()
+            .map_err(|e| format!("Lock error: {e}"))?;
 
-        let sequence = *event_store.sequence_counter.read()
-            .map_err(|e| format!("Lock error: {}", e))?;
+        let sequence = *event_store
+            .sequence_counter
+            .read()
+            .map_err(|e| format!("Lock error: {e}"))?;
 
-        let heads = event_store.heads.read()
-            .map_err(|e| format!("Lock error: {}", e))?;
+        let heads = event_store
+            .heads
+            .read()
+            .map_err(|e| format!("Lock error: {e}"))?;
 
         // Convert to serializable format
         let persisted = PersistedEventStore {
-            events: events.iter()
+            events: events
+                .iter()
                 .map(|(cid, event)| (cid.0.clone(), event.clone()))
                 .collect(),
-            objects: objects.iter()
+            objects: objects
+                .iter()
                 .map(|(cid, data)| (cid.0.clone(), data.clone()))
                 .collect(),
             sequence,
@@ -51,11 +63,10 @@ impl EventPersistence {
 
         // Serialize to JSON
         let json = serde_json::to_string_pretty(&persisted)
-            .map_err(|e| format!("Serialization error: {}", e))?;
+            .map_err(|e| format!("Serialization error: {e}"))?;
 
         // Write to file
-        fs::write(path, json)
-            .map_err(|e| format!("File write error: {}", e))?;
+        fs::write(path, json).map_err(|e| format!("File write error: {e}"))?;
 
         Ok(())
     }
@@ -63,20 +74,21 @@ impl EventPersistence {
     /// Load an event store from a file
     pub fn load_store(path: &Path) -> Result<EventStore, String> {
         // Read file
-        let json = fs::read_to_string(path)
-            .map_err(|e| format!("File read error: {}", e))?;
+        let json = fs::read_to_string(path).map_err(|e| format!("File read error: {e}"))?;
 
         // Deserialize
-        let persisted: PersistedEventStore = serde_json::from_str(&json)
-            .map_err(|e| format!("Deserialization error: {}", e))?;
+        let persisted: PersistedEventStore =
+            serde_json::from_str(&json).map_err(|e| format!("Deserialization error: {e}"))?;
 
         // Create new event store
         let event_store = EventStore::new();
 
         // Populate events
         {
-            let mut events = event_store.events.write()
-                .map_err(|e| format!("Lock error: {}", e))?;
+            let mut events = event_store
+                .events
+                .write()
+                .map_err(|e| format!("Lock error: {e}"))?;
             for (cid_str, event) in persisted.events {
                 events.insert(Cid(cid_str), event);
             }
@@ -84,8 +96,11 @@ impl EventPersistence {
 
         // Populate objects
         {
-            let mut objects = event_store.object_store.objects.write()
-                .map_err(|e| format!("Lock error: {}", e))?;
+            let mut objects = event_store
+                .object_store
+                .objects
+                .write()
+                .map_err(|e| format!("Lock error: {e}"))?;
             for (cid_str, data) in persisted.objects {
                 objects.insert(Cid(cid_str), data);
             }
@@ -93,29 +108,36 @@ impl EventPersistence {
 
         // Set sequence counter
         {
-            let mut counter = event_store.sequence_counter.write()
-                .map_err(|e| format!("Lock error: {}", e))?;
+            let mut counter = event_store
+                .sequence_counter
+                .write()
+                .map_err(|e| format!("Lock error: {e}"))?;
             *counter = persisted.sequence;
         }
 
         // Set heads
         {
-            let mut heads = event_store.heads.write()
-                .map_err(|e| format!("Lock error: {}", e))?;
-            *heads = persisted.heads.into_iter()
-                .map(|s| Cid(s))
-                .collect();
+            let mut heads = event_store
+                .heads
+                .write()
+                .map_err(|e| format!("Lock error: {e}"))?;
+            *heads = persisted.heads.into_iter().map(|s| Cid(s)).collect();
         }
 
         // Rebuild aggregate index
         {
-            let events = event_store.events.read()
-                .map_err(|e| format!("Lock error: {}", e))?;
-            let mut index = event_store.aggregate_index.write()
-                .map_err(|e| format!("Lock error: {}", e))?;
+            let events = event_store
+                .events
+                .read()
+                .map_err(|e| format!("Lock error: {e}"))?;
+            let mut index = event_store
+                .aggregate_index
+                .write()
+                .map_err(|e| format!("Lock error: {e}"))?;
 
             for (cid, event) in events.iter() {
-                index.entry(event.aggregate_id)
+                index
+                    .entry(event.aggregate_id)
                     .or_insert_with(Vec::new)
                     .push(cid.clone());
             }
@@ -137,7 +159,7 @@ impl EventPersistence {
         for event in &events {
             if let Some(payload) = event_store.get_event_payload(event)? {
                 let bytes = serde_json::to_vec(&payload)
-                    .map_err(|e| format!("Serialization error: {}", e))?;
+                    .map_err(|e| format!("Serialization error: {e}"))?;
                 required_objects.insert(event.payload_cid.0.clone(), bytes);
             }
         }
@@ -150,7 +172,6 @@ impl EventPersistence {
             "objects": required_objects,
         });
 
-        serde_json::to_string_pretty(&export)
-            .map_err(|e| format!("Serialization error: {}", e))
+        serde_json::to_string_pretty(&export).map_err(|e| format!("Serialization error: {e}"))
     }
 }

@@ -126,7 +126,7 @@ mod graph_editor_automated_tests {
         // Add nodes to the graph
         for i in 0..3 {
             let content = NodeContent {
-                label: format!("Node {}", i),
+                label: format!("Node {i}"),
                 category: "test".to_string(),
                 properties: HashMap::new(),
             };

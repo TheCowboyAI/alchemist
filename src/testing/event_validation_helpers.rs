@@ -117,7 +117,7 @@ impl EventValidation for NodeMoved {
                 || pos.coordinates_3d.y.is_nan()
                 || pos.coordinates_3d.z.is_nan()
             {
-                return Err(format!("{} position contains NaN values", name));
+                return Err(format!("{name} position contains NaN values"));
             }
         }
 

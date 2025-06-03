@@ -146,21 +146,21 @@ fn run_test_scenarios(
                     let result = if exists {
                         TestResult::Pass
                     } else {
-                        TestResult::Fail(format!("Node '{}' not found", tag))
+                        TestResult::Fail(format!("Node '{tag}' not found"))
                     };
                     scenario
                         .results
-                        .push((format!("Assert node exists: {}", tag), result));
+                        .push((format!("Assert node exists: {tag}"), result));
                 }
                 TestAction::AssertNodeSelected { tag } => {
                     // This would check for Selected component
                     let result = TestResult::Pass; // Simplified
                     scenario
                         .results
-                        .push((format!("Assert node selected: {}", tag), result));
+                        .push((format!("Assert node selected: {tag}"), result));
                 }
                 TestAction::TakeScreenshot { name } => {
-                    info!("Screenshot would be taken: {}", name);
+                    info!("Screenshot would be taken: {name}");
                 }
             }
 
@@ -186,8 +186,8 @@ fn print_scenario_results(scenario: &TestScenario) {
     println!("\n=== Test Scenario: {} ===", scenario.name);
     for (test, result) in &scenario.results {
         match result {
-            TestResult::Pass => println!("✅ {}", test),
-            TestResult::Fail(reason) => println!("❌ {} - {}", test, reason),
+            TestResult::Pass => println!("✅ {test}"),
+            TestResult::Fail(reason) => println!("❌ {test} - {reason}"),
         }
     }
 }
