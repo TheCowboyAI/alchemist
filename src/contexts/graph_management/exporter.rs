@@ -4,12 +4,18 @@
 //! starting with JSON format that preserves all graph data for round-trip operations.
 
 use bevy::prelude::*;
+use bevy::render::mesh::{Indices, PrimitiveTopology};
+use bevy::render::render_asset::RenderAssetUsages;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-use crate::contexts::graph_management::domain::*;
+// Import graph types with explicit alias to avoid ambiguity
+use crate::contexts::graph_management::domain::{
+    Node as GraphNode, Edge, NodeIdentity, EdgeIdentity, NodeContent,
+    EdgeRelationship, GraphIdentity, SpatialPosition, GraphMetadata, GraphJourney
+};
 use crate::contexts::graph_management::repositories::GraphData;
 use crate::contexts::graph_management::storage::GraphStorage;
 
@@ -116,7 +122,7 @@ pub fn handle_export_request(
     keyboard: Res<ButtonInput<KeyCode>>,
     storage: Res<GraphStorage>,
     graphs: Query<(&GraphIdentity, &GraphMetadata, &GraphJourney)>,
-    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<Node>>,
+    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<GraphNode>>,
     edges: Query<(&EdgeIdentity, &EdgeRelationship), With<Edge>>,
     mut export_events: EventWriter<ExportGraphEvent>,
 ) {
@@ -124,7 +130,7 @@ pub fn handle_export_request(
     if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyS) {
         // Find the first graph (for now)
         if let Some((graph_id, _, _)) = graphs.iter().next() {
-            export_events.send(ExportGraphEvent {
+            export_events.write(ExportGraphEvent {
                 graph_id: *graph_id,
             });
         } else {
@@ -153,7 +159,7 @@ pub fn process_export_events(
     mut export_events: EventReader<ExportGraphEvent>,
     mut exported_events: EventWriter<GraphExportedEvent>,
     graphs: Query<(&GraphIdentity, &GraphMetadata, &GraphJourney)>,
-    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<Node>>,
+    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<GraphNode>>,
     edges: Query<(&EdgeIdentity, &EdgeRelationship), With<Edge>>,
 ) {
     for event in export_events.read() {
@@ -214,7 +220,7 @@ pub fn process_export_events(
             if let Some(path) = file_dialog.save_file() {
                 match GraphExporter::export_to_file(&path, &graph_data) {
                     Ok(_) => {
-                        exported_events.send(GraphExportedEvent {
+                        exported_events.write(GraphExportedEvent {
                             graph_id: event.graph_id,
                             path: path.display().to_string(),
                             success: true,
@@ -222,7 +228,7 @@ pub fn process_export_events(
                         });
                     }
                     Err(e) => {
-                        exported_events.send(GraphExportedEvent {
+                        exported_events.write(GraphExportedEvent {
                             graph_id: event.graph_id,
                             path: path.display().to_string(),
                             success: false,
@@ -232,7 +238,7 @@ pub fn process_export_events(
                 }
             } else {
                 // User cancelled the dialog
-                exported_events.send(GraphExportedEvent {
+                exported_events.write(GraphExportedEvent {
                     graph_id: event.graph_id,
                     path: String::new(),
                     success: false,
@@ -240,7 +246,7 @@ pub fn process_export_events(
                 });
             }
         } else {
-            exported_events.send(GraphExportedEvent {
+            exported_events.write(GraphExportedEvent {
                 graph_id: event.graph_id,
                 path: String::new(),
                 success: false,

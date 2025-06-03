@@ -1,5 +1,6 @@
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
+use crate::contexts::graph_management::event_adapter::capture_graph_events;
 use crate::contexts::graph_management::exporter::{
     ExportGraphEvent, GraphExportedEvent, display_export_feedback, handle_export_request,
     process_export_events,
@@ -49,6 +50,8 @@ impl Plugin for GraphManagementPlugin {
             (
                 // Import system runs first
                 import_graph_from_file,
+                // Event capture for event sourcing
+                capture_graph_events,
                 // Export systems
                 handle_export_request,
                 process_export_events,

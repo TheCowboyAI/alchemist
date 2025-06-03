@@ -6,6 +6,18 @@ pub mod event_validation_helpers;
 #[cfg(test)]
 pub mod domain_isolated_tests;
 
+// Feature tests that document missing functionality
+#[cfg(test)]
+pub mod feature_tests;
+
+// Integration tests for end-to-end workflows
+#[cfg(test)]
+pub mod integration_tests;
+
+// Performance tests for claimed capabilities
+#[cfg(test)]
+pub mod performance_tests;
+
 // ECS integration tests (headless Bevy)
 #[cfg(test)]
 pub mod tdd_compliant_ecs_tests;
