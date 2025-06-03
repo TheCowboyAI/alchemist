@@ -1,0 +1,99 @@
+---
+description: Bevy testing procedures
+globs: *.rs
+alwaysApply: false
+---
+
+Test Structure:
+- Use `#[test]` with isolated modules
+- Prefer `#[cfg(test)]` mod blocks
+- Follow Arrange-Act-Assert pattern
+- Benchmark with `#[bench]` attributes [8]
+
+ECS Testing:
+1. World Setup:
+   ```
+   let mut world = World::new();
+   world.init_resource::>();
+   ```
+2. Entity Manipulation:
+   - Use `Commands` for system-like spawning [7]
+   - Validate with direct world queries
+3. System Testing:
+   ```
+   fn test_system(mut q: Query) {
+       // System logic
+   }
+   run_system(&mut world, test_system);
+   ```
+
+Relationship Validation:
+- Bidirectional checks:
+  ```
+  assert!(parent_query.get(child).is_ok());
+  assert!(children_query.get(parent).unwrap().contains(&child));
+  ```
+- Custom relationship template:
+  ```
+  #[derive(Component, Relationship)]
+  struct NetworkEdge(Entity);
+
+  #[test]
+  fn test_network_relationships() {
+      // Connection tests
+  }
+  ```
+
+Error Handling Tests:
+- Result validation:
+  ```
+  let query_result = world.query::().single(&world);
+  assert_matches!(query_result, Err(QuerySingleError::NoEntities(_)));
+  ```
+- Error recovery paths:
+  ```
+  fn fallback_system(mut commands: Commands) {
+      commands.spawn(ErrorFallback::new());
+  }
+  ```
+
+CI/CD Integration:
+```
+[dev-dependencies]
+nextest = "0.9"
+proptest = "1.3"
+divan = "0.1"
+```
+
+Performance Checks:
+1. Archetype profiling:
+   ```
+   #[divan::bench]
+   fn spawn_entities(bencher: divan::Bencher) {
+       bencher.bench(|| {
+           let mut world = World::new();
+           world.spawn_batch((0..1000).map(|_| Transform::default()));
+       });
+   }
+   ```
+2. Relationship scaling tests
+
+Best Practices:
+- Use `bevy_ecs::system::assert_is_system`
+- Validate event processing with `EventReader` [4]
+- Test cursor interactions with mock window data [2][9]
+- Prefer atomic test cases (<100ms each)
+- Document test constraints in module headers
+
+//! Maintain deterministic builds with Nix [10]
+```
+
+[1] https://thisweekinbevy.com/issue/2024-08-19-custom-cursors-picking-and-space-games
+[2] https://bevy-cheatbook.github.io/input/mouse.html
+[3] https://github.com/bevyengine/bevy/issues/7371
+[4] https://github.com/bevyengine/bevy/blob/main/examples/ecs/send_and_receive_events.rs
+[5] https://www.youtube.com/watch?v=1q5iQsLVGJA
+[6] https://www.reddit.com/r/cursor/comments/1h4zh19/programmatic_way_to_test_cursorrulessystem_prompts/
+[7] https://docs.rs/bevy/latest/bevy/ecs/system/struct.Commands.html
+[8] https://bevyengine.org/news/bevy-0-15/
+[9] https://stackoverflow.com/questions/65396065/what-is-an-acceptable-approach-to-dragging-sprites-with-bevy-0-4
