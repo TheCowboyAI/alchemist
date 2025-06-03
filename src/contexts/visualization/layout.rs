@@ -232,8 +232,12 @@ impl ApplyGraphLayout {
 
                     // Log significant movements
                     if movement.length() > 0.01 {
-                        info!("Moving node {:?} by {} (distance to target: {})",
-                            node_id, movement.length(), distance);
+                        info!(
+                            "Moving node {:?} by {} (distance to target: {})",
+                            node_id,
+                            movement.length(),
+                            distance
+                        );
                     }
                 }
             }
@@ -259,7 +263,9 @@ impl Plugin for LayoutPlugin {
                 Update,
                 (handle_layout_requests, calculate_layout, apply_layout)
                     .chain()
-                    .after(crate::contexts::graph_management::plugin::GraphManagementSet::Hierarchy),
+                    .after(
+                        crate::contexts::graph_management::plugin::GraphManagementSet::Hierarchy,
+                    ),
             );
     }
 }
@@ -274,7 +280,10 @@ fn handle_layout_requests(
 ) {
     let event_count = events.len();
     if event_count > 0 {
-        info!("handle_layout_requests: Processing {} layout requests", event_count);
+        info!(
+            "handle_layout_requests: Processing {} layout requests",
+            event_count
+        );
     }
 
     for event in events.read() {
@@ -315,7 +324,10 @@ fn calculate_layout(
         return;
     }
 
-    info!("Calculating layout - iteration {}", layout_state.current_iteration);
+    info!(
+        "Calculating layout - iteration {}",
+        layout_state.current_iteration
+    );
 
     let calculator = CalculateForceDirectedLayout;
     let new_positions = calculator.execute(
@@ -343,9 +355,9 @@ fn calculate_layout(
     let is_stable = layout_state.last_max_displacement < config.stability_threshold;
     let max_iterations_reached = layout_state.current_iteration >= config.max_iterations;
 
-    info!("Layout iteration {} - max displacement: {}",
-        layout_state.current_iteration,
-        layout_state.last_max_displacement
+    info!(
+        "Layout iteration {} - max displacement: {}",
+        layout_state.current_iteration, layout_state.last_max_displacement
     );
 
     if is_stable || max_iterations_reached {
@@ -382,7 +394,10 @@ fn apply_layout(
         if let Some(&target_pos) = layout_state.target_positions.get(node_id) {
             let distance = (target_pos - transform.translation).length();
             if distance > 0.001 {
-                info!("Applying layout: Node {:?} needs to move {} units", node_id, distance);
+                info!(
+                    "Applying layout: Node {:?} needs to move {} units",
+                    node_id, distance
+                );
                 applied_count += 1;
             }
         }
@@ -478,15 +493,11 @@ mod tests {
         let node1_id = NodeIdentity::new();
         let node2_id = NodeIdentity::new();
 
-        app.world_mut().spawn((
-            node1_id,
-            Transform::from_xyz(0.0, 0.0, 0.0),
-        ));
+        app.world_mut()
+            .spawn((node1_id, Transform::from_xyz(0.0, 0.0, 0.0)));
 
-        app.world_mut().spawn((
-            node2_id,
-            Transform::from_xyz(5.0, 0.0, 0.0),
-        ));
+        app.world_mut()
+            .spawn((node2_id, Transform::from_xyz(5.0, 0.0, 0.0)));
 
         let world = app.world_mut();
         let mut system_state: SystemState<(
@@ -521,15 +532,11 @@ mod tests {
         let node1_id = NodeIdentity::new();
         let node2_id = NodeIdentity::new();
 
-        app.world_mut().spawn((
-            node1_id,
-            Transform::from_xyz(0.0, 0.0, 0.0),
-        ));
+        app.world_mut()
+            .spawn((node1_id, Transform::from_xyz(0.0, 0.0, 0.0)));
 
-        app.world_mut().spawn((
-            node2_id,
-            Transform::from_xyz(10.0, 0.0, 0.0),
-        ));
+        app.world_mut()
+            .spawn((node2_id, Transform::from_xyz(10.0, 0.0, 0.0)));
 
         // Create edge between nodes
         app.world_mut().spawn(EdgeRelationship {
@@ -569,14 +576,16 @@ mod tests {
 
         // Create test node
         let node_id = NodeIdentity::new();
-        let entity = app.world_mut().spawn((
-            node_id,
-            Transform::from_xyz(0.0, 0.0, 0.0),
-        )).id();
+        let entity = app
+            .world_mut()
+            .spawn((node_id, Transform::from_xyz(0.0, 0.0, 0.0)))
+            .id();
 
         // Set target position
         let mut layout_state = LayoutState::default();
-        layout_state.target_positions.insert(node_id, Vec3::new(5.0, 0.0, 0.0));
+        layout_state
+            .target_positions
+            .insert(node_id, Vec3::new(5.0, 0.0, 0.0));
         app.insert_resource(layout_state);
 
         // Apply layout
@@ -632,10 +641,8 @@ mod tests {
 
         // Create test nodes
         let node_id = NodeIdentity::new();
-        app.world_mut().spawn((
-            node_id,
-            Transform::from_xyz(1.0, 2.0, 3.0),
-        ));
+        app.world_mut()
+            .spawn((node_id, Transform::from_xyz(1.0, 2.0, 3.0)));
 
         // Send layout request
         let graph_id = GraphIdentity::new();
@@ -655,6 +662,9 @@ mod tests {
         assert_eq!(layout_state.current_iteration, 0);
         assert_eq!(layout_state.last_max_displacement, f32::MAX);
         assert!(layout_state.target_positions.contains_key(&node_id));
-        assert_eq!(layout_state.target_positions[&node_id], Vec3::new(1.0, 2.0, 3.0));
+        assert_eq!(
+            layout_state.target_positions[&node_id],
+            Vec3::new(1.0, 2.0, 3.0)
+        );
     }
 }

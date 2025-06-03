@@ -1,25 +1,19 @@
-# All linking configuration is now handled by flake.nix
-# This file is kept as a placeholder to prevent errors if referenced elsewhere
+# Updated configuration based on bevy-linking.md guide
+# Optimized linker configuration for Bevy 0.16 on NixOS
 
-# Optimized linker configuration for Bevy on NixOS
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
 rustflags = [
-  # Use LLD linker for faster linking
-  "-Clink-arg=-fuse-ld=lld",
-
-  # Dynamic linking flags - DISABLED to fix linking issues
-  # "-Clink-arg=-Wl,--export-dynamic",
-
-  # Handle undefined version symbols in libraries
-  "-Clink-arg=-Wl,--undefined-version",
-
-  # Allow the linker to find necessary libraries
-  "-Clink-arg=-Wl,-rpath,$ORIGIN",
-  "-Clink-arg=-Wl,-rpath,$ORIGIN/../lib",
+  "-C", "link-arg=-fuse-ld=mold",
+  "-C", "link-arg=-Wl,-rpath,/nix/store/*/lib",
+  "-Zshare-generics=y",
 ]
 
-# These profiles are already defined in the flake.nix
+[build]
+target = "x86_64-unknown-linux-gnu"
+rustflags = ["--cfg", "edition2024_preview"]
+
+# Development profile optimizations
 [profile.dev]
 opt-level = 1
 
@@ -27,9 +21,9 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 
-# Configure dynamic linking for Bevy - DISABLED
-# [build]
-# rustflags = ["--cfg", "edition2024_preview"]
+# Enable dynamic linking for tests to resolve experimental occlusion culling issues
+[profile.test]
+opt-level = 0
 
 # Test environment configuration
 [env]

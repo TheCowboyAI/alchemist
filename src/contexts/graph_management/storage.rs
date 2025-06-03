@@ -9,7 +9,6 @@ use bevy::prelude::*;
 use daggy::{Dag, EdgeIndex, NodeIndex};
 use std::collections::HashMap;
 
-
 /// Node data stored in Daggy
 #[derive(Clone, Debug)]
 pub struct NodeData {
@@ -327,8 +326,8 @@ impl SyncGraphWithStorage {
 
 #[cfg(test)]
 mod tests {
-    use uuid::Uuid;
     use super::*;
+    use uuid::Uuid;
 
     fn create_test_graph_identity() -> GraphIdentity {
         GraphIdentity(Uuid::new_v4())

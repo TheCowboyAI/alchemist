@@ -2,7 +2,6 @@ use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
 use bevy::prelude::*;
 use bevy::text::{Text2d, TextFont};
-use bevy_panorbit_camera::PanOrbitCamera;
 
 // ============= Visualization Services =============
 // Services that handle visual representation
@@ -825,7 +824,10 @@ impl RenderGraphElements {
     ) {
         let event_count = events.len();
         if event_count > 0 {
-            info!("visualize_new_nodes: Processing {} NodeAdded events", event_count);
+            info!(
+                "visualize_new_nodes: Processing {} NodeAdded events",
+                event_count
+            );
         }
 
         // Get current settings or use defaults
@@ -835,13 +837,19 @@ impl RenderGraphElements {
             .unwrap_or(RenderMode::Mesh);
 
         for event in events.read() {
-            info!("Visualizing node: {} with ID {:?}", event.content.label, event.node);
+            info!(
+                "Visualizing node: {} with ID {:?}",
+                event.content.label, event.node
+            );
 
             // Find the entity that was just created
             let mut found = false;
             for (entity, identity, content, position) in nodes.iter() {
                 if identity.0 == event.node.0 {
-                    info!("Found node entity {:?} at position {:?}", entity, position.coordinates_3d);
+                    info!(
+                        "Found node entity {:?} at position {:?}",
+                        entity, position.coordinates_3d
+                    );
                     found = true;
                     Self::render_node(
                         &mut commands,
@@ -873,7 +881,10 @@ impl RenderGraphElements {
     ) {
         let event_count = events.len();
         if event_count > 0 {
-            info!("visualize_new_edges: Processing {} EdgeConnected events", event_count);
+            info!(
+                "visualize_new_edges: Processing {} EdgeConnected events",
+                event_count
+            );
         }
 
         // Get current settings or use defaults
@@ -883,7 +894,10 @@ impl RenderGraphElements {
             .unwrap_or(EdgeType::Cylinder);
 
         for event in events.read() {
-            info!("Visualizing edge: {:?} from {:?} to {:?}", event.edge, event.relationship.source, event.relationship.target);
+            info!(
+                "Visualizing edge: {:?} from {:?} to {:?}",
+                event.edge, event.relationship.source, event.relationship.target
+            );
 
             // Find the edge entity that was just created
             let mut found = false;
@@ -933,7 +947,10 @@ impl RenderGraphElements {
         mut events: EventReader<VisualizationUpdateRequested>,
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<StandardMaterial>>,
-        nodes: Query<(&NodeContent, &SpatialPosition), With<crate::contexts::graph_management::domain::Node>>,
+        nodes: Query<
+            (&NodeContent, &SpatialPosition),
+            With<crate::contexts::graph_management::domain::Node>,
+        >,
         children_query: Query<&Children>,
     ) {
         for event in events.read() {
@@ -1025,14 +1042,13 @@ impl RenderGraphElements {
                         event.density,
                     );
 
-                    commands
-                        .entity(event.entity)
-                        .insert(point_cloud)
-                        .insert(VisualizationCapability {
+                    commands.entity(event.entity).insert(point_cloud).insert(
+                        VisualizationCapability {
                             render_mode: RenderMode::PointCloud,
                             point_cloud_density: Some(event.density),
                             ..default()
-                        });
+                        },
+                    );
 
                     info!("Converted edge {:?} to point cloud", event.entity);
                 }
@@ -1270,7 +1286,13 @@ impl HandleUserInput {
     pub fn trigger_visualization_update(
         keyboard: Res<ButtonInput<KeyCode>>,
         mut events: EventWriter<VisualizationUpdateRequested>,
-        selected_nodes: Query<Entity, (With<crate::contexts::selection::domain::Selected>, With<crate::contexts::graph_management::domain::Node>)>,
+        selected_nodes: Query<
+            Entity,
+            (
+                With<crate::contexts::selection::domain::Selected>,
+                With<crate::contexts::graph_management::domain::Node>,
+            ),
+        >,
     ) {
         // Check for key combinations to change render mode for selected nodes
         if keyboard.pressed(KeyCode::ControlLeft) || keyboard.pressed(KeyCode::ControlRight) {
@@ -1318,8 +1340,20 @@ impl HandleUserInput {
     pub fn trigger_point_cloud_conversion(
         keyboard: Res<ButtonInput<KeyCode>>,
         mut events: EventWriter<ConvertToPointCloud>,
-        selected_nodes: Query<Entity, (With<crate::contexts::selection::domain::Selected>, With<crate::contexts::graph_management::domain::Node>)>,
-        selected_edges: Query<Entity, (With<crate::contexts::selection::domain::Selected>, With<crate::contexts::graph_management::domain::Edge>)>,
+        selected_nodes: Query<
+            Entity,
+            (
+                With<crate::contexts::selection::domain::Selected>,
+                With<crate::contexts::graph_management::domain::Node>,
+            ),
+        >,
+        selected_edges: Query<
+            Entity,
+            (
+                With<crate::contexts::selection::domain::Selected>,
+                With<crate::contexts::graph_management::domain::Edge>,
+            ),
+        >,
     ) {
         if keyboard.just_pressed(KeyCode::KeyC) {
             // C key: Convert selected entities to point clouds
@@ -1344,9 +1378,14 @@ impl HandleUserInput {
             }
 
             if converted_count > 0 {
-                info!("Converting {} selected entities to point clouds", converted_count);
+                info!(
+                    "Converting {} selected entities to point clouds",
+                    converted_count
+                );
             } else {
-                info!("No entities selected for point cloud conversion. Select nodes or edges first.");
+                info!(
+                    "No entities selected for point cloud conversion. Select nodes or edges first."
+                );
             }
         }
     }
@@ -1794,24 +1833,12 @@ impl AnimateGraphElements {
 pub struct ControlCamera;
 
 impl ControlCamera {
-    /// Initialize camera for 3D graph viewing with Panorbit Camera
+    /// Initialize camera for 3D graph viewing with Blendy Cameras
     pub fn setup_camera(mut commands: Commands) {
-        // Camera with Panorbit controls
+        // Camera with OrbitCameraController
         commands.spawn((
             Camera3d::default(),
             Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-            PanOrbitCamera {
-                // Set the focus point
-                focus: Vec3::ZERO,
-                // Set camera movement settings
-                radius: Some(10.0f32),
-                // Control settings
-                button_orbit: MouseButton::Right,
-                button_pan: MouseButton::Middle,
-                // Allow upside down camera
-                allow_upside_down: false,
-                ..default()
-            },
         ));
 
         // Light

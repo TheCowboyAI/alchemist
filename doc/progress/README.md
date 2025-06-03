@@ -17,30 +17,41 @@ This directory should contain ONLY documentation for work that is currently in p
 
 ## Current Work
 
-**Active Work: Phase 1 Manual Testing Verification**
-- Document: [Phase 1 Manual Testing Update](phase-1-manual-testing-update.md)
-- Status: IN PROGRESS - Testing checklist updated, building app for verification
-- Started: Today
-- Estimated Completion: Today
+**Active Work: Phase 5 Export Implementation**
+- Document: [Phase 5 Import/Export Status](phase-5-import-export-status.md)
+- Status: PARTIALLY COMPLETE - Import done, Export missing
+- Started: Phase started earlier, Export work needed now
+- Estimated Completion: 1-2 weeks for full Phase 5 completion
 
-### Today's Progress:
-1. ✅ Updated manual testing checklist with exact instructions
-2. ✅ Verified what features are actually implemented vs documented
-3. ✅ Built application for manual testing
-4. [ ] Run through updated checklist to verify functionality
+### Current Status Summary:
+1. ✅ Phase 1-4: Complete with working tests
+2. ⚠️ Phase 5: Import works, Export completely missing
+3. ✅ Phase 6: Test infrastructure fixed, 106/114 tests passing
+4. 🔥 **Critical Gap**: Cannot save graphs - export functionality needed
 
 ### Key Findings:
-- Many features exist in code but may not be fully wired up
-- No UI for graph/node/edge creation (only example graph)
-- Some render modes and edge types may not work visually
-- Headless tests can't verify visual features
+- Import functionality exists but is limited (hardcoded file)
+- No export/save capability at all
+- No file dialog integration
+- No round-trip data preservation
+- Phase 5 cannot be considered complete without export
 
 ## Recently Completed Work
 
 The following work was recently completed and moved to `/doc/completed/`:
-- `phase-1-testing-improvements.md` - Test infrastructure enhancement
-- `phase-1-completed-features.md` - Phase 1 feature implementation
-- `phase-1-implementation-summary.md` - Phase 1 summary
+- Phase 1-4 implementation (see completed directory)
+- Test infrastructure fixes (Phase 6)
+
+## Phase Status Overview
+
+| Phase | Status | Implementation | Tests |
+|-------|--------|---------------|-------|
+| Phase 1: Core Graph | ✅ Complete | ✅ Done | ✅ Pass |
+| Phase 2: Selection | ✅ Complete | ✅ Done | ✅ Pass |
+| Phase 3: Storage | ✅ Complete | ✅ Done | ✅ Pass |
+| Phase 4: Layout | ✅ Complete | ✅ Done | ✅ Pass |
+| **Phase 5: Import/Export** | **⚠️ Partial** | **⚠️ Import only** | **❌ None** |
+| Phase 6: Test Infra | ✅ Complete | ✅ Done | ✅ 106/114 |
 
 ## Document Format
 

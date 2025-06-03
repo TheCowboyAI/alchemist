@@ -48,6 +48,22 @@
           # Dependencies needed for Bevy and our project
           nonRustDeps = import ./nix/rust-deps.nix { inherit pkgs; };
 
+          # Test runner with proper Vulkan support
+          test-runner = import ./nix/run-tests.nix {
+            inherit pkgs rust-toolchain nonRustDeps;
+          };
+
+          # Test runner that mimics production build
+          test-runner-prod = import ./nix/test-runner.nix {
+            inherit pkgs rust-toolchain nonRustDeps;
+          };
+
+          # Test runner using buildRustPackage
+          test-runner-build = import ./nix/test-runner-build.nix {
+            inherit (pkgs) lib;
+            inherit pkgs nonRustDeps;
+          };
+
           # Main package definition
           ia-package = import ./nix/package.nix {
             inherit (pkgs) lib;
@@ -68,6 +84,9 @@
 
             # Alias for clarity
             ia = ia-package;
+
+            # Test runner using buildRustPackage
+            test-runner-build = test-runner-build;
           };
 
           # Make 'nix run' work
@@ -77,8 +96,13 @@
           };
 
           # Development shell
-          devShells.default = import ./nix/devshell.nix {
-            inherit pkgs rust-toolchain nonRustDeps;
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [
+              (import ./nix/devshell.nix {
+                inherit pkgs rust-toolchain nonRustDeps;
+              })
+            ];
+            packages = [ test-runner test-runner-prod test-runner-build ];
           };
 
           # Formatting configuration

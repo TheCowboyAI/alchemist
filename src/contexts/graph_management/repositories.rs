@@ -301,10 +301,7 @@ impl Edges {
 
     /// Add an edge reference
     pub fn add_edge(&mut self, source: NodeIdentity, edge_ref: EdgeReference) {
-        self.adjacency
-            .entry(source)
-            .or_default()
-            .push(edge_ref);
+        self.adjacency.entry(source).or_default().push(edge_ref);
     }
 
     /// Get all edges from a node

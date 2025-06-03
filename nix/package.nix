@@ -32,40 +32,24 @@ pkgs.rustPlatform.buildRustPackage rec {
   BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
   BEVY_ASSET_ROOT = toString ../.;
 
-  # Rust flags - use lld linker as per rust.mdc
-  RUSTFLAGS = "--cfg edition2024_preview -C link-arg=-fuse-ld=lld";
+  # Rust flags - use lld for faster linking
+  RUSTFLAGS = "-C link-arg=-fuse-ld=lld";
 
-  # Required for Wayland surface creation
-  LD_LIBRARY_PATH = lib.makeLibraryPath nonRustDeps;
+  # Disable patchelf initially to preserve RPATH
+  dontPatchELF = true;
 
-  # Set runtime directory for Wayland
-  XDG_RUNTIME_DIR = "/tmp";
-
-  # Skip tests (may require graphics)
-  doCheck = false;
-
-  postInstall = ''
-    # Wrap the binary to set the correct library path for runtime
-    wrapProgram $out/bin/${pname} \
-      --set LD_LIBRARY_PATH "${lib.makeLibraryPath nonRustDeps}" \
-      --set RUST_BACKTRACE full \
-      --set WINIT_UNIX_BACKEND wayland
+  # Post-fixup phase to manually patch RPATH
+  postFixup = ''
+    # Add vulkan-loader to RPATH to fix experimental occlusion culling linking issues
+    patchelf --add-rpath ${pkgs.vulkan-loader}/lib $out/bin/*
   '';
 
+  # Metadata
   meta = with lib; {
-    description = "Information Alchemist - A 3D-capable graph editor and visualization system";
-    longDescription = ''
-      Information Alchemist is a next-generation 3D-capable graph editor and
-      visualization system built as part of the Composable Information Machine
-      (CIM) ecosystem. It combines advanced graph theory, Entity-Component-System
-      (ECS) architecture, Domain-Driven Design (DDD), and Category Theory to
-      provide a powerful tool for understanding and manipulating complex
-      information relationships.
-    '';
+    description = "Information Alchemist - A graph editor and workflow manager for Domain Driven Design";
     homepage = "https://github.com/thecowboyai/alchemist";
-    license = with licenses; [ mit asl20 ];
-    maintainers = with maintainers; [ ];
+    license = licenses.mit;
+    maintainers = [ ];
     platforms = platforms.linux;
-    mainProgram = pname;
   };
 }

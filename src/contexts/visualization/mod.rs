@@ -1,9 +1,9 @@
 // Visualization context module
 
+pub mod layout;
 pub mod plugin;
 pub mod point_cloud;
 pub mod services;
-pub mod layout;
 
 pub use plugin::VisualizationPlugin;
 

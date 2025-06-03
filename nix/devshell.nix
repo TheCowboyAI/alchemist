@@ -1,44 +1,80 @@
+# Development shell for Information Alchemist
 { pkgs
 , rust-toolchain
 , nonRustDeps
 }:
 
 pkgs.mkShell {
-  buildInputs = nonRustDeps ++ [
-    rust-toolchain
-    pkgs.pkg-config
-    pkgs.llvmPackages.clang
-    pkgs.llvmPackages.bintools
-    pkgs.lld
+  packages = [ rust-toolchain ];
+  buildInputs = with pkgs; [
+    # Build tools
+    pkg-config
+    clang
+    lld
+    mold
+
+    # Graphics libraries
+    vulkan-loader
+    vulkan-headers
+    vulkan-validation-layers
+    libxkbcommon
+    wayland
+    libGL
+
+    # System libraries
+    udev
+    alsa-lib
+    xorg.libX11
+    xorg.libXcursor
+    xorg.libXi
+    xorg.libXrandr
+
     # Development tools
-    pkgs.just
-    pkgs.git
+    rust-analyzer
+    cargo-watch
+    cargo-nextest
+    bacon
   ];
 
-  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath nonRustDeps;
-  BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
-  BEVY_ASSET_ROOT = toString ../.; # Point to project root
+  nativeBuildInputs = with pkgs; [
+    llvmPackages.clang
+    llvmPackages.bintools
+    lld
+    mold # Fast linker for Bevy development
+  ];
 
-  # Rust flags for development with lld linker
-  RUSTFLAGS = "--cfg edition2024_preview -C link-arg=-fuse-ld=lld";
-
-  # Enable development features with dynamic linking
-  CARGO_FEATURES_DEV = "--features dev";
-
-  # Set Wayland backend and enable backtraces
-  WINIT_UNIX_BACKEND = "wayland";
-  RUST_BACKTRACE = "full";
-
+  # Environment for proper Bevy development with experimental feature support
   shellHook = ''
     echo "Information Alchemist Development Environment"
     echo "============================================"
     echo "Rust: $(rustc --version)"
     echo "Cargo: $(cargo --version)"
+    echo "Vulkan Layer Path: ${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d"
     echo ""
-    echo "Run 'nix run' to start the application (production build)"
-    echo "Run 'cargo run $CARGO_FEATURES_DEV' for development builds with dynamic linking"
-    echo ""
-    echo "Dynamic linking is enabled for faster compilation in development."
-    echo "Production builds via 'nix build' will use static linking."
+    echo "To run tests: cargo test --lib"
+    echo "To build: nix build"
+    echo "To run: nix run"
   '';
+
+  # Vulkan configuration
+  VK_LAYER_PATH = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
+  VULKAN_SDK = "${pkgs.vulkan-headers}";
+  VK_ICD_FILENAMES = "${pkgs.mesa}/share/vulkan/icd.d/radeon_icd.x86_64.json:${pkgs.mesa}/share/vulkan/icd.d/intel_icd.x86_64.json";
+
+  # Bevy configuration
+  BEVY_HEADLESS = "1";
+  RUST_BACKTRACE = "full";
+  WINIT_UNIX_BACKEND = "wayland";
+  BEVY_ASSET_ROOT = toString ../.;
+
+  # Rust configuration - use mold for faster linking
+  RUSTFLAGS = "-C link-arg=-fuse-ld=mold -C link-arg=-Wl,-rpath,${pkgs.vulkan-loader}/lib -Zshare-generics=y";
+  BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
+
+  # Library paths
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (nonRustDeps ++ [ pkgs.vulkan-loader ]);
+
+  # Disable experimental features that might cause issues
+  BEVY_DISABLE_EXPERIMENTAL_FEATURES = "1";
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
 }

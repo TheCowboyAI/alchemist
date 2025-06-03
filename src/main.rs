@@ -75,28 +75,37 @@ fn setup_test_graph(mut commands: Commands) {
         let position = SpatialPosition::at_3d(x, 0.0, z);
 
         // Spawn node entity
-        commands.spawn((
-            NodeBundle {
-                node: Node {
-                    identity: node_id,
-                    graph: graph_id,
-                    content: content.clone(),
-                    position,
-                },
+        commands.spawn((NodeBundle {
+            node: Node {
                 identity: node_id,
-                content,
+                graph: graph_id,
+                content: content.clone(),
                 position,
-                transform: Transform::from_translation(position.coordinates_3d),
-                global_transform: GlobalTransform::default(),
             },
-        ));
+            identity: node_id,
+            content,
+            position,
+            transform: Transform::from_translation(position.coordinates_3d),
+            global_transform: GlobalTransform::default(),
+        },));
     }
 
     // Create edges to form interesting connections
     let edge_pairs = vec![
-        (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 0), // Outer ring
-        (0, 4), (1, 5), (2, 6), (3, 7), // Cross connections
-        (0, 2), (4, 6), // Additional connections
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (3, 4),
+        (4, 5),
+        (5, 6),
+        (6, 7),
+        (7, 0), // Outer ring
+        (0, 4),
+        (1, 5),
+        (2, 6),
+        (3, 7), // Cross connections
+        (0, 2),
+        (4, 6), // Additional connections
     ];
 
     for (i, (source_idx, target_idx)) in edge_pairs.iter().enumerate() {
@@ -110,20 +119,22 @@ fn setup_test_graph(mut commands: Commands) {
         };
 
         // Spawn edge entity
-        commands.spawn((
-            EdgeBundle {
-                edge: Edge {
-                    identity: edge_id,
-                    graph: graph_id,
-                    relationship: relationship.clone(),
-                },
+        commands.spawn((EdgeBundle {
+            edge: Edge {
                 identity: edge_id,
-                relationship,
+                graph: graph_id,
+                relationship: relationship.clone(),
             },
-        ));
+            identity: edge_id,
+            relationship,
+        },));
     }
 
-    info!("Test graph created with {} nodes and {} edges", node_count, edge_pairs.len());
+    info!(
+        "Test graph created with {} nodes and {} edges",
+        node_count,
+        edge_pairs.len()
+    );
     info!("========== KEYBOARD CONTROLS ==========");
     info!("Graph Layout:");
     info!("  L - Apply force-directed layout");

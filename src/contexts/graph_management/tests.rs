@@ -5,8 +5,7 @@ mod tests {
         events::*,
         repositories::*,
         services::{
-            AddNodeToGraph, ConnectGraphNodes, CreateGraph,
-            ValidateGraph, GraphConstraintViolation,
+            AddNodeToGraph, ConnectGraphNodes, CreateGraph, GraphConstraintViolation, ValidateGraph,
         },
     };
     use bevy::ecs::system::SystemState;

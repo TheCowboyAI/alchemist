@@ -1,8 +1,9 @@
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
+use crate::contexts::graph_management::exporter::export_graph_to_file;
+use crate::contexts::graph_management::importer::import_graph_from_file;
 use crate::contexts::graph_management::services::*;
 use crate::contexts::graph_management::storage::*;
-use crate::contexts::graph_management::importer::import_graph_from_file;
 use bevy::prelude::*;
 
 /// System sets for proper ordering
@@ -10,6 +11,8 @@ use bevy::prelude::*;
 pub enum GraphManagementSet {
     /// Systems that import or create graph data
     Import,
+    /// Systems that export graph data
+    Export,
     /// Systems that sync with storage
     Storage,
     /// Systems that organize hierarchy
@@ -39,26 +42,15 @@ impl Plugin for GraphManagementPlugin {
             Update,
             (
                 // Import system runs first
-                import_graph_from_file
-                    .in_set(GraphManagementSet::Import),
-
-                // Apply commands before running other systems
-                apply_deferred
-                    .after(GraphManagementSet::Import)
-                    .before(GraphManagementSet::Storage),
-
-                // Storage sync systems run after import
-                (
-                    SyncGraphWithStorage::sync_graph_created,
-                    SyncGraphWithStorage::sync_node_added,
-                    SyncGraphWithStorage::sync_edge_connected,
-                )
-                    .in_set(GraphManagementSet::Storage),
-
-                // Hierarchy system runs after storage
-                EstablishGraphHierarchy::organize_hierarchy
-                    .in_set(GraphManagementSet::Hierarchy)
-                    .after(GraphManagementSet::Storage),
+                import_graph_from_file,
+                // Export system
+                export_graph_to_file,
+                // Storage sync systems
+                SyncGraphWithStorage::sync_graph_created,
+                SyncGraphWithStorage::sync_node_added,
+                SyncGraphWithStorage::sync_edge_connected,
+                // Hierarchy system
+                EstablishGraphHierarchy::organize_hierarchy,
             ),
         );
 
@@ -75,75 +67,108 @@ fn create_example_graph(
     mut node_added: EventWriter<NodeAdded>,
     mut edge_connected: EventWriter<EdgeConnected>,
 ) {
-    // Create a new graph using our DDD service
+    // Create graph
+    let graph_id = GraphIdentity::new();
     let metadata = GraphMetadata {
-        name: "Technology Graph".to_string(),
-        description: "Example graph showing technology relationships".to_string(),
-        domain: "technology".to_string(),
+        name: "Example Graph".to_string(),
+        description: "A simple example graph".to_string(),
+        domain: "example".to_string(),
         created: std::time::SystemTime::now(),
         modified: std::time::SystemTime::now(),
         tags: vec!["example".to_string(), "demo".to_string()],
     };
 
-    let graph_id = CreateGraph::execute(metadata, &mut commands, &mut graph_created);
+    // Spawn graph entity
+    commands.spawn((
+        GraphBundle {
+            graph: Graph {
+                identity: graph_id,
+                metadata: metadata.clone(),
+                journey: GraphJourney::default(),
+            },
+            identity: graph_id,
+            metadata: metadata.clone(),
+            journey: GraphJourney::default(),
+        },
+        Transform::default(),
+        GlobalTransform::default(),
+    ));
 
-    // Add nodes using our service
-    let rust_node = AddNodeToGraph::execute(
-        graph_id,
-        NodeContent {
-            label: "Rust".to_string(),
-            category: "Language".to_string(),
+    // Emit graph created event
+    graph_created.write(GraphCreated {
+        graph: graph_id,
+        metadata,
+        timestamp: std::time::SystemTime::now(),
+    });
+
+    // Create nodes
+    let node1 = NodeIdentity::new();
+    let node2 = NodeIdentity::new();
+    let node3 = NodeIdentity::new();
+
+    // Node 1
+    node_added.write(NodeAdded {
+        graph: graph_id,
+        node: node1,
+        content: NodeContent {
+            label: "Node 1".to_string(),
+            category: "default".to_string(),
             properties: Default::default(),
         },
-        SpatialPosition::at_3d(-2.0, 0.0, 0.0),
-        &mut commands,
-        &mut node_added,
-    );
+        position: SpatialPosition::at_3d(-2.0, 0.0, 0.0),
+    });
 
-    let bevy_node = AddNodeToGraph::execute(
-        graph_id,
-        NodeContent {
-            label: "Bevy".to_string(),
-            category: "Framework".to_string(),
+    // Node 2
+    node_added.write(NodeAdded {
+        graph: graph_id,
+        node: node2,
+        content: NodeContent {
+            label: "Node 2".to_string(),
+            category: "default".to_string(),
             properties: Default::default(),
         },
-        SpatialPosition::at_3d(2.0, 0.0, 0.0),
-        &mut commands,
-        &mut node_added,
-    );
+        position: SpatialPosition::at_3d(2.0, 0.0, 0.0),
+    });
 
-    let ecs_node = AddNodeToGraph::execute(
-        graph_id,
-        NodeContent {
-            label: "ECS".to_string(),
-            category: "Pattern".to_string(),
+    // Node 3
+    node_added.write(NodeAdded {
+        graph: graph_id,
+        node: node3,
+        content: NodeContent {
+            label: "Node 3".to_string(),
+            category: "default".to_string(),
             properties: Default::default(),
         },
-        SpatialPosition::at_3d(0.0, 2.0, 0.0),
-        &mut commands,
-        &mut node_added,
-    );
+        position: SpatialPosition::at_3d(0.0, 2.0, 0.0),
+    });
 
-    // Connect nodes
-    ConnectGraphNodes::execute(
-        graph_id,
-        rust_node,
-        bevy_node,
-        "powers".to_string(),
-        1.0,
-        &mut commands,
-        &mut edge_connected,
-    );
+    // Create edges
+    let edge1 = EdgeIdentity::new();
+    let edge2 = EdgeIdentity::new();
 
-    ConnectGraphNodes::execute(
-        graph_id,
-        bevy_node,
-        ecs_node,
-        "implements".to_string(),
-        1.0,
-        &mut commands,
-        &mut edge_connected,
-    );
+    // Edge 1: Node 1 -> Node 2
+    edge_connected.write(EdgeConnected {
+        graph: graph_id,
+        edge: edge1,
+        relationship: EdgeRelationship {
+            source: node1,
+            target: node2,
+            category: "connects".to_string(),
+            strength: 1.0,
+            properties: Default::default(),
+        },
+    });
 
-    info!("Example graph created with DDD-compliant code!");
+    // Edge 2: Node 2 -> Node 3
+    edge_connected.write(EdgeConnected {
+        graph: graph_id,
+        edge: edge2,
+        relationship: EdgeRelationship {
+            source: node2,
+            target: node3,
+            category: "connects".to_string(),
+            strength: 1.0,
+            properties: Default::default(),
+        },
+    });
 }

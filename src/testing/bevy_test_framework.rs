@@ -96,7 +96,7 @@ fn run_test_scenarios(
         if let Some(action) = scenario.actions.pop_front() {
             match action {
                 TestAction::MoveMouse { x, y } => {
-                    if let Ok(window_entity) = windows.get_single() {
+                    if let Ok(window_entity) = windows.single() {
                         mouse_events.write(CursorMoved {
                             window: window_entity,
                             position: Vec2::new(x, y),
@@ -105,7 +105,7 @@ fn run_test_scenarios(
                     }
                 }
                 TestAction::Click { button } => {
-                    if let Ok(window_entity) = windows.get_single() {
+                    if let Ok(window_entity) = windows.single() {
                         mouse_button_events.write(MouseButtonInput {
                             button,
                             state: ButtonState::Pressed,

@@ -71,16 +71,16 @@ impl GraphImporter {
         edge_connected_events: &mut EventWriter<EdgeConnected>,
     ) -> Result<GraphIdentity, String> {
         // Read the file
-        let content = fs::read_to_string(path)
-            .map_err(|e| format!("Failed to read file: {e}"))?;
+        let content = fs::read_to_string(path).map_err(|e| format!("Failed to read file: {e}"))?;
 
         // Parse JSON
-        let external_graph: ExternalGraphFormat = serde_json::from_str(&content)
-            .map_err(|e| format!("Failed to parse JSON: {e}"))?;
+        let external_graph: ExternalGraphFormat =
+            serde_json::from_str(&content).map_err(|e| format!("Failed to parse JSON: {e}"))?;
 
         // Create a new graph
         let graph_id = GraphIdentity::new();
-        let graph_name = path.file_stem()
+        let graph_name = path
+            .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("Imported Graph")
             .to_string();
@@ -95,24 +95,27 @@ impl GraphImporter {
         };
 
         // Create graph in storage
-        storage.create_graph(graph_id)
+        storage
+            .create_graph(graph_id)
             .map_err(|e| format!("Failed to create graph in storage: {e:?}"))?;
 
         // Spawn graph entity
-        let graph_entity = commands.spawn((
-            GraphBundle {
-                graph: Graph {
+        let graph_entity = commands
+            .spawn((
+                GraphBundle {
+                    graph: Graph {
+                        identity: graph_id,
+                        metadata: metadata.clone(),
+                        journey: GraphJourney::default(),
+                    },
                     identity: graph_id,
                     metadata: metadata.clone(),
                     journey: GraphJourney::default(),
                 },
-                identity: graph_id,
-                metadata: metadata.clone(),
-                journey: GraphJourney::default(),
-            },
-            Transform::default(),
-            GlobalTransform::default(),
-        )).id();
+                Transform::default(),
+                GlobalTransform::default(),
+            ))
+            .id();
 
         // Emit graph created event
         graph_created_events.write(GraphCreated {
@@ -123,7 +126,7 @@ impl GraphImporter {
 
         // Track node ID mappings (external ID -> our NodeIdentity)
         let mut node_mappings = HashMap::new();
-        let mut node_entities = HashMap::new();  // Track node entities for parent-child relationships
+        let mut node_entities = HashMap::new(); // Track node entities for parent-child relationships
 
         // Import nodes
         for external_node in external_graph.nodes {
@@ -134,13 +137,15 @@ impl GraphImporter {
             let scale = 0.01; // Scale down large coordinates
             let position = SpatialPosition::at_3d(
                 external_node.position.x * scale,
-                0.0, // Use flat Y=0 for now
+                0.0,                               // Use flat Y=0 for now
                 -external_node.position.y * scale, // Flip Y to Z and negate
             );
 
             let content = NodeContent {
                 label: external_node.caption,
-                category: external_node.labels.first()
+                category: external_node
+                    .labels
+                    .first()
                     .cloned()
                     .unwrap_or_else(|| "default".to_string()),
                 properties: external_node.properties,
@@ -153,12 +158,13 @@ impl GraphImporter {
                 position,
             };
 
-            storage.add_node(graph_id, node_data)
+            storage
+                .add_node(graph_id, node_data)
                 .map_err(|e| format!("Failed to add node to storage: {e:?}"))?;
 
             // Spawn node entity
-            let node_entity = commands.spawn((
-                NodeBundle {
+            let node_entity = commands
+                .spawn((NodeBundle {
                     node: crate::contexts::graph_management::domain::Node {
                         identity: node_id,
                         graph: graph_id,
@@ -170,11 +176,13 @@ impl GraphImporter {
                     position,
                     transform: Transform::from_translation(position.coordinates_3d),
                     global_transform: GlobalTransform::default(),
-                },
-            )).id();
+                },))
+                .id();
 
-            info!("Spawned node entity {:?} with ID {:?} at position {:?}",
-                node_entity, node_id, position.coordinates_3d);
+            info!(
+                "Spawned node entity {:?} with ID {:?} at position {:?}",
+                node_entity, node_id, position.coordinates_3d
+            );
 
             // Establish parent-child relationship
             commands.entity(graph_entity).add_child(node_entity);
@@ -195,9 +203,11 @@ impl GraphImporter {
         let relationship_count = external_graph.relationships.len();
         for external_rel in external_graph.relationships {
             // Look up our node IDs
-            let source_id = node_mappings.get(&external_rel.from_id)
+            let source_id = node_mappings
+                .get(&external_rel.from_id)
                 .ok_or_else(|| format!("Source node {} not found", external_rel.from_id))?;
-            let target_id = node_mappings.get(&external_rel.to_id)
+            let target_id = node_mappings
+                .get(&external_rel.to_id)
                 .ok_or_else(|| format!("Target node {} not found", external_rel.to_id))?;
 
             let edge_id = EdgeIdentity::new();
@@ -219,12 +229,13 @@ impl GraphImporter {
                 relationship: relationship.clone(),
             };
 
-            storage.add_edge(graph_id, *source_id, *target_id, edge_data)
+            storage
+                .add_edge(graph_id, *source_id, *target_id, edge_data)
                 .map_err(|e| format!("Failed to add edge to storage: {e:?}"))?;
 
             // Spawn edge entity
-            let edge_entity = commands.spawn((
-                EdgeBundle {
+            let edge_entity = commands
+                .spawn((EdgeBundle {
                     edge: crate::contexts::graph_management::domain::Edge {
                         identity: edge_id,
                         graph: graph_id,
@@ -232,10 +243,13 @@ impl GraphImporter {
                     },
                     identity: edge_id,
                     relationship: relationship.clone(),
-                },
-            )).id();
+                },))
+                .id();
 
-            info!("Spawned edge entity {:?} with ID {:?}", edge_entity, edge_id);
+            info!(
+                "Spawned edge entity {:?} with ID {:?}",
+                edge_entity, edge_id
+            );
 
             // Add edge as child of graph for proper hierarchy
             commands.entity(graph_entity).add_child(edge_entity);
@@ -248,7 +262,8 @@ impl GraphImporter {
             });
         }
 
-        info!("Successfully imported graph '{}' with {} nodes and {} relationships",
+        info!(
+            "Successfully imported graph '{}' with {} nodes and {} relationships",
             graph_name,
             node_mappings.len(),
             relationship_count
@@ -325,7 +340,8 @@ pub fn import_graph_from_file(
                 && existing_nodes.get(entity).is_err()
                 && existing_edges.get(entity).is_err()
                 && flow_particles.get(entity).is_err()
-                && edge_segments.get(entity).is_err() {
+                && edge_segments.get(entity).is_err()
+            {
                 // This is likely an orphaned visual entity
                 commands.entity(entity).despawn();
                 orphaned_count += 1;

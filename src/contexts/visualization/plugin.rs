@@ -1,9 +1,8 @@
+use crate::contexts::graph_management::plugin::GraphManagementSet;
 use crate::contexts::visualization::layout::LayoutPlugin;
 use crate::contexts::visualization::point_cloud::PointCloudPlugin;
 use crate::contexts::visualization::services::*;
-use crate::contexts::graph_management::plugin::GraphManagementSet;
 use bevy::prelude::*;
-use bevy_panorbit_camera::PanOrbitCameraPlugin;
 
 /// Plugin for the Visualization bounded context
 pub struct VisualizationPlugin;
@@ -11,8 +10,6 @@ pub struct VisualizationPlugin;
 impl Plugin for VisualizationPlugin {
     fn build(&self, app: &mut App) {
         app
-            // Add the panorbit camera plugin
-            .add_plugins(PanOrbitCameraPlugin)
             // Add the point cloud plugin
             .add_plugins(PointCloudPlugin)
             // Add the layout plugin
@@ -40,7 +37,7 @@ impl Plugin for VisualizationPlugin {
                     RenderGraphElements::handle_convert_to_point_cloud,
                     RenderGraphElements::render_edge_flow_particles,
                 )
-                .after(GraphManagementSet::Hierarchy),
+                    .after(GraphManagementSet::Hierarchy),
             )
             // User input systems
             .add_systems(

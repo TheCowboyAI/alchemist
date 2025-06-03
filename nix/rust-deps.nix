@@ -1,6 +1,11 @@
 { pkgs }:
 
 with pkgs; [
+  # Build tools
+  clang
+  lld
+  mold
+
   # Audio support
   alsa-lib
   alsa-utils
