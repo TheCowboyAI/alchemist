@@ -91,6 +91,10 @@ bevy_egui = "0.34.1"
 rand_chacha = "0.9.0"
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
+rfd = "0.15"
+
+[dev-dependencies]
+tempfile = "3.14"
 
 [lib]
 name = "ia"

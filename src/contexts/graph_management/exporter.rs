@@ -3,157 +3,335 @@
 //! This module provides functionality to export graph data to various formats,
 //! starting with JSON format that preserves all graph data for round-trip operations.
 
-use crate::contexts::graph_management::domain::*;
-use crate::contexts::graph_management::storage::*;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-/// Internal graph format for export
-#[derive(Debug, Serialize, Deserialize)]
-pub struct InternalGraphFormat {
-    pub version: String,
-    pub metadata: GraphMetadata,
-    pub nodes: Vec<InternalNode>,
-    pub edges: Vec<InternalEdge>,
-}
+use crate::contexts::graph_management::domain::*;
+use crate::contexts::graph_management::repositories::GraphData;
+use crate::contexts::graph_management::storage::GraphStorage;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct InternalNode {
+/// JSON representation of a node for export
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonNode {
     pub id: String,
-    pub position: Position3D,
-    pub content: NodeContent,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Position3D {
+    pub label: String,
     pub x: f32,
     pub y: f32,
     pub z: f32,
+    pub category: String,
+    pub properties: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct InternalEdge {
+/// JSON representation of an edge for export
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonEdge {
     pub id: String,
-    pub source_id: String,
-    pub target_id: String,
-    pub relationship: EdgeRelationship,
+    pub source: String,
+    pub target: String,
+    pub category: String,
+    pub strength: f32,
+    pub properties: HashMap<String, serde_json::Value>,
 }
 
-/// Service to export graphs
+/// JSON representation of a graph for export
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonGraph {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub domain: String,
+    pub version: String,
+    pub nodes: Vec<JsonNode>,
+    pub edges: Vec<JsonEdge>,
+    pub tags: Vec<String>,
+}
+
+/// Service for exporting graphs to various formats
+#[derive(Debug, Clone)]
 pub struct GraphExporter;
 
 impl GraphExporter {
     /// Export a graph to JSON format
-    pub fn export_to_json(
-        graph_id: GraphIdentity,
-        storage: &GraphStorage,
-        nodes: &Query<(&NodeIdentity, &NodeContent, &SpatialPosition)>,
-        edges: &Query<(&EdgeIdentity, &EdgeRelationship)>,
-        graphs: &Query<(&GraphIdentity, &GraphMetadata)>,
-    ) -> Result<String, ExportError> {
-        // Get graph metadata
-        let metadata = graphs
+    pub fn export_to_json(graph_data: &GraphData) -> Result<String, String> {
+        let json_nodes: Vec<JsonNode> = graph_data
+            .nodes
             .iter()
-            .find(|(id, _)| **id == graph_id)
-            .map(|(_, metadata)| metadata.clone())
-            .ok_or(ExportError::GraphNotFound)?;
+            .map(|node| JsonNode {
+                id: node.identity.0.to_string(),
+                label: node.content.label.clone(),
+                x: node.position.coordinates_3d.x,
+                y: node.position.coordinates_3d.y,
+                z: node.position.coordinates_3d.z,
+                category: node.content.category.clone(),
+                properties: node.content.properties.clone(),
+            })
+            .collect();
 
-        // Collect nodes that belong to this graph
-        // TODO: Filter by graph once we have proper parent tracking
-        let mut internal_nodes = Vec::new();
-        for (node_id, content, position) in nodes.iter() {
-            internal_nodes.push(InternalNode {
-                id: node_id.0.to_string(),
-                position: Position3D {
-                    x: position.coordinates_3d.x,
-                    y: position.coordinates_3d.y,
-                    z: position.coordinates_3d.z,
-                },
-                content: content.clone(),
-            });
-        }
+        let json_edges: Vec<JsonEdge> = graph_data
+            .edges
+            .iter()
+            .map(|edge| JsonEdge {
+                id: edge.identity.0.to_string(),
+                source: edge.relationship.source.0.to_string(),
+                target: edge.relationship.target.0.to_string(),
+                category: edge.relationship.category.clone(),
+                strength: edge.relationship.strength,
+                properties: edge.relationship.properties.clone(),
+            })
+            .collect();
 
-        // Collect edges that belong to this graph
-        // TODO: Filter by graph once we have proper parent tracking
-        let mut internal_edges = Vec::new();
-        for (edge_id, relationship) in edges.iter() {
-            internal_edges.push(InternalEdge {
-                id: edge_id.0.to_string(),
-                source_id: relationship.source.0.to_string(),
-                target_id: relationship.target.0.to_string(),
-                relationship: relationship.clone(),
-            });
-        }
-
-        // Create internal format
-        let internal_format = InternalGraphFormat {
+        let json_graph = JsonGraph {
+            id: graph_data.identity.0.to_string(),
+            name: graph_data.metadata.name.clone(),
+            description: graph_data.metadata.description.clone(),
+            domain: graph_data.metadata.domain.clone(),
             version: "1.0.0".to_string(),
-            metadata,
-            nodes: internal_nodes,
-            edges: internal_edges,
+            nodes: json_nodes,
+            edges: json_edges,
+            tags: graph_data.metadata.tags.clone(),
         };
 
-        // Serialize to JSON
-        serde_json::to_string_pretty(&internal_format)
-            .map_err(|e| ExportError::SerializationError(e.to_string()))
+        serde_json::to_string_pretty(&json_graph)
+            .map_err(|e| format!("Failed to serialize graph: {}", e))
     }
 
-    /// Save JSON content to a file
-    pub fn save_to_file(path: &Path, json_content: &str) -> Result<(), std::io::Error> {
-        fs::write(path, json_content)
-    }
-}
+    /// Export a graph to a JSON file
+    pub fn export_to_file(path: &Path, graph_data: &GraphData) -> Result<(), String> {
+        let json_content = Self::export_to_json(graph_data)?;
 
-#[derive(Debug)]
-pub enum ExportError {
-    GraphNotFound,
-    SerializationError(String),
-    IoError(std::io::Error),
-}
+        // Ensure parent directory exists
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+        }
 
-impl From<std::io::Error> for ExportError {
-    fn from(error: std::io::Error) -> Self {
-        ExportError::IoError(error)
+        fs::write(path, json_content).map_err(|e| format!("Failed to write file: {}", e))
     }
 }
 
 /// System to handle export requests
-pub fn export_graph_to_file(
+pub fn handle_export_request(
     keyboard: Res<ButtonInput<KeyCode>>,
     storage: Res<GraphStorage>,
-    graphs: Query<(&GraphIdentity, &GraphMetadata)>,
-    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition)>,
-    edges: Query<(&EdgeIdentity, &EdgeRelationship)>,
+    graphs: Query<(&GraphIdentity, &GraphMetadata, &GraphJourney)>,
+    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<Node>>,
+    edges: Query<(&EdgeIdentity, &EdgeRelationship), With<Edge>>,
+    mut export_events: EventWriter<ExportGraphEvent>,
 ) {
-    // Check for Ctrl+S
-    if (keyboard.pressed(KeyCode::ControlLeft) || keyboard.pressed(KeyCode::ControlRight))
-        && keyboard.just_pressed(KeyCode::KeyS)
-    {
-        info!("Export requested via Ctrl+S");
-
-        // Find active graph (for now, just use the first one)
-        if let Some((graph_id, _metadata)) = graphs.iter().next() {
-            match GraphExporter::export_to_json(*graph_id, &storage, &nodes, &edges, &graphs) {
-                Ok(json) => {
-                    // For now, save to a fixed location
-                    let path = Path::new("exported_graph.json");
-                    match GraphExporter::save_to_file(path, &json) {
-                        Ok(_) => info!("Graph exported successfully to {:?}", path),
-                        Err(e) => error!("Failed to save file: {}", e),
-                    }
-                }
-                Err(e) => error!("Failed to export graph: {:?}", e),
-            }
+    // Ctrl+S for save/export
+    if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyS) {
+        // Find the first graph (for now)
+        if let Some((graph_id, _, _)) = graphs.iter().next() {
+            export_events.send(ExportGraphEvent {
+                graph_id: *graph_id,
+            });
         } else {
             warn!("No graph to export");
         }
     }
 }
 
-/// Condition to check if export was requested
-pub fn export_requested(keyboard: Res<ButtonInput<KeyCode>>) -> bool {
-    (keyboard.pressed(KeyCode::ControlLeft) || keyboard.pressed(KeyCode::ControlRight))
-        && keyboard.just_pressed(KeyCode::KeyS)
+/// Event triggered when a graph export is requested
+#[derive(Event, Debug, Clone)]
+pub struct ExportGraphEvent {
+    pub graph_id: GraphIdentity,
+}
+
+/// Event triggered when a graph export completes
+#[derive(Event, Debug, Clone)]
+pub struct GraphExportedEvent {
+    pub graph_id: GraphIdentity,
+    pub path: String,
+    pub success: bool,
+    pub message: String,
+}
+
+/// System to process export events
+pub fn process_export_events(
+    mut export_events: EventReader<ExportGraphEvent>,
+    mut exported_events: EventWriter<GraphExportedEvent>,
+    graphs: Query<(&GraphIdentity, &GraphMetadata, &GraphJourney)>,
+    nodes: Query<(&NodeIdentity, &NodeContent, &SpatialPosition), With<Node>>,
+    edges: Query<(&EdgeIdentity, &EdgeRelationship), With<Edge>>,
+) {
+    for event in export_events.read() {
+        // Find the graph
+        let graph_data = graphs.iter().find(|(id, _, _)| **id == event.graph_id).map(
+            |(id, metadata, journey)| {
+                // Collect nodes for this graph
+                let graph_nodes: Vec<_> = nodes
+                    .iter()
+                    .filter(|(_, _, _)| true) // TODO: Filter by graph when we have proper parent tracking
+                    .map(|(id, content, pos)| {
+                        crate::contexts::graph_management::repositories::NodeData {
+                            identity: *id,
+                            content: content.clone(),
+                            position: *pos,
+                        }
+                    })
+                    .collect();
+
+                // Collect edges for this graph
+                let graph_edges: Vec<_> = edges
+                    .iter()
+                    .filter(|(_, _)| true) // TODO: Filter by graph when we have proper parent tracking
+                    .map(
+                        |(id, rel)| crate::contexts::graph_management::repositories::EdgeData {
+                            identity: *id,
+                            relationship: rel.clone(),
+                        },
+                    )
+                    .collect();
+
+                GraphData {
+                    identity: *id,
+                    metadata: metadata.clone(),
+                    journey: journey.clone(),
+                    nodes: graph_nodes,
+                    edges: graph_edges,
+                }
+            },
+        );
+
+        if let Some(graph_data) = graph_data {
+            // Use file dialog to get save location
+            let safe_name = graph_data
+                .metadata
+                .name
+                .replace(' ', "_")
+                .replace('/', "_")
+                .replace('\\', "_");
+
+            // Create file dialog
+            let file_dialog = rfd::FileDialog::new()
+                .set_file_name(&format!("{}.json", safe_name))
+                .add_filter("JSON files", &["json"])
+                .add_filter("All files", &["*"]);
+
+            // Show save dialog (blocking)
+            if let Some(path) = file_dialog.save_file() {
+                match GraphExporter::export_to_file(&path, &graph_data) {
+                    Ok(_) => {
+                        exported_events.send(GraphExportedEvent {
+                            graph_id: event.graph_id,
+                            path: path.display().to_string(),
+                            success: true,
+                            message: format!("Graph exported successfully to {}", path.display()),
+                        });
+                    }
+                    Err(e) => {
+                        exported_events.send(GraphExportedEvent {
+                            graph_id: event.graph_id,
+                            path: path.display().to_string(),
+                            success: false,
+                            message: format!("Export failed: {}", e),
+                        });
+                    }
+                }
+            } else {
+                // User cancelled the dialog
+                exported_events.send(GraphExportedEvent {
+                    graph_id: event.graph_id,
+                    path: String::new(),
+                    success: false,
+                    message: "Export cancelled by user".to_string(),
+                });
+            }
+        } else {
+            exported_events.send(GraphExportedEvent {
+                graph_id: event.graph_id,
+                path: String::new(),
+                success: false,
+                message: "Graph not found".to_string(),
+            });
+        }
+    }
+}
+
+/// System to display export feedback
+pub fn display_export_feedback(mut exported_events: EventReader<GraphExportedEvent>) {
+    for event in exported_events.read() {
+        if event.success {
+            info!("✅ {}", event.message);
+        } else {
+            error!("❌ {}", event.message);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use uuid::Uuid;
+
+    #[test]
+    fn test_export_to_json() {
+        let graph_data = GraphData {
+            identity: GraphIdentity(Uuid::new_v4()),
+            metadata: GraphMetadata {
+                name: "Test Graph".to_string(),
+                description: "A test graph".to_string(),
+                domain: "test".to_string(),
+                created: std::time::SystemTime::now(),
+                modified: std::time::SystemTime::now(),
+                tags: vec!["test".to_string()],
+            },
+            journey: GraphJourney::default(),
+            nodes: vec![crate::contexts::graph_management::repositories::NodeData {
+                identity: NodeIdentity(Uuid::new_v4()),
+                content: NodeContent {
+                    label: "Node 1".to_string(),
+                    category: "default".to_string(),
+                    properties: HashMap::new(),
+                },
+                position: SpatialPosition::at_3d(100.0, 0.0, 200.0),
+            }],
+            edges: vec![],
+        };
+
+        let result = GraphExporter::export_to_json(&graph_data);
+        assert!(result.is_ok());
+
+        let json = result.unwrap();
+        assert!(json.contains("Test Graph"));
+        assert!(json.contains("Node 1"));
+    }
+
+    #[test]
+    fn test_json_round_trip() {
+        let node_id = NodeIdentity(Uuid::new_v4());
+        let graph_data = GraphData {
+            identity: GraphIdentity(Uuid::new_v4()),
+            metadata: GraphMetadata {
+                name: "Round Trip Test".to_string(),
+                description: "Testing round trip".to_string(),
+                domain: "test".to_string(),
+                created: std::time::SystemTime::now(),
+                modified: std::time::SystemTime::now(),
+                tags: vec!["round-trip".to_string()],
+            },
+            journey: GraphJourney::default(),
+            nodes: vec![crate::contexts::graph_management::repositories::NodeData {
+                identity: node_id,
+                content: NodeContent {
+                    label: "First".to_string(),
+                    category: "test".to_string(),
+                    properties: HashMap::new(),
+                },
+                position: SpatialPosition::at_3d(50.0, 0.0, 50.0),
+            }],
+            edges: vec![],
+        };
+
+        let json = GraphExporter::export_to_json(&graph_data).unwrap();
+        let parsed: JsonGraph = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(parsed.name, "Round Trip Test");
+        assert_eq!(parsed.nodes.len(), 1);
+        assert_eq!(parsed.nodes[0].label, "First");
+        assert_eq!(parsed.nodes[0].x, 50.0);
+        assert_eq!(parsed.nodes[0].z, 50.0);
+    }
 }

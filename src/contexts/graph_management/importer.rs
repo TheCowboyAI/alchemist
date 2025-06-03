@@ -7,6 +7,7 @@ use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
 use crate::contexts::graph_management::storage::*;
 use bevy::prelude::*;
+use rfd;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -355,25 +356,33 @@ pub fn import_graph_from_file(
         // Clear storage
         storage.clear();
 
-        // For now, we'll load a specific file. In a real app, you'd use a file dialog
-        let file_path = Path::new("assets/models/CIM.json");
+        // Use file dialog to select file
+        let file_dialog = rfd::FileDialog::new()
+            .add_filter("JSON files", &["json"])
+            .add_filter("All files", &["*"])
+            .set_directory("assets/models");
 
-        info!("Loading graph from: {}", file_path.display());
+        // Show open dialog (blocking)
+        if let Some(file_path) = file_dialog.pick_file() {
+            info!("Loading graph from: {}", file_path.display());
 
-        match GraphImporter::load_from_file(
-            file_path,
-            &mut commands,
-            &mut storage,
-            &mut graph_created_events,
-            &mut node_added_events,
-            &mut edge_connected_events,
-        ) {
-            Ok(graph_id) => {
-                info!("Successfully loaded graph: {:?}", graph_id);
+            match GraphImporter::load_from_file(
+                &file_path,
+                &mut commands,
+                &mut storage,
+                &mut graph_created_events,
+                &mut node_added_events,
+                &mut edge_connected_events,
+            ) {
+                Ok(graph_id) => {
+                    info!("Successfully loaded graph: {:?}", graph_id);
+                }
+                Err(e) => {
+                    error!("Failed to load graph: {}", e);
+                }
             }
-            Err(e) => {
-                error!("Failed to load graph: {}", e);
-            }
+        } else {
+            info!("Import cancelled by user");
         }
     }
 }

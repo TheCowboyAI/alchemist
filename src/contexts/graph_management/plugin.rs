@@ -1,6 +1,9 @@
 use crate::contexts::graph_management::domain::*;
 use crate::contexts::graph_management::events::*;
-use crate::contexts::graph_management::exporter::export_graph_to_file;
+use crate::contexts::graph_management::exporter::{
+    ExportGraphEvent, GraphExportedEvent, display_export_feedback, handle_export_request,
+    process_export_events,
+};
 use crate::contexts::graph_management::importer::import_graph_from_file;
 use crate::contexts::graph_management::services::*;
 use crate::contexts::graph_management::storage::*;
@@ -35,7 +38,10 @@ impl Plugin for GraphManagementPlugin {
             .add_event::<EdgeDisconnected>()
             .add_event::<GraphDeleted>()
             .add_event::<SubgraphExtracted>()
-            .add_event::<InterSubgraphEdgeCreated>();
+            .add_event::<InterSubgraphEdgeCreated>()
+            // Export events
+            .add_event::<ExportGraphEvent>()
+            .add_event::<GraphExportedEvent>();
 
         // Register domain service systems
         app.add_systems(
@@ -43,8 +49,10 @@ impl Plugin for GraphManagementPlugin {
             (
                 // Import system runs first
                 import_graph_from_file,
-                // Export system
-                export_graph_to_file,
+                // Export systems
+                handle_export_request,
+                process_export_events,
+                display_export_feedback,
                 // Storage sync systems
                 SyncGraphWithStorage::sync_graph_created,
                 SyncGraphWithStorage::sync_node_added,

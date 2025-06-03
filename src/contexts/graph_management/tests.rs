@@ -671,3 +671,202 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod import_export_tests {
+    use super::*;
+    use crate::contexts::graph_management::exporter::{GraphExporter, JsonGraph};
+    use crate::contexts::graph_management::importer::{ExternalGraphFormat, GraphImporter};
+    use crate::contexts::graph_management::repositories::GraphData;
+    use std::fs;
+    use std::path::Path;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_export_graph_to_json() {
+        // Create test graph data
+        let graph_id = GraphIdentity::new();
+        let node_id = NodeIdentity::new();
+
+        let graph_data = GraphData {
+            identity: graph_id,
+            metadata: GraphMetadata {
+                name: "Test Export Graph".to_string(),
+                description: "Testing export functionality".to_string(),
+                domain: "test".to_string(),
+                created: std::time::SystemTime::now(),
+                modified: std::time::SystemTime::now(),
+                tags: vec!["test".to_string(), "export".to_string()],
+            },
+            journey: GraphJourney::default(),
+            nodes: vec![crate::contexts::graph_management::repositories::NodeData {
+                identity: node_id,
+                content: NodeContent {
+                    label: "Test Node".to_string(),
+                    category: "test".to_string(),
+                    properties: HashMap::new(),
+                },
+                position: SpatialPosition::at_3d(10.0, 20.0, 30.0),
+            }],
+            edges: vec![],
+        };
+
+        // Export to JSON
+        let json_result = GraphExporter::export_to_json(&graph_data);
+        assert!(json_result.is_ok());
+
+        let json = json_result.unwrap();
+
+        // Verify JSON contains expected data
+        assert!(json.contains("Test Export Graph"));
+        assert!(json.contains("Test Node"));
+        assert!(json.contains("10.0")); // x coordinate
+        assert!(json.contains("20.0")); // y coordinate
+        assert!(json.contains("30.0")); // z coordinate
+    }
+
+    #[test]
+    fn test_export_to_file() {
+        // Create temporary directory
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("test_graph.json");
+
+        // Create test graph data
+        let graph_data = GraphData {
+            identity: GraphIdentity::new(),
+            metadata: GraphMetadata {
+                name: "File Export Test".to_string(),
+                description: "Testing file export".to_string(),
+                domain: "test".to_string(),
+                created: std::time::SystemTime::now(),
+                modified: std::time::SystemTime::now(),
+                tags: vec!["file-test".to_string()],
+            },
+            journey: GraphJourney::default(),
+            nodes: vec![],
+            edges: vec![],
+        };
+
+        // Export to file
+        let result = GraphExporter::export_to_file(&file_path, &graph_data);
+        assert!(result.is_ok());
+
+        // Verify file exists and contains data
+        assert!(file_path.exists());
+        let content = fs::read_to_string(&file_path).unwrap();
+        assert!(content.contains("File Export Test"));
+    }
+
+    #[test]
+    fn test_json_round_trip() {
+        // Create original graph data
+        let graph_id = GraphIdentity::new();
+        let node1_id = NodeIdentity::new();
+        let node2_id = NodeIdentity::new();
+        let edge_id = EdgeIdentity::new();
+
+        let original_graph = GraphData {
+            identity: graph_id,
+            metadata: GraphMetadata {
+                name: "Round Trip Test".to_string(),
+                description: "Testing round trip conversion".to_string(),
+                domain: "round-trip".to_string(),
+                created: std::time::SystemTime::now(),
+                modified: std::time::SystemTime::now(),
+                tags: vec!["round-trip".to_string(), "test".to_string()],
+            },
+            journey: GraphJourney::default(),
+            nodes: vec![
+                crate::contexts::graph_management::repositories::NodeData {
+                    identity: node1_id,
+                    content: NodeContent {
+                        label: "Node One".to_string(),
+                        category: "category-a".to_string(),
+                        properties: HashMap::new(),
+                    },
+                    position: SpatialPosition::at_3d(1.0, 2.0, 3.0),
+                },
+                crate::contexts::graph_management::repositories::NodeData {
+                    identity: node2_id,
+                    content: NodeContent {
+                        label: "Node Two".to_string(),
+                        category: "category-b".to_string(),
+                        properties: HashMap::new(),
+                    },
+                    position: SpatialPosition::at_3d(4.0, 5.0, 6.0),
+                },
+            ],
+            edges: vec![crate::contexts::graph_management::repositories::EdgeData {
+                identity: edge_id,
+                relationship: EdgeRelationship {
+                    source: node1_id,
+                    target: node2_id,
+                    category: "connects".to_string(),
+                    strength: 0.75,
+                    properties: HashMap::new(),
+                },
+            }],
+        };
+
+        // Export to JSON
+        let json = GraphExporter::export_to_json(&original_graph).unwrap();
+
+        // Parse JSON back
+        let parsed: JsonGraph = serde_json::from_str(&json).unwrap();
+
+        // Verify all data is preserved
+        assert_eq!(parsed.name, "Round Trip Test");
+        assert_eq!(parsed.description, "Testing round trip conversion");
+        assert_eq!(parsed.domain, "round-trip");
+        assert_eq!(
+            parsed.tags,
+            vec!["round-trip".to_string(), "test".to_string()]
+        );
+
+        // Check nodes
+        assert_eq!(parsed.nodes.len(), 2);
+        assert_eq!(parsed.nodes[0].label, "Node One");
+        assert_eq!(parsed.nodes[0].category, "category-a");
+        assert_eq!(parsed.nodes[0].x, 1.0);
+        assert_eq!(parsed.nodes[0].y, 2.0);
+        assert_eq!(parsed.nodes[0].z, 3.0);
+
+        assert_eq!(parsed.nodes[1].label, "Node Two");
+        assert_eq!(parsed.nodes[1].category, "category-b");
+        assert_eq!(parsed.nodes[1].x, 4.0);
+        assert_eq!(parsed.nodes[1].y, 5.0);
+        assert_eq!(parsed.nodes[1].z, 6.0);
+
+        // Check edges
+        assert_eq!(parsed.edges.len(), 1);
+        assert_eq!(parsed.edges[0].category, "connects");
+        assert_eq!(parsed.edges[0].strength, 0.75);
+    }
+
+    #[test]
+    fn test_export_with_special_characters() {
+        // Test graph with special characters in name
+        let graph_data = GraphData {
+            identity: GraphIdentity::new(),
+            metadata: GraphMetadata {
+                name: "Test/Graph\\With:Special*Characters".to_string(),
+                description: "Testing special character handling".to_string(),
+                domain: "test".to_string(),
+                created: std::time::SystemTime::now(),
+                modified: std::time::SystemTime::now(),
+                tags: vec![],
+            },
+            journey: GraphJourney::default(),
+            nodes: vec![],
+            edges: vec![],
+        };
+
+        // Export should succeed
+        let json_result = GraphExporter::export_to_json(&graph_data);
+        assert!(json_result.is_ok());
+
+        // JSON should properly escape special characters
+        let json = json_result.unwrap();
+        assert!(json.contains("Test/Graph\\\\With:Special*Characters"));
+    }
+}
