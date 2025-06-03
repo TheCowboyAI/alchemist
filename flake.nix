@@ -102,7 +102,8 @@
                 inherit pkgs rust-toolchain nonRustDeps;
               })
             ];
-            packages = [ test-runner test-runner-prod test-runner-build ];
+            # Removed test runners from packages to prevent automatic test execution
+            # packages = [ test-runner test-runner-prod test-runner-build ];
           };
 
           # Formatting configuration

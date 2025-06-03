@@ -74,6 +74,15 @@ pkgs.mkShell {
   # Library paths
   LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (nonRustDeps ++ [ pkgs.vulkan-loader ]);
 
+  # PKG_CONFIG_PATH for finding system libraries
+  PKG_CONFIG_PATH = pkgs.lib.makeSearchPath "lib/pkgconfig" [
+    pkgs.alsa-lib
+    pkgs.udev
+    pkgs.systemd
+    pkgs.vulkan-loader
+    pkgs.libxkbcommon
+  ];
+
   # Disable experimental features that might cause issues
   BEVY_DISABLE_EXPERIMENTAL_FEATURES = "1";
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";

@@ -6,6 +6,10 @@ pub mod event_validation_helpers;
 #[cfg(test)]
 pub mod domain_isolated_tests;
 
+// Event sourcing tests for Merkle DAG implementation
+#[cfg(test)]
+pub mod event_sourcing_tests;
+
 // Feature tests that document missing functionality
 #[cfg(test)]
 pub mod feature_tests;

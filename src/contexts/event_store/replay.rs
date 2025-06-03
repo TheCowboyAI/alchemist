@@ -1,12 +1,23 @@
 use bevy::prelude::*;
 use super::events::{DomainEvent, EventPayload, Cid};
 use super::store::EventStore;
-use crate::contexts::graph_management::domain::*;
+use crate::contexts::graph_management::domain::{
+    Node as GraphNode, Edge, NodeIdentity, EdgeIdentity, NodeContent,
+    EdgeRelationship, GraphIdentity, SpatialPosition, NodeBundle, EdgeBundle
+};
 use uuid::Uuid;
 use std::collections::HashMap;
+use serde_json::Value as JsonValue;
 
 /// Replays events from the Merkle DAG to reconstruct state
 pub struct EventReplayer;
+
+/// Reconstructed state from event replay
+#[derive(Debug, Clone)]
+pub struct ReplayedState {
+    pub nodes: HashMap<NodeIdentity, GraphNode>,
+    pub edges: HashMap<EdgeIdentity, Edge>,
+}
 
 impl EventReplayer {
     /// Replay all events for a specific aggregate (graph)
@@ -123,7 +134,7 @@ impl EventReplayer {
             properties,
         };
 
-        let node = Node {
+        let node = GraphNode {
             identity: node_identity,
             graph: GraphIdentity(event.aggregate_id),
             content: content.clone(),
@@ -273,14 +284,14 @@ pub fn handle_replay_requests(
     mut cid_requests: EventReader<ReplayFromCidRequest>,
 ) {
     for request in graph_requests.read() {
-        if let Err(e) = EventReplayer::replay_graph(&event_store, request.graph_id, &mut commands) {
+        if let Err(e) = EventReplayer::replay_graph(&*event_store, request.graph_id, &mut commands) {
             error!("Failed to replay graph {}: {}", request.graph_id, e);
         }
     }
 
     for request in cid_requests.read() {
         if let Err(e) = EventReplayer::replay_from_cid(
-            &event_store,
+            &*event_store,
             &request.start_cid,
             request.max_depth,
             &mut commands

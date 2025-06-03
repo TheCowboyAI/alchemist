@@ -11,6 +11,7 @@ fn main() {
     app.add_plugins(DefaultPlugins)
         // Add our domain contexts
         .add_plugins((
+            contexts::event_store::plugin::EventStorePlugin,
             contexts::graph_management::plugin::GraphManagementPlugin,
             contexts::visualization::plugin::VisualizationPlugin,
             contexts::selection::plugin::SelectionPlugin,

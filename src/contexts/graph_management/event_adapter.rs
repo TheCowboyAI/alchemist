@@ -1,5 +1,6 @@
 use super::events::*;
-use crate::contexts::event_store::{DomainEvent, EventPayload, EventStore, DomainEventOccurred};
+use crate::contexts::graph_management::domain::*;
+use crate::contexts::event_store::{DomainEvent, events::EventPayload, EventStore, DomainEventOccurred};
 use bevy::prelude::*;
 use serde_json::json;
 use std::time::SystemTime;
@@ -43,9 +44,9 @@ impl GraphEventAdapter {
                     "properties": event.content.properties,
                 },
                 "position": {
-                    "x": event.position.x,
-                    "y": event.position.y,
-                    "z": event.position.z,
+                    "x": event.position.coordinates_3d.x,
+                    "y": event.position.coordinates_3d.y,
+                    "z": event.position.coordinates_3d.z,
                 },
             }),
             created_at: SystemTime::now(),
@@ -68,7 +69,7 @@ impl GraphEventAdapter {
                 "edge_id": event.edge.0,
                 "source": event.relationship.source.0,
                 "target": event.relationship.target.0,
-                "edge_type": event.relationship.edge_type,
+                "edge_type": event.relationship.category,
                 "properties": event.relationship.properties,
             }),
             created_at: SystemTime::now(),
@@ -109,14 +110,14 @@ impl GraphEventAdapter {
             data: json!({
                 "node_id": event.node.0,
                 "from_position": {
-                    "x": event.from_position.x,
-                    "y": event.from_position.y,
-                    "z": event.from_position.z,
+                    "x": event.from_position.coordinates_3d.x,
+                    "y": event.from_position.coordinates_3d.y,
+                    "z": event.from_position.coordinates_3d.z,
                 },
                 "to_position": {
-                    "x": event.to_position.x,
-                    "y": event.to_position.y,
-                    "z": event.to_position.z,
+                    "x": event.to_position.coordinates_3d.x,
+                    "y": event.to_position.coordinates_3d.y,
+                    "z": event.to_position.coordinates_3d.z,
                 },
             }),
             created_at: SystemTime::now(),
@@ -142,9 +143,9 @@ pub fn capture_graph_events(
 ) {
     // Process GraphCreated events
     for event in graph_created.read() {
-        match GraphEventAdapter::graph_created_to_domain_event(event, &event_store) {
+        match GraphEventAdapter::graph_created_to_domain_event(event, &*event_store) {
             Ok(domain_event) => {
-                domain_events.send(DomainEventOccurred(domain_event));
+                domain_events.write(DomainEventOccurred(domain_event));
             }
             Err(e) => {
                 error!("Failed to convert GraphCreated event: {}", e);
@@ -154,9 +155,9 @@ pub fn capture_graph_events(
 
     // Process NodeAdded events
     for event in node_added.read() {
-        match GraphEventAdapter::node_added_to_domain_event(event, &event_store) {
+        match GraphEventAdapter::node_added_to_domain_event(event, &*event_store) {
             Ok(domain_event) => {
-                domain_events.send(DomainEventOccurred(domain_event));
+                domain_events.write(DomainEventOccurred(domain_event));
             }
             Err(e) => {
                 error!("Failed to convert NodeAdded event: {}", e);
@@ -166,9 +167,9 @@ pub fn capture_graph_events(
 
     // Process EdgeConnected events
     for event in edge_connected.read() {
-        match GraphEventAdapter::edge_connected_to_domain_event(event, &event_store) {
+        match GraphEventAdapter::edge_connected_to_domain_event(event, &*event_store) {
             Ok(domain_event) => {
-                domain_events.send(DomainEventOccurred(domain_event));
+                domain_events.write(DomainEventOccurred(domain_event));
             }
             Err(e) => {
                 error!("Failed to convert EdgeConnected event: {}", e);
@@ -178,9 +179,9 @@ pub fn capture_graph_events(
 
     // Process NodeRemoved events
     for event in node_removed.read() {
-        match GraphEventAdapter::node_removed_to_domain_event(event, &event_store) {
+        match GraphEventAdapter::node_removed_to_domain_event(event, &*event_store) {
             Ok(domain_event) => {
-                domain_events.send(DomainEventOccurred(domain_event));
+                domain_events.write(DomainEventOccurred(domain_event));
             }
             Err(e) => {
                 error!("Failed to convert NodeRemoved event: {}", e);
@@ -190,9 +191,9 @@ pub fn capture_graph_events(
 
     // Process NodeMoved events
     for event in node_moved.read() {
-        match GraphEventAdapter::node_moved_to_domain_event(event, &event_store) {
+        match GraphEventAdapter::node_moved_to_domain_event(event, &*event_store) {
             Ok(domain_event) => {
-                domain_events.send(DomainEventOccurred(domain_event));
+                domain_events.write(DomainEventOccurred(domain_event));
             }
             Err(e) => {
                 error!("Failed to convert NodeMoved event: {}", e);

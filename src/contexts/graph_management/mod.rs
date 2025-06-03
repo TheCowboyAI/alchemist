@@ -2,6 +2,7 @@
 // Responsible for graph structure and topology
 
 pub mod domain;
+pub mod event_adapter;
 pub mod events;
 pub mod exporter;
 pub mod importer;
@@ -15,6 +16,7 @@ pub mod verify_storage;
 mod tests;
 
 pub use domain::*;
+pub use event_adapter::*;
 pub use events::*;
 pub use exporter::*;
 pub use importer::*;
