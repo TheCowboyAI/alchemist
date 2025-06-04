@@ -3,7 +3,7 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-04T15:45:00-07:00",
+    "updated": "2025-06-04T19:30:00-07:00",
     "version": "2.0.0"
   },
   "nodes": [
@@ -102,7 +102,7 @@
       "position": { "x": 500, "y": 0, "z": 0 },
       "data": {
         "status": "in-progress",
-        "progress": 0,
+        "progress": 33,
         "week": 1,
         "description": "NATS client setup, secure connection, event bridge"
       }
@@ -113,9 +113,18 @@
       "type": "task",
       "position": { "x": 500, "y": -100, "z": 0 },
       "data": {
-        "status": "not-started",
-        "progress": 0,
-        "parent": "phase-0-start"
+        "status": "completed",
+        "progress": 100,
+        "parent": "phase-0-start",
+        "description": "async-nats 0.41 integrated, client wrapper with JetStream support, build issues resolved with Bevy 0.16",
+        "completed_date": "2025-06-04",
+        "details": [
+          "Added async-nats 0.41 with tokio runtime",
+          "Created NATS client wrapper with health checks",
+          "Implemented configuration with JetStream support",
+          "Fixed Bevy 0.16 dynamic linking issues",
+          "Added basic integration tests"
+        ]
       }
     },
     {
@@ -126,7 +135,8 @@
       "data": {
         "status": "not-started",
         "progress": 0,
-        "parent": "phase-0-start"
+        "parent": "phase-0-start",
+        "description": "JWT authentication, TLS configuration, credentials management"
       }
     },
     {
@@ -137,7 +147,25 @@
       "data": {
         "status": "not-started",
         "progress": 0,
-        "parent": "phase-0-start"
+        "parent": "phase-0-start",
+        "description": "Async/sync bridge between NATS and Bevy ECS"
+      }
+    },
+    {
+      "id": "testing-framework",
+      "label": "Testing Framework Enhanced",
+      "type": "milestone",
+      "position": { "x": 525, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-04",
+        "description": "Added user stories, acceptance tests, and fitness functions for presentation layer",
+        "details": [
+          "Created 27 user stories covering all contexts",
+          "Defined acceptance tests for event-driven architecture",
+          "Established fitness functions for performance and reliability",
+          "Documented testing patterns for CIM architecture"
+        ]
       }
     },
     {
@@ -306,6 +334,13 @@
       "target": "phase-0-event-bridge",
       "label": "contains",
       "type": "hierarchy"
+    },
+    {
+      "id": "e7a",
+      "source": "phase-0-start",
+      "target": "testing-framework",
+      "label": "enhanced",
+      "type": "parallel"
     },
     {
       "id": "e8",

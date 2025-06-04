@@ -237,7 +237,7 @@ This guideline ensures that naming within your project is Domain-Driven Design c
 
 ### Eventual Consistency Patterns
 - Accept that different contexts may have different views of data
-- Use **Saga Pattern** for complex multi-context transactions
+- Use **State Machine Pattern** for complex multi-context transactions
 - Implement **Outbox Pattern** for reliable event publishing
 - Design for **idempotency** in event handlers
 
@@ -263,11 +263,11 @@ This guideline ensures that naming within your project is Domain-Driven Design c
 
 ## Composing Bounded Contexts for Event-Driven Workflows
 
-Based on the DDD elements and your CIM architecture, here's how to effectively compose bounded contexts that communicate through events[3][6][8]:
+Based on the DDD elements and the CIM architecture, here's how to effectively compose bounded contexts that communicate through events:
 
 **Context Boundary Definition**
 
-Each bounded context should encapsulate related **Aggregates**, **Policies**, and **Read Models** that serve a specific business capability[7]. For example, in your CIM system:
+Each bounded context should encapsulate related **Aggregates**, **Policies**, and **Read Models** that serve a specific business capability. For example, in a CIM system:
 
 - **Agent Management Context**: Handles Actor registration, capabilities, and lifecycle
 - **Message Routing Context**: Manages NATS communication patterns and routing
@@ -284,6 +284,6 @@ Complex business processes span multiple contexts through event choreography[6].
 
 **Identifying Hotspots and Opportunities**
 
-The **Hotspot/Bottleneck** and **Opportunity** elements help identify where context boundaries might need adjustment or where new capabilities should be added[5]. Monitor event volumes and processing times to detect bottlenecks, and use **Opportunities** to guide the evolution of your context boundaries as the system grows.
+The **Hotspot/Bottleneck** and **Opportunity** elements help identify where context boundaries might need adjustment or where new capabilities should be added. Monitor event volumes and processing times to detect bottlenecks, and use **Opportunities** to guide the evolution of your context boundaries as the system grows.
 
 This approach ensures your CIM architecture maintains clear boundaries while enabling sophisticated agent collaboration through well-defined event flows across your distributed system.

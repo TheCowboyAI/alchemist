@@ -27,4 +27,5 @@ Your report will be placed into /doc/qa with a proper title without a date.
 
 If you need to fix the code, put a plan in /doc/plan that can be executed to implement the changes.
 
-If work you are documenting is still in progress, put it in /doc/progress
+If work you are documenting what is still in progress, put it in /doc/progress
+ALWAYS READ AND UPDATE /doc/progress/progress.json FOR ACCURACY!!!

@@ -82,6 +82,142 @@ This document contains user stories for our Domain-Driven Design Graph Editor an
 
 **Tests:** `test_edges_repository`
 
+## Event-Driven Architecture Context
+
+### Story 18: Send Commands Through Events
+**As a** developer
+**I want** to send commands through Bevy's event system
+**So that** I can decouple command submission from processing
+
+**Acceptance Criteria:**
+- ✅ Commands are wrapped in CommandEvent
+- ✅ Events are sent through EventWriter
+- ✅ Multiple commands can be sent per frame
+- ✅ Commands include Graph, Node, and Edge variants
+
+**Tests:** Integration test needed
+
+### Story 19: Process Commands Asynchronously
+**As a** system architect
+**I want** commands to be processed in a dedicated system
+**So that** command handling is centralized and testable
+
+**Acceptance Criteria:**
+- ✅ Command handler system reads CommandEvents
+- ✅ Graph commands generate appropriate domain events
+- ⚠️ Node commands are not yet implemented
+- ⚠️ Edge commands are not yet implemented
+
+**Tests:** Unit tests needed for command handlers
+
+### Story 20: Receive Domain Event Notifications
+**As a** developer
+**I want** to receive notifications when domain events occur
+**So that** I can update the UI and other systems reactively
+
+**Acceptance Criteria:**
+- ✅ Domain events are wrapped in EventNotification
+- ✅ Events are written through EventWriter
+- ✅ Event handlers can read events with EventReader
+- ✅ Events include full domain event data
+
+**Tests:** Integration test needed
+
+### Story 21: Bridge Domain Events to ECS
+**As a** developer
+**I want** domain events to update ECS entities
+**So that** the visual representation stays synchronized
+
+**Acceptance Criteria:**
+- ✅ Event handler system processes EventNotifications
+- ✅ System logs received events
+- ❌ ECS entities are not yet updated from events
+- ❌ Visual components are not yet created
+
+**Tests:** `handle_domain_events` system needs implementation
+
+## Presentation Layer Context
+
+### Story 22: Initialize 3D Camera
+**As a** user
+**I want** a 3D camera automatically configured
+**So that** I can view the graph immediately
+
+**Acceptance Criteria:**
+- ✅ Camera spawns at startup
+- ✅ Camera positioned to view origin
+- ✅ Camera uses default 3D projection
+- ✅ Camera looks at world center
+
+**Tests:** Visual verification needed
+
+### Story 23: Plugin-Based Architecture
+**As a** developer
+**I want** functionality organized into Bevy plugins
+**So that** features are modular and reusable
+
+**Acceptance Criteria:**
+- ✅ GraphEditorPlugin encapsulates graph functionality
+- ✅ Plugin registers required events
+- ✅ Plugin adds startup and update systems
+- ✅ Plugin can be added with single line
+
+**Tests:** Plugin integration test needed
+
+### Story 24: Startup Graph Creation
+**As a** user
+**I want** a test graph created at startup
+**So that** I can see the system working immediately
+
+**Acceptance Criteria:**
+- ✅ Test graph created in startup system
+- ✅ Graph has unique ID
+- ✅ Creation command sent through event system
+- ✅ Startup is logged for debugging
+
+**Tests:** Integration test with event verification
+
+## NATS Integration Context
+
+### Story 25: Configure NATS Connection
+**As a** system administrator
+**I want** NATS connection to be configurable
+**So that** I can connect to different environments
+
+**Acceptance Criteria:**
+- ✅ Configuration supports URL and credentials
+- ✅ JetStream is enabled by default
+- ✅ Connection timeout is configurable
+- ✅ Retry policy is configurable
+
+**Tests:** `test_nats_config_defaults`
+
+### Story 26: Health Check NATS Connection
+**As a** developer
+**I want** to verify NATS connectivity
+**So that** I can handle connection failures gracefully
+
+**Acceptance Criteria:**
+- ✅ Health check pings NATS server
+- ✅ Returns success/failure status
+- ✅ Includes latency measurement
+- ✅ Non-blocking with timeout
+
+**Tests:** `test_nats_health_check` (requires running NATS)
+
+### Story 27: Async-Sync Event Bridge
+**As a** developer
+**I want** to bridge async NATS events to sync Bevy
+**So that** I can use NATS in the ECS architecture
+
+**Acceptance Criteria:**
+- ⚠️ Bridge architecture defined
+- ❌ Command channel not implemented
+- ❌ Event channel not implemented
+- ❌ Bridge system not integrated
+
+**Tests:** Bridge implementation needed
+
 ## Visualization Context
 
 ### Story 7: View Graph in 3D
@@ -237,14 +373,24 @@ This document contains user stories for our Domain-Driven Design Graph Editor an
 
 ## Test Coverage Summary
 
-**Total User Stories:** 17
-**Fully Covered:** 14 (82%)
-**Partially Covered:** 2 (12%)
-**Not Covered:** 1 (6%)
+**Total User Stories:** 27
+**Fully Covered:** 18 (67%)
+**Partially Covered:** 5 (18%)
+**Not Covered:** 4 (15%)
 
 ## Priority Improvements
 
-1. **Edge Animation** - Critical for data flow visualization
-2. **Selection Visual Feedback** - Essential for user interaction
-3. **Keyboard Integration** - Important for power users
-4. **Integration Tests** - Needed to verify full workflows
+1. **Event-to-ECS Bridge** - Critical for visual updates
+2. **Node/Edge Command Handlers** - Essential for graph manipulation
+3. **Async-Sync Bridge** - Required for NATS integration
+4. **Visual Entity Creation** - Needed for graph rendering
+5. **Integration Tests** - Verify full event flow
+
+## Next Implementation Steps
+
+1. Implement node and edge command handlers
+2. Create ECS components for graph entities
+3. Update domain events to spawn/update entities
+4. Implement async-sync bridge for NATS
+5. Add visual feedback for interactions
+6. Create integration tests for event flow

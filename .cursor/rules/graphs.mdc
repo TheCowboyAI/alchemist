@@ -3,7 +3,6 @@ description: Graphs in CIM
 globs: *.rs
 alwaysApply: false
 ---
-
 # EventStore-CQRS-Graph + Bevy v0.16 Integration Best Practices
 
 ## Core Architecture Principles
@@ -357,3 +356,567 @@ pub struct GraphConfig {
 ```
 
 This architecture provides a high-performance, memory-efficient graph system with cryptographic integrity through CID chains, optimized query performance through CQRS, and real-time visualization through Bevy ECS.
+
+# Graph Implementation in CIM
+
+## Core Purpose
+
+Graphs in CIM serve as the primary visualization and interaction layer for:
+- **Domain-Driven Workflows**: Visual representation of business processes
+- **Conceptual Spaces**: Geometric knowledge representation
+- **Event Flows**: Visualization of event-sourced state changes
+- **Dog-fooding**: Self-visualization of CIM's own development
+
+## Architecture Overview
+
+```rust
+// CIM Graph Architecture
+pub struct CIMGraphSystem {
+    // Domain Layer - Source of Truth
+    event_store: EventStore,              // NATS JetStream with CID chains
+    graph_aggregate: GraphAggregate,      // Domain logic and invariants
+
+    // Application Layer - CQRS
+    command_handlers: CommandHandlers,    // Process graph mutations
+    projections: GraphProjections,        // Optimized read models
+
+    // Presentation Layer - Bevy ECS
+    bevy_bridge: AsyncSyncBridge,         // Event synchronization
+    visual_components: GraphComponents,   // ECS components for rendering
+
+    // Conceptual Integration
+    conceptual_space: ConceptualSpace,    // Semantic positioning
+    embeddings: EmbeddingStore,           // Knowledge representation
+}
+```
+
+## Domain Model
+
+### Graph Aggregate
+```rust
+#[derive(Debug, Clone)]
+pub struct GraphAggregate {
+    pub id: GraphId,
+    pub name: String,
+    pub graph_type: GraphType,
+    pub nodes: HashMap<NodeId, Node>,
+    pub edges: HashMap<EdgeId, Edge>,
+    pub conceptual_mapping: ConceptualMapping,
+    pub version: u64,
+    pub last_event_cid: Option<Cid>,
+}
+
+#[derive(Debug, Clone)]
+pub enum GraphType {
+    WorkflowGraph,      // Business process visualization
+    ConceptualGraph,    // Knowledge representation
+    EventFlowGraph,     // Event sourcing visualization
+    DevelopmentGraph,   // Dog-fooding self-visualization
+}
+
+impl GraphAggregate {
+    pub fn handle_command(&mut self, cmd: GraphCommand) -> Result<Vec<DomainEvent>> {
+        match cmd {
+            GraphCommand::AddNode { node_type, position, metadata } => {
+                // Validate domain invariants
+                self.validate_node_addition(&node_type)?;
+
+                // Create node with conceptual position
+                let node_id = NodeId::new();
+                let conceptual_point = self.conceptual_mapping
+                    .map_to_conceptual_space(&position)?;
+
+                let event = NodeAdded {
+                    graph_id: self.id,
+                    node_id,
+                    node_type,
+                    position,
+                    conceptual_point,
+                    metadata,
+                };
+
+                self.apply_event(&event);
+                Ok(vec![DomainEvent::NodeAdded(event)])
+            }
+            GraphCommand::ConnectNodes { source, target, edge_type } => {
+                // Validate connection rules
+                self.validate_edge_creation(&source, &target, &edge_type)?;
+
+                // Calculate semantic distance
+                let semantic_distance = self.calculate_semantic_distance(&source, &target)?;
+
+                let event = NodesConnected {
+                    graph_id: self.id,
+                    edge_id: EdgeId::new(),
+                    source,
+                    target,
+                    edge_type,
+                    semantic_distance,
+                };
+
+                self.apply_event(&event);
+                Ok(vec![DomainEvent::NodesConnected(event)])
+            }
+            // Other commands...
+        }
+    }
+}
+```
+
+### Node and Edge Types
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum NodeType {
+    // Workflow Nodes
+    WorkflowStep { step_type: StepType },
+    Decision { criteria: DecisionCriteria },
+    Integration { system: String },
+
+    // Conceptual Nodes
+    Concept { embedding: ConceptEmbedding },
+    Category { region: ConvexRegion },
+
+    // Event Nodes
+    Event { event_type: String },
+    Aggregate { aggregate_type: String },
+
+    // Development Nodes (Dog-fooding)
+    Feature { status: FeatureStatus },
+    Task { priority: Priority },
+    Milestone { target_date: DateTime<Utc> },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum EdgeType {
+    // Workflow Edges
+    Sequence,
+    Conditional { condition: String },
+    Parallel,
+
+    // Conceptual Edges
+    Similarity { strength: f32 },
+    Hierarchy { level: u32 },
+    Association { relation_type: String },
+
+    // Event Edges
+    Triggers,
+    Produces,
+    ConsumesFrom,
+
+    // Development Edges
+    DependsOn,
+    Blocks,
+    Implements,
+}
+```
+
+## Event Sourcing Integration
+
+### Graph Events
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum GraphEvent {
+    GraphCreated {
+        graph_id: GraphId,
+        graph_type: GraphType,
+        name: String,
+        metadata: HashMap<String, Value>,
+    },
+    NodeAdded {
+        graph_id: GraphId,
+        node_id: NodeId,
+        node_type: NodeType,
+        position: Position3D,
+        conceptual_point: ConceptualPoint,
+        metadata: HashMap<String, Value>,
+    },
+    NodesConnected {
+        graph_id: GraphId,
+        edge_id: EdgeId,
+        source: NodeId,
+        target: NodeId,
+        edge_type: EdgeType,
+        semantic_distance: f32,
+    },
+    NodeUpdated {
+        graph_id: GraphId,
+        node_id: NodeId,
+        changes: NodeChanges,
+        reason: UpdateReason,
+    },
+    ConceptualSpaceRecalibrated {
+        graph_id: GraphId,
+        old_mapping: ConceptualMapping,
+        new_mapping: ConceptualMapping,
+        affected_nodes: Vec<NodeId>,
+    },
+}
+```
+
+## Conceptual Space Integration
+
+### Semantic Positioning
+```rust
+pub struct ConceptualMapping {
+    space_id: ConceptualSpaceId,
+    dimension_mappings: Vec<DimensionMapping>,
+    position_calculator: Box<dyn PositionCalculator>,
+}
+
+impl ConceptualMapping {
+    pub fn map_to_conceptual_space(
+        &self,
+        visual_position: &Position3D,
+    ) -> Result<ConceptualPoint> {
+        // Map visual position to semantic dimensions
+        let mut coordinates = Vec::new();
+
+        for mapping in &self.dimension_mappings {
+            let value = mapping.extract_from_position(visual_position)?;
+            coordinates.push(value);
+        }
+
+        Ok(ConceptualPoint {
+            space_id: self.space_id,
+            coordinates,
+            confidence: self.calculate_confidence(&coordinates),
+        })
+    }
+
+    pub fn find_optimal_visual_position(
+        &self,
+        conceptual_point: &ConceptualPoint,
+    ) -> Result<Position3D> {
+        // Inverse mapping for layout algorithms
+        self.position_calculator.calculate(conceptual_point)
+    }
+}
+```
+
+### Knowledge-Aware Layout
+```rust
+pub struct SemanticLayoutEngine {
+    conceptual_space: ConceptualSpace,
+    layout_constraints: LayoutConstraints,
+}
+
+impl SemanticLayoutEngine {
+    pub fn layout_graph(
+        &self,
+        nodes: &[Node],
+        edges: &[Edge],
+    ) -> Result<HashMap<NodeId, Position3D>> {
+        // Use conceptual distances for force-directed layout
+        let mut positions = HashMap::new();
+
+        // Initialize with conceptual positions
+        for node in nodes {
+            let initial_pos = self.conceptual_space
+                .get_visual_position(&node.conceptual_point)?;
+            positions.insert(node.id, initial_pos);
+        }
+
+        // Apply force-directed algorithm with semantic weights
+        self.apply_semantic_forces(&mut positions, nodes, edges)?;
+
+        Ok(positions)
+    }
+}
+```
+
+## Bevy ECS Components
+
+### Graph Components
+```rust
+#[derive(Component)]
+pub struct GraphEntity {
+    pub graph_id: GraphId,
+    pub graph_type: GraphType,
+    pub last_event_cid: Option<Cid>,
+}
+
+#[derive(Component)]
+pub struct GraphNode {
+    pub node_id: NodeId,
+    pub node_type: NodeType,
+    pub conceptual_point: ConceptualPoint,
+}
+
+#[derive(Component)]
+pub struct GraphEdge {
+    pub edge_id: EdgeId,
+    pub edge_type: EdgeType,
+    pub source_entity: Entity,
+    pub target_entity: Entity,
+    pub semantic_distance: f32,
+}
+
+#[derive(Component)]
+pub struct ConceptualPosition {
+    pub point: ConceptualPoint,
+    pub visual_position: Position3D,
+    pub interpolation_factor: f32, // For smooth transitions
+}
+
+#[derive(Component)]
+pub struct WorkflowState {
+    pub status: WorkflowStatus,
+    pub current_step: Option<NodeId>,
+    pub execution_path: Vec<NodeId>,
+}
+```
+
+### Visualization Systems
+```rust
+fn update_graph_visualization(
+    mut commands: Commands,
+    bridge: Res<AsyncSyncBridge>,
+    mut graph_query: Query<&mut GraphEntity>,
+    mut node_positions: Query<(&GraphNode, &mut Transform)>,
+    layout_engine: Res<SemanticLayoutEngine>,
+) {
+    // Poll for graph events
+    let events = bridge.receive_graph_events();
+
+    for event in events {
+        match event {
+            GraphEvent::NodeAdded { node_id, position, conceptual_point, .. } => {
+                // Spawn visual representation
+                commands.spawn((
+                    GraphNode { node_id, .. },
+                    ConceptualPosition {
+                        point: conceptual_point,
+                        visual_position: position,
+                        interpolation_factor: 0.0,
+                    },
+                    Transform::from_translation(position.into()),
+                    // Visual components...
+                ));
+            }
+            GraphEvent::ConceptualSpaceRecalibrated { affected_nodes, .. } => {
+                // Recalculate layout based on new conceptual mapping
+                let new_layout = layout_engine.layout_affected_nodes(&affected_nodes);
+
+                // Smoothly transition to new positions
+                for (node, mut transform) in node_positions.iter_mut() {
+                    if let Some(new_pos) = new_layout.get(&node.node_id) {
+                        // Animate transition
+                        transform.translation = transform.translation.lerp(
+                            (*new_pos).into(),
+                            0.1, // Smooth factor
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+## Dog-fooding Implementation
+
+### Self-Visualization
+```rust
+pub struct DevelopmentGraph {
+    pub graph: GraphAggregate,
+    pub progress_tracker: ProgressTracker,
+    pub milestone_manager: MilestoneManager,
+}
+
+impl DevelopmentGraph {
+    pub fn visualize_progress(&mut self) -> Result<()> {
+        // Create nodes for current features
+        for feature in self.progress_tracker.active_features() {
+            self.graph.handle_command(GraphCommand::AddNode {
+                node_type: NodeType::Feature {
+                    status: feature.status,
+                },
+                position: self.calculate_feature_position(&feature)?,
+                metadata: feature.metadata(),
+            })?;
+        }
+
+        // Connect dependencies
+        for (feature, deps) in self.progress_tracker.dependencies() {
+            for dep in deps {
+                self.graph.handle_command(GraphCommand::ConnectNodes {
+                    source: feature.node_id,
+                    target: dep.node_id,
+                    edge_type: EdgeType::DependsOn,
+                })?;
+            }
+        }
+
+        Ok(())
+    }
+}
+```
+
+## Performance Optimizations
+
+### Spatial Indexing
+```rust
+pub struct SpatialIndex {
+    rtree: RTree<GraphNode>,
+    conceptual_index: ConceptualIndex,
+    edge_index: HashMap<(NodeId, NodeId), EdgeId>,
+}
+
+impl SpatialIndex {
+    pub fn find_nodes_in_region(
+        &self,
+        region: &BoundingBox,
+    ) -> Vec<NodeId> {
+        self.rtree
+            .locate_in_envelope(&region.to_envelope())
+            .map(|node| node.node_id)
+            .collect()
+    }
+
+    pub fn find_semantically_similar(
+        &self,
+        node_id: NodeId,
+        threshold: f32,
+    ) -> Vec<(NodeId, f32)> {
+        self.conceptual_index
+            .find_similar(node_id, threshold)
+    }
+}
+```
+
+### Level-of-Detail (LOD)
+```rust
+#[derive(Component)]
+pub struct GraphLOD {
+    pub detail_level: DetailLevel,
+    pub visible_radius: f32,
+}
+
+fn update_graph_lod(
+    camera: Query<&Transform, With<Camera>>,
+    mut nodes: Query<(&Transform, &mut GraphLOD, &mut Visibility)>,
+) {
+    let camera_pos = camera.single().translation;
+
+    for (transform, mut lod, mut visibility) in nodes.iter_mut() {
+        let distance = camera_pos.distance(transform.translation);
+
+        // Adjust detail level based on distance
+        lod.detail_level = match distance {
+            d if d < 50.0 => DetailLevel::Full,
+            d if d < 200.0 => DetailLevel::Simplified,
+            _ => DetailLevel::Hidden,
+        };
+
+        // Update visibility
+        *visibility = if distance < lod.visible_radius {
+            Visibility::Visible
+        } else {
+            Visibility::Hidden
+        };
+    }
+}
+```
+
+## Testing Patterns
+
+### Graph Invariant Tests
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_conceptual_consistency() {
+        let mut graph = create_test_graph();
+
+        // Add nodes
+        let node1 = add_concept_node(&mut graph, "Machine Learning");
+        let node2 = add_concept_node(&mut graph, "Neural Networks");
+
+        // Connect with similarity edge
+        connect_nodes(&mut graph, node1, node2, EdgeType::Similarity { strength: 0.8 });
+
+        // Verify conceptual distance matches edge strength
+        let distance = graph.conceptual_mapping
+            .calculate_distance(&node1, &node2)
+            .unwrap();
+
+        assert!((1.0 - distance - 0.8).abs() < 0.1);
+    }
+
+    #[tokio::test]
+    async fn test_event_sourcing_replay() {
+        let event_store = create_test_event_store().await;
+        let mut graph = GraphAggregate::new(GraphId::new());
+
+        // Generate events
+        let events = vec![
+            create_node_added_event(),
+            create_edge_added_event(),
+        ];
+
+        // Store and replay
+        event_store.append_events(events.clone()).await.unwrap();
+        let replayed = event_store.get_events(graph.id).await.unwrap();
+
+        // Apply to graph
+        for event in replayed {
+            graph.apply_event(&event);
+        }
+
+        // Verify state
+        assert_eq!(graph.nodes.len(), 1);
+        assert_eq!(graph.edges.len(), 1);
+    }
+}
+```
+
+## Best Practices
+
+1. **Event-First Design**: Always start with domain events when adding graph features
+2. **Conceptual Alignment**: Ensure visual layout reflects semantic relationships
+3. **Performance Awareness**: Use spatial indices and LOD for large graphs
+4. **Dog-food Continuously**: Use the graph to visualize its own development
+5. **Test Invariants**: Verify both visual and conceptual consistency
+
+## Common Pitfalls to Avoid
+
+❌ **Direct Graph Manipulation**
+```rust
+// WRONG - Bypassing domain logic
+graph.nodes.insert(node_id, node);
+```
+
+✅ **Command-Based Updates**
+```rust
+// CORRECT - Through aggregate
+graph.handle_command(GraphCommand::AddNode { ... })?;
+```
+
+❌ **Ignoring Conceptual Space**
+```rust
+// WRONG - Only visual positioning
+let position = Position3D::new(x, y, z);
+```
+
+✅ **Semantic Positioning**
+```rust
+// CORRECT - Map to conceptual space
+let conceptual_point = mapping.map_to_conceptual_space(&position)?;
+```
+
+❌ **Tight Coupling to Bevy**
+```rust
+// WRONG - Domain knows about ECS
+impl GraphAggregate {
+    fn spawn_entity(&self, commands: &mut Commands) { ... }
+}
+```
+
+✅ **Clean Separation**
+```rust
+// CORRECT - Events bridge domains
+let event = self.create_event();
+// Let Bevy systems handle spawning
+```
