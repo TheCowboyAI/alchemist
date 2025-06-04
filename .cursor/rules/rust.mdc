@@ -5,7 +5,7 @@ alwaysApply: false
 autoAttached: true
 ---
 When planning to write code, ALWAYS respect the documentation in /doc
-If instructions in /doc are unclear for the propose functionality, ASK FOR CLARITY and add to the documentation before writing code.
+If instructions in /doc are unclear for the proposed functionality, ASK FOR CLARITY and add to the documentation before writing code.
 
 YOU HAVE MANY EXAMPLES TO FOLLOW IN /samples
 FOR BEVY AND EGUI CODE REFER TO THESE SAMPLES FOR SYNTAX CLARITY
@@ -15,9 +15,16 @@ IF THE CARGO.TOML FILE SPECIFIES A VERSION, YOU MAY ONLY GO UP, NEVER DOWN.
 
 DO NOT MAKE TEMPORARY DOWNGRADES, FIX THE PROBLEM AT HAND.
 
-USE `nix run` and `nix build` AS `cargo run` MAY NOT HAVE THE RIGHT ENVIRONMENT
+USE `nix build` OR `nix develop -c cargo build` TO LOAD THE RIGHT NIX ENVIRONMENT
 
 For building Bevy applications on NixOS, always use the Nix build toolchain rather than cargo directly, as Nix handles all the proper library paths and dynamic linking that Bevy requires.
+
+ALWAYS be sure we CAN build before building as builds take some time.
+use `nix develop -c cargo build` and `nix develop -c cargo test` to ensure no errors exist before building.
+
+YOU MAY NOT CREATE ORPHANED PLACEHOLDERS
+IF YOU CREATE A VARIABLE, YOU MUST USE IT.
+IF YOU CREATE A FUNCTION YOU MUST IMPLEMENT IT, NOT LEAVE AN EMPTY STUB.
 
 ```markdown
 

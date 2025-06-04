@@ -12,6 +12,9 @@ alwaysApply: true
 3. **Headless Execution** - All tests must run in BEVY_HEADLESS=1 mode with Wayland disabled[3][7]
 4. **Test Coverage** - 80%+
 
+We operate on Events and Event Handlers.
+ALL Events should be ABLE to be handled, in other words a handler exists, but may not always get called.
+
 ## Bevy ECS Testing Directives
 ```
 // REQUIRED test setup pattern
