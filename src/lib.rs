@@ -1,10 +1,11 @@
-//! IA - Intelligent Agent library
+//! Information Alchemist - Event-Sourced Graph Editor
+//!
+//! A high-performance graph editor built with Event Sourcing, CQRS, and Bevy ECS.
 
-pub mod contexts;
+pub mod domain;
+pub mod infrastructure;
+pub mod application;
+pub mod presentation;
 
-#[cfg(test)]
-pub mod testing;
-
-// Test configuration module
-#[cfg(test)]
-mod test_config;
+pub use domain::prelude::*;
+pub use presentation::GraphEditorPlugin;

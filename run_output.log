@@ -1,0 +1,414 @@
+[2m2025-06-04T03:22:12.946818Z[0m [32m INFO[0m [2mbevy_diagnostic::system_information_diagnostics_plugin::internal[0m[2m:[0m SystemInfo { os: "Linux (NixOS 25.11)", kernel: "6.14.7", cpu: "Intel(R) Xeon(R) W-10885M CPU @ 2.40GHz", core_count: "8", memory: "125.4 GiB" }    
+[2m2025-06-04T03:22:12.948884Z[0m [33m WARN[0m [2mwinit::platform_impl::linux::x11::xdisplay[0m[2m:[0m error setting XSETTINGS; Xft options won't reload automatically
+[2m2025-06-04T03:22:12.993699Z[0m [32m INFO[0m [2mbevy_render::renderer[0m[2m:[0m AdapterInfo { name: "Intel(R) UHD Graphics P630 (CML GT2)", vendor: 32902, device: 39926, device_type: IntegratedGpu, driver: "Intel open-source Mesa driver", driver_info: "Mesa 25.0.6", backend: Vulkan }
+[2m2025-06-04T03:22:13.065737Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m Event Store plugin initialized with Merkle DAG support
+[2m2025-06-04T03:22:13.065938Z[0m [32m INFO[0m [2mia::contexts::selection::plugin[0m[2m:[0m Selection plugin initialized
+[2m2025-06-04T03:22:13.077671Z[0m [32m INFO[0m [2mbevy_render::batching::gpu_preprocessing[0m[2m:[0m GPU preprocessing is fully supported on this device.
+[2m2025-06-04T03:22:13.098912Z[0m [32m INFO[0m [2mbevy_winit::system[0m[2m:[0m Creating new window App (0v1)
+[2m2025-06-04T03:22:13.098945Z[0m [32m INFO[0m [2mwinit::platform_impl::linux::x11::window[0m[2m:[0m Guessed window scale factor: 2.6666666666666665
+[2m2025-06-04T03:22:13.099323Z[0m [32m INFO[0m [2mia::contexts::visualization::plugin[0m[2m:[0m Visualization settings entity created
+[2m2025-06-04T03:22:13.099399Z[0m [32m INFO[0m [2mia[0m[2m:[0m Test graph created with 8 nodes and 14 edges
+[2m2025-06-04T03:22:13.099405Z[0m [32m INFO[0m [2mia[0m[2m:[0m ========== KEYBOARD CONTROLS ==========
+[2m2025-06-04T03:22:13.099408Z[0m [32m INFO[0m [2mia[0m[2m:[0m Graph Layout:
+[2m2025-06-04T03:22:13.099409Z[0m [32m INFO[0m [2mia[0m[2m:[0m   L - Apply force-directed layout
+[2m2025-06-04T03:22:13.099411Z[0m [32m INFO[0m [2mia[0m[2m:[0m 
+[2m2025-06-04T03:22:13.099412Z[0m [32m INFO[0m [2mia[0m[2m:[0m Visualization Modes:
+[2m2025-06-04T03:22:13.099414Z[0m [32m INFO[0m [2mia[0m[2m:[0m   C - Convert to point cloud
+[2m2025-06-04T03:22:13.099416Z[0m [32m INFO[0m [2mia[0m[2m:[0m   Ctrl+1 - Change nodes to Spheres
+[2m2025-06-04T03:22:13.099418Z[0m [32m INFO[0m [2mia[0m[2m:[0m   Ctrl+2 - Change nodes to Cubes
+[2m2025-06-04T03:22:13.099419Z[0m [32m INFO[0m [2mia[0m[2m:[0m   Ctrl+3 - Change nodes to Wireframes
+[2m2025-06-04T03:22:13.099421Z[0m [32m INFO[0m [2mia[0m[2m:[0m   Ctrl+4 - Change nodes to Point Clouds
+[2m2025-06-04T03:22:13.099422Z[0m [32m INFO[0m [2mia[0m[2m:[0m 
+[2m2025-06-04T03:22:13.099424Z[0m [32m INFO[0m [2mia[0m[2m:[0m File Operations:
+[2m2025-06-04T03:22:13.099425Z[0m [32m INFO[0m [2mia[0m[2m:[0m   Ctrl+O - Load graph from assets/models/CIM.json
+[2m2025-06-04T03:22:13.099427Z[0m [32m INFO[0m [2mia[0m[2m:[0m 
+[2m2025-06-04T03:22:13.099429Z[0m [32m INFO[0m [2mia[0m[2m:[0m Camera:
+[2m2025-06-04T03:22:13.099430Z[0m [32m INFO[0m [2mia[0m[2m:[0m   Drag - Rotate camera
+[2m2025-06-04T03:22:13.099453Z[0m [32m INFO[0m [2mia[0m[2m:[0m   Wheel - Zoom in/out
+[2m2025-06-04T03:22:13.099455Z[0m [32m INFO[0m [2mia[0m[2m:[0m ======================================
+[2m2025-06-04T03:22:21.533938Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Clearing existing graphs...
+[2m2025-06-04T03:22:50.047278Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Loading graph from: /home/steele/git/thecowboyai/alchemist/assets/models/CIM.json
+[2m2025-06-04T03:22:50.047519Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 33v1#4294967329 with ID NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) at position Vec3(4.4856358, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.047550Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 34v1#4294967330 with ID NodeIdentity(d09ba746-6c54-469f-9db2-805c2d678df0) at position Vec3(8.721071, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.047553Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 35v1#4294967331 with ID NodeIdentity(e35e7abf-e92f-439a-b15c-1e0fbf63a7b7) at position Vec3(7.98031, 0.0, 5.8074985)
+[2m2025-06-04T03:22:50.047556Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 36v1#4294967332 with ID NodeIdentity(475ee60b-29f4-4e33-aee8-9793c6ef1724) at position Vec3(5.7743883, 0.0, 12.394446)
+[2m2025-06-04T03:22:50.047586Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 37v1#4294967333 with ID NodeIdentity(4acff866-fcb7-4c1f-ad99-9ecdcf0ba8c7) at position Vec3(0.25019997, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.047594Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 38v1#4294967334 with ID NodeIdentity(bb203afc-0104-4270-a997-2174f5fd68f3) at position Vec3(7.98031, 0.0, 10.912186)
+[2m2025-06-04T03:22:50.047598Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 39v1#4294967335 with ID NodeIdentity(47ef686f-817d-4d2b-bd8e-5e837985584b) at position Vec3(5.628968, 0.0, 4.281643)
+[2m2025-06-04T03:22:50.047603Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 40v1#4294967336 with ID NodeIdentity(28df7b48-ddb8-44ae-8bfa-ebb5521112a5) at position Vec3(2.9592202, 0.0, 12.310661)
+[2m2025-06-04T03:22:50.047608Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 41v1#4294967337 with ID NodeIdentity(b0e9481e-a893-4e3f-ad06-709e18fc938b) at position Vec3(2.6202722, 0.0, 4.4550214)
+[2m2025-06-04T03:22:50.047614Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 42v1#4294967338 with ID NodeIdentity(a8be6b4b-ef16-4dec-8baf-ee57019f2071) at position Vec3(1.1056272, 0.0, 10.912186)
+[2m2025-06-04T03:22:50.047619Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 43v1#4294967339 with ID NodeIdentity(13657d60-3c62-4630-816e-7cfb682425bb) at position Vec3(0.902936, 0.0, 6.10082)
+[2m2025-06-04T03:22:50.047624Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 44v1#4294967340 with ID NodeIdentity(6564f256-6c0a-45e2-9e65-16ad936980ff) at position Vec3(13.321211, 0.0, 10.670724)
+[2m2025-06-04T03:22:50.047644Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 45v1#4294967341 with ID NodeIdentity(9b06f84c-e6d6-4ded-b22d-ca0feca36cfe) at position Vec3(16.598583, 0.0, 4.9941473)
+[2m2025-06-04T03:22:50.047648Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 46v1#4294967342 with ID NodeIdentity(1f0a969c-79ac-413b-8ce7-9c0aecedf425) at position Vec3(19.875957, 0.0, 10.670724)
+[2m2025-06-04T03:22:50.047654Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned node entity 47v1#4294967343 with ID NodeIdentity(fa2a9ff7-34b5-49ff-afcb-507d199f0527) at position Vec3(16.598583, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.047661Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 48v1#4294967344 with ID EdgeIdentity(deba1f77-3a5d-48de-8111-01295bae73be)
+[2m2025-06-04T03:22:50.047696Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 49v1#4294967345 with ID EdgeIdentity(8e213753-3cd5-473e-8d2d-4941be29dd1f)
+[2m2025-06-04T03:22:50.047700Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 50v1#4294967346 with ID EdgeIdentity(3de6b509-fd25-4a48-89aa-02f83d13826d)
+[2m2025-06-04T03:22:50.047703Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 51v1#4294967347 with ID EdgeIdentity(95b8157a-dd5a-4592-96ee-90026f97e091)
+[2m2025-06-04T03:22:50.047707Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 52v1#4294967348 with ID EdgeIdentity(dbb5ccf2-150c-44de-97b9-b54bbc255d04)
+[2m2025-06-04T03:22:50.047711Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 53v1#4294967349 with ID EdgeIdentity(a7983c98-28bf-4d56-ad59-1a77a85265c5)
+[2m2025-06-04T03:22:50.047714Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 54v1#4294967350 with ID EdgeIdentity(e7ba10ce-a748-4470-bf5f-4a31d352e4c6)
+[2m2025-06-04T03:22:50.047718Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 55v1#4294967351 with ID EdgeIdentity(a2f5057c-d529-47cc-8423-0651f36bf7aa)
+[2m2025-06-04T03:22:50.047742Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 56v1#4294967352 with ID EdgeIdentity(5a65809d-8267-4afd-82ec-cccb1a88f51f)
+[2m2025-06-04T03:22:50.047747Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 57v1#4294967353 with ID EdgeIdentity(a8918bad-53e1-4f33-92bb-5bb543664d30)
+[2m2025-06-04T03:22:50.047772Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 58v1#4294967354 with ID EdgeIdentity(3190db40-7fdf-4edd-bf07-3f2fa6eaae25)
+[2m2025-06-04T03:22:50.047775Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 59v1#4294967355 with ID EdgeIdentity(f430d619-8145-4f2f-9a0e-0dee78d03895)
+[2m2025-06-04T03:22:50.047780Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 60v1#4294967356 with ID EdgeIdentity(74010b25-5658-447c-ad0d-a417ab871b95)
+[2m2025-06-04T03:22:50.047783Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 61v1#4294967357 with ID EdgeIdentity(bd569b68-4612-45d1-8910-5e83b8cf8331)
+[2m2025-06-04T03:22:50.047787Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 62v1#4294967358 with ID EdgeIdentity(28a5cce4-a875-4cec-a84a-fb06247f1645)
+[2m2025-06-04T03:22:50.047791Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 63v1#4294967359 with ID EdgeIdentity(a3f682a2-e401-43cb-9938-aff10c1f49e3)
+[2m2025-06-04T03:22:50.047795Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 64v1#4294967360 with ID EdgeIdentity(99c84a4c-2ac4-464c-8b16-48929a81043b)
+[2m2025-06-04T03:22:50.047799Z[0m [32m INFO[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Spawned edge entity 65v1#4294967361 with ID EdgeIdentity(8a422298-6a38-4207-b2b2-9db72c2f8299)
+[2m2025-06-04T03:22:50.047828Z[0m [31mERROR[0m [2mia::contexts::graph_management::importer[0m[2m:[0m Failed to load graph: Failed to add edge to storage: CycleDetected
+[2m2025-06-04T03:22:50.048116Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 10v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.060994Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 11v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.061202Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 12v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.061305Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 13v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.061428Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 14v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.061493Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 15v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.061552Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 16v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.061649Z[0m [33m WARN[0m [2mbevy_ecs::error::handler[0m[2m:[0m Encountered an error in command `<bevy_ecs::system::commands::entity_command::despawn::{{closure}} as bevy_ecs::error::command_handling::CommandWithEntity<core::result::Result<(), bevy_ecs::world::error::EntityMutableFetchError>>>::with_entity::{{closure}}`: The entity with ID 17v1 does not exist (enable `track_location` feature for more details)
+   1: core::ops::function::FnOnce::call_once
+   2: bevy_ecs::world::command_queue::RawCommandQueue::apply_or_drop_queued
+   3: bevy_ecs::system::commands::_::<impl bevy_ecs::system::system_param::SystemParam for bevy_ecs::system::commands::Commands>::apply
+   4: bevy_ecs::schedule::executor::multi_threaded::apply_deferred
+   5: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   6: async_task::raw::RawTask<F,T,S,M>::run
+   7: <core::panic::unwind_safe::AssertUnwindSafe<F> as core::future::future::Future>::poll
+   8: <futures_lite::future::Or<F1,F2> as core::future::future::Future>::poll
+   9: std::thread::local::LocalKey<T>::with
+  10: bevy_tasks::task_pool::TaskPool::scope_with_executor_inner
+  11: <bevy_ecs::schedule::executor::multi_threaded::MultiThreadedExecutor as bevy_ecs::schedule::executor::SystemExecutor>::run
+  12: bevy_ecs::world::World::try_schedule_scope
+  13: bevy_ecs::world::World::try_resource_scope
+  14: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+  15: bevy_ecs::system::system::System::run
+note: Some "noisy" backtrace lines have been filtered out. Run with `BEVY_BACKTRACE=full` for a verbose backtrace.
+    
+[2m2025-06-04T03:22:50.063248Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Started rotation animation for graph: c9f1f2be-8f58-45de-b76e-64c7ad2953be
+[2m2025-06-04T03:22:50.063297Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m visualize_new_edges: Processing 18 EdgeConnected events
+[2m2025-06-04T03:22:50.063302Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(deba1f77-3a5d-48de-8111-01295bae73be) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(d09ba746-6c54-469f-9db2-805c2d678df0)
+[2m2025-06-04T03:22:50.063307Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 48v1#4294967344
+[2m2025-06-04T03:22:50.063308Z[0m [33m WARN[0m [2mia::contexts::graph_management::storage[0m[2m:[0m Failed to sync graph creation: GraphAlreadyExists(GraphIdentity(c9f1f2be-8f58-45de-b76e-64c7ad2953be))
+[2m2025-06-04T03:22:50.063326Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(8e213753-3cd5-473e-8d2d-4941be29dd1f) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(e35e7abf-e92f-439a-b15c-1e0fbf63a7b7)
+[2m2025-06-04T03:22:50.063329Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 49v1#4294967345
+[2m2025-06-04T03:22:50.063336Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(3de6b509-fd25-4a48-89aa-02f83d13826d) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(475ee60b-29f4-4e33-aee8-9793c6ef1724)
+[2m2025-06-04T03:22:50.063339Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 50v1#4294967346
+[2m2025-06-04T03:22:50.063346Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(95b8157a-dd5a-4592-96ee-90026f97e091) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(4acff866-fcb7-4c1f-ad99-9ecdcf0ba8c7)
+[2m2025-06-04T03:22:50.063349Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 51v1#4294967347
+[2m2025-06-04T03:22:50.063355Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(dbb5ccf2-150c-44de-97b9-b54bbc255d04) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(bb203afc-0104-4270-a997-2174f5fd68f3)
+[2m2025-06-04T03:22:50.063358Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 52v1#4294967348
+[2m2025-06-04T03:22:50.063367Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(a7983c98-28bf-4d56-ad59-1a77a85265c5) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(47ef686f-817d-4d2b-bd8e-5e837985584b)
+[2m2025-06-04T03:22:50.063369Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 53v1#4294967349
+[2m2025-06-04T03:22:50.063376Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(e7ba10ce-a748-4470-bf5f-4a31d352e4c6) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(28df7b48-ddb8-44ae-8bfa-ebb5521112a5)
+[2m2025-06-04T03:22:50.063377Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 54v1#4294967350
+[2m2025-06-04T03:22:50.063383Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(a2f5057c-d529-47cc-8423-0651f36bf7aa) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(b0e9481e-a893-4e3f-ad06-709e18fc938b)
+[2m2025-06-04T03:22:50.063386Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 55v1#4294967351
+[2m2025-06-04T03:22:50.063392Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(5a65809d-8267-4afd-82ec-cccb1a88f51f) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(a8be6b4b-ef16-4dec-8baf-ee57019f2071)
+[2m2025-06-04T03:22:50.063394Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 56v1#4294967352
+[2m2025-06-04T03:22:50.063402Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(a8918bad-53e1-4f33-92bb-5bb543664d30) from NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735) to NodeIdentity(13657d60-3c62-4630-816e-7cfb682425bb)
+[2m2025-06-04T03:22:50.063404Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 57v1#4294967353
+[2m2025-06-04T03:22:50.063410Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(3190db40-7fdf-4edd-bf07-3f2fa6eaae25) from NodeIdentity(47ef686f-817d-4d2b-bd8e-5e837985584b) to NodeIdentity(e35e7abf-e92f-439a-b15c-1e0fbf63a7b7)
+[2m2025-06-04T03:22:50.063412Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 58v1#4294967354
+[2m2025-06-04T03:22:50.063418Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(f430d619-8145-4f2f-9a0e-0dee78d03895) from NodeIdentity(e35e7abf-e92f-439a-b15c-1e0fbf63a7b7) to NodeIdentity(d09ba746-6c54-469f-9db2-805c2d678df0)
+[2m2025-06-04T03:22:50.063420Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 59v1#4294967355
+[2m2025-06-04T03:22:50.063426Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(74010b25-5658-447c-ad0d-a417ab871b95) from NodeIdentity(475ee60b-29f4-4e33-aee8-9793c6ef1724) to NodeIdentity(28df7b48-ddb8-44ae-8bfa-ebb5521112a5)
+[2m2025-06-04T03:22:50.063428Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 60v1#4294967356
+[2m2025-06-04T03:22:50.063433Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(bd569b68-4612-45d1-8910-5e83b8cf8331) from NodeIdentity(28df7b48-ddb8-44ae-8bfa-ebb5521112a5) to NodeIdentity(a8be6b4b-ef16-4dec-8baf-ee57019f2071)
+[2m2025-06-04T03:22:50.063435Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 61v1#4294967357
+[2m2025-06-04T03:22:50.063448Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(28a5cce4-a875-4cec-a84a-fb06247f1645) from NodeIdentity(4acff866-fcb7-4c1f-ad99-9ecdcf0ba8c7) to NodeIdentity(13657d60-3c62-4630-816e-7cfb682425bb)
+[2m2025-06-04T03:22:50.063450Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 62v1#4294967358
+[2m2025-06-04T03:22:50.063457Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(a3f682a2-e401-43cb-9938-aff10c1f49e3) from NodeIdentity(13657d60-3c62-4630-816e-7cfb682425bb) to NodeIdentity(b0e9481e-a893-4e3f-ad06-709e18fc938b)
+[2m2025-06-04T03:22:50.063459Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 63v1#4294967359
+[2m2025-06-04T03:22:50.063465Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(99c84a4c-2ac4-464c-8b16-48929a81043b) from NodeIdentity(9b06f84c-e6d6-4ded-b22d-ca0feca36cfe) to NodeIdentity(6564f256-6c0a-45e2-9e65-16ad936980ff)
+[2m2025-06-04T03:22:50.063469Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 64v1#4294967360
+[2m2025-06-04T03:22:50.063478Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing edge: EdgeIdentity(8a422298-6a38-4207-b2b2-9db72c2f8299) from NodeIdentity(6564f256-6c0a-45e2-9e65-16ad936980ff) to NodeIdentity(1f0a969c-79ac-413b-8ce7-9c0aecedf425)
+[2m2025-06-04T03:22:50.063480Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found edge entity 65v1#4294967361
+[2m2025-06-04T03:22:50.063503Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m visualize_new_nodes: Processing 15 NodeAdded events
+[2m2025-06-04T03:22:50.063510Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: NATS with ID NodeIdentity(57d81e89-0669-40f5-92cd-b1875e4c1735)
+[2m2025-06-04T03:22:50.063513Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 33v1#4294967329 at position Vec3(4.4856358, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.063568Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: Policy with ID NodeIdentity(d09ba746-6c54-469f-9db2-805c2d678df0)
+[2m2025-06-04T03:22:50.063571Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 34v1#4294967330 at position Vec3(8.721071, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.063608Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: git with ID NodeIdentity(e35e7abf-e92f-439a-b15c-1e0fbf63a7b7)
+[2m2025-06-04T03:22:50.063610Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 35v1#4294967331 at position Vec3(7.98031, 0.0, 5.8074985)
+[2m2025-06-04T03:22:50.063643Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: NS with ID NodeIdentity(475ee60b-29f4-4e33-aee8-9793c6ef1724)
+[2m2025-06-04T03:22:50.063645Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 36v1#4294967332 at position Vec3(5.7743883, 0.0, 12.394446)
+[2m2025-06-04T03:22:50.063672Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: Mail with ID NodeIdentity(4acff866-fcb7-4c1f-ad99-9ecdcf0ba8c7)
+[2m2025-06-04T03:22:50.063673Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 37v1#4294967333 at position Vec3(0.25019997, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.063700Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: Feeds with ID NodeIdentity(bb203afc-0104-4270-a997-2174f5fd68f3)
+[2m2025-06-04T03:22:50.063701Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 38v1#4294967334 at position Vec3(7.98031, 0.0, 10.912186)
+[2m2025-06-04T03:22:50.063728Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: docs with ID NodeIdentity(47ef686f-817d-4d2b-bd8e-5e837985584b)
+[2m2025-06-04T03:22:50.063729Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 39v1#4294967335 at position Vec3(5.628968, 0.0, 4.281643)
+[2m2025-06-04T03:22:50.063756Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: Web with ID NodeIdentity(28df7b48-ddb8-44ae-8bfa-ebb5521112a5)
+[2m2025-06-04T03:22:50.063757Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 40v1#4294967336 at position Vec3(2.9592202, 0.0, 12.310661)
+[2m2025-06-04T03:22:50.063783Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: Notes with ID NodeIdentity(b0e9481e-a893-4e3f-ad06-709e18fc938b)
+[2m2025-06-04T03:22:50.063784Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 41v1#4294967337 at position Vec3(2.6202722, 0.0, 4.4550214)
+[2m2025-06-04T03:22:50.063809Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: Search with ID NodeIdentity(a8be6b4b-ef16-4dec-8baf-ee57019f2071)
+[2m2025-06-04T03:22:50.063811Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 42v1#4294967338 at position Vec3(1.1056272, 0.0, 10.912186)
+[2m2025-06-04T03:22:50.063835Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: Vault with ID NodeIdentity(13657d60-3c62-4630-816e-7cfb682425bb)
+[2m2025-06-04T03:22:50.063837Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 43v1#4294967339 at position Vec3(0.902936, 0.0, 6.10082)
+[2m2025-06-04T03:22:50.063874Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: cluster0 with ID NodeIdentity(6564f256-6c0a-45e2-9e65-16ad936980ff)
+[2m2025-06-04T03:22:50.063878Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 44v1#4294967340 at position Vec3(13.321211, 0.0, 10.670724)
+[2m2025-06-04T03:22:50.063914Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: cluster2 with ID NodeIdentity(9b06f84c-e6d6-4ded-b22d-ca0feca36cfe)
+[2m2025-06-04T03:22:50.063917Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 45v1#4294967341 at position Vec3(16.598583, 0.0, 4.9941473)
+[2m2025-06-04T03:22:50.063942Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: cluster1 with ID NodeIdentity(1f0a969c-79ac-413b-8ce7-9c0aecedf425)
+[2m2025-06-04T03:22:50.063944Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 46v1#4294967342 at position Vec3(19.875957, 0.0, 10.670724)
+[2m2025-06-04T03:22:50.063969Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Visualizing node: NATS with ID NodeIdentity(fa2a9ff7-34b5-49ff-afcb-507d199f0527)
+[2m2025-06-04T03:22:50.063970Z[0m [32m INFO[0m [2mia::contexts::visualization::services[0m[2m:[0m Found node entity 47v1#4294967343 at position Vec3(16.598583, 0.0, 8.359842)
+[2m2025-06-04T03:22:50.064088Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 48v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064134Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 49v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064146Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 50v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064152Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 51v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064157Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 52v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064170Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 53v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064174Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 54v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064177Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 55v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064183Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 56v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064195Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 57v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064198Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 58v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064203Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 59v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064208Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 60v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064213Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 61v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064218Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 62v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064223Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 63v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064228Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 64v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064241Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 65v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064253Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 33v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064276Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 34v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064280Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 35v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064282Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 36v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064286Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 37v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064298Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 38v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064301Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 39v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064304Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 40v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064306Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 41v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064318Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 42v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064324Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 43v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064328Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 44v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064331Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 45v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064334Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 46v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064336Z[0m [33m WARN[0m [2mbevy_ecs::hierarchy[0m[2m:[0m warning[B0004]: Entity 47v1 with the InheritedVisibility component has a parent without InheritedVisibility.
+This will cause inconsistent behaviors! See: https://bevyengine.org/learn/errors/b0004    
+[2m2025-06-04T03:22:50.064350Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: GraphCreated for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:73943154afd138ec")))
+[2m2025-06-04T03:22:50.064357Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:39e1d414f5e421d7")))
+[2m2025-06-04T03:22:50.064359Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:84976fceb87fa13e")))
+[2m2025-06-04T03:22:50.064361Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:fba0112565786ab7")))
+[2m2025-06-04T03:22:50.064362Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:c8f279517c440985")))
+[2m2025-06-04T03:22:50.064363Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:6540dc803b986367")))
+[2m2025-06-04T03:22:50.064364Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:1cf78e1679e045be")))
+[2m2025-06-04T03:22:50.064365Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:9cce60f231111f00")))
+[2m2025-06-04T03:22:50.064366Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:3547edb2967269d2")))
+[2m2025-06-04T03:22:50.064368Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:2ca4b11b38c67c88")))
+[2m2025-06-04T03:22:50.064369Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:30f7162b0b9ecee5")))
+[2m2025-06-04T03:22:50.064370Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:4fde79d4f97c2540")))
+[2m2025-06-04T03:22:50.064371Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:f55b745c6a004c4a")))
+[2m2025-06-04T03:22:50.064372Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:a0a08b24044da444")))
+[2m2025-06-04T03:22:50.064373Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:91c4184a722cd9c0")))
+[2m2025-06-04T03:22:50.064374Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:ad5b85b566ba81fa")))
+[2m2025-06-04T03:22:50.064375Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:902cf8ceb9b748d9")))
+[2m2025-06-04T03:22:50.064376Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:87df78ecf0f3df0b")))
+[2m2025-06-04T03:22:50.064377Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:30898118538222b1")))
+[2m2025-06-04T03:22:50.064378Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:911a7c101652013c")))
+[2m2025-06-04T03:22:50.064379Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:49d982f5d035674a")))
+[2m2025-06-04T03:22:50.064380Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:7d14a7d2662a803b")))
+[2m2025-06-04T03:22:50.064381Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:90f6a1083e1b4cf7")))
+[2m2025-06-04T03:22:50.064382Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:17513d369a5e0a9f")))
+[2m2025-06-04T03:22:50.064383Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:d2250ff9987bd9d9")))
+[2m2025-06-04T03:22:50.064384Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:ec089d669300566f")))
+[2m2025-06-04T03:22:50.064385Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:1775ada3f40a0a77")))
+[2m2025-06-04T03:22:50.064386Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:a4dededa5d8c98d0")))
+[2m2025-06-04T03:22:50.064387Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:dde02f99c0f300e1")))
+[2m2025-06-04T03:22:50.064388Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:f3ed87ddc34169b1")))
+[2m2025-06-04T03:22:50.064389Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:95aa04c57479c430")))
+[2m2025-06-04T03:22:50.064390Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:88dbf648cd24a671")))
+[2m2025-06-04T03:22:50.064391Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:a25afbf884cd46a4")))
+[2m2025-06-04T03:22:50.064392Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:b379e0f87556c781")))
+[2m2025-06-04T03:22:50.064393Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: GraphCreated for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:ad9695d1b3b63f9c")))
+[2m2025-06-04T03:22:50.064394Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:d22c4e9467fd2f42")))
+[2m2025-06-04T03:22:50.064396Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:1144271111fbeaff")))
+[2m2025-06-04T03:22:50.064397Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:80a46498fe3d2c62")))
+[2m2025-06-04T03:22:50.064398Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:60874b5f7c63e1f4")))
+[2m2025-06-04T03:22:50.064399Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:172d381b20fd74ee")))
+[2m2025-06-04T03:22:50.064400Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:bfb3c4e28d469480")))
+[2m2025-06-04T03:22:50.064401Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:b05bd56b14745dbd")))
+[2m2025-06-04T03:22:50.064402Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:c95255e57cfd2f87")))
+[2m2025-06-04T03:22:50.064405Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:48d77de9cb2b57cf")))
+[2m2025-06-04T03:22:50.064406Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:d9853871a4a5d61f")))
+[2m2025-06-04T03:22:50.064407Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:27a77a9a01c2c359")))
+[2m2025-06-04T03:22:50.064408Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:fee3355579be79fa")))
+[2m2025-06-04T03:22:50.064409Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:5a90144d23889295")))
+[2m2025-06-04T03:22:50.064410Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:7fbf282ead4b4fb5")))
+[2m2025-06-04T03:22:50.064411Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: NodeAdded for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:ded3cabb2998b7dd")))
+[2m2025-06-04T03:22:50.064412Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:2bd3b33101de4465")))
+[2m2025-06-04T03:22:50.064413Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:7cca1619059e697b")))
+[2m2025-06-04T03:22:50.064414Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:d3e68c73a40869d3")))
+[2m2025-06-04T03:22:50.064415Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:dd766ed7d704fe73")))
+[2m2025-06-04T03:22:50.064417Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:7b3efa35101060a0")))
+[2m2025-06-04T03:22:50.064418Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:bc45ca79fc39cb87")))
+[2m2025-06-04T03:22:50.064419Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:f68e36836a04c2d2")))
+[2m2025-06-04T03:22:50.064420Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:bdf14e8364c11719")))
+[2m2025-06-04T03:22:50.064421Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:8e182a0651c0b661")))
+[2m2025-06-04T03:22:50.064422Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:9968ecc8778c94e5")))
+[2m2025-06-04T03:22:50.064423Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:db2d9d488d25bb3e")))
+[2m2025-06-04T03:22:50.064424Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:c013989c8b92a577")))
+[2m2025-06-04T03:22:50.064425Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:21e16f7da7881bec")))
+[2m2025-06-04T03:22:50.064426Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:27e8c62b449f24")))
+[2m2025-06-04T03:22:50.064427Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:d6eca864207030ff")))
+[2m2025-06-04T03:22:50.064428Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:fbfee4c18c51e864")))
+[2m2025-06-04T03:22:50.064429Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:98bc0457cfc690a7")))
+[2m2025-06-04T03:22:50.064430Z[0m [32m INFO[0m [2mia::contexts::event_store::plugin[0m[2m:[0m 📝 Domain Event: EdgeConnected for aggregate c9f1f2be-8f58-45de-b76e-64c7ad2953be (CID: Some(Cid("cid:v1:dag-cbor:727dd2a29dffafb7")))
+[2m2025-06-04T03:23:20.473917Z[0m [32m INFO[0m [2mbevy_window::system[0m[2m:[0m No windows are open, exiting    
+[2m2025-06-04T03:23:20.474613Z[0m [32m INFO[0m [2mbevy_winit::system[0m[2m:[0m Closing window 0v1

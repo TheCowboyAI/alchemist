@@ -1,0 +1,821 @@
+{
+  "metadata": {
+    "name": "CIM Vocabulary Graph",
+    "description": "Graph representation of CIM vocabulary with domains as subgraphs and relationships between terms",
+    "version": "1.0.0",
+    "created": "2024-12-04"
+  },
+  "domains": [
+    {
+      "id": "core-concepts",
+      "name": "Core Concepts",
+      "description": "Fundamental CIM architecture terms",
+      "color": "#4A90E2"
+    },
+    {
+      "id": "event-sourcing",
+      "name": "Event Sourcing",
+      "description": "Event sourcing and CQRS patterns",
+      "color": "#7B68EE"
+    },
+    {
+      "id": "technical",
+      "name": "Technical",
+      "description": "Technical infrastructure and patterns",
+      "color": "#50C878"
+    },
+    {
+      "id": "graph-domain",
+      "name": "Graph Domain",
+      "description": "Graph aggregate and related concepts",
+      "color": "#FF6B6B"
+    },
+    {
+      "id": "domain-events",
+      "name": "Domain Events",
+      "description": "Event types in the system",
+      "color": "#FFD93D"
+    },
+    {
+      "id": "commands",
+      "name": "Commands",
+      "description": "Command types for state changes",
+      "color": "#6BCB77"
+    },
+    {
+      "id": "infrastructure",
+      "name": "Infrastructure",
+      "description": "Infrastructure components and services",
+      "color": "#FF8C42"
+    },
+    {
+      "id": "bevy-integration",
+      "name": "Bevy Integration",
+      "description": "Bevy ECS components for visualization",
+      "color": "#C56CF0"
+    },
+    {
+      "id": "knowledge-domain",
+      "name": "Knowledge Domain",
+      "description": "Knowledge management concepts",
+      "color": "#45B7D1"
+    },
+    {
+      "id": "organizational",
+      "name": "Organizational",
+      "description": "Organization and user management",
+      "color": "#96CEB4"
+    },
+    {
+      "id": "business",
+      "name": "Business",
+      "description": "Business concepts and models",
+      "color": "#DDA0DD"
+    },
+    {
+      "id": "governance",
+      "name": "Governance",
+      "description": "Policies and governance",
+      "color": "#F4A460"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "cim",
+      "label": "CIM",
+      "domain": "core-concepts",
+      "type": "concept",
+      "definition": "Composable Information Machine - A framework for building distributed systems"
+    },
+    {
+      "id": "domain",
+      "label": "Domain",
+      "domain": "core-concepts",
+      "type": "concept",
+      "definition": "A unique set of ideas and concepts that cannot be further reduced"
+    },
+    {
+      "id": "agent",
+      "label": "Agent",
+      "domain": "core-concepts",
+      "type": "concept",
+      "definition": "A self-contained functional unit within CIM"
+    },
+    {
+      "id": "event",
+      "label": "Event",
+      "domain": "core-concepts",
+      "type": "concept",
+      "definition": "A record of something that happened within the CIM system"
+    },
+    {
+      "id": "command",
+      "label": "Command",
+      "domain": "core-concepts",
+      "type": "concept",
+      "definition": "An instruction that modifies CIM state"
+    },
+    {
+      "id": "query",
+      "label": "Query",
+      "domain": "core-concepts",
+      "type": "concept",
+      "definition": "An instruction that observes CIM state"
+    },
+    {
+      "id": "domain-event",
+      "label": "Domain Event",
+      "domain": "event-sourcing",
+      "type": "pattern",
+      "definition": "A persistent business fact that represents something that happened"
+    },
+    {
+      "id": "event-store",
+      "label": "Event Store",
+      "domain": "event-sourcing",
+      "type": "component",
+      "definition": "System for storing and managing event streams with append-only semantics"
+    },
+    {
+      "id": "event-envelope",
+      "label": "Event Envelope",
+      "domain": "event-sourcing",
+      "type": "value-object",
+      "definition": "Container for an event with metadata"
+    },
+    {
+      "id": "aggregate",
+      "label": "Aggregate",
+      "domain": "event-sourcing",
+      "type": "pattern",
+      "definition": "A cluster of domain objects treated as a single unit"
+    },
+    {
+      "id": "aggregate-root",
+      "label": "Aggregate Root",
+      "domain": "event-sourcing",
+      "type": "pattern",
+      "definition": "The entry point to an aggregate that ensures consistency"
+    },
+    {
+      "id": "command-handler",
+      "label": "Command Handler",
+      "domain": "event-sourcing",
+      "type": "component",
+      "definition": "Component that processes commands and generates domain events"
+    },
+    {
+      "id": "projection",
+      "label": "Projection",
+      "domain": "event-sourcing",
+      "type": "pattern",
+      "definition": "A read model built from domain events"
+    },
+    {
+      "id": "cqrs",
+      "label": "CQRS",
+      "domain": "event-sourcing",
+      "type": "pattern",
+      "definition": "Command Query Responsibility Segregation pattern"
+    },
+    {
+      "id": "ddd",
+      "label": "DDD",
+      "domain": "technical",
+      "type": "methodology",
+      "definition": "Domain-Driven Design approach"
+    },
+    {
+      "id": "eda",
+      "label": "EDA",
+      "domain": "technical",
+      "type": "pattern",
+      "definition": "Event-Driven Architecture pattern"
+    },
+    {
+      "id": "petgraph",
+      "label": "Petgraph",
+      "domain": "technical",
+      "type": "library",
+      "definition": "Rust graph data structure library"
+    },
+    {
+      "id": "bevy-ecs",
+      "label": "Bevy ECS",
+      "domain": "technical",
+      "type": "framework",
+      "definition": "Entity Component System framework for visualization"
+    },
+    {
+      "id": "graph",
+      "label": "Graph",
+      "domain": "graph-domain",
+      "type": "aggregate-root",
+      "definition": "Event-sourced aggregate representing nodes and edges"
+    },
+    {
+      "id": "node",
+      "label": "Node",
+      "domain": "graph-domain",
+      "type": "entity",
+      "definition": "A discrete point in a graph"
+    },
+    {
+      "id": "edge",
+      "label": "Edge",
+      "domain": "graph-domain",
+      "type": "entity",
+      "definition": "A connection between nodes"
+    },
+    {
+      "id": "graph-id",
+      "label": "GraphId",
+      "domain": "graph-domain",
+      "type": "value-object",
+      "definition": "UUID-based identifier for graphs"
+    },
+    {
+      "id": "node-id",
+      "label": "NodeId",
+      "domain": "graph-domain",
+      "type": "value-object",
+      "definition": "UUID-based identifier for nodes"
+    },
+    {
+      "id": "edge-id",
+      "label": "EdgeId",
+      "domain": "graph-domain",
+      "type": "value-object",
+      "definition": "UUID-based identifier for edges"
+    },
+    {
+      "id": "position-3d",
+      "label": "Position3D",
+      "domain": "graph-domain",
+      "type": "value-object",
+      "definition": "3D spatial coordinates"
+    },
+    {
+      "id": "graph-metadata",
+      "label": "GraphMetadata",
+      "domain": "graph-domain",
+      "type": "value-object",
+      "definition": "Descriptive information about a graph"
+    },
+    {
+      "id": "node-content",
+      "label": "NodeContent",
+      "domain": "graph-domain",
+      "type": "value-object",
+      "definition": "Payload of a node"
+    },
+    {
+      "id": "edge-relationship",
+      "label": "EdgeRelationship",
+      "domain": "graph-domain",
+      "type": "value-object",
+      "definition": "Description of edge semantics"
+    },
+    {
+      "id": "graph-created",
+      "label": "GraphCreated",
+      "domain": "domain-events",
+      "type": "event",
+      "definition": "Record that a graph was created"
+    },
+    {
+      "id": "node-added",
+      "label": "NodeAdded",
+      "domain": "domain-events",
+      "type": "event",
+      "definition": "Record that a node was added"
+    },
+    {
+      "id": "edge-connected",
+      "label": "EdgeConnected",
+      "domain": "domain-events",
+      "type": "event",
+      "definition": "Record that an edge was established"
+    },
+    {
+      "id": "node-removed",
+      "label": "NodeRemoved",
+      "domain": "domain-events",
+      "type": "event",
+      "definition": "Record that a node was removed"
+    },
+    {
+      "id": "edge-disconnected",
+      "label": "EdgeDisconnected",
+      "domain": "domain-events",
+      "type": "event",
+      "definition": "Record that an edge was removed"
+    },
+    {
+      "id": "layout-applied",
+      "label": "LayoutApplied",
+      "domain": "domain-events",
+      "type": "event",
+      "definition": "Record that a layout algorithm was applied"
+    },
+    {
+      "id": "create-graph-cmd",
+      "label": "CreateGraph",
+      "domain": "commands",
+      "type": "command",
+      "definition": "Command to create a new graph"
+    },
+    {
+      "id": "add-node-cmd",
+      "label": "AddNode",
+      "domain": "commands",
+      "type": "command",
+      "definition": "Command to add a node"
+    },
+    {
+      "id": "connect-nodes-cmd",
+      "label": "ConnectNodes",
+      "domain": "commands",
+      "type": "command",
+      "definition": "Command to create an edge"
+    },
+    {
+      "id": "event-store-impl",
+      "label": "EventStore",
+      "domain": "infrastructure",
+      "type": "service",
+      "definition": "Append-only store for domain events"
+    },
+    {
+      "id": "graph-repository",
+      "label": "GraphRepository",
+      "domain": "infrastructure",
+      "type": "repository",
+      "definition": "Repository for graph aggregates"
+    },
+    {
+      "id": "graph-read-model",
+      "label": "GraphReadModel",
+      "domain": "infrastructure",
+      "type": "read-model",
+      "definition": "Optimized read model using Petgraph"
+    },
+    {
+      "id": "graph-command-handler",
+      "label": "GraphCommandHandler",
+      "domain": "infrastructure",
+      "type": "service",
+      "definition": "Handles graph commands"
+    },
+    {
+      "id": "graph-node-component",
+      "label": "GraphNode",
+      "domain": "bevy-integration",
+      "type": "component",
+      "definition": "ECS component for visual nodes"
+    },
+    {
+      "id": "graph-edge-component",
+      "label": "GraphEdge",
+      "domain": "bevy-integration",
+      "type": "component",
+      "definition": "ECS component for visual edges"
+    },
+    {
+      "id": "domain-event-occurred",
+      "label": "DomainEventOccurred",
+      "domain": "bevy-integration",
+      "type": "event",
+      "definition": "Bevy event wrapping domain events"
+    },
+    {
+      "id": "event-bridge",
+      "label": "EventBridge",
+      "domain": "bevy-integration",
+      "type": "system",
+      "definition": "System polling EventStore"
+    },
+    {
+      "id": "fact",
+      "label": "Fact",
+      "domain": "knowledge-domain",
+      "type": "entity",
+      "definition": "A proven claim with verifiable evidence"
+    },
+    {
+      "id": "claim",
+      "label": "Claim",
+      "domain": "knowledge-domain",
+      "type": "entity",
+      "definition": "An idea with repeatable construction"
+    },
+    {
+      "id": "theory",
+      "label": "Theory",
+      "domain": "knowledge-domain",
+      "type": "aggregate",
+      "definition": "A belief with supporting context"
+    },
+    {
+      "id": "organization",
+      "label": "Organization",
+      "domain": "organizational",
+      "type": "entity",
+      "definition": "A structural entity"
+    },
+    {
+      "id": "operator",
+      "label": "Operator",
+      "domain": "organizational",
+      "type": "entity",
+      "definition": "System controller"
+    },
+    {
+      "id": "account",
+      "label": "Account",
+      "domain": "organizational",
+      "type": "entity",
+      "definition": "A managed group or entity"
+    },
+    {
+      "id": "user",
+      "label": "User",
+      "domain": "organizational",
+      "type": "entity",
+      "definition": "A managed person"
+    },
+    {
+      "id": "business-model",
+      "label": "Business Model",
+      "domain": "business",
+      "type": "aggregate",
+      "definition": "Operational framework for value creation"
+    },
+    {
+      "id": "value-proposition",
+      "label": "Value Proposition",
+      "domain": "business",
+      "type": "entity",
+      "definition": "Benefit offering to stakeholders"
+    },
+    {
+      "id": "solution",
+      "label": "Solution",
+      "domain": "business",
+      "type": "entity",
+      "definition": "Resolution to a defined problem"
+    },
+    {
+      "id": "policy",
+      "label": "Policy",
+      "domain": "governance",
+      "type": "service",
+      "definition": "Operational guideline"
+    },
+    {
+      "id": "ethics",
+      "label": "Ethics",
+      "domain": "governance",
+      "type": "service",
+      "definition": "Moral principles"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "domain-event",
+      "target": "event",
+      "relationship": "specializes",
+      "label": "is-a"
+    },
+    {
+      "id": "e2",
+      "source": "event-store-impl",
+      "target": "event-store",
+      "relationship": "implements",
+      "label": "implements"
+    },
+    {
+      "id": "e3",
+      "source": "event-envelope",
+      "target": "domain-event",
+      "relationship": "contains",
+      "label": "wraps"
+    },
+    {
+      "id": "e4",
+      "source": "graph",
+      "target": "aggregate-root",
+      "relationship": "implements",
+      "label": "is-a"
+    },
+    {
+      "id": "e5",
+      "source": "graph",
+      "target": "node",
+      "relationship": "contains",
+      "label": "contains"
+    },
+    {
+      "id": "e6",
+      "source": "graph",
+      "target": "edge",
+      "relationship": "contains",
+      "label": "contains"
+    },
+    {
+      "id": "e7",
+      "source": "node",
+      "target": "node-id",
+      "relationship": "identified-by",
+      "label": "has"
+    },
+    {
+      "id": "e8",
+      "source": "edge",
+      "target": "edge-id",
+      "relationship": "identified-by",
+      "label": "has"
+    },
+    {
+      "id": "e9",
+      "source": "graph",
+      "target": "graph-id",
+      "relationship": "identified-by",
+      "label": "has"
+    },
+    {
+      "id": "e10",
+      "source": "edge",
+      "target": "node",
+      "relationship": "connects",
+      "label": "connects"
+    },
+    {
+      "id": "e11",
+      "source": "command-handler",
+      "target": "command",
+      "relationship": "processes",
+      "label": "handles"
+    },
+    {
+      "id": "e12",
+      "source": "command-handler",
+      "target": "domain-event",
+      "relationship": "produces",
+      "label": "emits"
+    },
+    {
+      "id": "e13",
+      "source": "graph-command-handler",
+      "target": "command-handler",
+      "relationship": "implements",
+      "label": "is-a"
+    },
+    {
+      "id": "e14",
+      "source": "create-graph-cmd",
+      "target": "graph-created",
+      "relationship": "produces",
+      "label": "generates"
+    },
+    {
+      "id": "e15",
+      "source": "add-node-cmd",
+      "target": "node-added",
+      "relationship": "produces",
+      "label": "generates"
+    },
+    {
+      "id": "e16",
+      "source": "connect-nodes-cmd",
+      "target": "edge-connected",
+      "relationship": "produces",
+      "label": "generates"
+    },
+    {
+      "id": "e17",
+      "source": "event-store-impl",
+      "target": "event-envelope",
+      "relationship": "stores",
+      "label": "persists"
+    },
+    {
+      "id": "e18",
+      "source": "graph-repository",
+      "target": "event-store-impl",
+      "relationship": "uses",
+      "label": "queries"
+    },
+    {
+      "id": "e19",
+      "source": "graph-repository",
+      "target": "graph",
+      "relationship": "manages",
+      "label": "loads/saves"
+    },
+    {
+      "id": "e20",
+      "source": "projection",
+      "target": "domain-event",
+      "relationship": "built-from",
+      "label": "projects"
+    },
+    {
+      "id": "e21",
+      "source": "graph-read-model",
+      "target": "projection",
+      "relationship": "implements",
+      "label": "is-a"
+    },
+    {
+      "id": "e22",
+      "source": "graph-read-model",
+      "target": "petgraph",
+      "relationship": "uses",
+      "label": "powered-by"
+    },
+    {
+      "id": "e23",
+      "source": "cqrs",
+      "target": "command",
+      "relationship": "separates",
+      "label": "write-model"
+    },
+    {
+      "id": "e24",
+      "source": "cqrs",
+      "target": "query",
+      "relationship": "separates",
+      "label": "read-model"
+    },
+    {
+      "id": "e25",
+      "source": "event-bridge",
+      "target": "event-store-impl",
+      "relationship": "polls",
+      "label": "reads-from"
+    },
+    {
+      "id": "e26",
+      "source": "event-bridge",
+      "target": "domain-event-occurred",
+      "relationship": "emits",
+      "label": "publishes"
+    },
+    {
+      "id": "e27",
+      "source": "domain-event-occurred",
+      "target": "event-envelope",
+      "relationship": "contains",
+      "label": "wraps"
+    },
+    {
+      "id": "e28",
+      "source": "graph-node-component",
+      "target": "node-id",
+      "relationship": "references",
+      "label": "links-to"
+    },
+    {
+      "id": "e29",
+      "source": "graph-edge-component",
+      "target": "edge-id",
+      "relationship": "references",
+      "label": "links-to"
+    },
+    {
+      "id": "e30",
+      "source": "graph-node-component",
+      "target": "bevy-ecs",
+      "relationship": "component-of",
+      "label": "uses"
+    },
+    {
+      "id": "e31",
+      "source": "graph-edge-component",
+      "target": "bevy-ecs",
+      "relationship": "component-of",
+      "label": "uses"
+    },
+    {
+      "id": "e32",
+      "source": "node",
+      "target": "node-content",
+      "relationship": "contains",
+      "label": "has"
+    },
+    {
+      "id": "e33",
+      "source": "node",
+      "target": "position-3d",
+      "relationship": "positioned-at",
+      "label": "has"
+    },
+    {
+      "id": "e34",
+      "source": "edge",
+      "target": "edge-relationship",
+      "relationship": "describes",
+      "label": "has"
+    },
+    {
+      "id": "e35",
+      "source": "graph",
+      "target": "graph-metadata",
+      "relationship": "describes",
+      "label": "has"
+    },
+    {
+      "id": "e36",
+      "source": "aggregate",
+      "target": "ddd",
+      "relationship": "pattern-of",
+      "label": "from"
+    },
+    {
+      "id": "e37",
+      "source": "domain-event",
+      "target": "eda",
+      "relationship": "pattern-of",
+      "label": "implements"
+    },
+    {
+      "id": "e38",
+      "source": "fact",
+      "target": "claim",
+      "relationship": "validates",
+      "label": "proves"
+    },
+    {
+      "id": "e39",
+      "source": "theory",
+      "target": "claim",
+      "relationship": "contains",
+      "label": "uses"
+    },
+    {
+      "id": "e40",
+      "source": "theory",
+      "target": "fact",
+      "relationship": "supported-by",
+      "label": "uses"
+    },
+    {
+      "id": "e41",
+      "source": "account",
+      "target": "user",
+      "relationship": "contains",
+      "label": "manages"
+    },
+    {
+      "id": "e42",
+      "source": "operator",
+      "target": "account",
+      "relationship": "contains",
+      "label": "manages"
+    },
+    {
+      "id": "e43",
+      "source": "organization",
+      "target": "operator",
+      "relationship": "has",
+      "label": "operated-by"
+    },
+    {
+      "id": "e44",
+      "source": "value-proposition",
+      "target": "business-model",
+      "relationship": "part-of",
+      "label": "supports"
+    },
+    {
+      "id": "e45",
+      "source": "solution",
+      "target": "value-proposition",
+      "relationship": "implements",
+      "label": "delivers"
+    },
+    {
+      "id": "e46",
+      "source": "policy",
+      "target": "ethics",
+      "relationship": "guided-by",
+      "label": "follows"
+    },
+    {
+      "id": "e47",
+      "source": "agent",
+      "target": "cim",
+      "relationship": "component-of",
+      "label": "within"
+    },
+    {
+      "id": "e48",
+      "source": "domain",
+      "target": "cim",
+      "relationship": "organizes",
+      "label": "structures"
+    }
+  ]
+}

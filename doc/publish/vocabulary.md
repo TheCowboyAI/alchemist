@@ -15,6 +15,18 @@
 - **Message**: Any transmission within the CIM system
 - **Observation**: A snapshot of state at a particular time
 
+### Event Sourcing Terms
+*For implementation details, see [Event-Sourced Architecture](event-sourced-graph-architecture.md)*
+- **Domain Event**: A persistent business fact that represents something that happened in the domain
+- **Event Store**: System for storing and managing event streams with append-only semantics
+- **Event Envelope**: Container for an event with metadata including timestamp, sequence, and correlation IDs
+- **Aggregate**: A cluster of domain objects treated as a single unit for data changes
+- **Aggregate Root**: The entry point to an aggregate that ensures consistency
+- **Command Handler**: Component that processes commands and generates domain events
+- **Projection**: A read model built from domain events for query optimization
+- **Event Sourcing**: Architectural pattern where state changes are stored as a sequence of events
+- **CQRS (Command Query Responsibility Segregation)**: Pattern separating read and write models
+
 ### Technical Terms
 *For implementation details, see [Technical Infrastructure](technical.md)*
 - **DDD (Domain-Driven Design)**: A software design approach focusing on modeling software to match a domain according to expert input
@@ -22,12 +34,16 @@
 - **FRP (Functional Reactive Programming)**: Programming paradigm for reactive programming using functional programming concepts
 - **NATS**: Message broker system used for internal CIM communication
 - **Content-Addressing**: Method of storing and retrieving information based on its content rather than location
+- **Petgraph**: Rust graph data structure library used for efficient graph storage
+- **Bevy ECS**: Entity Component System framework used for visualization and UI
 
 ### Implementation Components
 - **Event Store**: System for storing and managing event streams
 - **Object Store**: System for storing immutable data with content addressing
 - **Ontology**: System for managing relationships and classifications
 - **Bundle**: Collection of reusable components and resources
+- **Read Model**: Optimized data structure for queries, built from events
+- **Repository**: Pattern for aggregate persistence and retrieval
 
 ## Domain Categories
 *For full domain documentation, see [Domain Categorization](domain_categorization.md)*
@@ -83,489 +99,330 @@
 
 ---
 
-## Graph Domain
+## Graph Domain (Event-Sourced)
 
 ### Term: Graph
 - **Category**: Domain Object
 - **Type**: Aggregate Root
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: A collection of nodes and edges representing relationships between entities, serving as the primary organizing structure for knowledge
+- **Definition**: An event-sourced aggregate representing a collection of nodes and edges with full history tracking
 - **Relationships**:
-  * Contains: Nodes, Edges
-  * Has: GraphIdentity, GraphMetadata, GraphJourney
-  * Emits: GraphCreated, GraphDeleted
-- **Usage Context**: Primary structure for organizing and visualizing relationships between domain entities
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Contains: Nodes, Edges (via Petgraph)
+  * Has: GraphId, GraphMetadata, Version
+  * Emits: GraphCreated, GraphRenamed, GraphDeleted
+- **Usage Context**: Primary aggregate for organizing and visualizing relationships
+- **Code Reference**: `src/domain/aggregates/graph.rs`
 
 ### Term: Node
 - **Category**: Domain Object
 - **Type**: Entity
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: A discrete point in a graph representing a single concept, entity, or piece of information
+- **Definition**: A discrete point in a graph representing a single concept, tracked through events
 - **Relationships**:
-  * Part-Of: Graph
-  * Has: NodeIdentity, NodeContent, SpatialPosition
+  * Part-Of: Graph Aggregate
+  * Has: NodeId, NodeContent, Position3D
   * Connected-By: Edges
-  * Emits: NodeAdded, NodeRemoved, NodeMoved
-- **Usage Context**: Fundamental unit of information within a graph structure
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Created-By: NodeAdded event
+- **Usage Context**: Fundamental unit of information within a graph
+- **Code Reference**: `src/domain/aggregates/node.rs`
 
 ### Term: Edge
 - **Category**: Domain Object
 - **Type**: Entity
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: A connection between two nodes representing a relationship, dependency, or interaction
+- **Definition**: An event-sourced connection between nodes representing a relationship
 - **Relationships**:
-  * Part-Of: Graph
-  * Connects: Source Node, Target Node
-  * Has: EdgeIdentity, EdgeRelationship
-  * Emits: EdgeConnected, EdgeDisconnected
-- **Usage Context**: Defining relationships and interactions between nodes
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Part-Of: Graph Aggregate
+  * Connects: Source NodeId, Target NodeId
+  * Has: EdgeId, EdgeRelationship, Weight
+  * Created-By: EdgeConnected event
+- **Usage Context**: Defining relationships between nodes
+- **Code Reference**: `src/domain/aggregates/edge.rs`
 
-### Term: GraphIdentity
+### Term: GraphId
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: An immutable unique identifier for a graph instance
+- **Definition**: An immutable UUID-based identifier for a graph aggregate
 - **Relationships**:
-  * Identifies: Graph
-  * Used-By: All graph operations
-- **Usage Context**: Ensuring unique identification of graphs across the system
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Identifies: Graph Aggregate
+  * Used-In: All graph commands and events
+- **Usage Context**: Ensuring unique identification across event streams
+- **Code Reference**: `src/domain/values/identifiers.rs`
 
-### Term: NodeIdentity
+### Term: NodeId
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: An immutable unique identifier for a node within the graph system
+- **Definition**: An immutable UUID-based identifier for nodes
 - **Relationships**:
-  * Identifies: Node
-  * Referenced-By: Edges
-- **Usage Context**: Unique identification of nodes for edge connections and operations
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Identifies: Node Entity
+  * Referenced-By: Edges, Commands, Events
+- **Usage Context**: Unique identification in event-sourced operations
+- **Code Reference**: `src/domain/values/identifiers.rs`
 
-### Term: EdgeIdentity
+### Term: EdgeId
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: An immutable unique identifier for an edge connection
+- **Definition**: An immutable UUID-based identifier for edges
 - **Relationships**:
-  * Identifies: Edge
-  * Links: Source and Target nodes
-- **Usage Context**: Tracking and managing edge relationships
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Identifies: Edge Entity
+  * Links: Source and Target NodeIds
+- **Usage Context**: Tracking edge lifecycle through events
+- **Code Reference**: `src/domain/values/identifiers.rs`
+
+### Term: Position3D
+- **Category**: Domain Object
+- **Type**: Value Object
+- **Taxonomy**: Graph Taxonomy
+- **Definition**: Immutable 3D spatial coordinates for node positioning
+- **Relationships**:
+  * Positions: Node
+  * Updated-By: NodeMoved event
+- **Usage Context**: Spatial positioning for visualization
+- **Code Reference**: `src/domain/values/position.rs`
 
 ### Term: GraphMetadata
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: Descriptive information about a graph including name, description, domain, and tags
+- **Definition**: Immutable descriptive information about a graph
 - **Relationships**:
   * Describes: Graph
-  * Contains: Name, Description, Domain, Tags
-- **Usage Context**: Providing context and searchability for graphs
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Contains: Name, CreatedAt, UpdatedAt, Tags
+- **Usage Context**: Graph identification and search
+- **Code Reference**: `src/domain/values/metadata.rs`
 
 ### Term: NodeContent
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: The informational payload of a node including label, category, and properties
+- **Definition**: Immutable payload of a node including label and properties
 - **Relationships**:
   * Contained-In: Node
-  * Has: Label, Category, Properties
-- **Usage Context**: Storing the actual information represented by a node
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Has: Label, NodeType, Properties
+- **Usage Context**: Storing node information
+- **Code Reference**: `src/domain/values/content.rs`
 
 ### Term: EdgeRelationship
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: The nature and properties of a connection between nodes
+- **Definition**: Immutable description of edge semantics
 - **Relationships**:
-  * Defines: Edge semantics
-  * Contains: Source, Target, Category, Strength
-- **Usage Context**: Qualifying the type and strength of relationships
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
+  * Defines: Edge meaning
+  * Contains: RelationType, Strength
+- **Usage Context**: Qualifying relationships
+- **Code Reference**: `src/domain/values/relationship.rs`
 
-### Term: SpatialPosition
-- **Category**: Domain Object
-- **Type**: Value Object
-- **Taxonomy**: Graph Taxonomy
-- **Definition**: The spatial coordinates of a node in both 2D and 3D space
-- **Relationships**:
-  * Positions: Node
-  * Contains: 3D coordinates, 2D coordinates
-- **Usage Context**: Positioning nodes for visualization and spatial algorithms
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
-
-### Term: GraphJourney
-- **Category**: Domain Object
-- **Type**: Value Object
-- **Taxonomy**: Graph Taxonomy
-- **Definition**: The evolutionary history and version tracking of a graph
-- **Relationships**:
-  * Tracks: Graph evolution
-  * Contains: Version, Event count, Last event
-- **Usage Context**: Event sourcing and graph history tracking
-- **Code Reference**: `src/contexts/graph_management/domain.rs`
-
-### Term: GraphMotion
-- **Category**: Domain Object
-- **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Dynamics controlling the motion of an entire graph including rotation, oscillation, and scaling
-- **Relationships**:
-  * Animates: Graph
-  * Contains: Rotation speed, Oscillation parameters, Scale factor
-- **Usage Context**: Creating dynamic graph visualizations
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: SubgraphOrbit
-- **Category**: Domain Object
-- **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Orbital dynamics for subgraphs within a larger graph structure
-- **Relationships**:
-  * Animates: Subgraph
-  * Contains: Local rotation, Orbit radius, Orbit speed
-- **Usage Context**: Visualizing hierarchical graph relationships
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: NodePulse
-- **Category**: Domain Object
-- **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Pulse dynamics for individual nodes including bouncing and scaling effects
-- **Relationships**:
-  * Animates: Node
-  * Contains: Bounce parameters, Pulse parameters
-- **Usage Context**: Highlighting or emphasizing specific nodes
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-## Graph Domain Events
+## Domain Events
 
 ### Term: GraphCreated
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
-- **Definition**: A fact recording that a new graph has been created in the system
+- **Definition**: Immutable record that a new graph aggregate was created
 - **Relationships**:
-  * Emitted-By: CreateGraph service
-  * Contains: GraphIdentity, GraphMetadata, Timestamp
-- **Usage Context**: Event sourcing for graph lifecycle
-- **Code Reference**: `src/contexts/graph_management/events.rs`
+  * Contains: GraphId, GraphMetadata
+  * Stored-In: EventStore
+  * Projected-To: GraphReadModel
+- **Usage Context**: Graph lifecycle tracking
+- **Code Reference**: `src/domain/events/graph_events.rs`
 
 ### Term: NodeAdded
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
-- **Definition**: A fact recording that a node has been added to a graph
+- **Definition**: Immutable record that a node was added to a graph
 - **Relationships**:
-  * Emitted-By: AddNodeToGraph service
-  * Contains: GraphIdentity, NodeIdentity, NodeContent, Position
-- **Usage Context**: Tracking graph composition changes
-- **Code Reference**: `src/contexts/graph_management/events.rs`
+  * Contains: GraphId, Node
+  * Updates: Graph Aggregate
+  * Triggers: Visual entity creation
+- **Usage Context**: Node creation tracking
+- **Code Reference**: `src/domain/events/graph_events.rs`
 
 ### Term: EdgeConnected
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
-- **Definition**: A fact recording that an edge has been established between nodes
+- **Definition**: Immutable record that an edge was established
 - **Relationships**:
-  * Emitted-By: ConnectGraphNodes service
-  * Contains: GraphIdentity, EdgeIdentity, EdgeRelationship
-- **Usage Context**: Tracking relationship establishment
-- **Code Reference**: `src/contexts/graph_management/events.rs`
+  * Contains: GraphId, Edge
+  * Updates: Petgraph structure
+  * Triggers: Edge visualization
+- **Usage Context**: Relationship establishment
+- **Code Reference**: `src/domain/events/graph_events.rs`
 
 ### Term: NodeRemoved
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
-- **Definition**: A fact recording that a node has been removed from a graph
+- **Definition**: Immutable record that a node was removed
 - **Relationships**:
-  * Contains: GraphIdentity, NodeIdentity
-- **Usage Context**: Tracking graph composition changes
-- **Code Reference**: `src/contexts/graph_management/events.rs`
+  * Contains: GraphId, NodeId
+  * Cascades: Edge removal
+- **Usage Context**: Node deletion tracking
+- **Code Reference**: `src/domain/events/graph_events.rs`
 
 ### Term: EdgeDisconnected
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
-- **Definition**: A fact recording that an edge has been removed between nodes
+- **Definition**: Immutable record that an edge was removed
 - **Relationships**:
-  * Contains: GraphIdentity, EdgeIdentity
-- **Usage Context**: Tracking relationship removal
-- **Code Reference**: `src/contexts/graph_management/events.rs`
+  * Contains: GraphId, EdgeId
+  * Updates: Petgraph structure
+- **Usage Context**: Relationship removal
+- **Code Reference**: `src/domain/events/graph_events.rs`
 
-### Term: NodeMoved
+### Term: LayoutApplied
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
-- **Definition**: A fact recording that a node's spatial position has changed
+- **Definition**: Immutable record that a layout algorithm was applied
 - **Relationships**:
-  * Contains: GraphIdentity, NodeIdentity, From Position, To Position
-- **Usage Context**: Tracking spatial changes for visualization
-- **Code Reference**: `src/contexts/graph_management/events.rs`
+  * Contains: GraphId, LayoutType, Positions
+  * Updates: Node positions
+- **Usage Context**: Layout change tracking
+- **Code Reference**: `src/domain/events/graph_events.rs`
 
-## Graph Domain Services
+## Commands
 
 ### Term: CreateGraph
-- **Category**: Domain Service
-- **Type**: Service
-- **Taxonomy**: Graph Services
-- **Definition**: Service responsible for creating new graph instances with proper initialization
+- **Category**: Command
+- **Type**: Command
+- **Taxonomy**: Graph Commands
+- **Definition**: Command to create a new graph aggregate
 - **Relationships**:
-  * Creates: Graph
-  * Emits: GraphCreated
-  * Uses: GraphIdentity, GraphMetadata
-- **Usage Context**: Graph lifecycle management
-- **Code Reference**: `src/contexts/graph_management/services.rs`
+  * Contains: GraphMetadata
+  * Produces: GraphCreated event
+  * Handled-By: GraphCommandHandler
+- **Usage Context**: Graph initialization
+- **Code Reference**: `src/domain/commands/graph_commands.rs`
 
-### Term: AddNodeToGraph
-- **Category**: Domain Service
-- **Type**: Service
-- **Taxonomy**: Graph Services
-- **Definition**: Service responsible for adding nodes to existing graphs
+### Term: AddNode
+- **Category**: Command
+- **Type**: Command
+- **Taxonomy**: Graph Commands
+- **Definition**: Command to add a node to a graph
 - **Relationships**:
-  * Modifies: Graph
-  * Creates: Node
-  * Emits: NodeAdded
-- **Usage Context**: Graph composition management
-- **Code Reference**: `src/contexts/graph_management/services.rs`
+  * Contains: GraphId, NodeContent, Position
+  * Produces: NodeAdded event
+  * Validates: Graph exists
+- **Usage Context**: Node creation
+- **Code Reference**: `src/domain/commands/graph_commands.rs`
 
-### Term: ConnectGraphNodes
-- **Category**: Domain Service
-- **Type**: Service
-- **Taxonomy**: Graph Services
-- **Definition**: Service responsible for establishing edges between nodes
+### Term: ConnectNodes
+- **Category**: Command
+- **Type**: Command
+- **Taxonomy**: Graph Commands
+- **Definition**: Command to create an edge between nodes
 - **Relationships**:
-  * Creates: Edge
-  * Connects: Nodes
-  * Emits: EdgeConnected
-- **Usage Context**: Relationship management
-- **Code Reference**: `src/contexts/graph_management/services.rs`
+  * Contains: GraphId, Source, Target, Relationship
+  * Produces: EdgeConnected event
+  * Validates: Nodes exist
+- **Usage Context**: Relationship creation
+- **Code Reference**: `src/domain/commands/graph_commands.rs`
 
-### Term: ValidateGraph
-- **Category**: Domain Service
+## Infrastructure Components
+
+### Term: EventStore
+- **Category**: Infrastructure
 - **Type**: Service
-- **Taxonomy**: Graph Services
-- **Definition**: Service responsible for validating graph operations against domain rules
+- **Taxonomy**: Event Sourcing Infrastructure
+- **Definition**: Append-only store for domain events with indexing
 - **Relationships**:
-  * Validates: Graph operations
-  * Returns: GraphConstraintViolation
-- **Usage Context**: Ensuring graph integrity
-- **Code Reference**: `src/contexts/graph_management/services.rs`
+  * Stores: EventEnvelopes
+  * Indexes: By aggregate, sequence, timestamp
+  * Persists-To: JsonFilePersistence
+- **Usage Context**: Event persistence and retrieval
+- **Code Reference**: `src/infrastructure/event_store/mod.rs`
 
-### Term: EstablishGraphHierarchy
-- **Category**: Domain Service
+### Term: GraphRepository
+- **Category**: Infrastructure
+- **Type**: Repository
+- **Taxonomy**: Event Sourcing Infrastructure
+- **Definition**: Repository for loading and saving graph aggregates via events
+- **Relationships**:
+  * Uses: EventStore
+  * Rebuilds: Aggregates from events
+  * Caches: Loaded aggregates
+- **Usage Context**: Aggregate persistence
+- **Code Reference**: `src/infrastructure/repositories/graph_repository.rs`
+
+### Term: GraphReadModel
+- **Category**: Infrastructure
+- **Type**: Read Model
+- **Taxonomy**: CQRS Infrastructure
+- **Definition**: Optimized read model for graph queries using Petgraph
+- **Relationships**:
+  * Projects-From: Domain events
+  * Contains: StableGraph, Indices, Caches
+  * Serves: GraphQueries
+- **Usage Context**: Query optimization
+- **Code Reference**: `src/application/projections/graph_read_model.rs`
+
+### Term: GraphCommandHandler
+- **Category**: Application
 - **Type**: Service
-- **Taxonomy**: Graph Services
-- **Definition**: Service responsible for establishing parent-child relationships in the scene graph
+- **Taxonomy**: CQRS Infrastructure
+- **Definition**: Handles graph commands and generates events
 - **Relationships**:
-  * Organizes: Graph-Node hierarchy
-  * Creates: Parent-child relationships
-- **Usage Context**: Hierarchical graph visualization
-- **Code Reference**: `src/contexts/graph_management/services.rs`
+  * Processes: GraphCommands
+  * Generates: DomainEvents
+  * Uses: EventStore, GraphRepository
+- **Usage Context**: Command processing
+- **Code Reference**: `src/application/command_handlers/graph_command_handler.rs`
 
-### Term: RenderGraphElements
-- **Category**: Visualization Service
-- **Type**: Service
-- **Taxonomy**: Graph Visualization
-- **Definition**: Service responsible for creating visual representations of graph elements
-- **Relationships**:
-  * Visualizes: Nodes, Edges
-  * Responds-To: NodeAdded events
-- **Usage Context**: 3D graph visualization
-- **Code Reference**: `src/contexts/visualization/services.rs`
+## Bevy Integration Components
 
-### Term: HandleUserInput
-- **Category**: Visualization Service
-- **Type**: Service
-- **Taxonomy**: Graph Visualization
-- **Definition**: Service responsible for processing user interactions with the graph
-- **Relationships**:
-  * Processes: Mouse clicks, Keyboard input
-  * Modifies: Selection state
-- **Usage Context**: Interactive graph manipulation
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: AnimateGraphElements
-- **Category**: Visualization Service
-- **Type**: Service
-- **Taxonomy**: Graph Visualization
-- **Definition**: Service responsible for animating graph elements at all hierarchy levels
-- **Relationships**:
-  * Animates: Graphs, Subgraphs, Nodes
-  * Uses: GraphMotion, SubgraphOrbit, NodePulse
-- **Usage Context**: Dynamic graph visualization
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: UpdateVisualizationState
-- **Category**: Visualization Service
-- **Type**: Service
-- **Taxonomy**: Graph Visualization
-- **Definition**: Service responsible for handling visualization state updates based on events
-- **Relationships**:
-  * Responds-To: EdgeTypeChanged, RenderModeChanged
-  * Updates: CurrentVisualizationSettings
-  * Follows: Event-driven pattern
-- **Usage Context**: Managing visualization state changes through events
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: ControlCamera
-- **Category**: Visualization Service
-- **Type**: Service
-- **Taxonomy**: Graph Visualization
-- **Definition**: Service responsible for camera setup and control in 3D graph visualization
-- **Relationships**:
-  * Controls: Camera3d
-  * Responds-To: Keyboard input
-  * Enables: User navigation
-- **Usage Context**: Camera manipulation for graph exploration
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: EdgeVisual
-- **Category**: Domain Object
+### Term: GraphNode
+- **Category**: Presentation
 - **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Component containing visual properties for edge rendering including color, thickness, and edge type
+- **Taxonomy**: Bevy ECS
+- **Definition**: ECS component linking visual entities to domain nodes
 - **Relationships**:
-  * Attached-To: Edge entities
-  * Contains: Color, Thickness, EdgeType
-  * Used-By: RenderGraphElements
-- **Usage Context**: Defining visual appearance of edges
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: EdgeType
-- **Category**: Domain Object
-- **Type**: Enum
-- **Taxonomy**: Graph Visualization
-- **Definition**: Enumeration of different edge rendering styles: Line, Cylinder, Arc, Bezier
-- **Relationships**:
-  * Part-Of: EdgeVisual
-  * Options: Line, Cylinder, Arc, Bezier
-  * Default: Cylinder
-- **Usage Context**: Selecting edge visualization style
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: RenderMode
-- **Category**: Domain Object
-- **Type**: Enum
-- **Taxonomy**: Graph Visualization
-- **Definition**: Enumeration of different rendering modes for graph elements: Mesh, PointCloud, Wireframe, Billboard
-- **Relationships**:
-  * Part-Of: VisualizationCapability
-  * Options: Mesh, PointCloud, Wireframe, Billboard
-  * Default: Mesh
-- **Usage Context**: Selecting overall rendering approach
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: VisualizationCapability
-- **Category**: Domain Object
-- **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Component describing rendering capabilities including render mode, instancing support, and level of detail
-- **Relationships**:
+  * References: NodeId, GraphId
   * Attached-To: Visual entities
-  * Contains: RenderMode, instancing flags, LOD settings
-  * Supports: Future rendering extensions
-- **Usage Context**: Defining rendering capabilities and options
-- **Code Reference**: `src/contexts/visualization/services.rs`
+  * Created-By: Event bridge
+- **Usage Context**: Visual representation
+- **Code Reference**: `src/presentation/components/graph_components.rs`
 
-### Term: CurrentVisualizationSettings
-- **Category**: Domain Object
+### Term: GraphEdge
+- **Category**: Presentation
 - **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Component holding current visualization state including active edge type and render mode
+- **Taxonomy**: Bevy ECS
+- **Definition**: ECS component for edge visualization
 - **Relationships**:
-  * Contains: EdgeType, RenderMode
-  * Updated-By: UpdateVisualizationState
-  * Stored-On: Settings entity
-- **Usage Context**: Maintaining current visualization preferences
-- **Code Reference**: `src/contexts/visualization/services.rs`
+  * References: EdgeId, Source Entity, Target Entity
+  * Attached-To: Edge visuals
+- **Usage Context**: Edge rendering
+- **Code Reference**: `src/presentation/components/graph_components.rs`
 
-### Term: NodePointCloud
-- **Category**: Domain Object
-- **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Component containing point cloud data for node visualization including points, colors, and sizes
-- **Relationships**:
-  * Represents: Node as point cloud
-  * Contains: Vec<Vec3> points, Vec<Color> colors, Vec<f32> sizes
-  * Generated-By: RenderGraphElements
-- **Usage Context**: Point cloud representation of nodes (future feature)
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: EdgePointCloud
-- **Category**: Domain Object
-- **Type**: Component
-- **Taxonomy**: Graph Visualization
-- **Definition**: Component containing point cloud data for edge visualization with interpolation samples
-- **Relationships**:
-  * Represents: Edge as point cloud
-  * Contains: Points, Colors, Sizes, Interpolation samples
-  * Generated-By: RenderGraphElements
-- **Usage Context**: Point cloud representation of edges (future feature)
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: EdgeTypeChanged
-- **Category**: Domain Event
+### Term: DomainEventOccurred
+- **Category**: Presentation
 - **Type**: Event
-- **Taxonomy**: Graph Visualization Events
-- **Definition**: Event recording that the default edge rendering type has been changed
+- **Taxonomy**: Bevy ECS
+- **Definition**: Bevy event wrapping domain events for ECS processing
 - **Relationships**:
-  * Contains: New EdgeType
-  * Handled-By: UpdateVisualizationState
-  * Triggered-By: User input
-- **Usage Context**: Changing edge visualization style
-- **Code Reference**: `src/contexts/visualization/services.rs`
+  * Contains: EventEnvelope
+  * Processed-By: Event bridge systems
+  * Triggers: Visual updates
+- **Usage Context**: Domain-ECS bridge
+- **Code Reference**: `src/presentation/bevy_systems/event_bridge.rs`
 
-### Term: RenderModeChanged
-- **Category**: Domain Event
-- **Type**: Event
-- **Taxonomy**: Graph Visualization Events
-- **Definition**: Event recording that the default render mode has been changed
+### Term: EventBridge
+- **Category**: Presentation
+- **Type**: System
+- **Taxonomy**: Bevy ECS
+- **Definition**: System that polls EventStore and converts to Bevy events
 - **Relationships**:
-  * Contains: New RenderMode
-  * Handled-By: UpdateVisualizationState
-  * Triggered-By: User input
-- **Usage Context**: Changing overall rendering approach
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: VisualizationUpdateRequested
-- **Category**: Domain Event
-- **Type**: Event
-- **Taxonomy**: Graph Visualization Events
-- **Definition**: Request event to update visualization for a specific entity
-- **Relationships**:
-  * Contains: Entity, RenderMode
-  * For: Future per-entity updates
-- **Usage Context**: Requesting visualization changes for specific entities
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: ConvertToPointCloud
-- **Category**: Domain Event
-- **Type**: Event
-- **Taxonomy**: Graph Visualization Events
-- **Definition**: Request event to convert an entity to point cloud representation
-- **Relationships**:
-  * Contains: Entity, Density
-  * For: Future point cloud conversion
-- **Usage Context**: Converting entities to point cloud visualization
-- **Code Reference**: `src/contexts/visualization/services.rs`
-
-### Term: GraphConstraintViolation
-- **Category**: Domain Object
-- **Type**: Error Type
-- **Taxonomy**: Graph Validation
-- **Definition**: Domain-specific violations of graph integrity rules
-- **Relationships**:
-  * Returned-By: ValidateGraph
-  * Contains: Specific violation details
-- **Usage Context**: Graph integrity enforcement
-- **Code Reference**: `src/contexts/graph_management/services.rs`
+  * Polls: EventStore
+  * Emits: DomainEventOccurred
+  * Manages: Backpressure
+- **Usage Context**: Event synchronization
+- **Code Reference**: `src/presentation/bevy_systems/event_bridge.rs`
 
 ---
 

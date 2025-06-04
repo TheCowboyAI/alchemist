@@ -1,0 +1,69 @@
+[2m2025-06-04T03:28:31.178228Z[0m [32m INFO[0m [2mbevy_render::renderer[0m[2m:[0m AdapterInfo { name: "Intel(R) UHD Graphics P630 (CML GT2)", vendor: 32902, device: 39926, device_type: IntegratedGpu, driver: "Intel open-source Mesa driver", driver_info: "Mesa 25.0.6", backend: Vulkan }
+[2m2025-06-04T03:28:31.183646Z[0m [34mDEBUG[0m [2mbevy_render[0m[2m:[0m Configured wgpu adapter Limits: Limits {
+    max_texture_dimension_1d: 16384,
+    max_texture_dimension_2d: 16384,
+    max_texture_dimension_3d: 2048,
+    max_texture_array_layers: 2048,
+    max_bind_groups: 8,
+    max_bindings_per_bind_group: 1000,
+    max_dynamic_uniform_buffers_per_pipeline_layout: 8,
+    max_dynamic_storage_buffers_per_pipeline_layout: 8,
+    max_sampled_textures_per_shader_stage: 201326592,
+    max_samplers_per_shader_stage: 402653184,
+    max_storage_buffers_per_shader_stage: 201326592,
+    max_storage_textures_per_shader_stage: 201326592,
+    max_uniform_buffers_per_shader_stage: 201326592,
+    max_uniform_buffer_binding_size: 134217728,
+    max_storage_buffer_binding_size: 2147483647,
+    max_vertex_buffers: 16,
+    max_buffer_size: 2147483647,
+    max_vertex_attributes: 29,
+    max_vertex_buffer_array_stride: 4095,
+    min_uniform_buffer_offset_alignment: 64,
+    min_storage_buffer_offset_alignment: 32,
+    max_inter_stage_shader_components: 116,
+    max_color_attachments: 8,
+    max_color_attachment_bytes_per_sample: 128,
+    max_compute_workgroup_storage_size: 65536,
+    max_compute_invocations_per_workgroup: 1024,
+    max_compute_workgroup_size_x: 1024,
+    max_compute_workgroup_size_y: 1024,
+    max_compute_workgroup_size_z: 1024,
+    max_compute_workgroups_per_dimension: 65535,
+    min_subgroup_size: 8,
+    max_subgroup_size: 32,
+    max_push_constant_size: 256,
+    max_non_sampler_bindings: 4294967295,
+}
+[2m2025-06-04T03:28:31.183662Z[0m [34mDEBUG[0m [2mbevy_render[0m[2m:[0m Configured wgpu adapter Features: Features(
+    DEPTH_CLIP_CONTROL | DEPTH32FLOAT_STENCIL8 | TEXTURE_COMPRESSION_BC | TEXTURE_COMPRESSION_BC_SLICED_3D | TEXTURE_COMPRESSION_ETC2 | TEXTURE_COMPRESSION_ASTC | TIMESTAMP_QUERY | INDIRECT_FIRST_INSTANCE | SHADER_F16 | RG11B10UFLOAT_RENDERABLE | BGRA8UNORM_STORAGE | FLOAT32_FILTERABLE | TEXTURE_FORMAT_16BIT_NORM | TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES | PIPELINE_STATISTICS_QUERY | TIMESTAMP_QUERY_INSIDE_ENCODERS | TIMESTAMP_QUERY_INSIDE_PASSES | MAPPABLE_PRIMARY_BUFFERS | TEXTURE_BINDING_ARRAY | BUFFER_BINDING_ARRAY | STORAGE_RESOURCE_BINDING_ARRAY | SAMPLED_TEXTURE_AND_STORAGE_BUFFER_ARRAY_NON_UNIFORM_INDEXING | UNIFORM_BUFFER_AND_STORAGE_TEXTURE_ARRAY_NON_UNIFORM_INDEXING | PARTIALLY_BOUND_BINDING_ARRAY | MULTI_DRAW_INDIRECT | MULTI_DRAW_INDIRECT_COUNT | PUSH_CONSTANTS | ADDRESS_MODE_CLAMP_TO_ZERO | ADDRESS_MODE_CLAMP_TO_BORDER | POLYGON_MODE_LINE | POLYGON_MODE_POINT | CONSERVATIVE_RASTERIZATION | VERTEX_WRITABLE_STORAGE | CLEAR_TEXTURE | SPIRV_SHADER_PASSTHROUGH | MULTIVIEW | TEXTURE_ATOMIC | TEXTURE_FORMAT_NV12 | SHADER_F64 | SHADER_I16 | SHADER_PRIMITIVE_INDEX | DUAL_SOURCE_BLENDING | SHADER_INT64 | SUBGROUP | SUBGROUP_VERTEX | SUBGROUP_BARRIER | PIPELINE_CACHE,
+)
+[2m2025-06-04T03:28:31.276804Z[0m [32m INFO[0m [2mbevy_render::batching::gpu_preprocessing[0m[2m:[0m GPU preprocessing is fully supported on this device.
+[2m2025-06-04T03:28:31.305477Z[0m [32m INFO[0m [2mbevy_winit::system[0m[2m:[0m Creating new window App (0v1)
+[2m2025-06-04T03:28:31.305488Z[0m [34mDEBUG[0m [2mbevy_winit::winit_windows[0m[2m:[0m Display information:  Window physical resolution: 1280x720  Window logical resolution: 1280x720  Monitor name:   Scale factor: 0  Refresh rate (Hz): 0.000
+[2m2025-06-04T03:28:31.339125Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 481fb759-d0b1-4175-8319-c439acde30a2}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.340158Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 70d91342-1c43-4b20-973f-aa6ce93aa617}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.340790Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: c8579292-cf92-43b5-9c5a-ec5bd4e44d12}, with shader defs [Bool("WRITE_INDIRECT_PARAMETERS_METADATA", true), Bool("INDIRECT", true), Bool("FRUSTUM_CULLING", true), Bool("OCCLUSION_CULLING", true), Bool("EARLY_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.355042Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: f87e007a-bf4b-4f99-9ef0-ac21d369f0e5}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.365307Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: e239c010-c25c-42a1-b4e8-08818764d667}, with shader defs [UInt("TONEMAPPING_LUT_TEXTURE_BINDING_INDEX", 3), UInt("TONEMAPPING_LUT_SAMPLER_BINDING_INDEX", 4), Bool("DEBAND_DITHER", true), Bool("TONEMAP_METHOD_TONY_MC_MAPFACE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.370756Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: a09a149e-5922-4fa4-9170-3c1a13065364}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.376033Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: c8579292-cf92-43b5-9c5a-ec5bd4e44d12}, with shader defs [Bool("WRITE_INDIRECT_PARAMETERS_METADATA", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.379636Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("INDEXED", true), Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), Bool("OCCLUSION_CULLING", true), Bool("EARLY_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.381952Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), Bool("OCCLUSION_CULLING", true), Bool("MAIN_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.383938Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.385592Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("INDEXED", true), Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), Bool("OCCLUSION_CULLING", true), Bool("LATE_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.387475Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: c8579292-cf92-43b5-9c5a-ec5bd4e44d12}, with shader defs [Bool("WRITE_INDIRECT_PARAMETERS_METADATA", true), Bool("INDIRECT", true), Bool("FRUSTUM_CULLING", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.392399Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("INDEXED", true), Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.394037Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: a4187282-8cb1-42d3-889c-cbbfb6044183}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.395610Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 045fb176-58e2-4e76-b241-7688d761bb23}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.396047Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("INDEXED", true), Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), Bool("OCCLUSION_CULLING", true), Bool("MAIN_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.397669Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: b7f2cc3d-c935-4f5c-9ae2-43d6b0d5659a}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.399806Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: a3daf030-4b64-49ae-a6a7-354489597cbe}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.401899Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), Bool("OCCLUSION_CULLING", true), Bool("LATE_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.403596Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 133b01f0-3eaf-4590-9ee9-f0cf91a00b71}, with shader defs [Bool("MULTI_DRAW_INDIRECT_COUNT_SUPPORTED", true), Bool("OCCLUSION_CULLING", true), Bool("EARLY_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.405707Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 59be3075-c34e-43e7-bf24-c8fe21a0192e}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.406129Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: bde3a71a-73e9-49fe-a379-a81940c67a1e}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.409532Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: a09a149e-5922-4fa4-9170-3c1a13065364}, with shader defs [Bool("MULTISAMPLE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.414920Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: c8579292-cf92-43b5-9c5a-ec5bd4e44d12}, with shader defs [Bool("WRITE_INDIRECT_PARAMETERS_METADATA", true), Bool("INDIRECT", true), Bool("FRUSTUM_CULLING", true), Bool("OCCLUSION_CULLING", true), Bool("LATE_PHASE", true), UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.420962Z[0m [34mDEBUG[0m [2mbevy_render::render_resource::pipeline_cache[0m[2m:[0m processing shader AssetId<bevy_render::render_resource::shader::Shader>{uuid: 0f2764a0-b343-471b-b7ce-ef5d636f4fc3}, with shader defs [UInt("AVAILABLE_STORAGE_BUFFER_BINDINGS", 201326592)]
+[2m2025-06-04T03:28:31.562502Z[0m [34mDEBUG[0m [2mbevy_render::view::window[0m[2m:[0m Window size changed from 3413x1920 to 1893x2032

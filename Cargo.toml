@@ -28,66 +28,10 @@ integration-tests = []
 
 [dependencies]
 rand = "0.9"
-egui = "0.31.1"
-eframe = "0.31.1"
 uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-egui-snarl = "0.7.1"
-bevy = { version = "0.16.1", default-features = false, features = [
-  # Core features
-  "bevy_asset",
-  "bevy_audio",
-  "bevy_color",
-  "bevy_core_pipeline",
-  "bevy_gilrs",
-  "bevy_gizmos",
-  "bevy_gltf",
-  "bevy_pbr",
-  "bevy_picking",
-  "bevy_render",
-  "bevy_scene",
-  "bevy_sprite",
-  "bevy_text",
-  "bevy_ui",
-  "bevy_window",
-  "bevy_winit",
-  "bevy_state",
-  "bevy_input_focus",
-  "bevy_log",
-
-  # Picking backends
-  "bevy_mesh_picking_backend",
-  "bevy_sprite_picking_backend",
-  "bevy_ui_picking_backend",
-
-  # Image formats
-  "png",
-  "hdr",
-
-  # Audio formats
-  "vorbis",
-
-  # Platform features
-  "x11",
-  "wayland",
-
-  # Other essential features
-  "multi_threaded",
-  "default_font",
-  "tonemapping_luts",
-  "smaa_luts",
-  "animation",
-  "custom_cursor",
-  "sysinfo_plugin",
-  "android_shared_stdcxx",
-  "android-game-activity",
-  "async_executor",
-  "std",
-
-  # Explicitly NOT including webgl2 which can cause issues
-] }
-bevy_egui = "0.34.1"
+bevy = "0.16.1"
 rand_chacha = "0.9.0"
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
@@ -103,3 +47,12 @@ path = "src/lib.rs"
 [[bin]]
 name = "ia"
 path = "src/main.rs"
+
+# Patch Bevy crates to use our local version with experimental features removed
+[patch.crates-io]
+bevy = { path = "./bevy-patched" }
+bevy_render = { path = "./bevy-patched/crates/bevy_render" }
+bevy_core_pipeline = { path = "./bevy-patched/crates/bevy_core_pipeline" }
+bevy_pbr = { path = "./bevy-patched/crates/bevy_pbr" }
+bevy_ecs = { path = "./bevy-patched/crates/bevy_ecs" }
+bevy_ecs_macros = { path = "./bevy-patched/crates/bevy_ecs/macros" }

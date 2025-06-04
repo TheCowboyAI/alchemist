@@ -84,6 +84,5 @@ pkgs.mkShell {
   ];
 
   # Disable experimental features that might cause issues
-  BEVY_DISABLE_EXPERIMENTAL_FEATURES = "1";
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
 }

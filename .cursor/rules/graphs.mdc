@@ -4,279 +4,356 @@ globs: *.rs
 alwaysApply: false
 ---
 
-```cursorrules
-# Daggy + Bevy v0.16 Integration Best Practices for Merkle DAGs
+# EventStore-CQRS-Graph + Bevy v0.16 Integration Best Practices
 
 ## Core Architecture Principles
 
-- **Daggy Primary Storage**: Maintain all graph data in `daggy::Dag` instances
-- **Bevy ECS Mirror**: Sync critical nodes to Bevy as entities with `GraphNode` components
+- **NATS JetStream Event Store**: Primary source of truth with CID-chained events
+- **CQRS Pattern**: Separated write model (commands) and read model (queries)
+- **Petgraph Storage**: Lightweight graph structure with component deduplication
+- **Bevy ECS Visualization**: Real-time rendering through async/sync bridge
 - **Decoupled Layers**:
-  ```
-  struct AppState {
-    merkle_dag: Dag,  // Primary truth source
-    render_graph: DiGraph  // Bevy visualization mirror
+  ```rust
+  struct GraphSystem {
+      event_store: EventStore,        // NATS JetStream persistence
+      write_model: GraphAggregate,    // Command processing
+      read_model: GraphReadModel,     // Query optimization
+      bevy_bridge: AsyncSyncBridge,   // Real-time updates
   }
   ```
 
-## Merkle DAG Implementation
+## EventStore with CID Chains
 
-### Node Structure
-```
-#[derive(Serialize, Deserialize, Component)]
-struct MerkleNode {
-    cid: Cid,                  // Content identifier
-    links: Vec,           // Cryptographic links
-    position: Vec3,            // 3D spatial data
-    render_state: NodeState,   // Visual properties
-    metadata: HashMap
-}
-
+### Event Structure
+```rust
 #[derive(Serialize, Deserialize)]
-struct MerkleEdge {
-    weight: f64,
-    proof: Vec,            // Cryptographic edge proof
-    thickness: f32,            // Visual property
-    style: EdgeStyle
+pub struct DomainEvent {
+    pub event_id: EventId,
+    pub aggregate_id: AggregateId,
+    pub event_type: String,
+    pub payload: serde_json::Value,
+    pub sequence: u64,
+    pub timestamp: SystemTime,
+    pub event_cid: Option<Cid>,      // Content-addressed identifier
+    pub previous_cid: Option<Cid>,   // Chain to previous event
+    pub metadata: EventMetadata,
+}
+
+// CID calculation ensures integrity
+pub fn calculate_event_cid(
+    payload: &[u8],
+    previous_cid: Option<Cid>,
+    aggregate_id: &AggregateId,
+    event_type: &str,
+    timestamp: SystemTime,
+) -> Result<Cid, EventStoreError> {
+    // Uses IPLD dag-cbor format
 }
 ```
 
-## Serialization Strategy
-
-### JSON Schema Management
-```
-#[derive(Serialize, Deserialize)]
-struct DagJsonSchema {
-    nodes: Vec,
-    edges: Vec
+### EventStream Transactions
+```rust
+pub struct EventStreamTransaction {
+    pub transaction_id: TransactionId,
+    pub sequence_range: SequenceRange,
+    pub aggregate_id: AggregateId,
+    pub events: Vec<DomainEvent>,
+    pub metadata: TransactionMetadata,
 }
 
-// Serialization system
-fn serialize_dag(
-    dag: Res>,
-    mut commands: Commands
-) {
-    let schema = DagJsonSchema {
-        nodes: dag.node_weights().cloned().collect(),
-        edges: dag.raw_edges()
-            .map(|e| (e.source(), e.target(), e.weight.clone()))
-            .collect()
-    };
-    let json = serde_json::to_string(&schema).unwrap();
-    commands.insert_resource(SerializedGraph(json));
-}
+// Atomic event processing
+let transaction = event_service.fetch_transaction(
+    aggregate_id,
+    TransactionOptions {
+        replay_policy: ReplayPolicy::FromBeginning,
+        max_events: Some(1000),
+    },
+).await?;
 ```
 
-## Event Stream Integration
+## CQRS Implementation
 
-### Custom Event Pipeline
-```
-#[derive(Event)]
-enum DagEvent {
-    NodeUpdated(NodeIndex),
-    EdgeAdded(EdgeIndex),
-    SubgraphCommitted(Vec)
+### Write Model (Commands)
+```rust
+pub struct GraphAggregate {
+    id: GraphId,
+    graph: petgraph::Graph<NodeId, EdgeId>,
+    nodes: DashMap<NodeId, NodeEntity>,
+    component_indices: ComponentIndices,
 }
 
-// Event processing system
-fn handle_dag_events(
-    mut events: EventReader,
-    mut dag: ResMut>,
-    mut render_events: EventWriter
-) {
-    for event in events.read() {
-        match event {
-            DagEvent::NodeUpdated(idx) => {
-                let node = dag.node_weight(*idx).unwrap();
-                render_events.send(RenderUpdate::Node(node.clone()));
-            },
-            // Handle other event variants
+// Command processing
+impl GraphAggregate {
+    pub async fn handle_command(&mut self, cmd: GraphCommand) -> Result<Vec<DomainEvent>, Error> {
+        match cmd {
+            GraphCommand::AddNode { node } => {
+                // Validate business rules
+                // Generate events
+                // Update state
+            }
         }
     }
 }
 ```
 
-## Performance Critical Paths
-
-### Batched Mesh Updates
-```
-fn dag_to_mesh_batch(
-    dag: &Dag,
-    batch_size: usize
-) -> Vec {
-    dag.node_indices()
-        .collect::>()
-        .chunks(batch_size)
-        .map(|chunk| {
-            let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-            // Batch processing logic
-            mesh
-        })
-        .collect()
-}
-```
-
-### Memory Optimization
-```
-struct DagCache {
-    node_arena: Arena,
-    edge_arena: Arena,
-    spatial_index: SpatialGrid
+### Read Model (Queries)
+```rust
+pub struct GraphReadModel {
+    node_views: DashMap<NodeId, NodeView>,
+    metrics: Arc<RwLock<GraphMetrics>>,
+    query_cache: QueryCache,
 }
 
-impl DagCache {
-    fn new(dag: &Dag) -> Self {
-        // Build optimized cache structures
+// Optimized queries
+impl GraphReadModel {
+    pub fn find_nodes_with_component(
+        &self,
+        component_type: ComponentType,
+        criteria: ComponentCriteria,
+    ) -> Result<Vec<NodeView>, QueryError> {
+        // Use pre-computed indices
+        // Return from cache if available
     }
 }
 ```
 
-## Validation & Integrity
+## Component Deduplication Strategy
 
-### Merkle Proof System
+### Memory-Optimized Storage
+```rust
+// Flyweight pattern for 60-80% memory reduction
+pub struct ComponentStorage {
+    components: HashMap<ComponentId, Arc<Component>>,
+    reference_counts: HashMap<ComponentId, usize>,
+}
+
+pub struct NodeEntity {
+    pub id: NodeId,
+    pub component_ids: HashSet<ComponentId>,  // References, not copies
+}
+
+// Before: 500+ bytes per node
+// After: 64 bytes per node + shared components
 ```
-fn validate_merkle_path(
-    dag: &Dag,
-    start: NodeIndex,
-    end: NodeIndex
-) -> Result {
-    let mut current = start;
-    while current != end {
-        let node = dag.node_weight(current).unwrap();
-        let parent = dag.parents(current).next().ok_or(DagError::InvalidPath)?;
 
-        if !verify_links(node, dag.node_weight(parent).unwrap()) {
-            return Err(DagError::HashMismatch);
-        }
-        current = parent;
+## Async/Sync Bridge
+
+### Bridge Architecture
+```rust
+pub struct AsyncSyncBridge {
+    // Commands: Bevy (sync) → NATS (async)
+    command_tx: crossbeam::channel::Sender<BridgeCommand>,
+    command_rx: Arc<Mutex<crossbeam::channel::Receiver<BridgeCommand>>>,
+
+    // Events: NATS (async) → Bevy (sync)
+    event_tx: tokio::sync::mpsc::UnboundedSender<BridgeEvent>,
+    event_rx: crossbeam::channel::Receiver<BridgeEvent>,
+}
+
+// Batched event processing
+impl AsyncSyncBridge {
+    pub fn receive_events(&self) -> Vec<BridgeEvent> {
+        // Batch events for efficiency
+        // Respect timeout for low latency
     }
-    Ok(())
 }
 ```
 
 ## Bevy Integration Patterns
 
-### ECS Component Mapping
-```
+### ECS Components
+```rust
 #[derive(Component)]
-struct GraphNodeRef {
-    dag_index: NodeIndex,
-    version: u64
+pub struct GraphNode {
+    node_id: NodeId,
+    graph_index: NodeIndex<u32>,
 }
 
 #[derive(Component)]
-struct GraphEdgeRef {
-    dag_index: EdgeIndex,
+pub struct GraphEdge {
+    edge_id: EdgeId,
     source: Entity,
-    target: Entity
+    target: Entity,
+}
+
+#[derive(Component)]
+pub struct GraphReference {
+    aggregate_id: AggregateId,
+    last_event_cid: Option<Cid>,
 }
 ```
 
-### Rendering Pipeline
-```
-fn update_render_graph(
-    dag: Res>,
-    mut materials: ResMut>,
-    mut meshes: ResMut>,
-    mut query: Query)>
+### Event Processing Systems
+```rust
+fn poll_graph_events(
+    bridge: Res<AsyncSyncBridge>,
+    mut commands: Commands,
+    mut graph_events: EventWriter<GraphMutationEvent>,
 ) {
-    for (node_ref, mut mesh_handle) in query.iter_mut() {
-        let node = dag.node_weight(node_ref.dag_index).unwrap();
-        let mesh = build_node_mesh(node);
-        *mesh_handle = meshes.add(mesh);
+    let events = bridge.receive_events();
+
+    for event in events {
+        match event {
+            BridgeEvent::NodeAdded { graph_id, node_id, event_cid } => {
+                // Spawn entity
+                // Update visualization
+                graph_events.send(GraphMutationEvent::NodeAdded {
+                    graph_id,
+                    node_id,
+                });
+            }
+            // Handle other events
+        }
+    }
+}
+```
+
+## Performance Optimization
+
+### Query Performance
+```rust
+// Sub-10ms query latency through:
+// 1. Pre-computed indices
+// 2. LRU cache with TTL
+// 3. Parallel query execution
+
+pub struct QueryCache {
+    cache: Arc<RwLock<LruCache<QueryKey, QueryResult>>>,
+    hit_rate: Arc<AtomicU64>,
+}
+```
+
+### Memory Efficiency
+```rust
+// Component deduplication
+// - 80% reduction for similar components
+// - Reference counting for lifecycle
+// - Bloom filters for fast lookups
+
+pub struct ComponentIndices {
+    type_index: HashMap<ComponentType, HashSet<NodeId>>,
+    category_index: HashMap<String, HashSet<NodeId>>,
+    bloom_filter: BloomFilter<ComponentId>,
+}
+```
+
+## Snapshot Management
+
+### Fast Recovery
+```rust
+pub struct SnapshotService {
+    object_store: NatsObjectStore,
+    compression: CompressionType::Zstd,
+}
+
+impl SnapshotService {
+    pub async fn create_snapshot(&self, graph: &GraphAggregate) -> Result<Cid, Error> {
+        // Serialize graph state
+        // Compress with zstd
+        // Store in NATS Object Store
+        // Return CID for retrieval
+    }
+
+    pub async fn restore_from_snapshot(&self, cid: Cid) -> Result<GraphAggregate, Error> {
+        // Fetch from object store
+        // Decompress
+        // Reconstruct graph
     }
 }
 ```
 
 ## Operational Guidelines
 
-1. **Memory Safety**:
-   - Keep node count >) {
-       let handles: Vec = dag.node_indices()
-           .map(|idx| tokio::spawn(process_node(dag.clone(), idx)))
-           .collect();
+1. **Event Ordering**:
+   - Maintain strict sequence per aggregate
+   - Use CID chains for integrity verification
+   - Handle out-of-order events gracefully
 
-       for handle in handles {
-           handle.await.unwrap();
-       }
+2. **Memory Management**:
+   - Monitor component deduplication ratio
+   - Set bounded buffers (10K events default)
+   - Use snapshots for long-running graphs
+
+3. **Performance Monitoring**:
+   ```rust
+   pub struct GraphMetrics {
+       event_lag_ms: Histogram,
+       query_latency_p99: Gauge,
+       cache_hit_ratio: Gauge,
+       memory_usage_mb: Gauge,
    }
    ```
 
-3. **Error Recovery**:
-   - Maintain versioned DAG snapshots
-   - Implement automatic rollback on validation failure
-   - Use checksum validation for serialized graphs
+4. **Error Recovery**:
+   - Automatic retry with exponential backoff
+   - Circuit breakers for downstream services
+   - Snapshot-based recovery for corruption
 
-## Tooling Integration
+## Testing Patterns
 
-### Dev Tools
-```
-fn debug_dag_graph(
-    dag: Res>,
-    mut egui_context: ResMut
-) {
-    egui::Window::new("DAG Inspector").show(egui_context.ctx_mut(), |ui| {
-        ui.label(format!("Nodes: {}", dag.node_count()));
-        ui.label(format!("Edges: {}", dag.edge_count()));
-        // Interactive visualization controls
-    });
+### CID Chain Verification
+```rust
+#[tokio::test]
+async fn test_event_chain_integrity() {
+    let event1 = store.append_event(...).await?;
+    let event2 = store.append_event(...).await?;
+
+    assert_eq!(event2.previous_cid, event1.event_cid);
+    assert!(verify_cid_chain(&[event1, event2])?);
 }
 ```
 
-This architecture provides cryptographic integrity for Merkle DAGs while maintaining real-time visualization capabilities through Bevy's ECS system. The separation between Daggy-managed graph data and Bevy's rendering entities ensures optimal performance for both computational graph operations and interactive visualization.
+### CQRS Consistency
+```rust
+#[test]
+fn test_eventual_consistency() {
+    // Write through command
+    write_model.process_command(AddNode { ... })?;
 
-Citations:
-[1] https://docs.rs/daggy
-[2] https://www.diggs.pet/diggs-dog-crates/
-[3] https://daggy.gitbook.io
-[4] https://dictionary.cambridge.org/us/dictionary/english/daggy
-[5] https://www.youtube.com/watch?v=wgnvmSDD738
-[6] https://github.com/serde-rs/json
-[7] http://docs.piston.rs/conrod/daggy/walker/index.html
-[8] https://research.nvidia.com/publication/2022-02_dagguise-mitigating-memory-timing-side-channels
-[9] https://lib.rs/crates/daggy/features
-[10] https://serde.rs/derive.html
-[11] https://bevy-cheatbook.github.io/programming/events.html
-[12] https://github.com/mitchmindtree/daggy
-[13] https://docs.rs/serde_ipld_dagjson
-[14] https://mitchmindtree.github.io/daggy/daggy/struct.Children.html
-[15] https://bevyengine.org/examples/window/custom-user-event/
-[16] https://docs.rs/daggy/latest/daggy/struct.Dag.html
-[17] https://www.youtube.com/watch?v=f2HfHlYQLks
-[18] https://github.com/azriel91/daggy2
-[19] https://github.com/FlippingBinary/serde_atproto_dagjson
-[20] https://lib.rs/crates/dagga
-[21] https://www.reddit.com/r/rust/comments/3o6q59/daggy_an_indexable_directed_acyclic_graph_dag/
-[22] https://crates.io/crates/serde_ipld_dagjson/0.1.0
-[23] https://www.reddit.com/r/rust/comments/10gfvh2/surprises_in_the_rust_json_ecosystem/
-[24] https://burr.dagworks.io/reference/serde/
-[25] https://docs.rs/daggy/latest/daggy/struct.EdgeIndex.html
-[26] https://github.com/bevyengine/bevy/discussions/7363
-[27] https://docs.rs/bevy/latest/bevy/ecs/schedule/struct.Dag.html
-[28] https://www.bevy.com/integrations
-[29] https://github.com/manuzhang/awesome-streaming
-[30] https://help.bevy.com/hc/en-us/articles/24852626866327-Creating-an-Event
-[31] https://help.bevy.com/hc/en-us/articles/1500001548981-Best-practices-for-the-day-of-an-event
-[32] https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/dag-serialization.html
-[33] https://ipld.io/docs/codecs/known/dag-json/
-[34] https://docs.piston.rs/conrod/daggy/struct.Dag.html
-[35] https://serde.rs
-[36] https://bevy.com/b/blog/integrating-bevy-with-your-tech-stack-a-step-by-step-guide
-[37] https://github.com/victorb/dogoap
-[38] https://www.youtube.com/watch?v=5oKEPZ6LbNE
-[39] https://www.reddit.com/r/gamedev/comments/11k8kux/bevy_010_data_oriented_game_engine_built_in_rust/
-[40] https://bevyengine.org/learn/quick-start/getting-started/ecs/
-[41] https://www.youtube.com/watch?v=enP4bopQllw
-[42] https://bevyengine.org/examples/
-[43] https://stackoverflow.com/questions/69577423/cant-get-rockets-eventstream-to-work-with-borrowed-values
-[44] https://github.com/dagrs-dev/dagrs
-[45] https://api.rocket.rs/v0.5/rocket/response/stream/struct.EventStream
-[46] https://github.com/synacker/daggy
-[47] https://www.vet.cornell.edu/departments-centers-and-institutes/riney-canine-health-center/canine-health-information/managing-reactive-behavior
-[48] https://www.akc.org/expert-advice/training/reactivity-vs-aggression/
-[49] https://help.bevy.com/hc/en-us/articles/360060161994-Create-a-new-event
-[50] https://taintedcoders.com/bevy/events
-[51] https://www.reddit.com/r/bevy/comments/18cyvrn/event_handling_in_bevy_seeking_advice_on_handling/
-[52] https://bevy.com/b/blog/your-complete-guide-to-planning-an-event-successfully
-[53] https://github.com/aevyrie/bevy_eventlistener
-[54] https://stackoverflow.com/questions/63675140/how-to-read-bevy-events-without-consuming-them
+    // Wait for projection
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    // Read model should reflect change
+    let node = read_model.get_node(node_id)?;
+    assert!(node.is_some());
+}
+```
+
+## Configuration
+
+### NATS JetStream
+```yaml
+jetstream:
+  store_dir: "./data/jetstream"
+  max_memory_store: 1GB
+  max_file_store: 10GB
+
+streams:
+  - name: event-store
+    subjects: ["event.store.>"]
+    retention: limits
+    max_age: 365d
+```
+
+### Performance Tuning
+```rust
+pub struct GraphConfig {
+    // Deduplication
+    pub dedup_threshold: f32,        // 0.8 = 80% similarity
+    pub dedup_batch_size: usize,     // 1000 components
+
+    // Caching
+    pub cache_size: usize,           // 10_000 entries
+    pub cache_ttl: Duration,         // 5 minutes
+
+    // Batching
+    pub event_batch_size: usize,     // 100 events
+    pub batch_timeout: Duration,     // 10ms
+
+    // Snapshots
+    pub snapshot_interval: u64,      // Every 1000 events
+    pub snapshot_compression: bool,  // true (zstd)
+}
+```
+
+This architecture provides a high-performance, memory-efficient graph system with cryptographic integrity through CID chains, optimized query performance through CQRS, and real-time visualization through Bevy ECS.

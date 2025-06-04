@@ -1,0 +1,687 @@
+   Compiling same-file v1.0.6
+   Compiling mio v1.0.4
+   Compiling filetime v0.2.25
+   Compiling notify-types v2.0.0
+   Compiling file-id v0.2.2
+   Compiling bevy_window v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_transform v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_diagnostic v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_state v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_gilrs v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling walkdir v2.5.0
+   Compiling notify v8.0.0
+   Compiling notify-debouncer-full v0.5.0
+   Compiling bevy_asset v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_input_focus v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_image v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_audio v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_mesh v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_winit v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_render v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_core_pipeline v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_picking v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_scene v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_animation v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_sprite v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_pbr v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_anti_aliasing v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_text v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_ui v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_gltf v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_gizmos v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_internal v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy_dylib v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling bevy v0.16.0-dev (https://github.com/bevyengine/bevy.git?branch=main#50aa40e9)
+   Compiling ia v0.1.0 (/git/thecowboyai/alchemist)
+warning: unused variable: `app`
+   --> src/contexts/selection/tests.rs:523:17
+    |
+523 |         let mut app = setup_test_app();
+    |                 ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+   --> src/contexts/selection/tests.rs:523:13
+    |
+523 |         let mut app = setup_test_app();
+    |             ----^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused `std::result::Result` that must be used
+   --> src/testing/event_sourcing_tests.rs:215:9
+    |
+215 |         world.run_system_once(handle_replay_requests);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+    |
+215 |         let _ = world.run_system_once(handle_replay_requests);
+    |         +++++++
+
+warning: `ia` (lib test) generated 3 warnings (run `cargo fix --lib -p ia --tests` to apply 1 suggestion)
+warning: unused import: `Cid`
+ --> src/contexts/event_store/mod.rs:7:18
+  |
+7 | pub use events::{Cid, DomainEvent, DomainEventOccurred, EventPayload};
+  |                  ^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `persistence::EventPersistence`
+ --> src/contexts/event_store/mod.rs:8:9
+  |
+8 | pub use persistence::EventPersistence;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `plugin::EventStorePlugin`
+ --> src/contexts/event_store/mod.rs:9:9
+  |
+9 | pub use plugin::EventStorePlugin;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `EventReplayer`, `ReplayFromCidRequest`, and `ReplayGraphRequest`
+  --> src/contexts/event_store/mod.rs:10:18
+   |
+10 | pub use replay::{EventReplayer, ReplayFromCidRequest, ReplayGraphRequest};
+   |                  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ObjectStore`
+  --> src/contexts/event_store/mod.rs:11:29
+   |
+11 | pub use store::{EventStore, ObjectStore};
+   |                             ^^^^^^^^^^^
+
+warning: unused import: `domain::*`
+  --> src/contexts/graph_management/mod.rs:18:9
+   |
+18 | pub use domain::*;
+   |         ^^^^^^^^^
+
+warning: unused import: `events::*`
+  --> src/contexts/graph_management/mod.rs:20:9
+   |
+20 | pub use events::*;
+   |         ^^^^^^^^^
+
+warning: unused import: `exporter::*`
+  --> src/contexts/graph_management/mod.rs:21:9
+   |
+21 | pub use exporter::*;
+   |         ^^^^^^^^^^^
+
+warning: unused import: `importer::*`
+  --> src/contexts/graph_management/mod.rs:22:9
+   |
+22 | pub use importer::*;
+   |         ^^^^^^^^^^^
+
+warning: unused import: `plugin::GraphManagementPlugin`
+  --> src/contexts/graph_management/mod.rs:23:9
+   |
+23 | pub use plugin::GraphManagementPlugin;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `services::*`
+  --> src/contexts/graph_management/mod.rs:24:9
+   |
+24 | pub use services::*;
+   |         ^^^^^^^^^^^
+
+warning: unused import: `storage::*`
+  --> src/contexts/graph_management/mod.rs:25:9
+   |
+25 | pub use storage::*;
+   |         ^^^^^^^^^^
+
+warning: unused import: `verify_storage::*`
+  --> src/contexts/graph_management/mod.rs:26:9
+   |
+26 | pub use verify_storage::*;
+   |         ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `plugin::VisualizationPlugin`
+ --> src/contexts/visualization/mod.rs:8:9
+  |
+8 | pub use plugin::VisualizationPlugin;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `i`
+   --> src/main.rs:112:10
+    |
+112 |     for (i, (source_idx, target_idx)) in edge_pairs.iter().enumerate() {
+    |          ^ help: if this is intentional, prefix it with an underscore: `_i`
+
+warning: struct `SyncToNats` is never constructed
+  --> src/contexts/event_store/events.rs:85:12
+   |
+85 | pub struct SyncToNats(pub DomainEvent);
+   |            ^^^^^^^^^^
+   |
+   = note: `SyncToNats` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: methods `is_synced` and `mark_synced` are never used
+   --> src/contexts/event_store/events.rs:135:12
+    |
+87  | impl DomainEvent {
+    | ---------------- methods in this implementation
+...
+135 |     pub fn is_synced(&self) -> bool {
+    |            ^^^^^^^^^
+...
+140 |     pub fn mark_synced(&mut self, nats_sequence: u64) {
+    |            ^^^^^^^^^^^
+
+warning: struct `EventPersistence` is never constructed
+  --> src/contexts/event_store/persistence.rs:23:12
+   |
+23 | pub struct EventPersistence;
+   |            ^^^^^^^^^^^^^^^^
+
+warning: associated functions `save_store`, `load_store`, and `export_dag` are never used
+   --> src/contexts/event_store/persistence.rs:27:12
+    |
+25  | impl EventPersistence {
+    | --------------------- associated functions in this implementation
+26  |     /// Save the entire event store to a file
+27  |     pub fn save_store(event_store: &EventStore, path: &Path) -> Result<(), String> {
+    |            ^^^^^^^^^^
+...
+75  |     pub fn load_store(path: &Path) -> Result<EventStore, String> {
+    |            ^^^^^^^^^^
+...
+150 |     pub fn export_dag(
+    |            ^^^^^^^^^^
+
+warning: struct `ReplayedState` is never constructed
+  --> src/contexts/event_store/replay.rs:16:12
+   |
+16 | pub struct ReplayedState {
+   |            ^^^^^^^^^^^^^
+   |
+   = note: `ReplayedState` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `identity`, `metadata`, and `journey` are never read
+   --> src/contexts/graph_management/domain.rs:124:9
+    |
+123 | pub struct Graph {
+    |            ----- fields in this struct
+124 |     pub identity: GraphIdentity,
+    |         ^^^^^^^^
+125 |     pub metadata: GraphMetadata,
+    |         ^^^^^^^^
+126 |     pub journey: GraphJourney,
+    |         ^^^^^^^
+    |
+    = note: `Graph` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `content` and `position` are never read
+   --> src/contexts/graph_management/domain.rs:134:9
+    |
+131 | pub struct Node {
+    |            ---- fields in this struct
+...
+134 |     pub content: NodeContent,
+    |         ^^^^^^^
+135 |     pub position: SpatialPosition,
+    |         ^^^^^^^^
+    |
+    = note: `Node` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `identity` and `graph` are never read
+   --> src/contexts/graph_management/domain.rs:141:9
+    |
+140 | pub struct Edge {
+    |            ---- fields in this struct
+141 |     pub identity: EdgeIdentity,
+    |         ^^^^^^^^
+142 |     pub graph: GraphIdentity,
+    |         ^^^^^
+    |
+    = note: `Edge` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `edge` is never read
+  --> src/contexts/graph_management/events.rs:44:9
+   |
+42 | pub struct EdgeDisconnected {
+   |            ---------------- field in this struct
+43 |     pub graph: GraphIdentity,
+44 |     pub edge: EdgeIdentity,
+   |         ^^^^
+   |
+   = note: `EdgeDisconnected` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `node` and `label` are never read
+  --> src/contexts/graph_management/events.rs:70:9
+   |
+68 | pub struct LabelApplied {
+   |            ------------ fields in this struct
+69 |     pub graph: GraphIdentity,
+70 |     pub node: NodeIdentity,
+   |         ^^^^
+71 |     pub label: String,
+   |         ^^^^^
+   |
+   = note: `LabelApplied` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `reason` is never read
+  --> src/contexts/graph_management/events.rs:78:9
+   |
+76 | pub struct GraphDeleted {
+   |            ------------ field in this struct
+77 |     pub graph: GraphIdentity,
+78 |     pub reason: DeletionReason,
+   |         ^^^^^^
+   |
+   = note: `GraphDeleted` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `UserRequested`, `SystemMaintenance`, and `PolicyViolation` are never constructed
+  --> src/contexts/graph_management/events.rs:83:5
+   |
+82 | pub enum DeletionReason {
+   |          -------------- variants in this enum
+83 |     UserRequested,
+   |     ^^^^^^^^^^^^^
+84 |     SystemMaintenance,
+   |     ^^^^^^^^^^^^^^^^^
+85 |     PolicyViolation,
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `DeletionReason` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: struct `SubgraphImported` is never constructed
+  --> src/contexts/graph_management/events.rs:92:12
+   |
+92 | pub struct SubgraphImported {
+   |            ^^^^^^^^^^^^^^^^
+   |
+   = note: `SubgraphImported` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `parent_graph`, `extracted_graph`, and `node_ids` are never read
+   --> src/contexts/graph_management/events.rs:102:9
+    |
+101 | pub struct SubgraphExtracted {
+    |            ----------------- fields in this struct
+102 |     pub parent_graph: GraphIdentity,
+    |         ^^^^^^^^^^^^
+103 |     pub extracted_graph: GraphIdentity,
+    |         ^^^^^^^^^^^^^^^
+104 |     pub node_ids: Vec<NodeIdentity>,
+    |         ^^^^^^^^
+    |
+    = note: `SubgraphExtracted` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `graph`, `edge`, `from_subgraph`, and `to_subgraph` are never read
+   --> src/contexts/graph_management/events.rs:110:9
+    |
+109 | pub struct InterSubgraphEdgeCreated {
+    |            ------------------------ fields in this struct
+110 |     pub graph: GraphIdentity,
+    |         ^^^^^
+111 |     pub edge: EdgeIdentity,
+    |         ^^^^
+112 |     pub from_subgraph: GraphIdentity,
+    |         ^^^^^^^^^^^^^
+113 |     pub to_subgraph: GraphIdentity,
+    |         ^^^^^^^^^^^
+    |
+    = note: `InterSubgraphEdgeCreated` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `graph_id` and `path` are never read
+   --> src/contexts/graph_management/exporter.rs:149:9
+    |
+148 | pub struct GraphExportedEvent {
+    |            ------------------ fields in this struct
+149 |     pub graph_id: GraphIdentity,
+    |         ^^^^^^^^
+150 |     pub path: String,
+    |         ^^^^
+    |
+    = note: `GraphExportedEvent` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Import`, `Export`, and `Storage` are never constructed
+  --> src/contexts/graph_management/plugin.rs:17:5
+   |
+15 | pub enum GraphManagementSet {
+   |          ------------------ variants in this enum
+16 |     /// Systems that import or create graph data
+17 |     Import,
+   |     ^^^^^^
+18 |     /// Systems that export graph data
+19 |     Export,
+   |     ^^^^^^
+20 |     /// Systems that sync with storage
+21 |     Storage,
+   |     ^^^^^^^
+   |
+   = note: `GraphManagementSet` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `edge_id` is never read
+  --> src/contexts/graph_management/repositories.rs:65:9
+   |
+64 | pub struct EdgeReference {
+   |            ------------- field in this struct
+65 |     pub edge_id: EdgeIdentity,
+   |         ^^^^^^^
+   |
+   = note: `EdgeReference` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: variants `NodeRemoved`, `EdgeDisconnected`, `NodeMoved`, `PropertyUpdated`, `LabelApplied`, and `Deleted` are never constructed
+  --> src/contexts/graph_management/repositories.rs:76:5
+   |
+72 | pub enum GraphEvent {
+   |          ---------- variants in this enum
+...
+76 |     NodeRemoved(NodeRemoved),
+   |     ^^^^^^^^^^^
+77 |     EdgeDisconnected(EdgeDisconnected),
+   |     ^^^^^^^^^^^^^^^^
+78 |     NodeMoved(NodeMoved),
+   |     ^^^^^^^^^
+79 |     PropertyUpdated(PropertyUpdated),
+   |     ^^^^^^^^^^^^^^^
+80 |     LabelApplied(LabelApplied),
+   |     ^^^^^^^^^^^^
+81 |     Deleted(GraphDeleted),
+   |     ^^^^^^^
+   |
+   = note: `GraphEvent` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `timestamp` is never read
+  --> src/contexts/graph_management/repositories.rs:89:9
+   |
+86 | pub struct GraphSnapshot {
+   |            ------------- field in this struct
+...
+89 |     pub timestamp: std::time::SystemTime,
+   |         ^^^^^^^^^
+   |
+   = note: `GraphSnapshot` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `find_mut` is never used
+   --> src/contexts/graph_management/repositories.rs:113:12
+    |
+95  | impl Graphs {
+    | ----------- method in this implementation
+...
+113 |     pub fn find_mut(&mut self, id: GraphIdentity) -> Option<&mut GraphData> {
+    |            ^^^^^^^^
+
+warning: method `compact_events` is never used
+   --> src/contexts/graph_management/repositories.rs:216:12
+    |
+156 | impl GraphEvents {
+    | ---------------- method in this implementation
+...
+216 |     pub fn compact_events(&mut self, graph_id: GraphIdentity) {
+    |            ^^^^^^^^^^^^^^
+
+warning: fields `limit` and `current` are never read
+   --> src/contexts/graph_management/services.rs:294:25
+    |
+294 |     NodeLimitExceeded { limit: usize, current: usize },
+    |     -----------------   ^^^^^         ^^^^^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `0` is never read
+   --> src/contexts/graph_management/services.rs:300:18
+    |
+300 |     NodeNotFound(NodeIdentity),
+    |     ------------ ^^^^^^^^^^^^
+    |     |
+    |     field in this variant
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+help: consider changing the field to be of unit type to suppress this warning while preserving the field numbering, or remove the field
+    |
+300 -     NodeNotFound(NodeIdentity),
+300 +     NodeNotFound(()),
+    |
+
+warning: fields `node`, `limit`, and `current` are never read
+   --> src/contexts/graph_management/services.rs:313:9
+    |
+312 |     EdgeLimitExceeded {
+    |     ----------------- fields in this variant
+313 |         node: NodeIdentity,
+    |         ^^^^
+314 |         limit: usize,
+    |         ^^^^^
+315 |         current: usize,
+    |         ^^^^^^^
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `GraphDeleted`, `GraphLocked`, `SelfReferencingEdge`, `DisconnectedNode`, `CyclicDependency`, and `InvalidEdgeCategory` are never constructed
+   --> src/contexts/graph_management/services.rs:291:5
+    |
+286 | pub enum GraphConstraintViolation {
+    |          ------------------------ variants in this enum
+...
+291 |     GraphDeleted,
+    |     ^^^^^^^^^^^^
+...
+297 |     GraphLocked,
+    |     ^^^^^^^^^^^
+...
+306 |     SelfReferencingEdge { node: NodeIdentity },
+    |     ^^^^^^^^^^^^^^^^^^^
+...
+322 |     DisconnectedNode { node: NodeIdentity },
+    |     ^^^^^^^^^^^^^^^^
+...
+325 |     CyclicDependency { path: Vec<NodeIdentity> },
+    |     ^^^^^^^^^^^^^^^^
+...
+328 |     InvalidEdgeCategory {
+    |     ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `GraphConstraintViolation` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `content` and `position` are never read
+  --> src/contexts/graph_management/storage.rs:16:9
+   |
+14 | pub struct NodeData {
+   |            -------- fields in this struct
+15 |     pub identity: NodeIdentity,
+16 |     pub content: NodeContent,
+   |         ^^^^^^^
+17 |     pub position: SpatialPosition,
+   |         ^^^^^^^^
+   |
+   = note: `NodeData` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `relationship` is never read
+  --> src/contexts/graph_management/storage.rs:24:9
+   |
+22 | pub struct EdgeData {
+   |            -------- field in this struct
+23 |     pub identity: EdgeIdentity,
+24 |     pub relationship: EdgeRelationship,
+   |         ^^^^^^^^^^^^
+   |
+   = note: `EdgeData` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: variant `EdgeNotFound` is never constructed
+   --> src/contexts/graph_management/storage.rs:174:5
+    |
+170 | pub enum StorageError {
+    |          ------------ variant in this enum
+...
+174 |     EdgeNotFound(EdgeIdentity),
+    |     ^^^^^^^^^^^^
+    |
+    = note: `StorageError` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `load_from_storage` is never used
+   --> src/contexts/graph_management/storage.rs:234:12
+    |
+181 | impl SyncGraphWithStorage {
+    | ------------------------- associated function in this implementation
+...
+234 |     pub fn load_from_storage(
+    |            ^^^^^^^^^^^^^^^^^
+
+warning: function `verify_storage_operations` is never used
+  --> src/contexts/graph_management/verify_storage.rs:11:8
+   |
+11 | pub fn verify_storage_operations() {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `Lasso` is never constructed
+  --> src/contexts/selection/domain.rs:77:5
+   |
+72 | pub enum SelectionMode {
+   |          ------------- variant in this enum
+...
+77 |     Lasso,    // Lasso selection mode (future feature)
+   |     ^^^^^
+   |
+   = note: `SelectionMode` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `0` is never read
+   --> src/contexts/selection/domain.rs:146:29
+    |
+146 | pub struct OriginalMaterial(pub Handle<StandardMaterial>);
+    |            ---------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |            |
+    |            field in this struct
+    |
+    = help: consider removing this field
+
+warning: fields `added_nodes`, `removed_nodes`, `added_edges`, and `removed_edges` are never read
+  --> src/contexts/selection/events.rs:10:9
+   |
+9  | pub struct SelectionChanged {
+   |            ---------------- fields in this struct
+10 |     pub added_nodes: Vec<NodeIdentity>,
+   |         ^^^^^^^^^^^
+11 |     pub removed_nodes: Vec<NodeIdentity>,
+   |         ^^^^^^^^^^^^^
+12 |     pub added_edges: Vec<EdgeIdentity>,
+   |         ^^^^^^^^^^^
+13 |     pub removed_edges: Vec<EdgeIdentity>,
+   |         ^^^^^^^^^^^^^
+   |
+   = note: `SelectionChanged` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `previous_mode` is never read
+  --> src/contexts/selection/events.rs:24:9
+   |
+22 | pub struct SelectionModeChanged {
+   |            -------------------- field in this struct
+23 |     pub new_mode: SelectionMode,
+24 |     pub previous_mode: SelectionMode,
+   |         ^^^^^^^^^^^^^
+   |
+   = note: `SelectionModeChanged` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `entity` and `edge` are never read
+  --> src/contexts/selection/events.rs:53:9
+   |
+52 | pub struct EdgeDeselected {
+   |            -------------- fields in this struct
+53 |     pub entity: Entity,
+   |         ^^^^^^
+54 |     pub edge: EdgeIdentity,
+   |         ^^^^
+   |
+   = note: `EdgeDeselected` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: fields `graph`, `iterations`, and `final_displacement` are never read
+  --> src/contexts/visualization/layout.rs:70:9
+   |
+69 | pub struct LayoutCompleted {
+   |            --------------- fields in this struct
+70 |     pub graph: GraphIdentity,
+   |         ^^^^^
+71 |     pub iterations: u32,
+   |         ^^^^^^^^^^
+72 |     pub final_displacement: f32,
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `LayoutCompleted` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: variants `Circular`, `Hierarchical`, and `Grid` are never constructed
+  --> src/contexts/visualization/layout.rs:79:5
+   |
+77 | pub enum LayoutAlgorithm {
+   |          --------------- variants in this enum
+78 |     ForceDirected,
+79 |     Circular,
+   |     ^^^^^^^^
+80 |     Hierarchical,
+   |     ^^^^^^^^^^^^
+81 |     Grid,
+   |     ^^^^
+   |
+   = note: `LayoutAlgorithm` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: multiple variants are never constructed
+  --> src/testing/bevy_test_framework.rs:10:5
+   |
+9  | pub enum TestAction {
+   |          ---------- variants in this enum
+10 |     MoveMouse { x: f32, y: f32 },
+   |     ^^^^^^^^^
+11 |     Click { button: MouseButton },
+   |     ^^^^^
+12 |     KeyPress { key: KeyCode },
+   |     ^^^^^^^^
+13 |     KeyRelease { key: KeyCode },
+   |     ^^^^^^^^^^
+14 |     Wait { frames: u32 },
+   |     ^^^^
+15 |     AssertNodeExists { tag: String },
+   |     ^^^^^^^^^^^^^^^^
+16 |     AssertNodeSelected { tag: String },
+   |     ^^^^^^^^^^^^^^^^^^
+17 |     TakeScreenshot { name: String },
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `TestAction` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: associated items `new` and `add_action` are never used
+  --> src/testing/bevy_test_framework.rs:37:12
+   |
+36 | impl TestScenario {
+   | ----------------- associated items in this implementation
+37 |     pub fn new(name: impl Into<String>) -> Self {
+   |            ^^^
+...
+46 |     pub fn add_action(mut self, action: TestAction) -> Self {
+   |            ^^^^^^^^^^
+
+warning: function `create_test_scenarios` is never used
+   --> src/testing/bevy_test_framework.rs:196:8
+    |
+196 | pub fn create_test_scenarios() -> Vec<TestScenario> {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `node_moved` is never used
+   --> src/testing/event_validation_helpers.rs:236:12
+    |
+185 | impl TestEventBuilder {
+    | --------------------- associated function in this implementation
+...
+236 |     pub fn node_moved(
+    |            ^^^^^^^^^^
+
+warning: `ia` (bin "ia" test) generated 60 warnings (3 duplicates) (run `cargo fix --bin "ia" --tests` to apply 14 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 41s
+     Running unittests src/lib.rs (target/x86_64-unknown-linux-gnu/debug/deps/ia-8fc63bac974e6bae)
+/git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/deps/ia-8fc63bac974e6bae: symbol lookup error: /git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/deps/libbevy_dylib-a023e1e74a07f4f2.so: undefined symbol: _ZN120_$LT$bevy_render..experimental..occlusion_culling..OcclusionCullingSubview$u20$as$u20$bevy_ecs..component..Component$GT$28register_required_components17haaa13bab630a45f6E
+error: test failed, to rerun pass `--lib`
+
+Caused by:
+  process didn't exit successfully: `/git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/deps/ia-8fc63bac974e6bae` (exit status: 127)
+note: test exited abnormally; to see the full output pass --nocapture to the harness.

@@ -1,0 +1,38 @@
+diff --git a/crates/bevy_render/src/view/mod.rs b/crates/bevy_render/src/view/mod.rs
+index 1234567..abcdefg 100644
+--- a/crates/bevy_render/src/view/mod.rs
++++ b/crates/bevy_render/src/view/mod.rs
+@@ -100,10 +100,10 @@ pub struct ViewUniform {
+ }
+
+ /// Texture used to store depth data from the prepass.
+-#[derive(Component, Default, Deref)]
+-pub struct ViewDepthTexture {
+-    pub texture: Texture,
+-}
++// #[derive(Component, Default, Deref)]
++// pub struct ViewDepthTexture {
++//     pub texture: Texture,
++// }
+
+ /// A texture that stores the color data from the world before tonemapping is applied.
+ #[derive(Component, Deref)]
+diff --git a/crates/bevy_render/src/experimental/occlusion_culling/mod.rs b/crates/bevy_render/src/experimental/occlusion_culling/mod.rs
+index 1234567..abcdefg 100644
+--- a/crates/bevy_render/src/experimental/occlusion_culling/mod.rs
++++ b/crates/bevy_render/src/experimental/occlusion_culling/mod.rs
+@@ -50,10 +50,10 @@ use bevy_ecs::{
+ };
+
+ /// Marks a view as supporting experimental occlusion culling.
+-#[derive(Component)]
+-pub struct OcclusionCullingSubview {
+-    pub view: TextureView,
+-}
++// #[derive(Component)]
++// pub struct OcclusionCullingSubview {
++//     pub view: TextureView,
++// }
+
+ /// Entities that are visible after occlusion culling.
+ #[derive(Component, Default)]

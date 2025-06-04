@@ -7,8 +7,15 @@ pkgs.rustPlatform.buildRustPackage rec {
   pname = "ia";
   version = "0.1.0";
 
-  # Use root directory as source
-  src = lib.cleanSource ../.;
+  # Use root directory as source, including bevy-patched
+  src = lib.cleanSourceWith {
+    src = ../.;
+    filter = path: type:
+      # Include everything except .git and target directories
+      !(lib.hasSuffix "/.git" path) &&
+      !(lib.hasSuffix "/target" path) &&
+      !(lib.hasInfix "/target/" path);
+  };
 
   # Use the Cargo lock file
   cargoLock.lockFile = ../Cargo.lock;
