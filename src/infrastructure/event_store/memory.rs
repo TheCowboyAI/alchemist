@@ -1,7 +1,7 @@
 //! In-memory event store for testing and development
 
 use crate::domain::events::DomainEvent;
-use crate::infrastructure::event_store::EventStoreError;
+use crate::infrastructure::event_store::{EventStore, EventStoreError};
 use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -41,7 +41,7 @@ impl Default for InMemoryEventStore {
 }
 
 #[async_trait]
-impl super::EventStore for InMemoryEventStore {
+impl EventStore for InMemoryEventStore {
     async fn store(&self, event: DomainEvent) -> Result<(), EventStoreError> {
         // For the trait implementation, we'll use a default aggregate ID
         // In real usage, you should use store_with_aggregate

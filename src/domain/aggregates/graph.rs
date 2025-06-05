@@ -193,3 +193,189 @@ impl Graph {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_graph_creation() {
+        // Given
+        let id = GraphId::new();
+        let name = "Test Graph".to_string();
+        let description = Some("Test Description".to_string());
+
+        // When
+        let graph = Graph::new(id, name.clone(), description.clone());
+
+        // Then
+        assert_eq!(graph.id, id);
+        assert_eq!(graph.metadata.name, name);
+        assert_eq!(graph.version, 0);
+        assert_eq!(graph.nodes.len(), 0);
+        assert_eq!(graph.edges.len(), 0);
+
+        // Verify creation event was emitted
+        let events = graph.get_uncommitted_events();
+        assert_eq!(events.len(), 1);
+
+        match &events[0] {
+            DomainEvent::Graph(GraphEvent::GraphCreated { id: event_id, metadata }) => {
+                assert_eq!(*event_id, id);
+                assert_eq!(metadata.name, name);
+                assert!(metadata.tags.contains(&description.unwrap()));
+            }
+            _ => panic!("Expected GraphCreated event"),
+        }
+    }
+
+    #[test]
+    fn test_graph_metadata_update() {
+        // Given
+        let id = GraphId::new();
+        let mut graph = Graph::new(id, "Original Name".to_string(), None);
+        graph.mark_events_as_committed(); // Clear creation event
+
+        // When
+        graph.update_metadata(Some("New Name".to_string()), Some("New Tag".to_string()));
+
+        // Then
+        assert_eq!(graph.metadata.name, "New Name");
+        assert!(graph.metadata.tags.contains(&"New Tag".to_string()));
+
+        // Verify events were emitted
+        let events = graph.get_uncommitted_events();
+        assert_eq!(events.len(), 2);
+
+        // Check rename event
+        match &events[0] {
+            DomainEvent::Graph(GraphEvent::GraphRenamed { id: event_id, old_name, new_name }) => {
+                assert_eq!(*event_id, id);
+                assert_eq!(old_name, "Original Name");
+                assert_eq!(new_name, "New Name");
+            }
+            _ => panic!("Expected GraphRenamed event"),
+        }
+
+        // Check tag event
+        match &events[1] {
+            DomainEvent::Graph(GraphEvent::GraphTagged { id: event_id, tag }) => {
+                assert_eq!(*event_id, id);
+                assert_eq!(tag, "New Tag");
+            }
+            _ => panic!("Expected GraphTagged event"),
+        }
+    }
+
+    #[test]
+    fn test_graph_from_events() {
+        // Given
+        let id = GraphId::new();
+        let events = vec![
+            DomainEvent::Graph(GraphEvent::GraphCreated {
+                id,
+                metadata: GraphMetadata::new("Event Sourced Graph".to_string()),
+            }),
+            DomainEvent::Graph(GraphEvent::GraphRenamed {
+                id,
+                old_name: "Event Sourced Graph".to_string(),
+                new_name: "Renamed Graph".to_string(),
+            }),
+            DomainEvent::Graph(GraphEvent::GraphTagged {
+                id,
+                tag: "Important".to_string(),
+            }),
+        ];
+
+        // When
+        let graph = Graph::from_events(id, events);
+
+        // Then
+        assert_eq!(graph.id, id);
+        assert_eq!(graph.metadata.name, "Renamed Graph");
+        assert!(graph.metadata.tags.contains(&"Important".to_string()));
+        assert_eq!(graph.uncommitted_events.len(), 0); // No new events
+    }
+
+    #[test]
+    fn test_event_commit_cycle() {
+        // Given
+        let id = GraphId::new();
+        let mut graph = Graph::new(id, "Test Graph".to_string(), None);
+
+        // When - verify uncommitted events exist
+        assert_eq!(graph.get_uncommitted_events().len(), 1);
+
+        // Mark as committed
+        graph.mark_events_as_committed();
+
+        // Then - verify events are cleared
+        assert_eq!(graph.get_uncommitted_events().len(), 0);
+
+        // When - make another change
+        graph.update_metadata(Some("Updated".to_string()), None);
+
+        // Then - verify new event is tracked
+        assert_eq!(graph.get_uncommitted_events().len(), 1);
+    }
+
+    #[test]
+    fn test_graph_tag_operations() {
+        // Given
+        let id = GraphId::new();
+        let mut graph = Graph::new(id, "Tagged Graph".to_string(), None);
+        graph.mark_events_as_committed();
+
+        // When - add multiple tags
+        graph.update_metadata(None, Some("Tag1".to_string()));
+        graph.update_metadata(None, Some("Tag2".to_string()));
+
+        // Then
+        assert_eq!(graph.metadata.tags.len(), 2);
+        assert!(graph.metadata.tags.contains(&"Tag1".to_string()));
+        assert!(graph.metadata.tags.contains(&"Tag2".to_string()));
+
+        // Verify events
+        let events = graph.get_uncommitted_events();
+        assert_eq!(events.len(), 2);
+
+        for event in events {
+            match event {
+                DomainEvent::Graph(GraphEvent::GraphTagged { .. }) => {},
+                _ => panic!("Expected GraphTagged events"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_graph_untag_operation() {
+        // Given
+        let id = GraphId::new();
+        let events = vec![
+            DomainEvent::Graph(GraphEvent::GraphCreated {
+                id,
+                metadata: GraphMetadata::new("Graph".to_string()),
+            }),
+            DomainEvent::Graph(GraphEvent::GraphTagged {
+                id,
+                tag: "ToRemove".to_string(),
+            }),
+            DomainEvent::Graph(GraphEvent::GraphTagged {
+                id,
+                tag: "ToKeep".to_string(),
+            }),
+            DomainEvent::Graph(GraphEvent::GraphUntagged {
+                id,
+                tag: "ToRemove".to_string(),
+            }),
+        ];
+
+        // When
+        let graph = Graph::from_events(id, events);
+
+        // Then
+        assert_eq!(graph.metadata.tags.len(), 1);
+        assert!(graph.metadata.tags.contains(&"ToKeep".to_string()));
+        assert!(!graph.metadata.tags.contains(&"ToRemove".to_string()));
+    }
+}

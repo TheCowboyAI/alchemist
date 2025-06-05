@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-05T23:15:00-07:00",
-    "version": "2.3.1"
+    "updated": "2025-06-07T10:30:00-07:00",
+    "version": "2.5.0"
   },
   "nodes": [
     {
@@ -220,7 +220,7 @@
       "type": "milestone",
       "position": { "x": 575, "y": 100, "z": 0 },
       "data": {
-        "status": "in-progress",
+        "status": "completed",
         "date": "2025-06-05",
         "description": "Updating and republishing obsolete documentation for CIM architecture",
         "details": [
@@ -228,13 +228,118 @@
           "Updated CIM Integration Overview combining design and architecture",
           "Created comprehensive Event Sourcing Patterns documentation",
           "Applied DDD naming conventions throughout",
-          "Structured new documentation hierarchy in /doc/publish/architecture/"
+          "Structured new documentation hierarchy in /doc/publish/architecture/",
+          "Published IPLD guide for knowledge workers",
+          "Created visual infographic guide",
+          "Developed executive summary for decision makers"
         ],
-        "progress": 40,
+        "progress": 100,
+        "completed_date": "2025-06-06",
         "references": [
           "/doc/plan/documentation-republishing-plan.md",
           "/doc/publish/architecture/cim-overview.md",
-          "/doc/publish/architecture/event-sourcing.md"
+          "/doc/publish/architecture/event-sourcing.md",
+          "/doc/publish/architecture/ipld-for-knowledge-workers.md",
+          "/doc/publish/architecture/ipld-infographic.md",
+          "/doc/publish/architecture/ipld-executive-summary.md"
+        ]
+      }
+    },
+    {
+      "id": "cid-chain-implementation",
+      "label": "CID Chain Implementation",
+      "type": "milestone",
+      "position": { "x": 580, "y": 200, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-07",
+        "description": "Implementing CID chains for event and object stores",
+        "details": [
+          "Created comprehensive CID/IPLD architecture design document",
+          "Designed dual Merkle DAG structure for Event Store and Object Store",
+          "Defined domain-specific IPLD codecs (0x300000-0x3FFFFF range)",
+          "Added document and multimedia support with text extraction",
+          "Implemented infrastructure tracking for dog-fooding capabilities",
+          "Created 11 detailed design documents covering all aspects",
+          "Designed MIME type intelligence and file group management",
+          "Added IPLD relationships for semantic navigation",
+          "Implemented isomorphic Git hash to CID translation",
+          "Implemented ChainedEvent with BLAKE3 hashing",
+          "Created EventChain for managing event sequences",
+          "Added comprehensive validation and tampering detection",
+          "Implemented deterministic CID generation",
+          "Added tests for chain validation and CID determinism"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-07",
+        "references": [
+          "/doc/design/cid-ipld-architecture.md",
+          "/doc/design/cid-ipld-core.md",
+          "/doc/design/cid-ipld-content-types.md",
+          "/doc/design/cid-ipld-stores.md",
+          "/doc/design/cid-ipld-transformations.md",
+          "/doc/design/cid-ipld-business-intelligence.md",
+          "/doc/design/cid-ipld-documents-media.md",
+          "/doc/design/cid-ipld-infrastructure.md",
+          "/doc/design/cid-ipld-mime-filegroups.md",
+          "/doc/design/cid-ipld-relationships.md",
+          "/doc/design/cid-ipld-git-isomorphism.md",
+          "/src/domain/events/cid_chain.rs"
+        ]
+      }
+    },
+    {
+      "id": "distributed-event-store",
+      "label": "Distributed Event Store",
+      "type": "milestone",
+      "position": { "x": 700, "y": 200, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-07",
+        "description": "JetStream-based distributed event store implementation",
+        "details": [
+          "Implemented DistributedEventStore with NATS JetStream",
+          "Created stream configuration with file-based storage",
+          "Added event persistence with acknowledgment tracking",
+          "Implemented event retrieval by aggregate ID",
+          "Added LRU cache for performance optimization",
+          "Created comprehensive error handling",
+          "Integrated with EventBridge for async/sync communication",
+          "Added event store statistics tracking",
+          "Configured retention policies and duplicate detection"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-07",
+        "references": [
+          "/src/infrastructure/event_store/distributed.rs",
+          "/src/infrastructure/event_store/mod.rs"
+        ]
+      }
+    },
+    {
+      "id": "event-bridge-implementation",
+      "label": "Event Bridge Implementation",
+      "type": "milestone",
+      "position": { "x": 725, "y": 200, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-07",
+        "description": "Async/sync bridge between NATS and Bevy ECS",
+        "details": [
+          "Created EventBridge with crossbeam channels",
+          "Implemented BridgeCommand and BridgeEvent types",
+          "Added async task spawning with tokio runtime",
+          "Created EventBridgePlugin for Bevy integration",
+          "Bidirectional event flow working",
+          "Comprehensive test suite added",
+          "Integrated with main application",
+          "Added graceful shutdown handling"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-07",
+        "references": [
+          "/src/infrastructure/event_bridge/mod.rs",
+          "/src/main.rs"
         ]
       }
     },
@@ -317,7 +422,7 @@
       "type": "phase",
       "position": { "x": 700, "y": 0, "z": 0 },
       "data": {
-        "status": "in-progress",
+        "status": "completed",
         "week": 2,
         "description": "JetStream event store, object store integration"
       }
@@ -397,6 +502,65 @@
         "status": "planned",
         "target_date": "2025-07-30",
         "description": "Full CIM leaf node with 100K+ nodes, conceptual spaces, AI ready"
+      }
+    },
+    {
+      "id": "dynamic-linking-fix",
+      "label": "Dynamic Linking Issue Fixed",
+      "type": "milestone",
+      "position": { "x": 750, "y": 200, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-07",
+        "description": "Fixed dynamic linking issue for reliable test execution",
+        "details": [
+          "Resolved bevy_dylib symbol lookup errors",
+          "Tests now run reliably via nix build or nix run",
+          "Cannot use cargo test directly due to dynamic linking",
+          "Nix environment properly configures all dependencies",
+          "Build and test workflow now stable and reproducible"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-07",
+        "references": [
+          "/flake.nix",
+          "/doc/plan/immediate-actions-plan.md"
+        ]
+      }
+    },
+    {
+      "id": "cim-ipld-extraction",
+      "label": "CIM-IPLD Extraction Plan",
+      "type": "milestone",
+      "position": { "x": 775, "y": 200, "z": 0 },
+      "data": {
+        "status": "planned",
+        "date": "2025-06-07",
+        "description": "Extract CIM-IPLD as standalone reusable library",
+        "details": [
+          "Identified need for shared IPLD implementation across all CIM nodes",
+          "Designed modular architecture with extension points",
+          "Planned extraction of existing CID chain code",
+          "Will create new GitHub repository: thecowboyai/cim-ipld",
+          "Dual license: Apache-2.0 OR MIT for maximum compatibility",
+          "Base traits for TypedContent and CimCodec",
+          "Extensible codec registry (0x300000-0x3FFFFF range)",
+          "Support for custom content types per project",
+          "Will be published to crates.io and available via GitHub"
+        ],
+        "progress": 0,
+        "references": [
+          "/doc/plan/cim-ipld-extraction-plan.md",
+          "/doc/plan/immediate-actions-plan.md"
+        ],
+        "next_steps": [
+          "Create GitHub repository with CI/CD",
+          "Extract and generalize ChainedEvent code",
+          "Implement base traits and codec registry",
+          "Add comprehensive tests and documentation",
+          "Publish v0.1.0 release",
+          "Update Information Alchemist to use external library"
+        ]
       }
     }
   ],
@@ -502,6 +666,13 @@
     {
       "id": "e7d",
       "source": "documentation-republishing",
+      "target": "cid-chain-implementation",
+      "label": "design",
+      "type": "sequence"
+    },
+    {
+      "id": "e7e",
+      "source": "documentation-republishing",
       "target": "k7-complete-graph",
       "label": "enhance",
       "type": "sequence"
@@ -582,6 +753,62 @@
       "target": "completion",
       "label": "complete",
       "type": "sequence"
+    },
+    {
+      "id": "e7h",
+      "source": "test-configuration-optional",
+      "target": "cid-chain-implementation",
+      "label": "implement",
+      "type": "sequence"
+    },
+    {
+      "id": "e7i",
+      "source": "cid-chain-implementation",
+      "target": "distributed-event-store",
+      "label": "integrate",
+      "type": "sequence"
+    },
+    {
+      "id": "e7j",
+      "source": "distributed-event-store",
+      "target": "event-bridge-implementation",
+      "label": "connect",
+      "type": "sequence"
+    },
+    {
+      "id": "e7k",
+      "source": "event-bridge-implementation",
+      "target": "phase-1",
+      "label": "complete",
+      "type": "sequence"
+    },
+    {
+      "id": "e7l",
+      "source": "event-bridge-implementation",
+      "target": "dynamic-linking-fix",
+      "label": "resolve",
+      "type": "parallel"
+    },
+    {
+      "id": "e7m",
+      "source": "dynamic-linking-fix",
+      "target": "phase-1",
+      "label": "enable",
+      "type": "sequence"
+    },
+    {
+      "id": "e7n",
+      "source": "dynamic-linking-fix",
+      "target": "cim-ipld-extraction",
+      "label": "enable",
+      "type": "sequence"
+    },
+    {
+      "id": "e7o",
+      "source": "cim-ipld-extraction",
+      "target": "phase-1.5",
+      "label": "unblock",
+      "type": "sequence"
     }
   ],
   "project": "Information Alchemist CIM Integration",
@@ -633,8 +860,8 @@
     {
       "id": "phase-1",
       "name": "Phase 1: Distributed Event Infrastructure",
-      "status": "in-progress",
-      "progress": 25,
+      "status": "completed",
+      "progress": 100,
       "tasks": [
         {
           "id": "jetstream-event-store",
@@ -646,23 +873,59 @@
         {
           "id": "event-structure-migration",
           "name": "Event Structure Migration",
-          "status": "in-progress",
-          "progress": 50,
-          "details": "Updating command handlers and presentation layer to use new event structure with metadata instead of content"
+          "status": "completed",
+          "progress": 100,
+          "details": "Successfully migrated command handlers and presentation layer to use new NodeEvent structure with metadata instead of content. Fixed distributed event store compilation issues."
         },
         {
           "id": "cid-chain-implementation",
           "name": "CID Chain Implementation",
-          "status": "pending",
-          "progress": 0,
-          "details": "Content-addressed event chains for integrity"
+          "status": "completed",
+          "progress": 100,
+          "details": "Content-addressed event chains for integrity - Comprehensive design document created with domain-specific IPLD codecs, Merkle DAG architecture, and distributed partitioning strategy. Implementation completed with BLAKE3 hashing, chain validation, and tampering detection."
         },
         {
           "id": "event-replay-mechanism",
           "name": "Event Replay Mechanism",
+          "status": "completed",
+          "progress": 100,
+          "details": "Event replay from any point in time using CID chains and JetStream consumer API"
+        }
+      ]
+    },
+    {
+      "id": "phase-1.5",
+      "name": "Phase 1.5: IPLD Integration",
+      "status": "redesigned",
+      "progress": 10,
+      "tasks": [
+        {
+          "id": "cim-ipld-extraction",
+          "name": "Extract CIM-IPLD Library",
+          "status": "planned",
+          "progress": 0,
+          "details": "Extract core IPLD functionality into standalone reusable library for all CIM implementations"
+        },
+        {
+          "id": "ia-specific-types",
+          "name": "IA-Specific Content Types",
           "status": "pending",
           "progress": 0,
-          "details": "Replay events from any point in time"
+          "details": "Define Information Alchemist specific content types using external cim-ipld library"
+        },
+        {
+          "id": "object-store-integration",
+          "name": "Object Store Integration",
+          "status": "pending",
+          "progress": 0,
+          "details": "NATS Object Store for content-addressed storage using cim-ipld types"
+        },
+        {
+          "id": "custom-codec-implementation",
+          "name": "Custom Codec Implementation",
+          "status": "pending",
+          "progress": 0,
+          "details": "Implement IA-specific codecs for graphs, conceptual spaces, and game theory"
         }
       ]
     },
@@ -891,17 +1154,23 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Migrating event structure to use metadata instead of content fields",
+  "current_focus": "Planning CIM-IPLD extraction as standalone library for cross-project reuse",
   "next_steps": [
-    "Fix command handlers to use new NodeEvent structure",
-    "Update presentation layer to handle metadata fields",
-    "Implement CID chain functionality",
-    "Add event replay mechanism"
+    "Create thecowboyai/cim-ipld GitHub repository",
+    "Extract and generalize ChainedEvent implementation",
+    "Design extensible trait system for content types",
+    "Implement codec registry with base codecs",
+    "Publish initial release to GitHub and crates.io",
+    "Update Information Alchemist to use external library"
   ],
   "blockers": [],
   "notes": [
-    "Successfully implemented distributed event store with JetStream",
-    "Updated dependencies to latest versions: petgraph 0.8.1, daggy 0.9.0",
-    "Event structure migration in progress - changing from content to metadata fields"
+    "Successfully completed Phase 1 with all infrastructure in place",
+    "CID chain implementation complete with BLAKE3 hashing and validation",
+    "Distributed event store operational with JetStream",
+    "Event bridge connecting NATS and Bevy ECS working",
+    "Comprehensive IPLD architecture designed with 11 design documents",
+    "Dynamic linking issue resolved - must use 'nix build' or 'nix run' for reliable execution",
+    "Redesigned Phase 1.5 to extract CIM-IPLD as standalone library for reuse across all CIM projects"
   ]
 }

@@ -15,10 +15,10 @@ all = { level = "warn", priority = -1 }
 all = { level = "warn", priority = -1 }
 
 [workspace]
-exclude = ["examples/"]
+exclude = ["examples/", "cim-ipld/"]
 
 [features]
-default = ["dynamic"]
+default = []
 dynamic = ["bevy/dynamic_linking"]
 dev = [
   "bevy/asset_processor",
@@ -33,7 +33,7 @@ rand = "0.9"
 uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-bevy = { version = "0.16.1", features = ["dynamic_linking", "wayland"] }
+bevy = { version = "0.16.1", features = ["wayland"] }
 
 # Graph library
 petgraph = { version = "0.8.1", features = ["serde-1"] }
@@ -54,6 +54,12 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Content addressing
+cim-ipld = { path = "cim-ipld" }
+cid = "0.11"
+multihash = { version = "0.19", features = ["std"] }
+blake3 = "1.5"
 
 # Channel implementations
 crossbeam-channel = "0.5"

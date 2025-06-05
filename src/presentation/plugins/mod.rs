@@ -102,7 +102,7 @@ fn handle_domain_events(
             DomainEvent::Node(NodeEvent::NodeAdded {
                 graph_id,
                 node_id,
-                content,
+                metadata,
                 position,
             }) => {
                 spawn_node(
@@ -111,7 +111,7 @@ fn handle_domain_events(
                     &mut materials,
                     *graph_id,
                     *node_id,
-                    content,
+                    metadata,
                     *position,
                     &time,
                 );
@@ -258,10 +258,17 @@ fn spawn_node(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     graph_id: GraphId,
     node_id: NodeId,
-    content: &NodeContent,
+    metadata: &std::collections::HashMap<String, serde_json::Value>,
     position: Position3D,
     time: &Time,
 ) {
+    // Extract label from metadata
+    let label = metadata
+        .get("label")
+        .and_then(|v| v.as_str())
+        .unwrap_or("Unnamed")
+        .to_string();
+
     let node_mesh = meshes.add(Sphere::new(0.5));
     let node_material = materials.add(StandardMaterial {
         base_color: Color::srgb(0.3, 0.5, 0.8),
@@ -272,9 +279,7 @@ fn spawn_node(
 
     commands.spawn((
         GraphNode { node_id, graph_id },
-        NodeLabel {
-            text: content.label.clone(),
-        },
+        NodeLabel { text: label },
         Mesh3d(node_mesh),
         MeshMaterial3d(node_material),
         Transform::from_translation(position.into()).with_scale(Vec3::ZERO),

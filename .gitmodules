@@ -1,0 +1,3 @@
+[submodule "cim-ipld"]
+	path = cim-ipld
+	url = https://github.com/TheCowboyAI/cim-ipld.git

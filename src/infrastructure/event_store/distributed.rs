@@ -1,18 +1,20 @@
 //! Distributed event store using NATS JetStream
 
 use crate::domain::events::DomainEvent;
+use crate::infrastructure::event_store::EventStoreError;
 use crate::infrastructure::nats::{NatsClient, NatsError};
-use async_nats::jetstream::{self, stream::Config as StreamConfig, Context};
-use futures::StreamExt;
-use lru::LruCache;
+use async_nats::jetstream::{self, consumer::pull::Config as ConsumerConfig, stream::Config as StreamConfig};
 use serde::{Deserialize, Serialize};
-use std::num::NonZeroUsize;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::time::Duration;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use time::OffsetDateTime;
+use lru::LruCache;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use futures::StreamExt;
+use std::num::NonZeroUsize;
 
 /// Configuration for the distributed event store
 #[derive(Debug, Clone)]
@@ -34,6 +36,15 @@ pub struct DistributedEventStoreConfig {
 
     /// Deduplication window (in seconds)
     pub deduplication_window_secs: u64,
+
+    /// Bucket name for object store
+    pub bucket_name: String,
+
+    /// Maximum messages per subject
+    pub max_messages_per_subject: i64,
+
+    /// Maximum age of events in seconds
+    pub max_age_seconds: u64,
 }
 
 impl Default for DistributedEventStoreConfig {
@@ -45,6 +56,9 @@ impl Default for DistributedEventStoreConfig {
             cache_size: 10000,
             enable_deduplication: true,
             deduplication_window_secs: 120, // 2 minutes
+            bucket_name: "events-bucket".to_string(),
+            max_messages_per_subject: 1000,
+            max_age_seconds: 365 * 24 * 60 * 60, // 1 year
         }
     }
 }
@@ -62,10 +76,11 @@ pub struct StoredEvent {
 
 /// Distributed event store using NATS JetStream
 pub struct DistributedEventStore {
-    /// JetStream context
-    context: Context,
+    /// NATS client
+    client: NatsClient,
 
     /// Configuration
+    #[allow(dead_code)]
     config: DistributedEventStoreConfig,
 
     /// LRU cache for recent events
@@ -78,32 +93,36 @@ pub struct DistributedEventStore {
 impl DistributedEventStore {
     /// Create a new distributed event store
     pub async fn new(
-        nats_client: &NatsClient,
+        client: NatsClient,
         config: DistributedEventStoreConfig,
-    ) -> Result<Self, NatsError> {
-        // Get JetStream context
-        let context = jetstream::new(nats_client.client().clone());
+    ) -> Result<Self, EventStoreError> {
+        let stream_name = config.stream_name.clone();
 
-        // Create or update the stream
+        // Get JetStream context
+        let jetstream = client.jetstream()
+            .map_err(|e| EventStoreError::Storage(e.to_string()))?;
+
+        // Create stream configuration
         let stream_config = StreamConfig {
-            name: config.stream_name.clone(),
-            subjects: vec![config.subject_pattern.clone()],
-            max_age: std::time::Duration::from_secs(config.max_age_secs),
-            duplicate_window: if config.enable_deduplication {
-                std::time::Duration::from_secs(config.deduplication_window_secs)
-            } else {
-                std::time::Duration::from_secs(0)
-            },
+            name: stream_name.clone(),
+            subjects: vec!["events.>".to_string()],
+            retention: jetstream::stream::RetentionPolicy::Limits,
+            max_messages_per_subject: config.max_messages_per_subject,
+            max_age: Duration::from_secs(config.max_age_seconds),
+            storage: jetstream::stream::StorageType::File,
             ..Default::default()
         };
 
-        match context.create_stream(stream_config.clone()).await {
-            Ok(_) => info!("Created JetStream stream: {}", config.stream_name),
-            Err(e) if e.to_string().contains("already exists") => {
-                // Stream already exists, that's fine
-                info!("JetStream stream already exists: {}", config.stream_name);
+        // Create or update the stream
+        match jetstream.create_stream(stream_config).await {
+            Ok(_) => info!("Created JetStream stream: {}", stream_name),
+            Err(e) => {
+                if e.to_string().contains("already exists") {
+                    info!("JetStream stream already exists: {}", stream_name);
+                } else {
+                    return Err(EventStoreError::Storage(e.to_string()));
+                }
             }
-            Err(e) => return Err(NatsError::JetStreamError(e.to_string())),
         }
 
         // Create LRU cache
@@ -112,10 +131,10 @@ impl DistributedEventStore {
         let cache = Arc::new(Mutex::new(LruCache::new(cache_size)));
 
         Ok(Self {
-            context,
-            stream_name: config.stream_name.clone(),
+            client,
             config,
             cache,
+            stream_name,
         })
     }
 
@@ -143,8 +162,12 @@ impl DistributedEventStore {
         let payload = serde_json::to_vec(&stored_event)
             .map_err(|e| NatsError::SerializationError(e.to_string()))?;
 
+        // Get JetStream context
+        let jetstream = self.client.jetstream()
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+
         // Publish to JetStream
-        let ack = self.context
+        let ack = jetstream
             .publish(subject.clone(), payload.into())
             .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?
@@ -187,17 +210,21 @@ impl DistributedEventStore {
         }
 
         // Query JetStream for events
-        let subject = format!("events.{}.>", aggregate_type);
+        let subject = format!("events.{aggregate_type}.>");
+
+        // Get JetStream context
+        let jetstream = self.client.jetstream()
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Get stream handle
-        let stream = self.context
+        let stream = jetstream
             .get_stream(&self.stream_name)
             .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Create consumer for reading events
         let consumer = stream
-            .create_consumer(jetstream::consumer::pull::Config {
+            .create_consumer(ConsumerConfig {
                 filter_subject: subject,
                 ..Default::default()
             })
@@ -252,8 +279,12 @@ impl DistributedEventStore {
         start_time: chrono::DateTime<chrono::Utc>,
         subject_filter: Option<String>,
     ) -> Result<impl futures::Stream<Item = Result<DomainEvent, NatsError>>, NatsError> {
+        // Get JetStream context
+        let jetstream = self.client.jetstream()
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+
         // Get stream handle
-        let stream = self.context
+        let stream = jetstream
             .get_stream(&self.stream_name)
             .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
@@ -261,10 +292,10 @@ impl DistributedEventStore {
         // Convert chrono DateTime to time OffsetDateTime
         let timestamp = start_time.timestamp();
         let start_time_offset = OffsetDateTime::from_unix_timestamp(timestamp)
-            .map_err(|e| NatsError::SerializationError(format!("Invalid timestamp: {}", e)))?;
+            .map_err(|e| NatsError::SerializationError(format!("Invalid timestamp: {e}")))?;
 
         // Create consumer for replay
-        let consumer_config = jetstream::consumer::pull::Config {
+        let consumer_config = ConsumerConfig {
             deliver_policy: jetstream::consumer::DeliverPolicy::ByStartTime {
                 start_time: start_time_offset,
             },
@@ -311,8 +342,12 @@ impl DistributedEventStore {
 
     /// Get event store statistics
     pub async fn get_stats(&self) -> Result<EventStoreStats, NatsError> {
+        // Get JetStream context
+        let jetstream = self.client.jetstream()
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+
         // Get stream info
-        let mut stream = self.context
+        let mut stream = jetstream
             .get_stream(&self.stream_name)
             .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
@@ -337,6 +372,55 @@ impl DistributedEventStore {
             cache_stats,
         })
     }
+
+    /// Load events by aggregate type
+    pub async fn load_events_by_type(
+        &self,
+        aggregate_type: &str,
+    ) -> Result<Vec<DomainEvent>, NatsError> {
+        let subject = format!("events.{aggregate_type}.>");
+
+        // Get JetStream context
+        let jetstream = self.client.jetstream()
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+
+        // Get stream handle
+        let stream = jetstream
+            .get_stream(&self.stream_name)
+            .await
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+
+        // Create consumer for reading events
+        let consumer = stream.create_consumer(ConsumerConfig {
+            filter_subject: subject,
+            ..Default::default()
+        }).await
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+
+        // Fetch messages
+        let mut messages = consumer.fetch().max_messages(1000).messages().await
+            .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+
+        let mut events = Vec::new();
+
+        while let Some(Ok(message)) = messages.next().await {
+            // Deserialize event
+            let stored_event = serde_json::from_slice::<StoredEvent>(&message.payload)
+                .map_err(|e| NatsError::SerializationError(e.to_string()))?;
+
+            events.push(stored_event.event);
+
+            // Acknowledge message
+            message.ack().await
+                .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
+        }
+
+        info!("Loaded {} events from JetStream for aggregate type {}",
+            events.len(), aggregate_type);
+
+        // Events are already in order from JetStream
+        Ok(events)
+    }
 }
 
 /// Event store statistics
@@ -358,7 +442,5 @@ pub struct CacheStats {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     // Tests will be added in the next step
 }

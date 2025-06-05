@@ -5,6 +5,7 @@ use crate::domain::commands::{Command, EdgeCommand, GraphCommand, NodeCommand};
 use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
 use crate::domain::value_objects::*;
 use bevy::prelude::*;
+use serde_json;
 
 /// System that processes commands and generates events
 pub fn process_commands(
@@ -75,12 +76,19 @@ fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
             node_id,
             content,
             position,
-        } => Some(DomainEvent::Node(NodeEvent::NodeAdded {
-            graph_id: *graph_id,
-            node_id: *node_id,
-            content: content.clone(),
-            position: *position,
-        })),
+        } => {
+            // Convert NodeContent to metadata HashMap
+            let mut metadata = content.properties.clone();
+            metadata.insert("label".to_string(), serde_json::Value::String(content.label.clone()));
+            metadata.insert("node_type".to_string(), serde_json::to_value(&content.node_type).unwrap());
+
+            Some(DomainEvent::Node(NodeEvent::NodeAdded {
+                graph_id: *graph_id,
+                node_id: *node_id,
+                metadata,
+                position: *position,
+            }))
+        }
         NodeCommand::RemoveNode { graph_id, node_id } => {
             Some(DomainEvent::Node(NodeEvent::NodeRemoved {
                 graph_id: *graph_id,
@@ -92,12 +100,40 @@ fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
             node_id,
             content,
         } => {
-            Some(DomainEvent::Node(NodeEvent::NodeUpdated {
+            // Convert to metadata update events
+            let mut events = Vec::new();
+
+            // Update label
+            events.push(DomainEvent::Node(NodeEvent::NodeMetadataUpdated {
                 graph_id: *graph_id,
                 node_id: *node_id,
-                old_content: content.clone(), // TODO: Get from aggregate
-                new_content: content.clone(),
-            }))
+                key: "label".to_string(),
+                old_value: None, // TODO: Get from aggregate
+                new_value: Some(serde_json::Value::String(content.label.clone())),
+            }));
+
+            // Update node_type
+            events.push(DomainEvent::Node(NodeEvent::NodeMetadataUpdated {
+                graph_id: *graph_id,
+                node_id: *node_id,
+                key: "node_type".to_string(),
+                old_value: None, // TODO: Get from aggregate
+                new_value: Some(serde_json::to_value(&content.node_type).unwrap()),
+            }));
+
+            // Update other properties
+            for (key, value) in &content.properties {
+                events.push(DomainEvent::Node(NodeEvent::NodeMetadataUpdated {
+                    graph_id: *graph_id,
+                    node_id: *node_id,
+                    key: key.clone(),
+                    old_value: None, // TODO: Get from aggregate
+                    new_value: Some(value.clone()),
+                }));
+            }
+
+            // For now, just return the first event (we'll need to handle multiple events later)
+            events.into_iter().next()
         }
         NodeCommand::MoveNode {
             graph_id,

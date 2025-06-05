@@ -33,6 +33,7 @@ pkgs.mkShell {
     rust-analyzer
     cargo-watch
     cargo-nextest
+    cargo-llvm-cov
     bacon
   ];
 

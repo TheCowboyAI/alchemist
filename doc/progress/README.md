@@ -24,6 +24,10 @@ Information Alchemist is being transformed from a standalone application into a 
 12. **Event-Driven Animation** - Pure event-driven animation with recording/replay
 13. **Smooth Animations & Force Layout** - Physics-based layout with easing functions
 14. **Test Configuration Optional** - Made tests optional in Nix build process
+15. **CID Chain Implementation** - Content-addressed event chains with BLAKE3 hashing ✅
+16. **Distributed Event Store** - JetStream-based persistent event storage ✅
+17. **Event Bridge Implementation** - Async/sync bridge between NATS and Bevy ✅
+18. **Dynamic Linking Fixed** - Resolved test execution issues, now use `nix build`/`nix run` ✅
 
 ### ✅ Phase 0 - NATS Integration Foundation (Week 1) - COMPLETED
 
@@ -49,19 +53,64 @@ All Phase 0 tasks have been successfully completed:
 
 **Progress**: 100% Complete
 
-### 🚧 Current Phase: Phase 1 - Distributed Event Infrastructure (Week 2)
+### ✅ Phase 1 - Distributed Event Infrastructure (Week 2) - COMPLETED
 
-We are now starting Phase 1, focusing on persistent event storage and distributed infrastructure:
+Phase 1 has been successfully completed with all infrastructure components operational:
 
-**Current Task**: JetStream Event Store Setup
-- [ ] Create DistributedEventStore implementation
-- [ ] Configure JetStream streams for event persistence
-- [ ] Implement event storage and retrieval
-- [ ] Add caching layer with LRU cache
+**Completed Tasks**:
+- [x] **JetStream Event Store Setup** - ✅ COMPLETED
+  - Implemented DistributedEventStore with NATS JetStream
+  - Created stream configuration with file-based storage
+  - Added event persistence with acknowledgment tracking
+  - Implemented event retrieval by aggregate ID
+  - Added LRU cache for performance optimization
+- [x] **Event Structure Migration** - ✅ COMPLETED
+  - Migrated to new NodeEvent structure with metadata
+  - Fixed all compilation issues
+  - Updated command handlers and presentation layer
+- [x] **CID Chain Implementation** - ✅ COMPLETED
+  - Implemented ChainedEvent with BLAKE3 hashing
+  - Created EventChain for managing event sequences
+  - Added comprehensive validation and tampering detection
+  - Implemented deterministic CID generation
+  - Added tests for chain validation
+- [x] **Event Replay Mechanism** - ✅ COMPLETED
+  - Event replay from any point using CID chains
+  - JetStream consumer API integration
+  - Time-travel debugging capabilities
 
-**Progress**: 0% (Just starting)
+**Progress**: 100% Complete
 
-**Why This Matters**: JetStream provides persistent, distributed event storage that enables event replay, time travel debugging, and reliable event sourcing across the distributed CIM network.
+### 🚧 Current Phase: Phase 1.5 - IPLD Integration (Week 2-3)
+
+We are now implementing the full IPLD (InterPlanetary Linked Data) architecture to enable content-addressed storage and intelligent information handling:
+
+**Current Tasks**:
+- [ ] **IPLD Codec Registry** (0%)
+  - Implement domain-specific IPLD codecs (0x300000-0x3FFFFF range)
+  - Create codec registration system
+  - Add serialization/deserialization for all content types
+- [ ] **Object Store Integration** (0%)
+  - Integrate NATS Object Store for content-addressed storage
+  - Implement put/get operations with CID keys
+  - Add content deduplication
+- [ ] **Typed Content Implementation** (0%)
+  - Create TypedContent trait for type-safe content handling
+  - Implement ContentType enum with all domain types
+  - Add automatic MIME type detection
+- [ ] **IPLD Relationships** (0%)
+  - Implement relationship predicates (contains, references, derives_from)
+  - Create relationship indexing system
+  - Add path-finding algorithms for semantic navigation
+
+**Progress**: 20% (Design complete, implementation starting)
+
+**Why This Matters**: IPLD integration enables:
+- **Type-safe content addressing** with domain-specific codecs
+- **Cryptographic integrity** through Merkle DAGs
+- **Intelligent content handling** with MIME type detection
+- **Rich relationships** between all content
+- **Emergent business intelligence** from information flows
 
 ### 📅 Upcoming Phases
 
@@ -103,49 +152,34 @@ We are now starting Phase 1, focusing on persistent event storage and distribute
 
 ## Recent Achievements
 
-### Smooth Animations & Force-Directed Layout ✅
-- Implemented ease-out cubic easing for smooth node appearance
-- Added progressive edge drawing animation with configurable duration
-- Created physics-based force-directed layout system:
-  - Repulsion forces between nodes (Coulomb's law)
-  - Spring forces for edges (Hooke's law)
-  - Center force to maintain graph position
-- Configured for compact layout with adjustable parameters
-- Graph finds natural equilibrium through continuous physics simulation
-- All animations integrate seamlessly with event-driven architecture
+### CID Chain Implementation ✅
+- Implemented ChainedEvent structure with content addressing
+- Used BLAKE3 hashing for performance and security
+- Created EventChain for managing sequences of events
+- Added chain validation to detect tampering
+- Implemented deterministic CID generation
+- Comprehensive test suite with tampering detection tests
 
-### Event-Driven Animation System ✅
-- Refactored complex animation state to pure event-driven approach
-- Implemented scheduled command system that generates domain events
-- Created event recording system that captures all events with timestamps
-- Added automatic replay functionality at configurable speeds
-- Demonstrated true event sourcing - graph perfectly reconstructed from events
-- System records initial creation then replays at 2x speed after 3 seconds
+### Distributed Event Store ✅
+- Successfully integrated NATS JetStream for persistent storage
+- Implemented file-based storage with retention policies
+- Added event acknowledgment tracking for reliability
+- Created LRU cache for performance optimization
+- Integrated with EventBridge for seamless communication
 
-### Basic Graph Visualization ✅
-- Successfully implemented 3D graph visualization using Bevy
-- Created K7 complete graph as default (7 nodes, 21 edges)
-- Connected visualization to domain events through command handlers
-- Edges automatically position themselves between nodes
-- Camera and lighting setup for clear 3D viewing
+### Event Bridge Architecture ✅
+- Created bidirectional async/sync bridge
+- Used crossbeam channels for thread-safe communication
+- Integrated tokio runtime for async operations
+- Added graceful shutdown handling
+- Comprehensive test coverage
 
-### NATS Client Implementation ✅
-- Successfully integrated async-nats 0.41
-- Resolved Bevy 0.16 dynamic linking issues using Nix development environment
-- Created comprehensive NATS infrastructure with:
-  - Configuration management with JetStream support
-  - Client wrapper with health checks
-  - Error handling and connection management
-  - Basic integration tests
-
-### Testing Framework Enhancement ✅
-- Created 27 user stories covering all system contexts
-- Defined acceptance tests for event-driven architecture
-- Established fitness functions for:
-  - Event processing throughput (10K events/sec)
-  - Query latency (<10ms p99)
-  - Memory efficiency (80% deduplication)
-  - System reliability (99.9% uptime)
+### IPLD Architecture Design ✅
+- Created 11 comprehensive design documents
+- Defined domain-specific IPLD codecs
+- Designed dual Merkle DAG structure (Event Store + Object Store)
+- Added support for documents, multimedia, and infrastructure tracking
+- Implemented Git hash to CID isomorphism for seamless integration
 
 ## Self-Referential Development
 
@@ -170,18 +204,18 @@ Information Alchemist will use itself to understand its own development:
 
 ### Architecture Evolution
 - **From**: Local event sourcing with file storage
-- **To**: Distributed event sourcing via NATS JetStream
+- **To**: Distributed event sourcing via NATS JetStream with CID chains
 
 ### Communication
 - **From**: Internal event bus
-- **To**: NATS subjects for all backend communication
+- **To**: NATS subjects for all backend communication with IPLD
 
 ### Storage
 - **From**: Local JSON files
-- **To**: Distributed Event Store + Object Store
+- **To**: Distributed Event Store + Object Store with content addressing
 
 ### Features
-- **Added**: Conceptual spaces, game theory, AI readiness, dog-fooding
+- **Added**: Conceptual spaces, game theory, AI readiness, dog-fooding, IPLD
 - **Enhanced**: Multi-user collaboration, distributed queries, self-analysis
 
 ## Progress Tracking
@@ -204,29 +238,41 @@ cat progress.json | jq .
 ## Next Steps
 
 1. **Immediate** (This Week):
-   - ~~Set up NATS development environment~~ ✅
-   - ~~Implement NATS client with security~~ ✅ (basic client done, security pending)
-   - ~~Create basic graph visualization~~ ✅
-   - ~~Implement event-driven animation~~ ✅
-   - Create event bridge between NATS and Bevy
-   - Implement JWT authentication and TLS configuration
-   - Connect event recording/replay to NATS persistence
+   - Implement IPLD codec registry
+   - Create TypedContent trait and implementations
+   - Integrate NATS Object Store
+   - Note: Run all tests via `nix build` or `nix run` (not cargo test directly)
 
 2. **Short Term** (Next 2 Weeks):
-   - Integrate JetStream for event persistence
-   - Save/load event streams to NATS object store
-   - Implement object store client
-   - Extend domain model with CIM concepts
+   - Complete IPLD relationship system
+   - Add domain tests for all aggregates
+   - Set up test coverage metrics (using `nix develop -c cargo llvm-cov`)
    - Begin dog-fooding with progress.json visualization
-   - Add graph interaction (selection, dragging, zooming)
 
 3. **Medium Term** (Weeks 4-6):
    - Implement conceptual spaces
    - Add game theory components
    - Create AI agent interface
    - Full git integration for development tracking
-   - Multi-graph support and switching
-   - Event stream branching and merging
+
+## Development Workflow
+
+### Building and Testing
+```bash
+# Build the project (includes running tests)
+nix build
+
+# Run the application
+nix run
+
+# Enter development shell for manual commands
+nix develop
+
+# Run tests with coverage (once cargo-llvm-cov is added)
+nix develop -c cargo llvm-cov --lib --no-default-features --html
+```
+
+**Important**: Due to dynamic linking requirements with Bevy, always use the Nix commands above. Direct `cargo test` will fail with symbol lookup errors.
 
 ## Success Metrics
 
@@ -239,10 +285,10 @@ cat progress.json | jq .
 ## Resources
 
 - [CIM Architecture Design](../design/event-sourced-graph-architecture.md)
+- [CID/IPLD Architecture](../design/cid-ipld-architecture.md)
 - [Dog-Fooding Design](../design/dog-fooding-self-visualization.md)
 - [Implementation Plan](../plan/event-sourcing-implementation-plan.md)
-- [Dog-Fooding Plan](../plan/dog-fooding-implementation.md)
-- [Published Documentation](../publish/)
+- [Immediate Actions Plan](../plan/immediate-actions-plan.md)
 - [Progress Graph](progress.json)
 - [User Stories](../testing/user-stories.md)
 - [Acceptance Tests](../testing/acceptance-tests.md)
@@ -261,8 +307,10 @@ The transformation to a CIM leaf node represents a significant upgrade that will
 
 ---
 
-**Last Updated**: January 6, 2025 10:30 PM PST
+**Last Updated**: January 7, 2025
 **Migration Started**: January 6, 2025
 **Estimated Completion**: 8 weeks (July 30, 2025)
-**Current Week**: 1 of 8
-**Phase 0 Progress**: 45% Complete (NATS client done, visualization with physics working, event bridge pending)
+**Current Week**: 2 of 8
+**Phase 0 Progress**: 100% Complete ✅
+**Phase 1 Progress**: 100% Complete ✅
+**Phase 1.5 Progress**: 20% In Progress 🚧
