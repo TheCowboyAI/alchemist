@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-05T20:00:00-07:00",
-    "version": "2.2.0"
+    "updated": "2025-06-05T22:30:00-07:00",
+    "version": "2.3.0"
   },
   "nodes": [
     {
@@ -102,13 +102,14 @@
       "position": { "x": 500, "y": 0, "z": 0 },
       "data": {
         "status": "in-progress",
-        "progress": 40,
+        "progress": 45,
         "week": 1,
         "description": "NATS client setup, secure connection, event bridge",
         "details": [
           "NATS client implemented and working",
           "Basic graph visualization complete",
           "Event-driven animation with recording/replay",
+          "Smooth animations and force-directed layout",
           "Event bridge between NATS and Bevy pending"
         ]
       }
@@ -242,15 +243,32 @@
       "data": {
         "status": "completed",
         "date": "2025-06-05",
-        "description": "Implemented pure event-driven animation with recording and replay",
+        "description": "Implemented pure event-driven animation system",
         "details": [
-          "Refactored from complex animation state to scheduled commands",
-          "Commands generate domain events through proper handlers",
-          "Implemented event recording system with timestamps",
-          "Added automatic replay functionality at 2x speed",
-          "Graph can be perfectly reconstructed from event stream",
-          "Demonstrates true event sourcing principles",
-          "15-second animation: 5s for nodes, 10s for edges"
+          "Refactored from complex state management to event scheduling",
+          "Created ScheduledCommand system for timed execution",
+          "Implemented EventRecorder to capture event streams",
+          "Added EventReplayer for automatic replay at variable speeds",
+          "Graph animates over 15 seconds with recording and replay"
+        ]
+      }
+    },
+    {
+      "id": "smooth-animations-force-layout",
+      "label": "Smooth Animations & Force-Directed Layout",
+      "type": "milestone",
+      "position": { "x": 650, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-05",
+        "description": "Added smooth animations and physics-based graph layout",
+        "details": [
+          "Implemented ease-out cubic easing for node appearance",
+          "Added smooth edge drawing animation with progress tracking",
+          "Created force-directed layout with repulsion and spring forces",
+          "Configured for compact layout with adjustable parameters",
+          "Graph finds natural equilibrium through physics simulation",
+          "Continuous force application enables dynamic repositioning"
         ]
       }
     },
@@ -454,6 +472,13 @@
       "source": "k7-complete-graph",
       "target": "event-driven-animation",
       "label": "animate",
+      "type": "sequence"
+    },
+    {
+      "id": "e7f",
+      "source": "event-driven-animation",
+      "target": "smooth-animations-force-layout",
+      "label": "enhance",
       "type": "sequence"
     },
     {
