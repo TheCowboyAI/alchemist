@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-05T00:10:00-07:00",
-    "version": "2.1.0"
+    "updated": "2025-06-05T10:30:00-07:00",
+    "version": "2.1.1"
   },
   "nodes": [
     {
@@ -188,6 +188,30 @@
       }
     },
     {
+      "id": "documentation-republishing",
+      "label": "Documentation Republishing",
+      "type": "milestone",
+      "position": { "x": 575, "y": 100, "z": 0 },
+      "data": {
+        "status": "in-progress",
+        "date": "2025-06-05",
+        "description": "Updating and republishing obsolete documentation for CIM architecture",
+        "details": [
+          "Created documentation republishing plan",
+          "Updated CIM Integration Overview combining design and architecture",
+          "Created comprehensive Event Sourcing Patterns documentation",
+          "Applied DDD naming conventions throughout",
+          "Structured new documentation hierarchy in /doc/publish/architecture/"
+        ],
+        "progress": 40,
+        "references": [
+          "/doc/plan/documentation-republishing-plan.md",
+          "/doc/publish/architecture/cim-overview.md",
+          "/doc/publish/architecture/event-sourcing.md"
+        ]
+      }
+    },
+    {
       "id": "phase-1",
       "label": "Phase 1: Distributed Event Infrastructure",
       "type": "phase",
@@ -366,6 +390,13 @@
       "source": "testing-framework",
       "target": "basic-graph-visualization",
       "label": "visualize",
+      "type": "sequence"
+    },
+    {
+      "id": "e7c",
+      "source": "basic-graph-visualization",
+      "target": "documentation-republishing",
+      "label": "document",
       "type": "sequence"
     },
     {

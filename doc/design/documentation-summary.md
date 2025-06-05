@@ -8,19 +8,19 @@ This documentation package provides comprehensive justification and explanation 
 
 ### Core Design Documents
 
-1. **[Design Justification](design-justification.md)**
+1. **[Design Justification](../publish/design-justification.md)**
    - Justifies every architectural decision based on CIM research
    - Links design choices to theoretical foundations
    - Demonstrates alignment with industry best practices
    - Shows how research concepts translate to practical features
 
-2. **[UI-Backend Integration](ui-backend-integration.md)**
+2. **[UI-Backend Integration](../publish/ui-backend-integration.md)**
    - Details how Information Alchemist operates as a CIM leaf node
    - Explains NATS-based communication protocols
    - Describes event-driven UI updates
    - Shows distributed system integration patterns
 
-3. **[Conceptual Implementation](conceptual-implementation.md)**
+3. **[Conceptual Implementation](../publish/conceptual-implementation.md)**
    - Demonstrates practical implementation of conceptual spaces theory
    - Shows modular "Lego block" architecture in practice
    - Provides code examples and patterns
@@ -28,34 +28,34 @@ This documentation package provides comprehensive justification and explanation 
 
 ### Reference Documents
 
-4. **[Architecture Overview](architecture.md)**
+4. **[Architecture Overview](../publish/architecture.md)**
    - Technical architecture with layered design
    - Event flow diagrams
    - Storage architecture details
    - Performance and security considerations
 
-5. **[Vocabulary](vocabulary.md)**
+5. **[Vocabulary](../publish/vocabulary.md)**
    - Comprehensive glossary of terms
    - Event sourcing terminology
    - Domain-specific concepts
    - Technical implementation terms
 
-6. **[Vocabulary Graph](vocabulary-graph.json)**
+6. **[Vocabulary Graph](../publish/vocabulary-graph.json)**
    - Machine-readable graph representation
    - Shows relationships between concepts
    - Organized by domains
-   - Includes [usage guide](vocabulary-graph-guide.md)
+   - Includes [usage guide](../publish/vocabulary-graph-guide.md)
 
 ### Research Foundation
 
 The design is based on six core CIM research documents:
 
-- **[CIM Architecture](CIM%20-%20Architecture.md)**: Composable architecture principles and "Lego block" philosophy
-- **[CIM ECS Backend](CIM%20-%20ECS%20Backend.md)**: Entity-Component-System implementation with NATS
-- **[CIM Conceptual Spaces](CIM%20-%20Conceptual%20Spaces.md)**: Geometric knowledge representation theory
-- **[CIM Game Theory](CIM%20-%20Game%20Theory.md)**: Strategic agent interactions and coordination
-- **[CIM For Knowledge Workers](CIM%20-%20For%20the%20Knowledge%20worker.md)**: Business value proposition
-- **[CIM The Composable Information Machine](CIM%20-%20The%20Composable%20Information%20Machine.md)**: Product overview
+- **[CIM Architecture](../research/CIM%20-%20Architecture.md)**: Composable architecture principles and "Lego block" philosophy
+- **[CIM ECS Backend](../research/CIM%20-%20ECS%20Backend.md)**: Entity-Component-System implementation with NATS
+- **[CIM Conceptual Spaces](../research/CIM%20-%20Conceptual%20Spaces.md)**: Geometric knowledge representation theory
+- **[CIM Game Theory](../research/CIM%20-%20Game%20Theory.md)**: Strategic agent interactions and coordination
+- **[CIM For Knowledge Workers](../research/CIM%20-%20For%20the%20Knowledge%20worker.md)**: Business value proposition
+- **[CIM The Composable Information Machine](../research/CIM%20-%20The%20Composable%20Information%20Machine.md)**: Product overview
 
 ## Key Insights
 
@@ -94,23 +94,23 @@ Information Alchemist innovates in several areas:
 ### For Developers
 
 Start with:
-1. [Architecture Overview](architecture.md) for technical understanding
-2. [Vocabulary](vocabulary.md) for terminology
-3. [Conceptual Implementation](conceptual-implementation.md) for code patterns
+1. [Architecture Overview](../publish/architecture.md) for technical understanding
+2. [Vocabulary](../publish/vocabulary.md) for terminology
+3. [Conceptual Implementation](../publish/conceptual-implementation.md) for code patterns
 
 ### For Architects
 
 Focus on:
-1. [Design Justification](design-justification.md) for architectural decisions
-2. [UI-Backend Integration](ui-backend-integration.md) for system integration
+1. [Design Justification](../publish/design-justification.md) for architectural decisions
+2. [UI-Backend Integration](../publish/ui-backend-integration.md) for system integration
 3. Research documents for theoretical foundations
 
 ### For Product Managers
 
 Review:
-1. [Index](index.md) for overview
-2. [CIM For Knowledge Workers](CIM%20-%20For%20the%20Knowledge%20worker.md) for business value
-3. [Design Justification](design-justification.md) for feature rationale
+1. [README](../publish/README.md) for overview
+2. [CIM For Knowledge Workers](../research/CIM%20-%20For%20the%20Knowledge%20worker.md) for business value
+3. [Design Justification](../publish/design-justification.md) for feature rationale
 
 ## Conclusion
 

@@ -1,153 +1,155 @@
-# Information Alchemist Documentation
+# Information Alchemist
 
-## Visual Intelligence for the Composable Information Machine
+A graph visualization system that implements a **Composable Information Machine (CIM)** leaf node, combining event-driven architecture with conceptual space theory for semantic graph manipulation.
 
-Welcome to the comprehensive documentation for Information Alchemist, the powerful graph visualization and manipulation frontend for the Composable Information Machine (CIM).
+## Why This Changes Everything
 
-## Documentation Sets
+Traditional tools force you to choose: either visual graphs OR semantic meaning OR version control OR AI integration. Information Alchemist gives you **all of them simultaneously**:
 
-### 📖 [Domain Vocabulary](vocabulary.md)
-**Ubiquitous Language for All Stakeholders**
+### 1. **Visual Workflows That Actually Execute**
+- Draw a workflow → it becomes executable code
+- See state machines running in real-time
+- Debug by watching events flow through your graph
+- Every execution is recorded and replayable
 
-A comprehensive glossary of domain terms, concepts, and relationships used throughout the system:
-
-- **Core Concepts**: CIM architecture and domain principles
-- **Graph Domain**: Complete graph terminology and components
-- **Domain Events**: Event-driven architecture vocabulary
-- **Domain Services**: Service patterns and implementations
-
-[View Domain Vocabulary →](vocabulary.md)
-
-### 📊 [Business Documentation](business/)
-**For Business Leaders and Decision Makers**
-
-Discover how Information Alchemist transforms complex business data into actionable visual intelligence:
-
-- **Introduction**: Understanding the value proposition
-- **Core Concepts**: Visual building blocks for business
-- **Use Cases**: Real-world applications across industries
-- **Getting Started**: Your journey from data to insight
-
-[Start with Business Documentation →](business/README.md)
-
-### 🔧 [Technical Documentation](technical/)
-**For Developers and Technical Implementers**
-
-Deep dive into the architecture, components, and implementation details:
-
-- **Architecture Overview**: System design and principles
-- **Core Components**: Detailed component documentation
-- **Event System**: Event-driven architecture patterns
-- **Integration Guide**: Connecting with CIM backend
-- **Performance Guide**: Optimization strategies
-- **Plugin Development**: Extending functionality
-
-[Start with Technical Documentation →](technical/README.md)
-
-## What is Information Alchemist?
-
-Information Alchemist is a next-generation 3D-capable graph editor that serves as the visual interface for the Composable Information Machine. It transforms abstract data relationships into tangible, manipulable visual spaces.
-
-### Key Features
-
-```mermaid
-graph TB
-    subgraph "Visual Capabilities"
-        A[3D/2D Visualization]
-        B[Real-time Collaboration]
-        C[AI-Powered Insights]
-        D[Subgraph Composition]
-    end
-
-    subgraph "Technical Excellence"
-        E[250k+ Elements]
-        F[60 FPS Performance]
-        G[Event Sourcing]
-        H[WASM Plugins]
-    end
-
-    subgraph "Business Value"
-        I[Pattern Discovery]
-        J[Decision Support]
-        K[Process Optimization]
-        L[Knowledge Management]
-    end
-
-    A --> I
-    B --> J
-    C --> K
-    D --> L
-
-    style A fill:#4CAF50,stroke:#2E7D32,stroke-width:2px
-    style E fill:#2196F3,stroke:#1565C0,stroke-width:2px
-    style I fill:#FF9800,stroke:#F57C00,stroke-width:2px
+### 2. **AI That Understands Your Structure**
+```rust
+// Your graph isn't just nodes and edges - it has meaning
+let similar_workflows = graph.find_similar_patterns(my_workflow);
+let suggested_improvements = ai_agent.analyze_bottlenecks(my_workflow);
+let auto_composed = ai_agent.combine_workflows(workflow_a, workflow_b);
 ```
 
-## Quick Links
+### 3. **Time Travel Through Information**
+- Replay any graph to any point in history
+- See how decisions evolved
+- Undo/redo with perfect fidelity
+- Fork reality - explore "what if" scenarios
 
-### For All Users
-- [Domain Vocabulary](vocabulary.md) - Comprehensive glossary of terms
+### 4. **Semantic Search That Works**
+- "Find workflows similar to customer onboarding"
+- "Show me all processes that touch payment data"
+- "What changed between these two versions?"
+- AI understands your intent, not just keywords
 
-### For Business Users
-- [What is Information Alchemist?](business/01-introduction.md)
-- [Core Concepts Explained](business/02-core-concepts.md)
-- [Industry Use Cases](business/03-use-cases.md)
-- [Getting Started Guide](business/04-getting-started.md)
+### 5. **Composable Knowledge Blocks**
+- Save subgraphs as reusable components
+- Snap together complex systems from simple parts
+- Share verified patterns with your team
+- Build a library of domain expertise
 
-### For Technical Users
-- [Architecture Overview](technical/01-architecture-overview.md)
-- [Component Design](technical/02-core-components.md)
-- [Event System](technical/03-event-system.md)
-- [Integration Guide](technical/04-integration-guide.md)
-- [Performance Optimization](technical/05-performance-guide.md)
-- [Plugin Development](technical/06-plugin-development.md)
+## Real-World Example
 
-## Key Differentiators
+```rust
+// A financial analyst exploring market strategies
+let market_graph = Graph::new("Trading Strategies");
 
-### 1. **Dual-Mode Visualization**
-Seamlessly switch between immersive 3D exploration and efficient 2D overview modes.
+// Add domain knowledge
+market_graph.add_concept("Risk Management", ConceptualPoint::from_embedding(risk_embed));
+market_graph.add_concept("Profit Centers", ConceptualPoint::from_embedding(profit_embed));
 
-### 2. **Subgraph Composition**
-Load and compose multiple graphs while maintaining their structure and relationships.
+// AI suggests connections based on semantic similarity
+let suggested_edges = ai.find_hidden_relationships(&market_graph);
 
-### 3. **Event-Driven Intelligence**
-Every change is captured as an event, enabling perfect audit trails and time-travel debugging.
+// Execute the strategy as a state machine
+let execution = market_graph.as_workflow().execute_with_rollback();
 
-### 4. **AI-Powered Analysis**
-Integrated AI agents provide real-time insights and pattern recognition.
+// Time travel to see what worked
+let successful_paths = execution.replay_successful_branches();
+```
 
-### 5. **Extensible Architecture**
-WASM-based plugin system allows custom algorithms and visualizations.
+## Safe AI Manipulation
+
+Unlike black-box AI tools, Information Alchemist gives you:
+
+### **Complete Auditability**
+- Every AI suggestion is an event you can inspect
+- See exactly why the AI made each recommendation
+- Roll back any AI-initiated change instantly
+- Cryptographic proof of what happened when
+
+### **Bounded Execution**
+- AI operates within state machine constraints
+- Invalid transitions are impossible by design
+- Set permissions on what AI can modify
+- Sandbox experiments before committing
+
+### **Explainable Decisions**
+```rust
+// AI must explain its reasoning
+let suggestion = ai.suggest_optimization(workflow);
+assert!(suggestion.explanation.is_complete());
+assert!(suggestion.evidence.is_traceable());
+assert!(suggestion.impact.is_bounded());
+```
+
+## What Makes It Different
+
+- **Conceptual Space Mapping**: Every graph element has both visual position and semantic coordinates, enabling similarity search and AI reasoning
+- **State Machine Aggregates**: All transactional behavior controlled by Mealy state machines that can be visualized
+- **Event-Sourced Everything**: Complete history with time-travel debugging and cryptographic integrity via CID chains
+- **CIM Integration**: Operates as a distributed node in the larger Composable Information Machine network
+
+## Architecture
+
+Built on three foundational layers:
+
+1. **Presentation Layer** (Bevy ECS) - Real-time 3D/2D visualization
+2. **Domain Layer** (Event Sourcing + CQRS) - Business logic with state machines
+3. **Infrastructure Layer** (NATS + Storage) - Distributed messaging and persistence
+
+See [architecture/](architecture/) for details:
+- [CIM Integration](architecture/cim-overview.md) - How we fit into the CIM ecosystem
+- [Event Sourcing](architecture/event-sourcing.md) - State machines and event patterns
+- [Components](architecture/system-components.md) - Detailed component reference
+
+## Key Innovations
+
+1. **Mealy State Machines for Aggregates**
+   - If it needs transactions, it MUST be an aggregate with a state machine
+   - State transitions generate events automatically
+   - Can visualize state machines as graphs within the system
+
+2. **Dual Space Representation**
+   ```rust
+   pub struct GraphNode {
+       pub position: Vec3,              // Visual space
+       pub conceptual_point: ConceptualPoint,  // Semantic space
+   }
+   ```
+
+3. **Event Cascades**
+   - Systems process components and emit events
+   - Events trigger other systems, creating emergent workflows
+   - No orchestration needed - behavior emerges from event patterns
+
+## Quick Start
+
+```bash
+# Run with Nix
+nix run
+
+# Build
+nix build
+```
+
+## Documentation
+
+- [Vocabulary](vocabulary.md) - Domain terminology and concepts
+- [Design Justification](design-justification.md) - Research-backed design decisions
+- [Conceptual Implementation](conceptual-implementation.md) - Theory to practice
+- [UI-Backend Integration](ui-backend-integration.md) - CIM leaf node architecture
 
 ## Technology Stack
 
-- **Frontend**: Rust, Bevy 0.16.0, WebGPU
-- **Integration**: NATS JetStream, GraphQL, WebSocket
-- **Architecture**: Entity-Component-System (ECS)
-- **Patterns**: Domain-Driven Design (DDD), Event Sourcing
+- **Core**: Rust, Bevy 0.16.0 (ECS), NATS JetStream
+- **Patterns**: Event Sourcing, CQRS, Domain-Driven Design
+- **Theory**: Conceptual Spaces (Gärdenfors), CIM Architecture
 
-## Getting Help
+## Status
 
-### Documentation
-- Business users: Start with the [Business Documentation](business/)
-- Developers: Dive into the [Technical Documentation](technical/)
-
-### Community
-- **GitHub**: Report issues and contribute
-- **Discord**: Real-time community support
-- **Forum**: Design discussions and Q&A
-
-### Professional Support
-- Enterprise support packages available
-- Custom plugin development services
-- Training and workshops
-
-## License
-
-Information Alchemist is part of the Composable Information Machine ecosystem. See LICENSE file for details.
+Pre-release. Core architecture stable, implementation evolving.
 
 ---
 
-*Information Alchemist: Where Data Becomes Understanding*
-
-Transform your information into visual intelligence. Start exploring today.
+*Information Alchemist: Where Information Becomes Understanding Through Visual Intelligence*
