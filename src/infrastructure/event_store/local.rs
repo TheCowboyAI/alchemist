@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
 
-use super::{AggregateSnapshot, EventEnvelope, EventId, EventStore, EventStoreError};
+use super::{AggregateSnapshot, EventEnvelope, EventId, InternalEventStore, EventStoreError};
 use crate::domain::events::DomainEvent;
 use crate::domain::value_objects::GraphId;
 
@@ -32,7 +32,7 @@ impl Default for LocalEventStore {
     }
 }
 
-impl EventStore for LocalEventStore {
+impl InternalEventStore for LocalEventStore {
     fn append(&mut self, aggregate_id: GraphId, event: DomainEvent) -> EventEnvelope {
         let mut sequences = self.sequences.write().unwrap();
         let sequence = sequences.entry(aggregate_id).or_insert(0);

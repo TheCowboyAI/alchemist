@@ -1,4 +1,4 @@
-//! Event Store Infrastructure - Internal Only
+//! Event Store Infrastructure
 
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
@@ -6,11 +6,18 @@ use thiserror::Error;
 use uuid::Uuid;
 
 mod local;
+pub mod distributed;
+pub mod memory;
 
 use local::LocalEventStore;
 
+pub use distributed::{DistributedEventStore, DistributedEventStoreConfig, EventStoreStats};
+pub use memory::InMemoryEventStore;
+
 use crate::domain::events::DomainEvent;
 use crate::domain::value_objects::GraphId;
+
+use async_trait::async_trait;
 
 /// Event Store errors
 #[derive(Error, Debug)]
@@ -23,6 +30,12 @@ pub enum EventStoreError {
 
     #[error("Aggregate not found: {0}")]
     AggregateNotFound(GraphId),
+
+    #[error("Storage error: {0}")]
+    Storage(String),
+
+    #[error("Not found")]
+    NotFound,
 }
 
 /// Aggregate snapshot for faster rebuilding
@@ -61,7 +74,7 @@ pub struct EventEnvelope {
 }
 
 /// Event Store trait - Internal use only
-trait EventStore: Send + Sync {
+trait InternalEventStore: Send + Sync {
     /// Append an event to the store
     fn append(&mut self, aggregate_id: GraphId, event: DomainEvent) -> EventEnvelope;
 
@@ -106,4 +119,17 @@ pub fn get_aggregate_events(aggregate_id: GraphId) -> Vec<EventEnvelope> {
     let store = EVENT_STORE.lock().unwrap();
     let store = store.as_ref().expect("Event store not initialized");
     store.get_events(aggregate_id)
+}
+
+/// Trait for async event stores
+#[async_trait]
+pub trait EventStore: Send + Sync {
+    /// Store an event
+    async fn store(&self, event: DomainEvent) -> Result<(), EventStoreError>;
+
+    /// Load events for an aggregate
+    async fn load_events(&self, aggregate_id: Uuid) -> Result<Vec<DomainEvent>, EventStoreError>;
+
+    /// Load all events
+    async fn load_all_events(&self) -> Result<Vec<DomainEvent>, EventStoreError>;
 }

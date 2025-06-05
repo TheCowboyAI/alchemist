@@ -317,7 +317,7 @@
       "type": "phase",
       "position": { "x": 700, "y": 0, "z": 0 },
       "data": {
-        "status": "planned",
+        "status": "in-progress",
         "week": 2,
         "description": "JetStream event store, object store integration"
       }
@@ -328,7 +328,7 @@
       "type": "phase",
       "position": { "x": 900, "y": 0, "z": 0 },
       "data": {
-        "status": "planned",
+        "status": "pending",
         "week": 3,
         "description": "Enhanced graph aggregate with conceptual positioning"
       }
@@ -339,7 +339,7 @@
       "type": "phase",
       "position": { "x": 1100, "y": 0, "z": 0 },
       "data": {
-        "status": "planned",
+        "status": "pending",
         "week": 4,
         "description": "Spatial knowledge system, similarity metrics"
       }
@@ -350,7 +350,7 @@
       "type": "phase",
       "position": { "x": 1300, "y": 0, "z": 0 },
       "data": {
-        "status": "planned",
+        "status": "pending",
         "week": 5,
         "description": "Strategy system, utility calculations, coalitions"
       }
@@ -361,7 +361,7 @@
       "type": "phase",
       "position": { "x": 1500, "y": 0, "z": 0 },
       "data": {
-        "status": "planned",
+        "status": "pending",
         "week": 6,
         "description": "Agent communication, discovery, analysis workflows"
       }
@@ -372,7 +372,7 @@
       "type": "phase",
       "position": { "x": 1700, "y": 0, "z": 0 },
       "data": {
-        "status": "planned",
+        "status": "pending",
         "week": 7,
         "description": "Distributed queries, collaboration, synchronization"
       }
@@ -583,5 +583,325 @@
       "label": "complete",
       "type": "sequence"
     }
+  ],
+  "project": "Information Alchemist CIM Integration",
+  "description": "Transforming Information Alchemist into a CIM leaf node with event sourcing, conceptual spaces, and AI readiness",
+  "phases": [
+    {
+      "id": "phase-0",
+      "name": "Phase 0: NATS Integration Foundation",
+      "status": "completed",
+      "progress": 100,
+      "tasks": [
+        {
+          "id": "nats-client-setup",
+          "name": "NATS Client Setup",
+          "status": "completed",
+          "progress": 100,
+          "details": "Basic NATS client with connection management implemented"
+        },
+        {
+          "id": "basic-graph-visualization",
+          "name": "Basic Graph Visualization",
+          "status": "completed",
+          "progress": 100,
+          "details": "Bevy-based graph rendering with nodes and edges"
+        },
+        {
+          "id": "event-driven-animation",
+          "name": "Event-Driven Animation System",
+          "status": "completed",
+          "progress": 100,
+          "details": "Smooth transitions for graph mutations"
+        },
+        {
+          "id": "security-configuration",
+          "name": "Security Configuration",
+          "status": "completed",
+          "progress": 100,
+          "details": "JWT auth, TLS, and credentials support implemented"
+        },
+        {
+          "id": "event-bridge-architecture",
+          "name": "Event Bridge Architecture",
+          "status": "completed",
+          "progress": 100,
+          "details": "Async/sync bridge between NATS and Bevy ECS implemented"
+        }
+      ]
+    },
+    {
+      "id": "phase-1",
+      "name": "Phase 1: Distributed Event Infrastructure",
+      "status": "in-progress",
+      "progress": 25,
+      "tasks": [
+        {
+          "id": "jetstream-event-store",
+          "name": "JetStream Event Store Setup",
+          "status": "completed",
+          "progress": 100,
+          "details": "Distributed event store with JetStream implemented, dependencies updated (petgraph 0.8.1, daggy 0.9.0)"
+        },
+        {
+          "id": "event-structure-migration",
+          "name": "Event Structure Migration",
+          "status": "in-progress",
+          "progress": 50,
+          "details": "Updating command handlers and presentation layer to use new event structure with metadata instead of content"
+        },
+        {
+          "id": "cid-chain-implementation",
+          "name": "CID Chain Implementation",
+          "status": "pending",
+          "progress": 0,
+          "details": "Content-addressed event chains for integrity"
+        },
+        {
+          "id": "event-replay-mechanism",
+          "name": "Event Replay Mechanism",
+          "status": "pending",
+          "progress": 0,
+          "details": "Replay events from any point in time"
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Phase 2: Graph Domain Model",
+      "status": "pending",
+      "progress": 0,
+      "tasks": [
+        {
+          "id": "graph-aggregate",
+          "name": "Graph Aggregate",
+          "status": "pending",
+          "progress": 0,
+          "details": "Domain logic for graph operations"
+        },
+        {
+          "id": "node-edge-entities",
+          "name": "Node/Edge Entities",
+          "status": "pending",
+          "progress": 0,
+          "details": "Rich domain objects with behavior"
+        },
+        {
+          "id": "graph-commands",
+          "name": "Graph Commands",
+          "status": "pending",
+          "progress": 0,
+          "details": "Command pattern for graph mutations"
+        },
+        {
+          "id": "domain-events",
+          "name": "Domain Events",
+          "status": "pending",
+          "progress": 0,
+          "details": "Event types for all graph operations"
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Phase 3: CQRS Implementation",
+      "status": "pending",
+      "progress": 0,
+      "tasks": [
+        {
+          "id": "command-handlers",
+          "name": "Command Handlers",
+          "status": "pending",
+          "progress": 0,
+          "details": "Process commands and emit events"
+        },
+        {
+          "id": "query-handlers",
+          "name": "Query Handlers",
+          "status": "pending",
+          "progress": 0,
+          "details": "Optimized read models"
+        },
+        {
+          "id": "projections",
+          "name": "Projections",
+          "status": "pending",
+          "progress": 0,
+          "details": "Event-driven view updates"
+        },
+        {
+          "id": "snapshot-management",
+          "name": "Snapshot Management",
+          "status": "pending",
+          "progress": 0,
+          "details": "Periodic state snapshots"
+        }
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Phase 4: Conceptual Space Integration",
+      "status": "pending",
+      "progress": 0,
+      "tasks": [
+        {
+          "id": "embedding-service",
+          "name": "Embedding Service",
+          "status": "pending",
+          "progress": 0,
+          "details": "Generate embeddings for nodes"
+        },
+        {
+          "id": "similarity-calculations",
+          "name": "Similarity Calculations",
+          "status": "pending",
+          "progress": 0,
+          "details": "Compute semantic distances"
+        },
+        {
+          "id": "conceptual-mapping",
+          "name": "Conceptual Mapping",
+          "status": "pending",
+          "progress": 0,
+          "details": "Map visual to conceptual positions"
+        },
+        {
+          "id": "knowledge-aware-layout",
+          "name": "Knowledge-Aware Layout",
+          "status": "pending",
+          "progress": 0,
+          "details": "Semantic graph layouts"
+        }
+      ]
+    },
+    {
+      "id": "phase-5",
+      "name": "Phase 5: AI Agent Integration",
+      "status": "pending",
+      "progress": 0,
+      "tasks": [
+        {
+          "id": "agent-protocol",
+          "name": "Agent Protocol",
+          "status": "pending",
+          "progress": 0,
+          "details": "Define agent communication standards"
+        },
+        {
+          "id": "tool-interface",
+          "name": "Tool Interface",
+          "status": "pending",
+          "progress": 0,
+          "details": "Agent tool use capabilities"
+        },
+        {
+          "id": "semantic-search",
+          "name": "Semantic Search",
+          "status": "pending",
+          "progress": 0,
+          "details": "Knowledge graph queries"
+        },
+        {
+          "id": "workflow-automation",
+          "name": "Workflow Automation",
+          "status": "pending",
+          "progress": 0,
+          "details": "AI-driven graph operations"
+        }
+      ]
+    },
+    {
+      "id": "phase-6",
+      "name": "Phase 6: Dog-fooding & Polish",
+      "status": "pending",
+      "progress": 0,
+      "tasks": [
+        {
+          "id": "progress-visualization",
+          "name": "Progress Visualization",
+          "status": "pending",
+          "progress": 0,
+          "details": "Visualize this progress as a graph"
+        },
+        {
+          "id": "development-workflow",
+          "name": "Development Workflow",
+          "status": "pending",
+          "progress": 0,
+          "details": "Track development in the tool"
+        },
+        {
+          "id": "performance-optimization",
+          "name": "Performance Optimization",
+          "status": "pending",
+          "progress": 0,
+          "details": "Optimize for large graphs"
+        },
+        {
+          "id": "documentation",
+          "name": "Documentation",
+          "status": "pending",
+          "progress": 0,
+          "details": "Complete user and developer docs"
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "name": "NATS Foundation Complete",
+      "phase": "phase-0",
+      "status": "achieved",
+      "date": "2024-12-20"
+    },
+    {
+      "name": "Event Sourcing Operational",
+      "phase": "phase-1",
+      "status": "in-progress",
+      "target_date": "2024-12-22"
+    },
+    {
+      "name": "Domain Model Complete",
+      "phase": "phase-2",
+      "status": "pending",
+      "target_date": "2024-12-24"
+    },
+    {
+      "name": "CQRS Functional",
+      "phase": "phase-3",
+      "status": "pending",
+      "target_date": "2024-12-26"
+    },
+    {
+      "name": "Conceptual Spaces Live",
+      "phase": "phase-4",
+      "status": "pending",
+      "target_date": "2024-12-28"
+    },
+    {
+      "name": "AI Agents Connected",
+      "phase": "phase-5",
+      "status": "pending",
+      "target_date": "2024-12-30"
+    },
+    {
+      "name": "Self-Hosted Development",
+      "phase": "phase-6",
+      "status": "pending",
+      "target_date": "2025-01-01"
+    }
+  ],
+  "current_focus": "Migrating event structure to use metadata instead of content fields",
+  "next_steps": [
+    "Fix command handlers to use new NodeEvent structure",
+    "Update presentation layer to handle metadata fields",
+    "Implement CID chain functionality",
+    "Add event replay mechanism"
+  ],
+  "blockers": [],
+  "notes": [
+    "Successfully implemented distributed event store with JetStream",
+    "Updated dependencies to latest versions: petgraph 0.8.1, daggy 0.9.0",
+    "Event structure migration in progress - changing from content to metadata fields"
   ]
 }

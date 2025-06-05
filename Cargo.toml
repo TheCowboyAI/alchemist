@@ -33,40 +33,57 @@ rand = "0.9"
 uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-bevy = "0.16"
-rand_chacha = "0.9.0"
+bevy = { version = "0.16.1", features = ["dynamic_linking", "wayland"] }
 
-# Graph libraries
+# Graph library
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
 
-# UI
-rfd = "0.15"
-
-# Event Sourcing dependencies
-chrono = { version = "0.4", features = ["serde"] }
-thiserror = "2.0"
-dashmap = "6.1"
-parking_lot = "0.12"
-
-# NATS and async dependencies
-async-nats = "0.41"
+# Async runtime
 tokio = { version = "1.42", features = ["full"] }
 async-trait = "0.1"
-futures = "0.3"
-crossbeam-channel = "0.5"
 
-# CID and cryptographic dependencies for event chains
-cid = "0.11"
-multihash = "0.19"
-sha2 = "0.10"
+# NATS messaging
+async-nats = { version = "0.41", features = ["service"] }
 
-# Logging
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+# Channel implementations
+crossbeam-channel = "0.5"
+futures = "0.3"
+
+# Caching
+lru = "0.12"
+
+# Time handling
+time = { version = "0.3", features = ["serde", "formatting"] }
+
 [dev-dependencies]
-tempfile = "3.14"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+strip = true
 
 [lib]
 name = "ia"

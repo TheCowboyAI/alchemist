@@ -27,6 +27,12 @@ impl fmt::Display for GraphId {
     }
 }
 
+impl From<Uuid> for GraphId {
+    fn from(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+}
+
 /// Unique identifier for a node
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Component)]
 pub struct NodeId(pub Uuid);

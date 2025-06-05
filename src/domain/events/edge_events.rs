@@ -2,8 +2,9 @@
 
 use crate::domain::value_objects::{EdgeId, EdgeRelationship, GraphId, NodeId};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum EdgeEvent {
     EdgeConnected {
         graph_id: GraphId,
@@ -32,6 +33,24 @@ pub enum EdgeEvent {
         graph_id: GraphId,
         edge_id: EdgeId,
     },
+    EdgeAdded {
+        graph_id: GraphId,
+        edge_id: EdgeId,
+        source: NodeId,
+        target: NodeId,
+        metadata: HashMap<String, serde_json::Value>,
+    },
+    EdgeRemoved {
+        graph_id: GraphId,
+        edge_id: EdgeId,
+    },
+    EdgeMetadataUpdated {
+        graph_id: GraphId,
+        edge_id: EdgeId,
+        key: String,
+        old_value: Option<serde_json::Value>,
+        new_value: Option<serde_json::Value>,
+    },
 }
 
 impl EdgeEvent {
@@ -42,6 +61,9 @@ impl EdgeEvent {
             EdgeEvent::EdgeUpdated { .. } => "EdgeUpdated",
             EdgeEvent::EdgeSelected { .. } => "EdgeSelected",
             EdgeEvent::EdgeDeselected { .. } => "EdgeDeselected",
+            EdgeEvent::EdgeAdded { .. } => "EdgeAdded",
+            EdgeEvent::EdgeRemoved { .. } => "EdgeRemoved",
+            EdgeEvent::EdgeMetadataUpdated { .. } => "EdgeMetadataUpdated",
         }
     }
 
@@ -51,7 +73,10 @@ impl EdgeEvent {
             | EdgeEvent::EdgeDisconnected { graph_id, .. }
             | EdgeEvent::EdgeUpdated { graph_id, .. }
             | EdgeEvent::EdgeSelected { graph_id, .. }
-            | EdgeEvent::EdgeDeselected { graph_id, .. } => *graph_id,
+            | EdgeEvent::EdgeDeselected { graph_id, .. }
+            | EdgeEvent::EdgeAdded { graph_id, .. }
+            | EdgeEvent::EdgeRemoved { graph_id, .. }
+            | EdgeEvent::EdgeMetadataUpdated { graph_id, .. } => *graph_id,
         }
     }
 
@@ -61,7 +86,10 @@ impl EdgeEvent {
             | EdgeEvent::EdgeDisconnected { edge_id, .. }
             | EdgeEvent::EdgeUpdated { edge_id, .. }
             | EdgeEvent::EdgeSelected { edge_id, .. }
-            | EdgeEvent::EdgeDeselected { edge_id, .. } => *edge_id,
+            | EdgeEvent::EdgeDeselected { edge_id, .. }
+            | EdgeEvent::EdgeAdded { edge_id, .. }
+            | EdgeEvent::EdgeRemoved { edge_id, .. }
+            | EdgeEvent::EdgeMetadataUpdated { edge_id, .. } => *edge_id,
         }
     }
 }

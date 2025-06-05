@@ -3,7 +3,7 @@
 use crate::domain::value_objects::{GraphId, GraphMetadata};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GraphEvent {
     GraphCreated {
         id: GraphId,
@@ -45,6 +45,14 @@ impl GraphEvent {
             | GraphEvent::GraphRenamed { id, .. }
             | GraphEvent::GraphTagged { id, .. }
             | GraphEvent::GraphUntagged { id, .. } => *id,
+        }
+    }
+
+    #[cfg(test)]
+    pub fn test_event(aggregate_id: uuid::Uuid) -> Self {
+        GraphEvent::GraphCreated {
+            id: GraphId::from(aggregate_id),
+            metadata: GraphMetadata::default(),
         }
     }
 }

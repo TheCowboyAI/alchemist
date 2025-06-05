@@ -11,7 +11,7 @@ pub use graph_events::GraphEvent;
 pub use node_events::NodeEvent;
 
 /// All domain events in the system
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum DomainEvent {
     Graph(GraphEvent),
     Node(NodeEvent),
