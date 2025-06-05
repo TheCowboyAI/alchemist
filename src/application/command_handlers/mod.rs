@@ -1,8 +1,8 @@
 //! Command Handlers - Process commands and generate events
 
 use crate::application::{CommandEvent, EventNotification};
-use crate::domain::commands::{Command, GraphCommand};
-use crate::domain::events::{DomainEvent, GraphEvent};
+use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand};
+use crate::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
 use crate::domain::value_objects::*;
 use bevy::prelude::*;
 
@@ -19,11 +19,17 @@ pub fn process_commands(
                     events.write(EventNotification { event });
                 }
             }
-            Command::Node(_node_cmd) => {
-                // TODO: Handle node commands
+            Command::Node(node_cmd) => {
+                // Process node commands
+                if let Some(event) = handle_node_command(node_cmd) {
+                    events.write(EventNotification { event });
+                }
             }
-            Command::Edge(_edge_cmd) => {
-                // TODO: Handle edge commands
+            Command::Edge(edge_cmd) => {
+                // Process edge commands
+                if let Some(event) = handle_edge_command(edge_cmd) {
+                    events.write(EventNotification { event });
+                }
             }
         }
     }
@@ -57,6 +63,97 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
         }
         GraphCommand::DeleteGraph { id } => {
             Some(DomainEvent::Graph(GraphEvent::GraphDeleted { id: *id }))
+        }
+    }
+}
+
+/// Handle node commands and generate events
+fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
+    match command {
+        NodeCommand::AddNode { graph_id, node_id, content, position } => {
+            Some(DomainEvent::Node(NodeEvent::NodeAdded {
+                graph_id: *graph_id,
+                node_id: *node_id,
+                content: content.clone(),
+                position: *position,
+            }))
+        }
+        NodeCommand::RemoveNode { graph_id, node_id } => {
+            Some(DomainEvent::Node(NodeEvent::NodeRemoved {
+                graph_id: *graph_id,
+                node_id: *node_id,
+            }))
+        }
+        NodeCommand::UpdateNode { graph_id, node_id, content } => {
+            Some(DomainEvent::Node(NodeEvent::NodeUpdated {
+                graph_id: *graph_id,
+                node_id: *node_id,
+                old_content: content.clone(), // TODO: Get from aggregate
+                new_content: content.clone(),
+            }))
+        }
+        NodeCommand::MoveNode { graph_id, node_id, position } => {
+            Some(DomainEvent::Node(NodeEvent::NodeMoved {
+                graph_id: *graph_id,
+                node_id: *node_id,
+                old_position: *position, // TODO: Get from aggregate
+                new_position: *position,
+            }))
+        }
+        NodeCommand::SelectNode { graph_id, node_id } => {
+            Some(DomainEvent::Node(NodeEvent::NodeSelected {
+                graph_id: *graph_id,
+                node_id: *node_id,
+            }))
+        }
+        NodeCommand::DeselectNode { graph_id, node_id } => {
+            Some(DomainEvent::Node(NodeEvent::NodeDeselected {
+                graph_id: *graph_id,
+                node_id: *node_id,
+            }))
+        }
+    }
+}
+
+/// Handle edge commands and generate events
+fn handle_edge_command(command: &EdgeCommand) -> Option<DomainEvent> {
+    match command {
+        EdgeCommand::ConnectEdge { graph_id, edge_id, source, target, relationship } => {
+            Some(DomainEvent::Edge(EdgeEvent::EdgeConnected {
+                graph_id: *graph_id,
+                edge_id: *edge_id,
+                source: *source,
+                target: *target,
+                relationship: relationship.clone(),
+            }))
+        }
+        EdgeCommand::DisconnectEdge { graph_id, edge_id } => {
+            Some(DomainEvent::Edge(EdgeEvent::EdgeDisconnected {
+                graph_id: *graph_id,
+                edge_id: *edge_id,
+                source: NodeId::default(), // TODO: Get from aggregate
+                target: NodeId::default(), // TODO: Get from aggregate
+            }))
+        }
+        EdgeCommand::UpdateEdge { graph_id, edge_id, relationship } => {
+            Some(DomainEvent::Edge(EdgeEvent::EdgeUpdated {
+                graph_id: *graph_id,
+                edge_id: *edge_id,
+                old_relationship: relationship.clone(), // TODO: Get from aggregate
+                new_relationship: relationship.clone(),
+            }))
+        }
+        EdgeCommand::SelectEdge { graph_id, edge_id } => {
+            Some(DomainEvent::Edge(EdgeEvent::EdgeSelected {
+                graph_id: *graph_id,
+                edge_id: *edge_id,
+            }))
+        }
+        EdgeCommand::DeselectEdge { graph_id, edge_id } => {
+            Some(DomainEvent::Edge(EdgeEvent::EdgeDeselected {
+                graph_id: *graph_id,
+                edge_id: *edge_id,
+            }))
         }
     }
 }

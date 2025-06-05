@@ -6,6 +6,9 @@ alwaysApply: false
 
 **AVOID ResMut<> WHENEVER POSSIBLE, WE USE EVENTS AND COMPONENTS**
 
+We need to think of Everything as a Series of Events Processed by Systems
+Often we will Replay an Event Stream against different collections of Systems.
+
 ## Component Design Principles
 **Atomic data containers**
 ```rust

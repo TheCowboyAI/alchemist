@@ -43,9 +43,7 @@ async fn test_event_publishing() {
 
     // Serialize and publish event
     let payload = serde_json::to_vec(&event).unwrap();
-    let result = client
-        .publish("test.graph.created", payload)
-        .await;
+    let result = client.publish("test.graph.created", payload).await;
 
     assert!(result.is_ok());
 }

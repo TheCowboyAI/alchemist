@@ -2,8 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
-use uuid::Uuid;
 use thiserror::Error;
+use uuid::Uuid;
 
 mod local;
 

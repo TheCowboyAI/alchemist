@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-05T10:30:00-07:00",
-    "version": "2.1.1"
+    "updated": "2025-06-05T20:00:00-07:00",
+    "version": "2.2.0"
   },
   "nodes": [
     {
@@ -102,9 +102,15 @@
       "position": { "x": 500, "y": 0, "z": 0 },
       "data": {
         "status": "in-progress",
-        "progress": 33,
+        "progress": 40,
         "week": 1,
-        "description": "NATS client setup, secure connection, event bridge"
+        "description": "NATS client setup, secure connection, event bridge",
+        "details": [
+          "NATS client implemented and working",
+          "Basic graph visualization complete",
+          "Event-driven animation with recording/replay",
+          "Event bridge between NATS and Bevy pending"
+        ]
       }
     },
     {
@@ -225,6 +231,26 @@
           "7 nodes arranged in a circle with radius 4.0",
           "Every node connected to every other node (21 edges total)",
           "Demonstrates graph complexity handling capabilities"
+        ]
+      }
+    },
+    {
+      "id": "event-driven-animation",
+      "label": "Event-Driven Animation System",
+      "type": "milestone",
+      "position": { "x": 625, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-05",
+        "description": "Implemented pure event-driven animation with recording and replay",
+        "details": [
+          "Refactored from complex animation state to scheduled commands",
+          "Commands generate domain events through proper handlers",
+          "Implemented event recording system with timestamps",
+          "Added automatic replay functionality at 2x speed",
+          "Graph can be perfectly reconstructed from event stream",
+          "Demonstrates true event sourcing principles",
+          "15-second animation: 5s for nodes, 10s for edges"
         ]
       }
     },
@@ -421,6 +447,13 @@
       "source": "documentation-republishing",
       "target": "k7-complete-graph",
       "label": "enhance",
+      "type": "sequence"
+    },
+    {
+      "id": "e7e",
+      "source": "k7-complete-graph",
+      "target": "event-driven-animation",
+      "label": "animate",
       "type": "sequence"
     },
     {
