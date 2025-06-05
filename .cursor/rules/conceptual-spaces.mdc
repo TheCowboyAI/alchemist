@@ -1,7 +1,7 @@
 ---
-description:
+description: Distill Domains and Concepts Between Domains into Conceptual Spaces
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
 # Conceptual Spaces in CIM
 

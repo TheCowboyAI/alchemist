@@ -72,113 +72,158 @@ CIM-IPLD functionality should be a reusable library across all CIM implementatio
 ### Updated Approach
 Now using external `cim-ipld` library, focus on Information Alchemist-specific extensions.
 
-### Implementation Plan
+### ✅ 2.1 Custom Content Types (COMPLETED)
 
-#### 2.1 Custom Content Types
+Successfully implemented all IA-specific content types:
+
 ```rust
-// src/domain/ipld/content_types.rs
-use cim_ipld::{TypedContent, ContentType};
-
-#[derive(Serialize, Deserialize)]
-pub struct GraphAggregate {
-    pub id: GraphId,
-    pub metadata: GraphMetadata,
-    pub nodes: Vec<NodeId>,
-    pub edges: Vec<EdgeId>,
-}
-
-impl TypedContent for GraphAggregate {
-    const CODEC: u64 = 0x330000; // IA-specific range
-    const CONTENT_TYPE: ContentType = ContentType::Custom(0x330000);
-
-    // Implement required methods
-}
+// src/domain/content_types/
+- GraphContent (0x300100) - Complete graph structures with conceptual positioning
+- NodeIPLDContent (0x300101) - Graph nodes with semantic coordinates
+- EdgeIPLDContent (0x300102) - Edges with various types and weights
+- ConceptualSpaceContent (0x300103) - Semantic space representations
+- WorkflowContent (0x300104) - Workflow definitions with steps and transitions
+- EventContent (0x300105) - Domain events with CID chaining support
+- EventChainMetadata (0x300106) - Event sequence tracking
 ```
 
-#### 2.2 Domain-Specific Codecs
+All types implement `TypedContent` trait with:
+- CID generation using BLAKE3
+- Serialization/deserialization support
+- Custom codec assignments
+- Comprehensive test coverage (14 tests passing)
+
+### 🚧 2.2 NATS Object Store Integration (IN PROGRESS)
+
+#### Implementation Plan
+
 ```rust
-// src/domain/ipld/codecs.rs
-use cim_ipld::{CimCodec, CodecRegistry};
-
-pub fn register_ia_codecs(registry: &mut CodecRegistry) -> Result<()> {
-    registry.register(Arc::new(GraphAggregateCodec))?;
-    registry.register(Arc::new(ConceptualSpaceCodec))?;
-    registry.register(Arc::new(GameTheoryCodec))?;
-    Ok(())
-}
-```
-
-#### 2.3 Object Store Integration
-```rust
-// src/infrastructure/object_store/nats_object_store.rs
-use cim_ipld::TypedContent;
-
+// src/infrastructure/object_store/mod.rs
 pub struct NatsObjectStore {
     client: NatsClient,
-    bucket: String,
+    bucket_prefix: String,
 }
 
 impl NatsObjectStore {
-    pub async fn put<T: TypedContent>(&self, content: &T) -> Result<Cid> {
+    pub async fn put_content<T: TypedContent>(&self, content: &T) -> Result<Cid> {
         let cid = content.calculate_cid()?;
         let bytes = content.to_bytes()?;
 
+        let bucket = self.get_bucket_for_type::<T>()?;
         self.client
             .object_store()
-            .put(&self.bucket, &cid.to_string(), bytes)
+            .put(&bucket, &cid.to_string(), bytes)
             .await?;
+
+        Ok(cid)
+    }
+
+    pub async fn get_content<T: TypedContent>(&self, cid: &Cid) -> Result<T> {
+        let bucket = self.get_bucket_for_type::<T>()?;
+        let data = self.client
+            .object_store()
+            .get(&bucket, &cid.to_string())
+            .await?;
+
+        T::from_bytes(&data)
+    }
+}
+```
+
+#### Tasks
+- [ ] Create NatsObjectStore wrapper
+- [ ] Implement bucket management for content types
+- [ ] Add content storage and retrieval methods
+- [ ] Create deduplication service
+- [ ] Add caching layer for performance
+- [ ] Write comprehensive tests
+
+### 🚧 2.3 Update Event Store to Use CID Chains
+
+```rust
+// src/infrastructure/event_store/distributed.rs
+impl DistributedEventStore {
+    pub async fn append_event_with_cid(&self, event: EventContent) -> Result<Cid> {
+        // Get previous CID for this aggregate
+        let previous_cid = self.get_latest_cid(event.aggregate_id).await?;
+
+        // Create chained content
+        let chained = ChainedContent::new(event, previous_cid.as_ref())?;
+
+        // Store in both JetStream and Object Store
+        let cid = self.object_store.put_content(&chained).await?;
+        self.publish_to_stream(&chained).await?;
+
+        // Update CID index
+        self.update_cid_index(event.aggregate_id, &cid).await?;
 
         Ok(cid)
     }
 }
 ```
 
-### Tasks
+#### Tasks
+- [ ] Integrate ContentChain from cim-ipld
+- [ ] Update append_event to use CID chains
+- [ ] Add CID-based event retrieval
+- [ ] Implement chain validation on read
+- [ ] Update projections to track CIDs
+- [ ] Add migration for existing events
+
+### Tasks Summary
 - [x] Wait for cim-ipld library availability ✅ (Now available)
-- [ ] Define IA-specific content types
-- [ ] Implement custom codecs
-- [ ] Integrate NATS Object Store
-- [ ] Update event store to use new types
+- [x] Define IA-specific content types ✅ (COMPLETED)
+- [ ] Implement custom codecs (Next after object store)
+- [ ] Integrate NATS Object Store (IN PROGRESS)
+- [ ] Update event store to use CID chains
 
 ## Priority 3: Implement Domain Tests
 
 ### Problem
-No pure domain logic tests exist (0% domain test coverage).
+Limited domain logic test coverage.
 
 ### Solution
-Create domain tests following TDD principles without Bevy/NATS dependencies.
+Create comprehensive domain tests following TDD principles.
 
-### Running Tests
-```bash
-# Build and run all tests
-nix build
-
-# Run the application
-nix run
-
-# Run tests with coverage (once cargo-llvm-cov is added)
-nix develop -c cargo llvm-cov --lib --no-default-features --html
-```
-
-### Test Structure
+### Test Areas to Cover
 ```rust
 // src/domain/aggregates/graph/tests.rs
 #[cfg(test)]
 mod tests {
     use super::*;
+    use cim_ipld::ContentChain;
 
     #[test]
-    fn test_graph_creation() {
+    fn test_graph_with_cid_tracking() {
         // Given
-        let id = GraphId::new();
-        let metadata = GraphMetadata::new("Test Graph");
+        let mut graph = Graph::new(GraphId::new(), "Test Graph");
 
         // When
-        let graph = Graph::new(id, metadata);
+        let events = graph.add_node(NodeType::Concept, Position3D::new(0.0, 0.0, 0.0))?;
 
         // Then
-        assert_eq!(graph.version(), 0);
-        assert_eq!(graph.node_count(), 0);
+        assert_eq!(events.len(), 1);
+        match &events[0] {
+            DomainEvent::NodeAdded { node_id, .. } => {
+                assert!(graph.nodes.contains_key(node_id));
+            }
+            _ => panic!("Expected NodeAdded event"),
+        }
+    }
+
+    #[test]
+    fn test_event_chain_integrity() {
+        // Test that events maintain proper CID chains
+        let mut chain = ContentChain::<EventContent>::new();
+
+        // Add multiple events
+        for i in 0..5 {
+            let event = create_test_event(i);
+            chain.append(event)?;
+        }
+
+        // Verify chain integrity
+        assert!(chain.validate().is_ok());
     }
 }
 ```
@@ -188,34 +233,20 @@ mod tests {
 - [ ] Write tests for all domain commands
 - [ ] Test event application logic
 - [ ] Verify business rule enforcement
+- [ ] Test CID chain integrity
+- [ ] Test conceptual space mappings
 
 ## Priority 4: Add Test Coverage Metrics
 
-### Problem
-Unable to measure test coverage (cargo-tarpaulin not available).
-
-### Solution
-1. **Add cargo-llvm-cov to Nix environment**
-   ```nix
-   # flake.nix
-   buildInputs = with pkgs; [
-     cargo-llvm-cov
-     # ... other dependencies
-   ];
-   ```
-
-2. **Create coverage script**
-   ```bash
-   # scripts/coverage.sh
-   #!/usr/bin/env bash
-   BEVY_HEADLESS=1 nix develop -c cargo llvm-cov --lib --no-default-features --html
-   ```
+### Updated Approach
+Use `cargo-llvm-cov` for coverage metrics in Nix environment.
 
 ### Tasks
-- [ ] Update flake.nix with coverage tools
+- [ ] Add cargo-llvm-cov to flake.nix
 - [ ] Create coverage generation script
 - [ ] Add coverage badge to README
 - [ ] Set 80% coverage target
+- [ ] Integrate with CI pipeline
 
 ## Execution Timeline
 
@@ -224,50 +255,79 @@ Unable to measure test coverage (cargo-tarpaulin not available).
 2. **Day 3-4**: Extracted and generalized existing code ✅
 3. **Day 5**: Initial testing and documentation ✅
 
-### Week 2 (Current)
+### Week 2 (Current) 🚧
 1. **Day 1**: Completed cim-ipld implementation ✅
 2. **Day 2**: Integrated back into Information Alchemist ✅
-3. **Day 3-5**: Define IA-specific content types and codecs
+3. **Day 3**: Implemented IA-specific content types ✅
+4. **Day 4-5**: NATS Object Store integration (IN PROGRESS)
 
-### Week 3 (Medium-term)
-1. **Day 1-2**: Complete domain tests
-2. **Day 3-4**: Set up test coverage metrics
+### Week 3 (Upcoming)
+1. **Day 1-2**: Complete object store integration
+2. **Day 3**: Update event store with CID chains
+3. **Day 4-5**: Implement custom codecs
+
+### Week 4 (Future)
+1. **Day 1-3**: Complete domain tests
+2. **Day 4**: Set up test coverage metrics
 3. **Day 5**: Documentation and polish
+
+## Current Focus
+
+### Immediate Next Steps (Priority Order)
+
+1. **NATS Object Store Wrapper**
+   - Create infrastructure/object_store module
+   - Implement bucket management
+   - Add put/get operations with CID
+
+2. **Content Storage Service**
+   - Implement deduplication logic
+   - Add compression support
+   - Create retention policies
+
+3. **Event Store CID Integration**
+   - Update append_event method
+   - Add CID-based queries
+   - Implement chain validation
 
 ### Success Criteria
 - [x] All tests pass with `nix build` ✅
 - [x] cim-ipld published as standalone library ✅
 - [x] Information Alchemist using external cim-ipld ✅
+- [x] IA-specific content types implemented ✅
+- [ ] NATS Object Store integrated
+- [ ] Event store using CID chains
 - [ ] Domain test coverage > 80%
 - [ ] Coverage metrics available in CI
 
 ## Risk Mitigation
 
-### Library Extraction Risk
-- **Impact**: High - Delays IPLD integration
-- **Mitigation**: Keep extraction minimal, enhance iteratively
+### Object Store Integration Risk
+- **Impact**: Medium - Delays content-addressed storage
+- **Mitigation**: Start with simple implementation, enhance iteratively
 
-### Integration Risk
-- **Impact**: Medium - Breaking changes during migration
-- **Mitigation**: Comprehensive tests before switching
+### Performance Risk
+- **Impact**: Medium - CID generation overhead
+- **Mitigation**: Implement caching, benchmark critical paths
 
-### Coverage Tool Risk
-- **Impact**: Low - Delays metrics
-- **Mitigation**: Use alternative tools if needed
+### Migration Risk
+- **Impact**: High - Existing events need CID chains
+- **Mitigation**: Create migration tool, support dual-mode operation
 
-## Next Steps
+## Next Actions
 
-After completing these immediate actions:
-1. Update progress.json with cim-ipld extraction
-2. Complete Phase 1.5 with external library
-3. Move to Phase 2 (Domain Model with CIM Extensions)
-4. Begin dog-fooding with progress visualization
+1. Create infrastructure/object_store module structure
+2. Implement basic NATS Object Store wrapper
+3. Add content storage/retrieval methods
+4. Write tests for object store operations
+5. Begin event store CID integration
 
 ---
 
 *Plan Updated: 2025-01-07*
-*Target Completion: 3 Weeks*
+*Target Completion: 4 Weeks*
 *Phase 1 Status: COMPLETED ✅*
-*Phase 1.5 Status: IN PROGRESS 🚧 (25%)*
+*Phase 1.5 Status: IN PROGRESS 🚧 (50%)*
 *Dynamic Linking: RESOLVED ✅*
 *CIM-IPLD Library: COMPLETED ✅*
+*IA Content Types: COMPLETED ✅*

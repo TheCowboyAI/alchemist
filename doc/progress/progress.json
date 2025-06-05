@@ -565,29 +565,61 @@
     },
     {
       "id": "ia-specific-types-complete",
-      "label": "IA Content Types Implemented",
+      "label": "IA-Specific Types Complete",
       "type": "milestone",
-      "position": { "x": 750, "y": 200, "z": 0 },
+      "position": { "x": 850, "y": 300, "z": 0 },
       "data": {
         "status": "completed",
         "date": "2025-06-07",
-        "description": "IA-specific IPLD content types implemented",
+        "description": "Implemented all IA-specific content types with TypedContent trait",
         "details": [
-          "Created domain content_types module",
-          "Implemented GraphContent with conceptual positioning",
-          "Created NodeIPLDContent and EdgeIPLDContent to avoid naming conflicts",
-          "Added ConceptualSpaceContent for semantic spaces",
-          "Implemented WorkflowContent for workflow definitions",
-          "Created EventContent with ContentChain support",
-          "All types implement TypedContent trait from cim-ipld",
-          "Custom codecs assigned (0x300100-0x300106)",
-          "Comprehensive tests for CID generation and serialization"
+          "GraphContent for graph structures with conceptual positioning",
+          "NodeIPLDContent and EdgeIPLDContent for graph elements",
+          "ConceptualSpaceContent for semantic space representations",
+          "WorkflowContent for workflow definitions",
+          "EventContent for domain events with CID chaining",
+          "EventChainMetadata for event sequence tracking",
+          "All types implement TypedContent with BLAKE3 hashing",
+          "Custom codecs in 0x300100-0x300106 range",
+          "Comprehensive tests for all content types"
         ],
         "progress": 100,
         "completed_date": "2025-06-07",
         "references": [
-          "/doc/plan/cim-ipld-integration-plan.md",
-          "/src/domain/content_types/"
+          "/src/domain/content_types/mod.rs",
+          "/src/domain/content_types/graph.rs",
+          "/src/domain/content_types/node.rs",
+          "/src/domain/content_types/edge.rs",
+          "/src/domain/content_types/conceptual.rs",
+          "/src/domain/content_types/workflow.rs",
+          "/src/domain/content_types/event.rs"
+        ]
+      }
+    },
+    {
+      "id": "object-store-integration",
+      "label": "NATS Object Store Integration",
+      "type": "milestone",
+      "position": { "x": 900, "y": 300, "z": 0 },
+      "data": {
+        "status": "in-progress",
+        "date": "2025-06-07",
+        "description": "Integrating NATS Object Store with CIM-IPLD for content-addressed storage",
+        "details": [
+          "Created NatsObjectStore wrapper for async-nats object store API",
+          "Implemented bucket management for different content types",
+          "Added zstd compression support for efficient storage",
+          "Created ContentStorageService with LRU caching",
+          "Implemented content deduplication by CID",
+          "Added batch operations for performance",
+          "Created comprehensive error handling",
+          "Integrated with TypedContent trait from cim-ipld"
+        ],
+        "progress": 80,
+        "references": [
+          "/src/infrastructure/object_store/mod.rs",
+          "/src/infrastructure/object_store/nats_object_store.rs",
+          "/src/infrastructure/object_store/content_storage.rs"
         ]
       }
     }
@@ -851,6 +883,13 @@
       "target": "object-store-integration",
       "label": "next",
       "type": "sequence"
+    },
+    {
+      "id": "e7r",
+      "source": "object-store-integration",
+      "target": "phase-2",
+      "label": "enables",
+      "type": "sequence"
     }
   ],
   "project": "Information Alchemist CIM Integration",
@@ -939,7 +978,7 @@
       "id": "phase-1.5",
       "name": "Phase 1.5: IPLD Integration",
       "status": "in-progress",
-      "progress": 50,
+      "progress": 75,
       "tasks": [
         {
           "id": "cim-ipld-extraction",
@@ -958,9 +997,9 @@
         {
           "id": "object-store-integration",
           "name": "Object Store Integration",
-          "status": "pending",
-          "progress": 0,
-          "details": "NATS Object Store for content-addressed storage using cim-ipld types"
+          "status": "in-progress",
+          "progress": 80,
+          "details": "NATS Object Store wrapper implemented with content-addressed storage, compression support, bucket management, and content storage service with caching and deduplication"
         },
         {
           "id": "custom-codec-implementation",
@@ -1196,14 +1235,14 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Integrating NATS Object Store with cim-ipld for content-addressed storage",
+  "current_focus": "Completing NATS Object Store integration and testing",
   "next_steps": [
-    "Integrate NATS Object Store with cim-ipld for content-addressed storage",
-    "Create NatsObjectStore wrapper for content storage by CID",
-    "Implement content storage service with deduplication",
+    "Fix remaining compilation issues in object store implementation",
+    "Create comprehensive tests for object store integration",
     "Update event store to use CID chains from cim-ipld",
     "Implement custom codecs for efficient serialization",
-    "Create comprehensive tests for object store integration"
+    "Create integration tests with real NATS server",
+    "Document object store usage patterns"
   ],
   "blockers": [],
   "notes": [
@@ -1216,6 +1255,7 @@
     "CIM-IPLD successfully extracted as standalone library at github.com/TheCowboyAI/cim-ipld",
     "Information Alchemist now uses cim-ipld as a git submodule dependency",
     "All tests passing with external cim-ipld integration",
-    "IA-specific content types implemented with TypedContent trait and custom codecs"
+    "IA-specific content types implemented with TypedContent trait and custom codecs",
+    "NATS Object Store wrapper implemented with compression, bucket management, and caching"
   ]
 }

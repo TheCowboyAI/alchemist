@@ -1,7 +1,7 @@
 ---
-description:
+description: We are an Event Driven Architecture
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
 # Event Sourcing in CIM
 
