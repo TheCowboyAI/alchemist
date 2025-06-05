@@ -28,6 +28,7 @@ Information Alchemist is being transformed from a standalone application into a 
 16. **Distributed Event Store** - JetStream-based persistent event storage ✅
 17. **Event Bridge Implementation** - Async/sync bridge between NATS and Bevy ✅
 18. **Dynamic Linking Fixed** - Resolved test execution issues, now use `nix build`/`nix run` ✅
+19. **CIM-IPLD Library Extracted** - Standalone library created at github.com/TheCowboyAI/cim-ipld ✅
 
 ### ✅ Phase 0 - NATS Integration Foundation (Week 1) - COMPLETED
 
@@ -85,25 +86,34 @@ Phase 1 has been successfully completed with all infrastructure components opera
 
 We are now implementing the full IPLD (InterPlanetary Linked Data) architecture to enable content-addressed storage and intelligent information handling:
 
+**Completed Tasks**:
+- [x] **CIM-IPLD Library Extraction** (100%) ✅
+  - Created standalone library at github.com/TheCowboyAI/cim-ipld
+  - Implemented TypedContent trait for type-safe content handling
+  - Created ChainedContent and ContentChain for cryptographic chains
+  - Built extensible codec registry system
+  - Added comprehensive test suite
+  - Integrated as git submodule in Information Alchemist
+
 **Current Tasks**:
-- [ ] **IPLD Codec Registry** (0%)
-  - Implement domain-specific IPLD codecs (0x300000-0x3FFFFF range)
-  - Create codec registration system
+- [ ] **IA-Specific Content Types** (0%)
+  - Define GraphContent, NodeContent, EdgeContent types
+  - Implement custom codecs for IA domain objects
   - Add serialization/deserialization for all content types
 - [ ] **Object Store Integration** (0%)
   - Integrate NATS Object Store for content-addressed storage
   - Implement put/get operations with CID keys
   - Add content deduplication
-- [ ] **Typed Content Implementation** (0%)
-  - Create TypedContent trait for type-safe content handling
-  - Implement ContentType enum with all domain types
-  - Add automatic MIME type detection
+- [ ] **Event Store CID Integration** (0%)
+  - Update event store to use CID chains from cim-ipld
+  - Migrate existing events to new format
+  - Add backward compatibility layer
 - [ ] **IPLD Relationships** (0%)
   - Implement relationship predicates (contains, references, derives_from)
   - Create relationship indexing system
   - Add path-finding algorithms for semantic navigation
 
-**Progress**: 20% (Design complete, implementation starting)
+**Progress**: 25% (CIM-IPLD library complete, IA integration starting)
 
 **Why This Matters**: IPLD integration enables:
 - **Type-safe content addressing** with domain-specific codecs
@@ -181,6 +191,14 @@ We are now implementing the full IPLD (InterPlanetary Linked Data) architecture 
 - Added support for documents, multimedia, and infrastructure tracking
 - Implemented Git hash to CID isomorphism for seamless integration
 
+### CIM-IPLD Library Extraction ✅
+- Created standalone library at github.com/TheCowboyAI/cim-ipld
+- Implemented TypedContent trait for content addressing
+- Built ChainedContent and ContentChain for cryptographic chains
+- Created extensible codec registry (0x300000-0x3FFFFF range)
+- Added comprehensive test suite with 7 tests
+- Integrated as git submodule in Information Alchemist
+
 ## Self-Referential Development
 
 ### The Dog-Fooding Journey
@@ -238,9 +256,10 @@ cat progress.json | jq .
 ## Next Steps
 
 1. **Immediate** (This Week):
-   - Implement IPLD codec registry
-   - Create TypedContent trait and implementations
-   - Integrate NATS Object Store
+   - Define IA-specific content types (GraphContent, NodeContent, EdgeContent)
+   - Implement custom codecs for Information Alchemist domain objects
+   - Integrate NATS Object Store with cim-ipld
+   - Update event store to use CID chains from external library
    - Note: Run all tests via `nix build` or `nix run` (not cargo test directly)
 
 2. **Short Term** (Next 2 Weeks):
@@ -313,4 +332,5 @@ The transformation to a CIM leaf node represents a significant upgrade that will
 **Current Week**: 2 of 8
 **Phase 0 Progress**: 100% Complete ✅
 **Phase 1 Progress**: 100% Complete ✅
-**Phase 1.5 Progress**: 20% In Progress 🚧
+**Phase 1.5 Progress**: 25% In Progress 🚧
+**CIM-IPLD Library**: Published at github.com/TheCowboyAI/cim-ipld ✅

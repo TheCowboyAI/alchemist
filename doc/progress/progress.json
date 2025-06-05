@@ -896,15 +896,15 @@
     {
       "id": "phase-1.5",
       "name": "Phase 1.5: IPLD Integration",
-      "status": "redesigned",
-      "progress": 10,
+      "status": "in-progress",
+      "progress": 25,
       "tasks": [
         {
           "id": "cim-ipld-extraction",
           "name": "Extract CIM-IPLD Library",
-          "status": "planned",
-          "progress": 0,
-          "details": "Extract core IPLD functionality into standalone reusable library for all CIM implementations"
+          "status": "completed",
+          "progress": 100,
+          "details": "Successfully extracted core IPLD functionality into standalone library at github.com/TheCowboyAI/cim-ipld with TypedContent trait, ChainedContent, ContentChain, codec registry, and comprehensive tests"
         },
         {
           "id": "ia-specific-types",
@@ -1154,14 +1154,14 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Planning CIM-IPLD extraction as standalone library for cross-project reuse",
+  "current_focus": "Implementing IA-specific content types and object store integration using cim-ipld library",
   "next_steps": [
-    "Create thecowboyai/cim-ipld GitHub repository",
-    "Extract and generalize ChainedEvent implementation",
-    "Design extensible trait system for content types",
-    "Implement codec registry with base codecs",
-    "Publish initial release to GitHub and crates.io",
-    "Update Information Alchemist to use external library"
+    "Define Information Alchemist specific content types (GraphContent, NodeContent, EdgeContent)",
+    "Implement custom codecs for IA domain objects",
+    "Integrate NATS Object Store with cim-ipld for content-addressed storage",
+    "Update event store to use CID chains from cim-ipld",
+    "Create comprehensive tests for IA-specific IPLD integration",
+    "Begin Phase 2: Graph Domain Model implementation"
   ],
   "blockers": [],
   "notes": [
@@ -1171,6 +1171,8 @@
     "Event bridge connecting NATS and Bevy ECS working",
     "Comprehensive IPLD architecture designed with 11 design documents",
     "Dynamic linking issue resolved - must use 'nix build' or 'nix run' for reliable execution",
-    "Redesigned Phase 1.5 to extract CIM-IPLD as standalone library for reuse across all CIM projects"
+    "CIM-IPLD successfully extracted as standalone library at github.com/TheCowboyAI/cim-ipld",
+    "Information Alchemist now uses cim-ipld as a git submodule dependency",
+    "All tests passing with external cim-ipld integration"
   ]
 }
