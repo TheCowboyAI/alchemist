@@ -2,11 +2,11 @@
 
 #[cfg(test)]
 mod tests {
-    use futures::StreamExt;
     use super::super::*;
-    use tokio;
     use crate::domain::events::{DomainEvent, GraphEvent};
     use crate::domain::value_objects::GraphId;
+    use futures::StreamExt;
+    use tokio;
 
     #[tokio::test]
     async fn test_connect_to_localhost() {
@@ -37,7 +37,10 @@ mod tests {
 
             // Publish a message
             let payload = b"Hello, NATS!".to_vec();
-            client.publish("test.subject", payload.clone()).await.unwrap();
+            client
+                .publish("test.subject", payload.clone())
+                .await
+                .unwrap();
 
             // Receive the message
             if let Some(msg) = subscriber.next().await {
@@ -71,8 +74,7 @@ mod tests {
         let json = serde_json::to_string(&event).expect("Failed to serialize");
 
         // Deserialize event
-        let deserialized: DomainEvent = serde_json::from_str(&json)
-            .expect("Failed to deserialize");
+        let deserialized: DomainEvent = serde_json::from_str(&json).expect("Failed to deserialize");
 
         match deserialized {
             DomainEvent::Graph(GraphEvent::GraphCreated { id, .. }) => {

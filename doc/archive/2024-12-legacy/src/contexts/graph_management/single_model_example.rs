@@ -36,8 +36,8 @@ pub struct GraphIndex {
 
 #[derive(Component, Debug, Default)]
 pub struct NodeIndex {
-    pub outgoing: Vec<Entity>,  // Edge entities
-    pub incoming: Vec<Entity>,  // Edge entities
+    pub outgoing: Vec<Entity>, // Edge entities
+    pub incoming: Vec<Entity>, // Edge entities
 }
 
 #[derive(Component, Debug)]
@@ -73,17 +73,15 @@ pub struct EdgeBundle {
 // ============= Graph Operations (No External Dependencies) =============
 
 /// Create a new graph
-pub fn create_graph(
-    commands: &mut Commands,
-    name: String,
-    description: String,
-) -> Entity {
-    commands.spawn(GraphBundle {
-        graph: Graph { name, description },
-        index: GraphIndex::default(),
-        transform: Transform::default(),
-        global_transform: GlobalTransform::default(),
-    }).id()
+pub fn create_graph(commands: &mut Commands, name: String, description: String) -> Entity {
+    commands
+        .spawn(GraphBundle {
+            graph: Graph { name, description },
+            index: GraphIndex::default(),
+            transform: Transform::default(),
+            global_transform: GlobalTransform::default(),
+        })
+        .id()
 }
 
 /// Add a node to a graph
@@ -95,17 +93,21 @@ pub fn add_node(
     position: Vec3,
     graph_index: &mut GraphIndex,
 ) -> Entity {
-    let node_entity = commands.spawn(NodeBundle {
-        node: Node {
-            label,
-            category,
-            properties: HashMap::new(),
-        },
-        member: GraphMember { graph: graph_entity },
-        index: NodeIndex::default(),
-        transform: Transform::from_translation(position),
-        global_transform: GlobalTransform::default(),
-    }).id();
+    let node_entity = commands
+        .spawn(NodeBundle {
+            node: Node {
+                label,
+                category,
+                properties: HashMap::new(),
+            },
+            member: GraphMember {
+                graph: graph_entity,
+            },
+            index: NodeIndex::default(),
+            transform: Transform::from_translation(position),
+            global_transform: GlobalTransform::default(),
+        })
+        .id();
 
     // Update graph index
     graph_index.nodes.insert(node_entity);
@@ -125,15 +127,19 @@ pub fn connect_nodes(
     source_index: &mut NodeIndex,
     target_index: &mut NodeIndex,
 ) -> Entity {
-    let edge_entity = commands.spawn(EdgeBundle {
-        edge: Edge {
-            source,
-            target,
-            category,
-            weight,
-        },
-        member: GraphMember { graph: graph_entity },
-    }).id();
+    let edge_entity = commands
+        .spawn(EdgeBundle {
+            edge: Edge {
+                source,
+                target,
+                category,
+                weight,
+            },
+            member: GraphMember {
+                graph: graph_entity,
+            },
+        })
+        .id();
 
     // Update indices
     graph_index.edges.insert(edge_entity);
@@ -152,11 +158,10 @@ pub fn find_neighbors(
     edges: &Query<&Edge>,
 ) -> Vec<Entity> {
     if let Ok(index) = node_indices.get(node) {
-        index.outgoing
+        index
+            .outgoing
             .iter()
-            .filter_map(|&edge_entity| {
-                edges.get(edge_entity).ok().map(|edge| edge.target)
-            })
+            .filter_map(|&edge_entity| edges.get(edge_entity).ok().map(|edge| edge.target))
             .collect()
     } else {
         vec![]
@@ -222,7 +227,10 @@ pub fn shortest_path(
     let mut heap = BinaryHeap::new();
 
     distances.insert(start, 0);
-    heap.push(State { cost: 0, node: start });
+    heap.push(State {
+        cost: 0,
+        node: start,
+    });
 
     while let Some(State { cost, node }) = heap.pop() {
         if node == end {
@@ -251,7 +259,10 @@ pub fn shortest_path(
                     if next_cost < *distances.get(&edge.target).unwrap_or(&u32::MAX) {
                         distances.insert(edge.target, next_cost);
                         previous.insert(edge.target, node);
-                        heap.push(State { cost: next_cost, node: edge.target });
+                        heap.push(State {
+                            cost: next_cost,
+                            node: edge.target,
+                        });
                     }
                 }
             }
@@ -299,12 +310,7 @@ pub fn render_graph_system(
                     _ => Color::srgb(0.0, 0.0, 1.0),
                 };
 
-                gizmos.sphere(
-                    transform.translation,
-                    Quat::IDENTITY,
-                    0.5,
-                    color,
-                );
+                gizmos.sphere(transform.translation, Quat::IDENTITY, 0.5, color);
             }
         }
 
@@ -312,7 +318,8 @@ pub fn render_graph_system(
         for &edge_entity in &index.edges {
             if let Ok(edge) = edges.get(edge_entity) {
                 if let (Ok((_, source_tf)), Ok((_, target_tf))) =
-                    (nodes.get(edge.source), nodes.get(edge.target)) {
+                    (nodes.get(edge.source), nodes.get(edge.target))
+                {
                     gizmos.line(
                         source_tf.translation,
                         target_tf.translation,
@@ -328,7 +335,11 @@ pub fn render_graph_system(
 
 pub fn setup_example_graph(mut commands: Commands) {
     // Create a graph
-    let graph = create_graph(&mut commands, "Example Graph".to_string(), "Demo".to_string());
+    let graph = create_graph(
+        &mut commands,
+        "Example Graph".to_string(),
+        "Demo".to_string(),
+    );
 
     // We'll need to get the graph index to update it
     // In a real system, this would be done through queries
@@ -446,58 +457,95 @@ mod tests {
         app.add_plugins(MinimalPlugins);
 
         // Create graph
-        let graph = app.world_mut().spawn(GraphBundle {
-            graph: Graph {
-                name: "Test".to_string(),
-                description: "Test graph".to_string(),
-            },
-            index: GraphIndex::default(),
-            transform: Transform::default(),
-            global_transform: GlobalTransform::default(),
-        }).id();
+        let graph = app
+            .world_mut()
+            .spawn(GraphBundle {
+                graph: Graph {
+                    name: "Test".to_string(),
+                    description: "Test graph".to_string(),
+                },
+                index: GraphIndex::default(),
+                transform: Transform::default(),
+                global_transform: GlobalTransform::default(),
+            })
+            .id();
 
         // Create nodes
-        let node_a = app.world_mut().spawn(NodeBundle {
-            node: Node {
-                label: "A".to_string(),
-                category: "test".to_string(),
-                properties: HashMap::new(),
-            },
-            member: GraphMember { graph },
-            index: NodeIndex::default(),
-            transform: Transform::default(),
-            global_transform: GlobalTransform::default(),
-        }).id();
+        let node_a = app
+            .world_mut()
+            .spawn(NodeBundle {
+                node: Node {
+                    label: "A".to_string(),
+                    category: "test".to_string(),
+                    properties: HashMap::new(),
+                },
+                member: GraphMember { graph },
+                index: NodeIndex::default(),
+                transform: Transform::default(),
+                global_transform: GlobalTransform::default(),
+            })
+            .id();
 
-        let node_b = app.world_mut().spawn(NodeBundle {
-            node: Node {
-                label: "B".to_string(),
-                category: "test".to_string(),
-                properties: HashMap::new(),
-            },
-            member: GraphMember { graph },
-            index: NodeIndex::default(),
-            transform: Transform::default(),
-            global_transform: GlobalTransform::default(),
-        }).id();
+        let node_b = app
+            .world_mut()
+            .spawn(NodeBundle {
+                node: Node {
+                    label: "B".to_string(),
+                    category: "test".to_string(),
+                    properties: HashMap::new(),
+                },
+                member: GraphMember { graph },
+                index: NodeIndex::default(),
+                transform: Transform::default(),
+                global_transform: GlobalTransform::default(),
+            })
+            .id();
 
         // Create edge
-        let edge = app.world_mut().spawn(EdgeBundle {
-            edge: Edge {
-                source: node_a,
-                target: node_b,
-                category: "test".to_string(),
-                weight: 1.0,
-            },
-            member: GraphMember { graph },
-        }).id();
+        let edge = app
+            .world_mut()
+            .spawn(EdgeBundle {
+                edge: Edge {
+                    source: node_a,
+                    target: node_b,
+                    category: "test".to_string(),
+                    weight: 1.0,
+                },
+                member: GraphMember { graph },
+            })
+            .id();
 
         // Update indices
-        app.world_mut().entity_mut(graph).get_mut::<GraphIndex>().unwrap().nodes.insert(node_a);
-        app.world_mut().entity_mut(graph).get_mut::<GraphIndex>().unwrap().nodes.insert(node_b);
-        app.world_mut().entity_mut(graph).get_mut::<GraphIndex>().unwrap().edges.insert(edge);
-        app.world_mut().entity_mut(node_a).get_mut::<NodeIndex>().unwrap().outgoing.push(edge);
-        app.world_mut().entity_mut(node_b).get_mut::<NodeIndex>().unwrap().incoming.push(edge);
+        app.world_mut()
+            .entity_mut(graph)
+            .get_mut::<GraphIndex>()
+            .unwrap()
+            .nodes
+            .insert(node_a);
+        app.world_mut()
+            .entity_mut(graph)
+            .get_mut::<GraphIndex>()
+            .unwrap()
+            .nodes
+            .insert(node_b);
+        app.world_mut()
+            .entity_mut(graph)
+            .get_mut::<GraphIndex>()
+            .unwrap()
+            .edges
+            .insert(edge);
+        app.world_mut()
+            .entity_mut(node_a)
+            .get_mut::<NodeIndex>()
+            .unwrap()
+            .outgoing
+            .push(edge);
+        app.world_mut()
+            .entity_mut(node_b)
+            .get_mut::<NodeIndex>()
+            .unwrap()
+            .incoming
+            .push(edge);
 
         // Test traversal
         let node_indices = app.world().query::<&NodeIndex>();

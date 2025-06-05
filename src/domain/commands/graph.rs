@@ -1,7 +1,7 @@
 //! Graph Commands
 
-use serde::{Deserialize, Serialize};
 use crate::domain::value_objects::GraphId;
+use serde::{Deserialize, Serialize};
 
 /// Commands for Graph aggregate
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -19,7 +19,5 @@ pub enum GraphCommand {
         description: Option<String>,
     },
     /// Delete a graph
-    DeleteGraph {
-        id: GraphId,
-    },
+    DeleteGraph { id: GraphId },
 }

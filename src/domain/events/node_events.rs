@@ -1,7 +1,7 @@
 //! Node-related domain events
 
+use crate::domain::value_objects::{GraphId, NodeContent, NodeId, Position3D};
 use serde::{Deserialize, Serialize};
-use crate::domain::value_objects::{GraphId, NodeId, NodeContent, Position3D};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NodeEvent {
@@ -51,23 +51,23 @@ impl NodeEvent {
 
     pub fn graph_id(&self) -> GraphId {
         match self {
-            NodeEvent::NodeAdded { graph_id, .. } |
-            NodeEvent::NodeRemoved { graph_id, .. } |
-            NodeEvent::NodeUpdated { graph_id, .. } |
-            NodeEvent::NodeMoved { graph_id, .. } |
-            NodeEvent::NodeSelected { graph_id, .. } |
-            NodeEvent::NodeDeselected { graph_id, .. } => *graph_id,
+            NodeEvent::NodeAdded { graph_id, .. }
+            | NodeEvent::NodeRemoved { graph_id, .. }
+            | NodeEvent::NodeUpdated { graph_id, .. }
+            | NodeEvent::NodeMoved { graph_id, .. }
+            | NodeEvent::NodeSelected { graph_id, .. }
+            | NodeEvent::NodeDeselected { graph_id, .. } => *graph_id,
         }
     }
 
     pub fn node_id(&self) -> NodeId {
         match self {
-            NodeEvent::NodeAdded { node_id, .. } |
-            NodeEvent::NodeRemoved { node_id, .. } |
-            NodeEvent::NodeUpdated { node_id, .. } |
-            NodeEvent::NodeMoved { node_id, .. } |
-            NodeEvent::NodeSelected { node_id, .. } |
-            NodeEvent::NodeDeselected { node_id, .. } => *node_id,
+            NodeEvent::NodeAdded { node_id, .. }
+            | NodeEvent::NodeRemoved { node_id, .. }
+            | NodeEvent::NodeUpdated { node_id, .. }
+            | NodeEvent::NodeMoved { node_id, .. }
+            | NodeEvent::NodeSelected { node_id, .. }
+            | NodeEvent::NodeDeselected { node_id, .. } => *node_id,
         }
     }
 }

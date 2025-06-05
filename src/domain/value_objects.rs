@@ -1,9 +1,9 @@
 //! Value Objects for the Domain Layer
 
+use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
-use bevy::prelude::*;
 
 /// Unique identifier for a graph
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -87,7 +87,11 @@ impl Position3D {
 
 impl Default for Position3D {
     fn default() -> Self {
-        Self { x: 0.0, y: 0.0, z: 0.0 }
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
     }
 }
 
@@ -99,7 +103,11 @@ impl From<Position3D> for Vec3 {
 
 impl From<Vec3> for Position3D {
     fn from(vec: Vec3) -> Self {
-        Self { x: vec.x, y: vec.y, z: vec.z }
+        Self {
+            x: vec.x,
+            y: vec.y,
+            z: vec.z,
+        }
     }
 }
 
@@ -196,5 +204,11 @@ impl GraphMetadata {
             updated_at: now,
             tags: Vec::new(),
         }
+    }
+}
+
+impl Default for GraphMetadata {
+    fn default() -> Self {
+        Self::new(String::from("default"))
     }
 }

@@ -1,7 +1,7 @@
 //! Node Commands
 
+use crate::domain::value_objects::{GraphId, NodeContent, NodeId, Position3D};
 use serde::{Deserialize, Serialize};
-use crate::domain::value_objects::{GraphId, NodeId, Position3D, NodeContent};
 
 /// Commands for Node operations
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,8 +26,5 @@ pub enum NodeCommand {
         content: NodeContent,
     },
     /// Delete a node
-    DeleteNode {
-        graph_id: GraphId,
-        node_id: NodeId,
-    },
+    DeleteNode { graph_id: GraphId, node_id: NodeId },
 }

@@ -1,15 +1,15 @@
 //! Domain Events
 
-use serde::{Deserialize, Serialize};
 use crate::domain::value_objects::*;
+use serde::{Deserialize, Serialize};
 
+pub mod edge_events;
 pub mod graph_events;
 pub mod node_events;
-pub mod edge_events;
 
+pub use edge_events::EdgeEvent;
 pub use graph_events::GraphEvent;
 pub use node_events::NodeEvent;
-pub use edge_events::EdgeEvent;
 
 /// All domain events in the system
 #[derive(Debug, Clone, Serialize, Deserialize)]

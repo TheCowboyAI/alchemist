@@ -1,7 +1,7 @@
 //! Edge-related domain events
 
+use crate::domain::value_objects::{EdgeId, EdgeRelationship, GraphId, NodeId};
 use serde::{Deserialize, Serialize};
-use crate::domain::value_objects::{GraphId, EdgeId, NodeId, EdgeRelationship};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum EdgeEvent {
@@ -47,21 +47,21 @@ impl EdgeEvent {
 
     pub fn graph_id(&self) -> GraphId {
         match self {
-            EdgeEvent::EdgeConnected { graph_id, .. } |
-            EdgeEvent::EdgeDisconnected { graph_id, .. } |
-            EdgeEvent::EdgeUpdated { graph_id, .. } |
-            EdgeEvent::EdgeSelected { graph_id, .. } |
-            EdgeEvent::EdgeDeselected { graph_id, .. } => *graph_id,
+            EdgeEvent::EdgeConnected { graph_id, .. }
+            | EdgeEvent::EdgeDisconnected { graph_id, .. }
+            | EdgeEvent::EdgeUpdated { graph_id, .. }
+            | EdgeEvent::EdgeSelected { graph_id, .. }
+            | EdgeEvent::EdgeDeselected { graph_id, .. } => *graph_id,
         }
     }
 
     pub fn edge_id(&self) -> EdgeId {
         match self {
-            EdgeEvent::EdgeConnected { edge_id, .. } |
-            EdgeEvent::EdgeDisconnected { edge_id, .. } |
-            EdgeEvent::EdgeUpdated { edge_id, .. } |
-            EdgeEvent::EdgeSelected { edge_id, .. } |
-            EdgeEvent::EdgeDeselected { edge_id, .. } => *edge_id,
+            EdgeEvent::EdgeConnected { edge_id, .. }
+            | EdgeEvent::EdgeDisconnected { edge_id, .. }
+            | EdgeEvent::EdgeUpdated { edge_id, .. }
+            | EdgeEvent::EdgeSelected { edge_id, .. }
+            | EdgeEvent::EdgeDeselected { edge_id, .. } => *edge_id,
         }
     }
 }

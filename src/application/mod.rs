@@ -1,11 +1,11 @@
 //! Application Layer - Use Cases and Orchestration
 
 pub mod command_handlers;
-pub mod query_handlers;
 pub mod projections;
+pub mod query_handlers;
 
-use bevy::prelude::*;
 use crate::domain::commands::Command;
+use bevy::prelude::*;
 
 /// Event for sending commands through Bevy's event system
 #[derive(Event, Debug, Clone)]

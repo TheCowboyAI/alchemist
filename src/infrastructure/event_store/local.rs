@@ -4,9 +4,9 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
 
+use super::{EventEnvelope, EventId, EventStore};
 use crate::domain::events::DomainEvent;
 use crate::domain::value_objects::GraphId;
-use super::{EventEnvelope, EventId, EventStore};
 
 /// Local in-memory event store
 pub struct LocalEventStore {

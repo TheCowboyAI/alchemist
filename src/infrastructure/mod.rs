@@ -2,5 +2,5 @@
 
 pub mod event_store;
 pub mod nats;
-pub mod repositories;
 pub mod persistence;
+pub mod repositories;

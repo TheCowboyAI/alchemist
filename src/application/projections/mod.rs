@@ -1,8 +1,10 @@
 //! Projections (Read Models) - These ARE Resources
 
+use crate::domain::value_objects::{
+    EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, Position3D,
+};
 use bevy::prelude::*;
 use std::collections::HashMap;
-use crate::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, NodeContent, EdgeRelationship};
 
 /// Graph projection - the current state of all graphs
 #[derive(Resource, Default)]

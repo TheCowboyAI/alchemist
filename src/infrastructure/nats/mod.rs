@@ -70,8 +70,7 @@ pub async fn connect_localhost() -> Result<Client, NatsError> {
 pub async fn connect_with_config(config: &NatsConfig) -> Result<Client, NatsError> {
     info!("Connecting to NATS at {}", config.url);
 
-    let mut options = async_nats::ConnectOptions::new()
-        .name(&config.client_name);
+    let mut options = async_nats::ConnectOptions::new().name(&config.client_name);
 
     // Set max reconnects if specified
     if let Some(max_reconnects) = config.max_reconnects {

@@ -2,8 +2,8 @@
 //!
 //! Provides orbit camera controls for navigating the 3D graph view.
 
-use bevy::prelude::*;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
+use bevy::prelude::*;
 
 /// Simple orbit camera controller component
 #[derive(Component, Debug)]
@@ -42,9 +42,7 @@ impl Default for OrbitCamera {
 }
 
 /// Updates the camera transform based on orbit parameters
-pub fn update_orbit_camera(
-    mut cameras: Query<(&mut Transform, &OrbitCamera)>,
-) {
+pub fn update_orbit_camera(mut cameras: Query<(&mut Transform, &OrbitCamera)>) {
     for (mut transform, orbit) in cameras.iter_mut() {
         // Calculate the camera position based on spherical coordinates
         let x = orbit.distance * orbit.yaw.cos() * orbit.pitch.cos();
@@ -79,8 +77,7 @@ pub fn orbit_camera_mouse_rotation(
         for mut orbit in cameras.iter_mut() {
             // Update yaw and pitch based on mouse movement
             orbit.yaw -= delta.x * orbit.sensitivity;
-            orbit.pitch = (orbit.pitch - delta.y * orbit.sensitivity)
-                .clamp(-1.5, 1.5); // Limit pitch to avoid flipping
+            orbit.pitch = (orbit.pitch - delta.y * orbit.sensitivity).clamp(-1.5, 1.5); // Limit pitch to avoid flipping
         }
     }
 }

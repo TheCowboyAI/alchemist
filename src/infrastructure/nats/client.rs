@@ -1,11 +1,11 @@
 //! NATS client wrapper for CIM
 
 use super::{NatsConfig, NatsError};
-use async_nats::{Client, jetstream};
 use async_nats::jetstream::{Context as JetStreamContext, stream};
+use async_nats::{Client, jetstream};
+use futures::StreamExt;
 use std::sync::Arc;
 use tracing::{debug, info};
-use futures::StreamExt;
 
 /// Wrapper around NATS client with JetStream support
 #[derive(Clone)]
@@ -103,7 +103,12 @@ impl NatsClient {
                 super::config::RetentionPolicy::WorkQueue => stream::RetentionPolicy::WorkQueue,
             },
             max_age: self.config.jetstream.default_stream.max_age,
-            max_messages: self.config.jetstream.default_stream.max_messages.unwrap_or(0),
+            max_messages: self
+                .config
+                .jetstream
+                .default_stream
+                .max_messages
+                .unwrap_or(0),
             max_bytes: self.config.jetstream.default_stream.max_bytes.unwrap_or(0),
             duplicate_window: self.config.jetstream.default_stream.duplicate_window,
             ..Default::default()

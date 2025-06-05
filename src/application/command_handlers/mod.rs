@@ -1,10 +1,10 @@
 //! Command Handlers - Process commands and generate events
 
-use bevy::prelude::*;
 use crate::application::{CommandEvent, EventNotification};
 use crate::domain::commands::{Command, GraphCommand};
 use crate::domain::events::{DomainEvent, GraphEvent};
 use crate::domain::value_objects::*;
+use bevy::prelude::*;
 
 /// System that processes commands and generates events
 pub fn process_commands(
@@ -45,12 +45,10 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
                 new_name: new_name.clone(),
             }))
         }
-        GraphCommand::TagGraph { id, tag } => {
-            Some(DomainEvent::Graph(GraphEvent::GraphTagged {
-                id: *id,
-                tag: tag.clone(),
-            }))
-        }
+        GraphCommand::TagGraph { id, tag } => Some(DomainEvent::Graph(GraphEvent::GraphTagged {
+            id: *id,
+            tag: tag.clone(),
+        })),
         GraphCommand::UntagGraph { id, tag } => {
             Some(DomainEvent::Graph(GraphEvent::GraphUntagged {
                 id: *id,
@@ -58,9 +56,7 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
             }))
         }
         GraphCommand::DeleteGraph { id } => {
-            Some(DomainEvent::Graph(GraphEvent::GraphDeleted {
-                id: *id,
-            }))
+            Some(DomainEvent::Graph(GraphEvent::GraphDeleted { id: *id }))
         }
     }
 }

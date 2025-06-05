@@ -1,7 +1,7 @@
 //! Edge Commands
 
+use crate::domain::value_objects::{EdgeId, EdgeRelationship, GraphId, NodeId};
 use serde::{Deserialize, Serialize};
-use crate::domain::value_objects::{GraphId, EdgeId, NodeId, EdgeRelationship};
 
 /// Commands for Edge operations
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,8 +21,5 @@ pub enum EdgeCommand {
         relationship: EdgeRelationship,
     },
     /// Delete an edge
-    DeleteEdge {
-        graph_id: GraphId,
-        edge_id: EdgeId,
-    },
+    DeleteEdge { graph_id: GraphId, edge_id: EdgeId },
 }

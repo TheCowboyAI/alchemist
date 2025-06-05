@@ -1,7 +1,7 @@
 //! Graph-related domain events
 
-use serde::{Deserialize, Serialize};
 use crate::domain::value_objects::{GraphId, GraphMetadata};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GraphEvent {
@@ -40,11 +40,11 @@ impl GraphEvent {
 
     pub fn graph_id(&self) -> GraphId {
         match self {
-            GraphEvent::GraphCreated { id, .. } |
-            GraphEvent::GraphDeleted { id } |
-            GraphEvent::GraphRenamed { id, .. } |
-            GraphEvent::GraphTagged { id, .. } |
-            GraphEvent::GraphUntagged { id, .. } => *id,
+            GraphEvent::GraphCreated { id, .. }
+            | GraphEvent::GraphDeleted { id }
+            | GraphEvent::GraphRenamed { id, .. }
+            | GraphEvent::GraphTagged { id, .. }
+            | GraphEvent::GraphUntagged { id, .. } => *id,
         }
     }
 }

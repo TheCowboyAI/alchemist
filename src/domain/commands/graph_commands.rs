@@ -1,29 +1,15 @@
 //! Graph-related commands
 
-use serde::{Deserialize, Serialize};
 use crate::domain::value_objects::{GraphId, GraphMetadata};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GraphCommand {
-    CreateGraph {
-        id: GraphId,
-        name: String,
-    },
-    DeleteGraph {
-        id: GraphId,
-    },
-    RenameGraph {
-        id: GraphId,
-        new_name: String,
-    },
-    TagGraph {
-        id: GraphId,
-        tag: String,
-    },
-    UntagGraph {
-        id: GraphId,
-        tag: String,
-    },
+    CreateGraph { id: GraphId, name: String },
+    DeleteGraph { id: GraphId },
+    RenameGraph { id: GraphId, new_name: String },
+    TagGraph { id: GraphId, tag: String },
+    UntagGraph { id: GraphId, tag: String },
 }
 
 impl GraphCommand {
@@ -39,11 +25,11 @@ impl GraphCommand {
 
     pub fn graph_id(&self) -> GraphId {
         match self {
-            GraphCommand::CreateGraph { id, .. } |
-            GraphCommand::DeleteGraph { id } |
-            GraphCommand::RenameGraph { id, .. } |
-            GraphCommand::TagGraph { id, .. } |
-            GraphCommand::UntagGraph { id, .. } => *id,
+            GraphCommand::CreateGraph { id, .. }
+            | GraphCommand::DeleteGraph { id }
+            | GraphCommand::RenameGraph { id, .. }
+            | GraphCommand::TagGraph { id, .. }
+            | GraphCommand::UntagGraph { id, .. } => *id,
         }
     }
 }

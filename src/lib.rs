@@ -2,8 +2,8 @@
 //!
 //! A high-performance graph editor built with Event Sourcing, CQRS, and Bevy ECS.
 
-pub mod domain;
 pub mod application;
+pub mod domain;
 pub mod infrastructure;
 pub mod presentation;
 

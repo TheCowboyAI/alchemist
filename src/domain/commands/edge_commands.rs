@@ -1,7 +1,7 @@
 //! Edge-related commands
 
+use crate::domain::value_objects::{EdgeId, EdgeRelationship, GraphId, NodeId};
 use serde::{Deserialize, Serialize};
-use crate::domain::value_objects::{GraphId, EdgeId, NodeId, EdgeRelationship};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum EdgeCommand {
@@ -44,11 +44,11 @@ impl EdgeCommand {
 
     pub fn graph_id(&self) -> GraphId {
         match self {
-            EdgeCommand::ConnectEdge { graph_id, .. } |
-            EdgeCommand::DisconnectEdge { graph_id, .. } |
-            EdgeCommand::UpdateEdge { graph_id, .. } |
-            EdgeCommand::SelectEdge { graph_id, .. } |
-            EdgeCommand::DeselectEdge { graph_id, .. } => *graph_id,
+            EdgeCommand::ConnectEdge { graph_id, .. }
+            | EdgeCommand::DisconnectEdge { graph_id, .. }
+            | EdgeCommand::UpdateEdge { graph_id, .. }
+            | EdgeCommand::SelectEdge { graph_id, .. }
+            | EdgeCommand::DeselectEdge { graph_id, .. } => *graph_id,
         }
     }
 }

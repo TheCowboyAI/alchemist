@@ -1,10 +1,10 @@
 //! Information Alchemist - Main Entry Point
 
 use bevy::prelude::*;
-use ia::presentation::plugins::GraphEditorPlugin;
 use ia::application::CommandEvent;
 use ia::domain::commands::{Command, GraphCommand};
 use ia::domain::value_objects::GraphId;
+use ia::presentation::plugins::GraphEditorPlugin;
 use tracing::info;
 
 fn main() {
@@ -30,5 +30,8 @@ fn setup(mut commands: EventWriter<CommandEvent>) {
         }),
     });
 
-    info!("Initial graph creation command sent with id: {:?}", graph_id);
+    info!(
+        "Initial graph creation command sent with id: {:?}",
+        graph_id
+    );
 }

@@ -1,14 +1,14 @@
 //! Graph Aggregate - The core domain model
 
-use std::collections::HashMap;
 use petgraph::stable_graph::StableGraph;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use thiserror::Error;
 
 use crate::domain::{
+    commands::{EdgeCommand, GraphCommand, NodeCommand},
+    events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
     value_objects::*,
-    events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent},
-    commands::{GraphCommand, NodeCommand, EdgeCommand},
 };
 
 #[derive(Error, Debug)]
@@ -168,7 +168,11 @@ impl Graph {
                     self.metadata = metadata.clone();
                     self.version += 1;
                 }
-                GraphEvent::GraphRenamed { id, old_name, new_name } => {
+                GraphEvent::GraphRenamed {
+                    id,
+                    old_name,
+                    new_name,
+                } => {
                     self.metadata.name = new_name.clone();
                     self.metadata.updated_at = std::time::SystemTime::now();
                     self.version += 1;

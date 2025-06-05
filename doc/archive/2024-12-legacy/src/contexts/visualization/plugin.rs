@@ -3,10 +3,10 @@
 //! This plugin handles all visual representation of graph elements.
 
 use crate::contexts::graph_management::plugin::GraphManagementSet;
+use crate::contexts::visualization::camera::*;
 use crate::contexts::visualization::layout::LayoutPlugin;
 use crate::contexts::visualization::point_cloud::PointCloudPlugin;
 use crate::contexts::visualization::services::*;
-use crate::contexts::visualization::camera::*;
 use bevy::prelude::*;
 
 /// Plugin for the Visualization bounded context
@@ -95,7 +95,7 @@ impl Plugin for VisualizationPlugin {
                     debug_entity_counts,
                 ),
             );
-            // Note: Layout systems are handled by LayoutPlugin
+        // Note: Layout systems are handled by LayoutPlugin
     }
 }
 
