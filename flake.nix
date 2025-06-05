@@ -58,14 +58,14 @@
             inherit pkgs rust-toolchain nonRustDeps;
           };
 
-          # Test runner using buildRustPackage
-          test-runner-build = import ./nix/test-runner-build.nix {
+          # Main package definition
+          ia-package = import ./nix/package.nix {
             inherit (pkgs) lib;
             inherit pkgs nonRustDeps;
           };
 
-          # Main package definition
-          ia-package = import ./nix/package.nix {
+          # Package with tests enabled
+          ia-package-with-tests = import ./nix/package-with-tests.nix {
             inherit (pkgs) lib;
             inherit pkgs nonRustDeps;
           };
@@ -85,8 +85,8 @@
             # Alias for clarity
             ia = ia-package;
 
-            # Test runner using buildRustPackage
-            test-runner-build = test-runner-build;
+            # Package with tests enabled
+            ia-with-tests = ia-package-with-tests;
           };
 
           # Make 'nix run' work

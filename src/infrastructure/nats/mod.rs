@@ -96,7 +96,8 @@ pub async fn connect_with_config(config: &NatsConfig) -> Result<Client, NatsErro
     }
 
     if let Some(creds_path) = &config.security.credentials_path {
-        options = options.credentials_file(creds_path)
+        options = options
+            .credentials_file(creds_path)
             .await
             .map_err(|e| NatsError::ConnectionError(format!("Failed to load credentials: {e}")))?;
     }

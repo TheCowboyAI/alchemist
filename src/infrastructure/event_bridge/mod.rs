@@ -4,13 +4,15 @@ use crate::domain::commands::Command;
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::nats::{NatsClient, NatsError};
 use bevy::prelude::*;
-use crossbeam_channel::{bounded, Receiver as CrossbeamReceiver, Sender as CrossbeamSender, TryRecvError};
+use crossbeam_channel::{
+    Receiver as CrossbeamReceiver, Sender as CrossbeamSender, TryRecvError, bounded,
+};
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tokio::sync::Mutex;
+use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
 use tracing::{error, info, warn};
 
 /// Bridge between async NATS and sync Bevy ECS
@@ -82,7 +84,7 @@ impl EventBridge {
                 .worker_threads(2)
                 .enable_all()
                 .build()
-                .expect("Failed to create tokio runtime")
+                .expect("Failed to create tokio runtime"),
         );
 
         Self {
@@ -157,7 +159,10 @@ impl EventBridge {
                                 warn!("Command execution not yet implemented: {:?}", cmd);
                             }
                             BridgeCommand::Subscribe(subject) => {
-                                if let Err(e) = subscribe_to_subject(&nats_client, &subject, event_tx.clone()).await {
+                                if let Err(e) =
+                                    subscribe_to_subject(&nats_client, &subject, event_tx.clone())
+                                        .await
+                                {
                                     error!("Failed to subscribe to {}: {}", subject, e);
                                     let _ = event_tx.send(BridgeEvent::Error(e.to_string()));
                                 }
@@ -231,10 +236,7 @@ impl Plugin for EventBridgePlugin {
         app.insert_resource(bridge);
 
         // Add systems to process bridge events
-        app.add_systems(Update, (
-            process_bridge_events,
-            send_events_to_nats,
-        ));
+        app.add_systems(Update, (process_bridge_events, send_events_to_nats));
     }
 }
 
@@ -266,7 +268,8 @@ fn send_events_to_nats(
     mut event_reader: EventReader<crate::application::EventNotification>,
 ) {
     for notification in event_reader.read() {
-        if let Err(e) = bridge.send_command(BridgeCommand::PublishEvent(notification.event.clone())) {
+        if let Err(e) = bridge.send_command(BridgeCommand::PublishEvent(notification.event.clone()))
+        {
             error!("Failed to send event to NATS: {}", e);
         }
     }

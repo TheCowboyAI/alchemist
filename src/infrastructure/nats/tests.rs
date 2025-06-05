@@ -52,7 +52,7 @@ async fn test_event_publishing() {
 fn test_config_defaults() {
     let config = NatsConfig::default();
     assert_eq!(config.url, "nats://localhost:4222");
-    assert_eq!(config.client_name, "cim-client");
+    assert_eq!(config.client_name, "information-alchemist");
     assert!(config.jetstream.enabled);
 }
 

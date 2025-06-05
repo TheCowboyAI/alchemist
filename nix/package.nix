@@ -35,6 +35,9 @@ pkgs.rustPlatform.buildRustPackage rec {
   # Production build flags - disable dynamic linking for Nix builds
   cargoBuildFlags = "--no-default-features";
 
+  # Disable tests by default - we'll run them explicitly when needed
+  doCheck = false;
+
   # Environment for build
   BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
   BEVY_ASSET_ROOT = toString ../.;

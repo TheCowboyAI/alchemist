@@ -13,9 +13,7 @@ use tracing::info;
 
 fn main() {
     // Create tokio runtime for NATS
-    let runtime = Arc::new(
-        Runtime::new().expect("Failed to create tokio runtime")
-    );
+    let runtime = Arc::new(Runtime::new().expect("Failed to create tokio runtime"));
 
     // Initialize NATS client (optional - will work without NATS server)
     let nats_client = runtime.block_on(async {
@@ -45,8 +43,7 @@ fn main() {
         });
     }
 
-    app.add_systems(Startup, setup)
-        .run();
+    app.add_systems(Startup, setup).run();
 }
 
 /// Create an initial graph to demonstrate the system

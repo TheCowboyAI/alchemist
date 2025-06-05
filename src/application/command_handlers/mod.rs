@@ -1,8 +1,8 @@
 //! Command Handlers - Process commands and generate events
 
 use crate::application::{CommandEvent, EventNotification};
-use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand};
-use crate::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
+use crate::domain::commands::{Command, EdgeCommand, GraphCommand, NodeCommand};
+use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
 use crate::domain::value_objects::*;
 use bevy::prelude::*;
 
@@ -70,21 +70,28 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
 /// Handle node commands and generate events
 fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
     match command {
-        NodeCommand::AddNode { graph_id, node_id, content, position } => {
-            Some(DomainEvent::Node(NodeEvent::NodeAdded {
-                graph_id: *graph_id,
-                node_id: *node_id,
-                content: content.clone(),
-                position: *position,
-            }))
-        }
+        NodeCommand::AddNode {
+            graph_id,
+            node_id,
+            content,
+            position,
+        } => Some(DomainEvent::Node(NodeEvent::NodeAdded {
+            graph_id: *graph_id,
+            node_id: *node_id,
+            content: content.clone(),
+            position: *position,
+        })),
         NodeCommand::RemoveNode { graph_id, node_id } => {
             Some(DomainEvent::Node(NodeEvent::NodeRemoved {
                 graph_id: *graph_id,
                 node_id: *node_id,
             }))
         }
-        NodeCommand::UpdateNode { graph_id, node_id, content } => {
+        NodeCommand::UpdateNode {
+            graph_id,
+            node_id,
+            content,
+        } => {
             Some(DomainEvent::Node(NodeEvent::NodeUpdated {
                 graph_id: *graph_id,
                 node_id: *node_id,
@@ -92,7 +99,11 @@ fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
                 new_content: content.clone(),
             }))
         }
-        NodeCommand::MoveNode { graph_id, node_id, position } => {
+        NodeCommand::MoveNode {
+            graph_id,
+            node_id,
+            position,
+        } => {
             Some(DomainEvent::Node(NodeEvent::NodeMoved {
                 graph_id: *graph_id,
                 node_id: *node_id,
@@ -118,15 +129,19 @@ fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
 /// Handle edge commands and generate events
 fn handle_edge_command(command: &EdgeCommand) -> Option<DomainEvent> {
     match command {
-        EdgeCommand::ConnectEdge { graph_id, edge_id, source, target, relationship } => {
-            Some(DomainEvent::Edge(EdgeEvent::EdgeConnected {
-                graph_id: *graph_id,
-                edge_id: *edge_id,
-                source: *source,
-                target: *target,
-                relationship: relationship.clone(),
-            }))
-        }
+        EdgeCommand::ConnectEdge {
+            graph_id,
+            edge_id,
+            source,
+            target,
+            relationship,
+        } => Some(DomainEvent::Edge(EdgeEvent::EdgeConnected {
+            graph_id: *graph_id,
+            edge_id: *edge_id,
+            source: *source,
+            target: *target,
+            relationship: relationship.clone(),
+        })),
         EdgeCommand::DisconnectEdge { graph_id, edge_id } => {
             Some(DomainEvent::Edge(EdgeEvent::EdgeDisconnected {
                 graph_id: *graph_id,
@@ -135,7 +150,11 @@ fn handle_edge_command(command: &EdgeCommand) -> Option<DomainEvent> {
                 target: NodeId::default(), // TODO: Get from aggregate
             }))
         }
-        EdgeCommand::UpdateEdge { graph_id, edge_id, relationship } => {
+        EdgeCommand::UpdateEdge {
+            graph_id,
+            edge_id,
+            relationship,
+        } => {
             Some(DomainEvent::Edge(EdgeEvent::EdgeUpdated {
                 graph_id: *graph_id,
                 edge_id: *edge_id,

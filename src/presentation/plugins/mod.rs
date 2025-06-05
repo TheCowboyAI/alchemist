@@ -2,10 +2,12 @@
 
 use crate::application::command_handlers::process_commands;
 use crate::application::{CommandEvent, EventNotification};
+use crate::domain::commands::{Command, EdgeCommand, NodeCommand};
+use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
+use crate::domain::value_objects::{
+    EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, NodeType, Position3D, RelationshipType,
+};
 use crate::presentation::components::*;
-use crate::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
-use crate::domain::value_objects::{NodeId, EdgeId, GraphId, Position3D, NodeContent, NodeType, EdgeRelationship, RelationshipType};
-use crate::domain::commands::{Command, NodeCommand, EdgeCommand};
 use bevy::prelude::*;
 use tracing::info;
 
@@ -97,11 +99,40 @@ fn handle_domain_events(
                     recording_start_time: time.elapsed_secs(),
                 });
             }
-            DomainEvent::Node(NodeEvent::NodeAdded { graph_id, node_id, content, position }) => {
-                spawn_node(&mut commands, &mut meshes, &mut materials, *graph_id, *node_id, content, *position, &time);
+            DomainEvent::Node(NodeEvent::NodeAdded {
+                graph_id,
+                node_id,
+                content,
+                position,
+            }) => {
+                spawn_node(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    *graph_id,
+                    *node_id,
+                    content,
+                    *position,
+                    &time,
+                );
             }
-            DomainEvent::Edge(EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
-                spawn_edge(&mut commands, &mut meshes, &mut materials, *graph_id, *edge_id, *source, *target, &time);
+            DomainEvent::Edge(EdgeEvent::EdgeConnected {
+                graph_id,
+                edge_id,
+                source,
+                target,
+                ..
+            }) => {
+                spawn_edge(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    *graph_id,
+                    *edge_id,
+                    *source,
+                    *target,
+                    &time,
+                );
             }
             _ => {}
         }
@@ -123,11 +154,7 @@ fn create_graph_visualization(commands: &mut Commands, graph_id: GraphId, name: 
 }
 
 /// Schedule demo graph creation
-fn schedule_demo_graph(
-    commands: &mut Commands,
-    graph_id: GraphId,
-    time: &Time,
-) {
+fn schedule_demo_graph(commands: &mut Commands, graph_id: GraphId, time: &Time) {
     // Create K7 complete graph - 7 nodes arranged in a circle
     let num_nodes = 7;
     let radius = 4.0;
@@ -195,8 +222,10 @@ fn schedule_demo_graph(
         }
     }
 
-    info!("Scheduled K7 complete graph creation with {} nodes and {} edges over {} seconds",
-          num_nodes, total_edges, animation_duration);
+    info!(
+        "Scheduled K7 complete graph creation with {} nodes and {} edges over {} seconds",
+        num_nodes, total_edges, animation_duration
+    );
 }
 
 /// System to execute scheduled commands when their time comes
@@ -242,10 +271,7 @@ fn spawn_node(
     });
 
     commands.spawn((
-        GraphNode {
-            node_id,
-            graph_id,
-        },
+        GraphNode { node_id, graph_id },
         NodeLabel {
             text: content.label.clone(),
         },
@@ -308,7 +334,10 @@ fn spawn_edge(
 /// Update edge positions to connect nodes
 fn update_edge_positions(
     node_query: Query<(&GraphNode, &Transform), Without<GraphEdge>>,
-    mut edge_query: Query<(&GraphEdge, &mut Transform, Option<&EdgeDrawAnimation>), Without<GraphNode>>,
+    mut edge_query: Query<
+        (&GraphEdge, &mut Transform, Option<&EdgeDrawAnimation>),
+        Without<GraphNode>,
+    >,
 ) {
     for (edge, mut edge_transform, edge_animation) in edge_query.iter_mut() {
         // Find source and target positions
@@ -365,10 +394,22 @@ fn record_events(
             });
 
             // Check if we've finished recording (all nodes and edges created)
-            if matches!(&event.event, DomainEvent::Edge(EdgeEvent::EdgeConnected { .. })) {
+            if matches!(
+                &event.event,
+                DomainEvent::Edge(EdgeEvent::EdgeConnected { .. })
+            ) {
                 // Check if this is the last edge (21st edge for K7)
-                if recorder.events.iter().filter(|e| matches!(&e.event, DomainEvent::Edge(_))).count() == 21 {
-                    info!("Recording complete! Captured {} events", recorder.events.len());
+                if recorder
+                    .events
+                    .iter()
+                    .filter(|e| matches!(&e.event, DomainEvent::Edge(_)))
+                    .count()
+                    == 21
+                {
+                    info!(
+                        "Recording complete! Captured {} events",
+                        recorder.events.len()
+                    );
 
                     // Start replay after a short delay
                     let replay_delay = 3.0; // Wait 3 seconds before replay
@@ -401,7 +442,8 @@ fn replay_events(
     edges: Query<Entity, With<GraphEdge>>,
 ) {
     for (entity, mut replayer) in replayers.iter_mut() {
-        let elapsed = (time.elapsed_secs() - replayer.replay_start_time) * replayer.speed_multiplier;
+        let elapsed =
+            (time.elapsed_secs() - replayer.replay_start_time) * replayer.speed_multiplier;
 
         // Clear existing graph entities when replay starts
         if replayer.current_index == 0 && elapsed >= 0.0 {
@@ -422,11 +464,18 @@ fn replay_events(
 
             if elapsed >= recorded_event.timestamp {
                 // Skip graph creation events during replay
-                if !matches!(&recorded_event.event, DomainEvent::Graph(GraphEvent::GraphCreated { .. })) {
+                if !matches!(
+                    &recorded_event.event,
+                    DomainEvent::Graph(GraphEvent::GraphCreated { .. })
+                ) {
                     events.write(EventNotification {
                         event: recorded_event.event.clone(),
                     });
-                    info!("Replaying event at {:.2}s: {:?}", elapsed, recorded_event.event.event_type());
+                    info!(
+                        "Replaying event at {:.2}s: {:?}",
+                        elapsed,
+                        recorded_event.event.event_type()
+                    );
                 }
                 replayer.current_index += 1;
             } else {
@@ -460,16 +509,14 @@ fn animate_node_appearance(
         let eased_progress = ease_out_cubic(progress);
 
         // Interpolate scale
-        let scale = animation.start_scale + (animation.target_scale - animation.start_scale) * eased_progress;
+        let scale = animation.start_scale
+            + (animation.target_scale - animation.start_scale) * eased_progress;
         transform.scale = Vec3::splat(scale);
     }
 }
 
 /// Animate edge drawing with smooth progress
-fn animate_edge_drawing(
-    mut query: Query<&mut EdgeDrawAnimation>,
-    time: Res<Time>,
-) {
+fn animate_edge_drawing(mut query: Query<&mut EdgeDrawAnimation>, time: Res<Time>) {
     for mut animation in query.iter_mut() {
         let elapsed = time.elapsed_secs() - animation.start_time;
         let progress = (elapsed / animation.duration).clamp(0.0, 1.0);
@@ -479,7 +526,10 @@ fn animate_edge_drawing(
 
 /// Apply force-directed layout physics
 fn apply_force_layout(
-    mut nodes: Query<(Entity, &Transform, &mut ForceNode, &GraphNode), With<ForceLayoutParticipant>>,
+    mut nodes: Query<
+        (Entity, &Transform, &mut ForceNode, &GraphNode),
+        With<ForceLayoutParticipant>,
+    >,
     edges: Query<&GraphEdge>,
     settings: Res<ForceLayoutSettings>,
     time: Res<Time>,
@@ -494,7 +544,9 @@ fn apply_force_layout(
     // Collect node positions for force calculations
     let node_positions: Vec<(Entity, Vec3, f32)> = nodes
         .iter()
-        .map(|(entity, transform, force_node, _)| (entity, transform.translation, force_node.charge))
+        .map(|(entity, transform, force_node, _)| {
+            (entity, transform.translation, force_node.charge)
+        })
         .collect();
 
     // Apply repulsion forces between all nodes
@@ -505,7 +557,8 @@ fn apply_force_layout(
 
             let diff = pos_i - pos_j;
             let distance = diff.length().max(0.1); // Avoid division by zero
-            let force_magnitude = settings.repulsion_strength * charge_i * charge_j / (distance * distance);
+            let force_magnitude =
+                settings.repulsion_strength * charge_i * charge_j / (distance * distance);
             let force = diff.normalize() * force_magnitude;
 
             // Apply forces
@@ -540,8 +593,8 @@ fn apply_force_layout(
         }
 
         if let (Some(source_pos), Some(target_pos), Some(source_entity), Some(target_entity)) =
-            (source_pos, target_pos, source_entity, target_entity) {
-
+            (source_pos, target_pos, source_entity, target_entity)
+        {
             let diff = target_pos - source_pos;
             let distance = diff.length();
             let force_magnitude = settings.spring_strength * (distance - settings.spring_length);

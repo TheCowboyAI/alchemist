@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-05T22:30:00-07:00",
-    "version": "2.3.0"
+    "updated": "2025-06-05T23:15:00-07:00",
+    "version": "2.3.1"
   },
   "nodes": [
     {
@@ -293,6 +293,25 @@
       }
     },
     {
+      "id": "test-configuration-optional",
+      "label": "Test Configuration Made Optional",
+      "type": "milestone",
+      "position": { "x": 675, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-05",
+        "description": "Made tests optional in Nix build process",
+        "details": [
+          "Modified package.nix to set doCheck = false by default",
+          "Created package-with-tests.nix for explicit test runs",
+          "Exposed ia-with-tests package in flake outputs",
+          "Removed legacy test-runner-build package",
+          "Tests now run only when explicitly requested",
+          "Build time significantly reduced for development"
+        ]
+      }
+    },
+    {
       "id": "phase-1",
       "label": "Phase 1: Distributed Event Infrastructure",
       "type": "phase",
@@ -499,6 +518,13 @@
       "source": "event-driven-animation",
       "target": "smooth-animations-force-layout",
       "label": "enhance",
+      "type": "sequence"
+    },
+    {
+      "id": "e7g",
+      "source": "smooth-animations-force-layout",
+      "target": "test-configuration-optional",
+      "label": "optimize",
       "type": "sequence"
     },
     {
