@@ -101,16 +101,19 @@
       "type": "phase",
       "position": { "x": 500, "y": 0, "z": 0 },
       "data": {
-        "status": "in-progress",
-        "progress": 45,
+        "status": "completed",
+        "progress": 100,
         "week": 1,
         "description": "NATS client setup, secure connection, event bridge",
+        "completed_date": "2025-06-05",
         "details": [
           "NATS client implemented and working",
           "Basic graph visualization complete",
           "Event-driven animation with recording/replay",
           "Smooth animations and force-directed layout",
-          "Event bridge between NATS and Bevy pending"
+          "Event bridge between NATS and Bevy implemented",
+          "Security configuration with JWT, TLS, and credentials support",
+          "Comprehensive test suite for event bridge"
         ]
       }
     },
@@ -140,10 +143,18 @@
       "type": "task",
       "position": { "x": 500, "y": -200, "z": 0 },
       "data": {
-        "status": "not-started",
-        "progress": 0,
+        "status": "completed",
+        "progress": 100,
         "parent": "phase-0-start",
-        "description": "JWT authentication, TLS configuration, credentials management"
+        "completed_date": "2025-06-05",
+        "description": "JWT authentication, TLS configuration, credentials management",
+        "details": [
+          "Added SecurityConfig with JWT support",
+          "Implemented TLS configuration options",
+          "Added user credentials file support",
+          "Username/password authentication available",
+          "All security options integrated into NatsConfig"
+        ]
       }
     },
     {
@@ -152,10 +163,19 @@
       "type": "task",
       "position": { "x": 500, "y": -300, "z": 0 },
       "data": {
-        "status": "not-started",
-        "progress": 0,
+        "status": "completed",
+        "progress": 100,
         "parent": "phase-0-start",
-        "description": "Async/sync bridge between NATS and Bevy ECS"
+        "completed_date": "2025-06-05",
+        "description": "Async/sync bridge between NATS and Bevy ECS",
+        "details": [
+          "Created EventBridge with crossbeam channels",
+          "Implemented BridgeCommand and BridgeEvent types",
+          "Added async task spawning with tokio runtime",
+          "Created EventBridgePlugin for Bevy integration",
+          "Bidirectional event flow working",
+          "Comprehensive test suite added"
+        ]
       }
     },
     {

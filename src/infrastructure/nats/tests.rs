@@ -58,8 +58,8 @@ fn test_config_defaults() {
 
 #[test]
 fn test_production_config() {
-    let config = NatsConfig::production("nats://prod.example.com:4222".to_string());
+    let config = NatsConfig::with_url("nats://prod.example.com:4222");
     assert_eq!(config.url, "nats://prod.example.com:4222");
-    assert!(config.security.tls_enabled);
-    assert!(config.client_name.starts_with("cim-client-"));
+    assert_eq!(config.client_name, "information-alchemist");
+    assert_eq!(config.max_reconnects, Some(60));
 }

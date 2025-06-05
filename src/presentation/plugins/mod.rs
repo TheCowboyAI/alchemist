@@ -222,6 +222,7 @@ fn execute_scheduled_commands(
 }
 
 /// Spawn a node entity
+#[allow(clippy::too_many_arguments)]
 fn spawn_node(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
@@ -267,6 +268,7 @@ fn spawn_node(
 }
 
 /// Spawn an edge entity
+#[allow(clippy::too_many_arguments)]
 fn spawn_edge(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,

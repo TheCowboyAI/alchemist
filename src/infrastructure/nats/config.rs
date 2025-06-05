@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+/// NATS client configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NatsConfig {
     /// NATS server URL
@@ -11,14 +12,11 @@ pub struct NatsConfig {
     /// Client name for identification
     pub client_name: String,
 
-    /// Maximum reconnection attempts
-    pub max_reconnects: Option<usize>,
-
-    /// Size of the reconnect buffer
-    pub reconnect_buffer_size: usize,
-
     /// Connection timeout
     pub connection_timeout: Duration,
+
+    /// Max reconnect attempts (None = infinite)
+    pub max_reconnects: Option<u64>,
 
     /// JetStream configuration
     pub jetstream: JetStreamConfig,
@@ -27,21 +25,56 @@ pub struct NatsConfig {
     pub security: SecurityConfig,
 }
 
+/// Security configuration for NATS
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SecurityConfig {
+    /// JWT authentication token
+    pub jwt: Option<String>,
+
+    /// User credentials file path
+    pub credentials_path: Option<String>,
+
+    /// TLS configuration
+    pub tls: Option<TlsConfig>,
+
+    /// Username/password authentication
+    pub user_password: Option<UserPasswordAuth>,
+}
+
+/// TLS configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsConfig {
+    /// Path to CA certificate
+    pub ca_cert_path: Option<String>,
+
+    /// Path to client certificate
+    pub client_cert_path: Option<String>,
+
+    /// Path to client key
+    pub client_key_path: Option<String>,
+
+    /// Whether to verify server certificate
+    pub verify_server: bool,
+}
+
+/// Username/password authentication
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPasswordAuth {
+    pub username: String,
+    pub password: String,
+}
+
+/// JetStream configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JetStreamConfig {
-    /// Enable JetStream
+    /// Whether JetStream is enabled
     pub enabled: bool,
-
-    /// Domain for JetStream isolation
-    pub domain: Option<String>,
-
-    /// API prefix for JetStream
-    pub api_prefix: Option<String>,
 
     /// Default stream configuration
     pub default_stream: StreamConfig,
 }
 
+/// Stream configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamConfig {
     /// Stream name prefix
@@ -63,36 +96,71 @@ pub struct StreamConfig {
     pub duplicate_window: Duration,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Retention policy for streams
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum RetentionPolicy {
+    /// Limits-based retention
     Limits,
+    /// Interest-based retention
     Interest,
+    /// Work queue retention
     WorkQueue,
-}
-
-/// Security configuration for NATS
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct SecurityConfig {
-    pub tls_enabled: bool,
-    pub tls_cert_path: Option<String>,
-    pub tls_key_path: Option<String>,
-    pub tls_ca_path: Option<String>,
-    pub jwt_auth_enabled: bool,
-    pub jwt_seed_path: Option<String>,
-    pub nkey_seed_path: Option<String>,
 }
 
 impl Default for NatsConfig {
     fn default() -> Self {
         Self {
             url: "nats://localhost:4222".to_string(),
-            client_name: "cim-client".to_string(),
-            max_reconnects: Some(10),
-            reconnect_buffer_size: 8 * 1024 * 1024, // 8MB
+            client_name: "information-alchemist".to_string(),
             connection_timeout: Duration::from_secs(10),
+            max_reconnects: Some(60),
             jetstream: JetStreamConfig::default(),
             security: SecurityConfig::default(),
         }
+    }
+}
+
+impl NatsConfig {
+    /// Create a localhost configuration
+    pub fn localhost() -> Self {
+        Self::default()
+    }
+
+    /// Create a configuration with custom URL
+    pub fn with_url(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            ..Default::default()
+        }
+    }
+
+    /// Set JWT authentication
+    pub fn with_jwt(mut self, jwt: String) -> Self {
+        self.security.jwt = Some(jwt);
+        self
+    }
+
+    /// Set user credentials file
+    pub fn with_credentials(mut self, path: String) -> Self {
+        self.security.credentials_path = Some(path);
+        self
+    }
+
+    /// Set username/password authentication
+    pub fn with_user_password(mut self, username: String, password: String) -> Self {
+        self.security.user_password = Some(UserPasswordAuth { username, password });
+        self
+    }
+
+    /// Enable TLS with default settings
+    pub fn with_tls(mut self) -> Self {
+        self.security.tls = Some(TlsConfig {
+            ca_cert_path: None,
+            client_cert_path: None,
+            client_key_path: None,
+            verify_server: true,
+        });
+        self
     }
 }
 
@@ -100,8 +168,6 @@ impl Default for JetStreamConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            domain: None,
-            api_prefix: None,
             default_stream: StreamConfig::default(),
         }
     }
@@ -110,32 +176,12 @@ impl Default for JetStreamConfig {
 impl Default for StreamConfig {
     fn default() -> Self {
         Self {
-            name_prefix: "CIM-EVENTS".to_string(),
+            name_prefix: "event-store".to_string(),
             retention: RetentionPolicy::Limits,
-            max_age: Duration::from_secs(365 * 24 * 60 * 60), // 365 days
+            max_age: Duration::from_secs(365 * 24 * 60 * 60), // 1 year
             max_messages: None,
             max_bytes: None,
-            duplicate_window: Duration::from_secs(120),
-        }
-    }
-}
-
-impl NatsConfig {
-    /// Create configuration for localhost development
-    pub fn localhost() -> Self {
-        Self::default()
-    }
-
-    /// Create configuration for production
-    pub fn production(url: String) -> Self {
-        Self {
-            url,
-            client_name: format!("cim-client-{}", uuid::Uuid::new_v4()),
-            security: SecurityConfig {
-                tls_enabled: true,
-                ..Default::default()
-            },
-            ..Default::default()
+            duplicate_window: Duration::from_secs(120), // 2 minutes
         }
     }
 }
