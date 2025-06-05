@@ -4,7 +4,7 @@ use crate::application::command_handlers::process_commands;
 use crate::application::{CommandEvent, EventNotification};
 use crate::presentation::components::*;
 use crate::domain::events::{DomainEvent, GraphEvent};
-use crate::domain::value_objects::{NodeId, EdgeId, GraphId, Position3D};
+use crate::domain::value_objects::{NodeId, EdgeId, GraphId};
 use bevy::prelude::*;
 use tracing::info;
 
@@ -72,17 +72,11 @@ fn handle_domain_events(
     for event in events.read() {
         info!("Received domain event: {:?}", event.event);
 
-        match &event.event {
-            DomainEvent::Graph(graph_event) => match graph_event {
-                GraphEvent::GraphCreated { id, metadata } => {
-                    create_graph_visualization(&mut commands, *id, &metadata.name);
+        if let DomainEvent::Graph(GraphEvent::GraphCreated { id, metadata }) = &event.event {
+            create_graph_visualization(&mut commands, *id, &metadata.name);
 
-                    // Create some demo nodes
-                    create_demo_nodes(&mut commands, &mut meshes, &mut materials, *id);
-                }
-                _ => {}
-            },
-            _ => {}
+            // Create some demo nodes
+            create_demo_nodes(&mut commands, &mut meshes, &mut materials, *id);
         }
     }
 }
@@ -125,16 +119,22 @@ fn create_demo_nodes(
         ..default()
     });
 
-    // Create a few demo nodes
-    let positions = vec![
-        Vec3::new(-3.0, 0.0, 0.0),
-        Vec3::new(3.0, 0.0, 0.0),
-        Vec3::new(0.0, 3.0, 0.0),
-        Vec3::new(0.0, -3.0, 0.0),
-    ];
+    // Create K7 complete graph - 7 nodes arranged in a circle
+    let num_nodes = 7;
+    let radius = 4.0;
+    let mut positions = Vec::new();
+
+    // Calculate positions for nodes arranged in a circle
+    for i in 0..num_nodes {
+        let angle = (i as f32) * 2.0 * std::f32::consts::PI / (num_nodes as f32);
+        let x = radius * angle.cos();
+        let z = radius * angle.sin();
+        positions.push(Vec3::new(x, 0.0, z));
+    }
 
     let mut node_entities = Vec::new();
 
+    // Create nodes
     for (i, pos) in positions.iter().enumerate() {
         let node_id = NodeId::new();
 
@@ -154,39 +154,33 @@ fn create_demo_nodes(
         node_entities.push((node_id, entity));
     }
 
-    // Create edges between nodes
-    let edge_connections = vec![
-        (0, 1),
-        (1, 2),
-        (2, 3),
-        (3, 0),
-        (0, 2),
-    ];
+    // Create edges - K7 complete graph means every node connects to every other node
+    for i in 0..num_nodes {
+        for j in (i + 1)..num_nodes {
+            if let (Some((source_id, _)), Some((target_id, _))) =
+                (node_entities.get(i), node_entities.get(j)) {
 
-    for (source_idx, target_idx) in edge_connections {
-        if let (Some((source_id, _)), Some((target_id, _))) =
-            (node_entities.get(source_idx), node_entities.get(target_idx)) {
+                let edge_id = EdgeId::new();
 
-            let edge_id = EdgeId::new();
+                // Create a simple cylinder for the edge
+                let edge_mesh = meshes.add(Cylinder::new(0.05, 1.0));
 
-            // Create a simple cylinder for the edge
-            let edge_mesh = meshes.add(Cylinder::new(0.05, 1.0));
-
-            commands.spawn((
-                GraphEdge {
-                    edge_id,
-                    graph_id,
-                    source: *source_id,
-                    target: *target_id,
-                },
-                Mesh3d(edge_mesh),
-                MeshMaterial3d(edge_material.clone()),
-                Transform::default(),
-            ));
+                commands.spawn((
+                    GraphEdge {
+                        edge_id,
+                        graph_id,
+                        source: *source_id,
+                        target: *target_id,
+                    },
+                    Mesh3d(edge_mesh),
+                    MeshMaterial3d(edge_material.clone()),
+                    Transform::default(),
+                ));
+            }
         }
     }
 
-    info!("Created demo nodes and edges for graph");
+    info!("Created K7 complete graph with {} nodes and {} edges", num_nodes, (num_nodes * (num_nodes - 1)) / 2);
 }
 
 /// Update edge positions to connect nodes

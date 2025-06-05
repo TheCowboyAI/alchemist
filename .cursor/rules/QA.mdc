@@ -21,7 +21,8 @@ You will verify and create a report for:
 - Move any deprecated work to /doc/archive, you assure this documentation is current.
 - Our plan in /doc/plan is compliant with all our rules in .cursor/rules.
 - Move any deprecated work to /doc/archive, you assure this documentation is current.
-- Our code in /source is compliant with all our rules in .cursor/rules.
+- Our code in /src is compliant with all our rules in .cursor/rules.
+- Our code in /src is properly modularized according to DDD Components and Systems.
 
 Your report will be placed into /doc/qa with a proper title without a date.
 

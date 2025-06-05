@@ -1,6 +1,5 @@
 //! Domain Events
 
-use crate::domain::value_objects::*;
 use serde::{Deserialize, Serialize};
 
 pub mod edge_events;

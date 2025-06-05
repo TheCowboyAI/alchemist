@@ -70,31 +70,16 @@ pub enum RetentionPolicy {
     WorkQueue,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Security configuration for NATS
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SecurityConfig {
-    /// Enable TLS
     pub tls_enabled: bool,
-
-    /// Path to CA certificate
-    pub ca_cert_path: Option<String>,
-
-    /// Client certificate path
-    pub client_cert_path: Option<String>,
-
-    /// Client key path
-    pub client_key_path: Option<String>,
-
-    /// JWT authentication token
-    pub jwt_token: Option<String>,
-
-    /// Username/password authentication
-    pub credentials: Option<Credentials>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Credentials {
-    pub username: String,
-    pub password: String,
+    pub tls_cert_path: Option<String>,
+    pub tls_key_path: Option<String>,
+    pub tls_ca_path: Option<String>,
+    pub jwt_auth_enabled: bool,
+    pub jwt_seed_path: Option<String>,
+    pub nkey_seed_path: Option<String>,
 }
 
 impl Default for NatsConfig {
@@ -127,23 +112,10 @@ impl Default for StreamConfig {
         Self {
             name_prefix: "CIM-EVENTS".to_string(),
             retention: RetentionPolicy::Limits,
-            max_age: Duration::from_days(365),
+            max_age: Duration::from_secs(365 * 24 * 60 * 60), // 365 days
             max_messages: None,
             max_bytes: None,
             duplicate_window: Duration::from_secs(120),
-        }
-    }
-}
-
-impl Default for SecurityConfig {
-    fn default() -> Self {
-        Self {
-            tls_enabled: false,
-            ca_cert_path: None,
-            client_cert_path: None,
-            client_key_path: None,
-            jwt_token: None,
-            credentials: None,
         }
     }
 }
@@ -165,16 +137,5 @@ impl NatsConfig {
             },
             ..Default::default()
         }
-    }
-}
-
-// Helper trait to convert Duration to various formats
-trait DurationExt {
-    fn from_days(days: u64) -> Duration;
-}
-
-impl DurationExt for Duration {
-    fn from_days(days: u64) -> Duration {
-        Duration::from_secs(days * 24 * 60 * 60)
     }
 }

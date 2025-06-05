@@ -1,6 +1,6 @@
-//! Graph-related commands
+//! Graph Commands
 
-use crate::domain::value_objects::{GraphId, GraphMetadata};
+use crate::domain::value_objects::GraphId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

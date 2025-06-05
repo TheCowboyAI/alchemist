@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
 use uuid::Uuid;
+use thiserror::Error;
 
 mod local;
 
@@ -10,6 +11,28 @@ use local::LocalEventStore;
 
 use crate::domain::events::DomainEvent;
 use crate::domain::value_objects::GraphId;
+
+/// Event Store errors
+#[derive(Error, Debug)]
+pub enum EventStoreError {
+    #[error("Event store error: {0}")]
+    StoreError(String),
+
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
+
+    #[error("Aggregate not found: {0}")]
+    AggregateNotFound(GraphId),
+}
+
+/// Aggregate snapshot for faster rebuilding
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregateSnapshot {
+    pub aggregate_id: GraphId,
+    pub version: u64,
+    pub data: Vec<u8>,
+    pub timestamp: SystemTime,
+}
 
 /// Event ID type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -42,11 +65,24 @@ trait EventStore: Send + Sync {
     /// Append an event to the store
     fn append(&mut self, aggregate_id: GraphId, event: DomainEvent) -> EventEnvelope;
 
+    /// Append events to the store
+    #[allow(dead_code)]
+    fn append_events(&self, events: Vec<EventEnvelope>) -> Result<(), EventStoreError>;
+
     /// Get all events for an aggregate
     fn get_events(&self, aggregate_id: GraphId) -> Vec<EventEnvelope>;
 
     /// Get events after a specific sequence number
+    #[allow(dead_code)]
     fn get_events_after(&self, aggregate_id: GraphId, sequence: u64) -> Vec<EventEnvelope>;
+
+    /// Get a snapshot if available
+    #[allow(dead_code)]
+    fn get_snapshot(&self, aggregate_id: GraphId) -> Option<AggregateSnapshot>;
+
+    /// Save a snapshot
+    #[allow(dead_code)]
+    fn save_snapshot(&self, snapshot: AggregateSnapshot) -> Result<(), EventStoreError>;
 }
 
 // Global event store instance - hidden from the rest of the application

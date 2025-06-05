@@ -6,8 +6,7 @@ use std::collections::HashMap;
 use thiserror::Error;
 
 use crate::domain::{
-    commands::{EdgeCommand, GraphCommand, NodeCommand},
-    events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
+    events::{DomainEvent, GraphEvent},
     value_objects::*,
 };
 
@@ -43,6 +42,7 @@ pub struct Graph {
 
     // Petgraph for efficient graph operations
     #[serde(skip)]
+    #[allow(dead_code)]
     graph: StableGraph<NodeId, EdgeId>,
 
     // Component storage
@@ -164,43 +164,31 @@ impl Graph {
     fn apply_event(&mut self, event: &DomainEvent) {
         match event {
             DomainEvent::Graph(graph_event) => match graph_event {
-                GraphEvent::GraphCreated { id, metadata } => {
+                GraphEvent::GraphCreated { id: _, metadata } => {
                     self.metadata = metadata.clone();
-                    self.version += 1;
                 }
                 GraphEvent::GraphRenamed {
-                    id,
-                    old_name,
+                    id: _,
+                    old_name: _,
                     new_name,
                 } => {
                     self.metadata.name = new_name.clone();
-                    self.metadata.updated_at = std::time::SystemTime::now();
-                    self.version += 1;
                 }
-                GraphEvent::GraphTagged { id, tag } => {
-                    if !self.metadata.tags.contains(tag) {
-                        self.metadata.tags.push(tag.clone());
-                    }
-                    self.metadata.updated_at = std::time::SystemTime::now();
-                    self.version += 1;
+                GraphEvent::GraphTagged { id: _, tag } => {
+                    self.metadata.tags.push(tag.clone());
                 }
-                GraphEvent::GraphUntagged { id, tag } => {
+                GraphEvent::GraphUntagged { id: _, tag } => {
                     self.metadata.tags.retain(|t| t != tag);
-                    self.metadata.updated_at = std::time::SystemTime::now();
-                    self.version += 1;
                 }
-                GraphEvent::GraphDeleted { id } => {
-                    // Mark as deleted somehow
-                    self.version += 1;
+                GraphEvent::GraphDeleted { id: _ } => {
+                    // Mark as deleted
                 }
             },
-            DomainEvent::Node(node_event) => {
+            DomainEvent::Node(_node_event) => {
                 // TODO: Handle node events
-                self.version += 1;
             }
-            DomainEvent::Edge(edge_event) => {
+            DomainEvent::Edge(_edge_event) => {
                 // TODO: Handle edge events
-                self.version += 1;
             }
         }
     }

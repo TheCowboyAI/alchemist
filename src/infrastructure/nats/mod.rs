@@ -38,7 +38,7 @@ where
     T: Clone + std::fmt::Display + std::fmt::Debug + PartialEq,
 {
     fn from(err: async_nats::error::Error<T>) -> Self {
-        NatsError::ConnectionError(format!("{}", err))
+        NatsError::ConnectionError(format!("{err}"))
     }
 }
 
@@ -57,6 +57,12 @@ impl From<serde_json::Error> for NatsError {
 impl From<async_nats::SubscribeError> for NatsError {
     fn from(err: async_nats::SubscribeError) -> Self {
         NatsError::SubscriptionError(err.to_string())
+    }
+}
+
+impl From<async_nats::Error> for NatsError {
+    fn from(err: async_nats::Error) -> Self {
+        NatsError::ConnectionError(format!("{err}"))
     }
 }
 

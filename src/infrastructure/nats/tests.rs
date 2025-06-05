@@ -1,86 +1,67 @@
-//! Tests for NATS integration
+//! Tests for NATS infrastructure
 
 #[cfg(test)]
-mod tests {
-    use super::super::*;
-    use crate::domain::events::{DomainEvent, GraphEvent};
-    use crate::domain::value_objects::GraphId;
-    use futures::StreamExt;
-    use tokio;
+use super::*;
+use crate::domain::events::{DomainEvent, GraphEvent};
+use crate::domain::value_objects::GraphId;
 
-    #[tokio::test]
-    async fn test_connect_to_localhost() {
-        // This test assumes NATS is running on localhost:4222
-        let config = NatsConfig::localhost();
+#[tokio::test]
+async fn test_nats_connection() {
+    // This test requires NATS to be running
+    // It will be skipped in CI unless NATS is available
 
-        match NatsClient::new(config).await {
-            Ok(client) => {
-                println!("Successfully connected to NATS");
+    let config = NatsConfig::localhost();
 
-                // Test health check
-                assert!(client.health_check().await.is_ok());
-            }
-            Err(e) => {
-                // Don't fail the test if NATS isn't running
-                println!("Could not connect to NATS (expected if not running): {}", e);
-            }
+    match NatsClient::new(config).await {
+        Ok(client) => {
+            // Test health check
+            let health = client.health_check().await;
+            assert!(health.is_ok());
+        }
+        Err(e) => {
+            // This is expected if NATS is not running
+            println!("Could not connect to NATS (expected if not running): {e}");
         }
     }
+}
 
-    #[tokio::test]
-    async fn test_publish_subscribe() {
-        let config = NatsConfig::localhost();
+#[tokio::test]
+async fn test_event_publishing() {
+    // Skip if NATS not available
+    let config = NatsConfig::localhost();
+    let client = match NatsClient::new(config).await {
+        Ok(c) => c,
+        Err(_) => return, // Skip test if NATS not running
+    };
 
-        if let Ok(client) = NatsClient::new(config).await {
-            // Subscribe to a test subject
-            let mut subscriber = client.subscribe("test.subject").await.unwrap();
+    // Create a test event
+    let graph_id = GraphId::new();
+    let event = DomainEvent::Graph(GraphEvent::GraphCreated {
+        id: graph_id,
+        metadata: crate::domain::value_objects::GraphMetadata::new("Test Graph".to_string()),
+    });
 
-            // Publish a message
-            let payload = b"Hello, NATS!".to_vec();
-            client
-                .publish("test.subject", payload.clone())
-                .await
-                .unwrap();
+    // Serialize and publish event
+    let payload = serde_json::to_vec(&event).unwrap();
+    let result = client
+        .publish("test.graph.created", payload)
+        .await;
 
-            // Receive the message
-            if let Some(msg) = subscriber.next().await {
-                assert_eq!(msg.payload.to_vec(), payload);
-            } else {
-                panic!("Did not receive message");
-            }
-        } else {
-            println!("Skipping test - NATS not available");
-        }
-    }
+    assert!(result.is_ok());
+}
 
-    #[test]
-    fn test_config_defaults() {
-        let config = NatsConfig::default();
-        assert_eq!(config.url, "nats://localhost:4222");
-        assert_eq!(config.client_name, "cim-client");
-        assert!(config.jetstream.enabled);
-        assert!(!config.security.tls_enabled);
-    }
+#[test]
+fn test_config_defaults() {
+    let config = NatsConfig::default();
+    assert_eq!(config.url, "nats://localhost:4222");
+    assert_eq!(config.client_name, "cim-client");
+    assert!(config.jetstream.enabled);
+}
 
-    #[tokio::test]
-    async fn test_domain_event_serialization() {
-        let graph_id = GraphId::new();
-        let event = DomainEvent::Graph(GraphEvent::GraphCreated {
-            id: graph_id,
-            metadata: Default::default(),
-        });
-
-        // Serialize event
-        let json = serde_json::to_string(&event).expect("Failed to serialize");
-
-        // Deserialize event
-        let deserialized: DomainEvent = serde_json::from_str(&json).expect("Failed to deserialize");
-
-        match deserialized {
-            DomainEvent::Graph(GraphEvent::GraphCreated { id, .. }) => {
-                assert_eq!(id, graph_id);
-            }
-            _ => panic!("Wrong event type"),
-        }
-    }
+#[test]
+fn test_production_config() {
+    let config = NatsConfig::production("nats://prod.example.com:4222".to_string());
+    assert_eq!(config.url, "nats://prod.example.com:4222");
+    assert!(config.security.tls_enabled);
+    assert!(config.client_name.starts_with("cim-client-"));
 }

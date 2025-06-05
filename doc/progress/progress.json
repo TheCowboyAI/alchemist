@@ -212,6 +212,23 @@
       }
     },
     {
+      "id": "k7-complete-graph",
+      "label": "K7 Complete Graph Default",
+      "type": "milestone",
+      "position": { "x": 600, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-05",
+        "description": "Changed default graph to K7 complete graph",
+        "details": [
+          "Modified create_demo_nodes to generate K7 complete graph",
+          "7 nodes arranged in a circle with radius 4.0",
+          "Every node connected to every other node (21 edges total)",
+          "Demonstrates graph complexity handling capabilities"
+        ]
+      }
+    },
+    {
       "id": "phase-1",
       "label": "Phase 1: Distributed Event Infrastructure",
       "type": "phase",
@@ -397,6 +414,13 @@
       "source": "basic-graph-visualization",
       "target": "documentation-republishing",
       "label": "document",
+      "type": "sequence"
+    },
+    {
+      "id": "e7d",
+      "source": "documentation-republishing",
+      "target": "k7-complete-graph",
+      "label": "enhance",
       "type": "sequence"
     },
     {

@@ -1,7 +1,7 @@
 //! Components for graph visualization
 
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId};
 use bevy::prelude::*;
-use crate::domain::value_objects::{NodeId, EdgeId, GraphId};
 
 /// Component marking an entity as a graph node
 #[derive(Component)]
