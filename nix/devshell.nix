@@ -35,6 +35,10 @@ pkgs.mkShell {
     cargo-nextest
     cargo-llvm-cov
     bacon
+
+    # NATS for testing
+    nats-server
+    natscli
   ];
 
   nativeBuildInputs = with pkgs; [

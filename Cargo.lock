@@ -1739,13 +1739,19 @@ dependencies = [
 name = "cim-ipld"
 version = "0.1.0"
 dependencies = [
+ "async-nats",
  "blake3",
  "bytes",
  "cid",
+ "futures",
+ "lru",
  "multihash",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "zstd",
 ]
 
 [[package]]

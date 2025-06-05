@@ -646,6 +646,35 @@
         ],
         "completed_date": "2025-06-07"
       }
+    },
+    {
+      "id": "cim-ipld-nats-integration",
+      "label": "CIM-IPLD NATS Integration Complete",
+      "type": "milestone",
+      "position": { "x": 825, "y": -300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-07",
+        "description": "Successfully moved NATS Object Store to cim-ipld and tested against real NATS instance",
+        "details": [
+          "Moved object store implementation to cim-ipld crate",
+          "No Bevy dependencies - clean separation of concerns",
+          "Added comprehensive integration tests",
+          "All 6 tests passing against real NATS JetStream",
+          "Tests complete in ~0.02s without graphics dependencies",
+          "CID-based storage and retrieval working",
+          "Automatic zstd compression for objects >1KB",
+          "LRU caching layer functioning correctly",
+          "Ready for event store integration"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-07",
+        "references": [
+          "/cim-ipld/src/object_store/",
+          "/cim-ipld/tests/nats_object_store_integration.rs",
+          "/doc/completed/cim-ipld-nats-integration.md"
+        ]
+      }
     }
   ],
   "edges": [
