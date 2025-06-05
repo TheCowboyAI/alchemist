@@ -39,6 +39,59 @@ pub struct ScheduledCommand {
     pub command: crate::domain::commands::Command,
 }
 
+/// Component for smooth node appearance animation
+#[derive(Component)]
+pub struct NodeAppearanceAnimation {
+    pub start_time: f32,
+    pub duration: f32,
+    pub start_scale: f32,
+    pub target_scale: f32,
+}
+
+/// Component for smooth edge drawing animation
+#[derive(Component)]
+pub struct EdgeDrawAnimation {
+    pub start_time: f32,
+    pub duration: f32,
+    pub progress: f32,
+}
+
+/// Component for force-directed layout physics
+#[derive(Component)]
+pub struct ForceNode {
+    pub velocity: bevy::prelude::Vec3,
+    pub mass: f32,
+    pub charge: f32,  // For repulsion between nodes
+}
+
+/// Component marking nodes that should participate in force-directed layout
+#[derive(Component)]
+pub struct ForceLayoutParticipant;
+
+/// Resource for force-directed layout parameters
+#[derive(bevy::prelude::Resource)]
+pub struct ForceLayoutSettings {
+    pub spring_strength: f32,      // Edge attraction force
+    pub spring_length: f32,        // Ideal edge length
+    pub repulsion_strength: f32,   // Node repulsion force
+    pub damping: f32,              // Velocity damping
+    pub min_velocity: f32,         // Threshold to stop simulation
+    pub center_force: f32,         // Pull towards center
+}
+
+impl Default for ForceLayoutSettings {
+    fn default() -> Self {
+        Self {
+            spring_strength: 0.15,      // Increased from 0.1 to pull nodes together more
+            spring_length: 2.5,         // Decreased from 3.3 to make edges shorter
+            repulsion_strength: 40.0,   // Decreased from 55.0 to reduce node repulsion
+            damping: 0.9,
+            min_velocity: 0.01,
+            center_force: 0.02,         // Increased from 0.01 to pull nodes toward center
+        }
+    }
+}
+
 /// Component for recording events with timestamps
 #[derive(Component)]
 pub struct EventRecorder {

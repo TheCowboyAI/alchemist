@@ -18,6 +18,8 @@ impl Plugin for GraphEditorPlugin {
             // Register events
             .add_event::<CommandEvent>()
             .add_event::<EventNotification>()
+            // Add resources
+            .insert_resource(ForceLayoutSettings::default())
             // Add systems
             .add_systems(Startup, (setup_camera, setup_lighting))
             .add_systems(
@@ -30,6 +32,12 @@ impl Plugin for GraphEditorPlugin {
                     handle_domain_events,
                     record_events,
                     replay_events,
+                    // Animation systems
+                    animate_node_appearance,
+                    animate_edge_drawing,
+                    // Force-directed layout
+                    apply_force_layout,
+                    update_node_positions,
                     // Visualization updates
                     update_edge_positions,
                 ),
@@ -90,10 +98,10 @@ fn handle_domain_events(
                 });
             }
             DomainEvent::Node(NodeEvent::NodeAdded { graph_id, node_id, content, position }) => {
-                spawn_node(&mut commands, &mut meshes, &mut materials, *graph_id, *node_id, content, *position);
+                spawn_node(&mut commands, &mut meshes, &mut materials, *graph_id, *node_id, content, *position, &time);
             }
             DomainEvent::Edge(EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
-                spawn_edge(&mut commands, &mut meshes, &mut materials, *graph_id, *edge_id, *source, *target);
+                spawn_edge(&mut commands, &mut meshes, &mut materials, *graph_id, *edge_id, *source, *target, &time);
             }
             _ => {}
         }
@@ -222,6 +230,7 @@ fn spawn_node(
     node_id: NodeId,
     content: &NodeContent,
     position: Position3D,
+    time: &Time,
 ) {
     let node_mesh = meshes.add(Sphere::new(0.5));
     let node_material = materials.add(StandardMaterial {
@@ -241,7 +250,19 @@ fn spawn_node(
         },
         Mesh3d(node_mesh),
         MeshMaterial3d(node_material),
-        Transform::from_translation(position.into()),
+        Transform::from_translation(position.into()).with_scale(Vec3::ZERO),
+        NodeAppearanceAnimation {
+            start_time: time.elapsed_secs(),
+            duration: 0.5,
+            start_scale: 0.0,
+            target_scale: 1.0,
+        },
+        ForceNode {
+            velocity: Vec3::ZERO,
+            mass: 1.0,
+            charge: 1.0,
+        },
+        ForceLayoutParticipant,
     ));
 }
 
@@ -254,6 +275,7 @@ fn spawn_edge(
     edge_id: EdgeId,
     source: NodeId,
     target: NodeId,
+    time: &Time,
 ) {
     let edge_mesh = meshes.add(Cylinder::new(0.05, 1.0));
     let edge_material = materials.add(StandardMaterial {
@@ -273,15 +295,20 @@ fn spawn_edge(
         Mesh3d(edge_mesh),
         MeshMaterial3d(edge_material),
         Transform::default(),
+        EdgeDrawAnimation {
+            start_time: time.elapsed_secs(),
+            duration: 0.3,
+            progress: 0.0,
+        },
     ));
 }
 
 /// Update edge positions to connect nodes
 fn update_edge_positions(
     node_query: Query<(&GraphNode, &Transform), Without<GraphEdge>>,
-    mut edge_query: Query<(&GraphEdge, &mut Transform), Without<GraphNode>>,
+    mut edge_query: Query<(&GraphEdge, &mut Transform, Option<&EdgeDrawAnimation>), Without<GraphNode>>,
 ) {
-    for (edge, mut edge_transform) in edge_query.iter_mut() {
+    for (edge, mut edge_transform, edge_animation) in edge_query.iter_mut() {
         // Find source and target positions
         let mut source_pos = None;
         let mut target_pos = None;
@@ -306,7 +333,15 @@ fn update_edge_positions(
 
                 edge_transform.translation = midpoint;
                 edge_transform.rotation = rotation;
-                edge_transform.scale = Vec3::new(1.0, distance, 1.0);
+
+                // Apply animation progress to scale
+                let scale_y = if let Some(animation) = edge_animation {
+                    distance * animation.progress
+                } else {
+                    distance
+                };
+
+                edge_transform.scale = Vec3::new(1.0, scale_y, 1.0);
             }
         }
     }
@@ -402,5 +437,146 @@ fn replay_events(
             info!("Replay complete!");
             commands.entity(entity).despawn();
         }
+    }
+}
+
+/// Smooth easing function (ease-out cubic)
+fn ease_out_cubic(t: f32) -> f32 {
+    1.0 - (1.0 - t).powi(3)
+}
+
+/// Animate node appearance with smooth scaling
+fn animate_node_appearance(
+    mut query: Query<(&mut Transform, &NodeAppearanceAnimation)>,
+    time: Res<Time>,
+) {
+    for (mut transform, animation) in query.iter_mut() {
+        let elapsed = time.elapsed_secs() - animation.start_time;
+        let progress = (elapsed / animation.duration).clamp(0.0, 1.0);
+
+        // Apply easing
+        let eased_progress = ease_out_cubic(progress);
+
+        // Interpolate scale
+        let scale = animation.start_scale + (animation.target_scale - animation.start_scale) * eased_progress;
+        transform.scale = Vec3::splat(scale);
+    }
+}
+
+/// Animate edge drawing with smooth progress
+fn animate_edge_drawing(
+    mut query: Query<&mut EdgeDrawAnimation>,
+    time: Res<Time>,
+) {
+    for mut animation in query.iter_mut() {
+        let elapsed = time.elapsed_secs() - animation.start_time;
+        let progress = (elapsed / animation.duration).clamp(0.0, 1.0);
+        animation.progress = ease_out_cubic(progress);
+    }
+}
+
+/// Apply force-directed layout physics
+fn apply_force_layout(
+    mut nodes: Query<(Entity, &Transform, &mut ForceNode, &GraphNode), With<ForceLayoutParticipant>>,
+    edges: Query<&GraphEdge>,
+    settings: Res<ForceLayoutSettings>,
+    time: Res<Time>,
+) {
+    let delta_time = time.delta_secs();
+
+    // Reset forces
+    for (_, _, mut force_node, _) in nodes.iter_mut() {
+        force_node.velocity *= settings.damping;
+    }
+
+    // Collect node positions for force calculations
+    let node_positions: Vec<(Entity, Vec3, f32)> = nodes
+        .iter()
+        .map(|(entity, transform, force_node, _)| (entity, transform.translation, force_node.charge))
+        .collect();
+
+    // Apply repulsion forces between all nodes
+    for i in 0..node_positions.len() {
+        for j in (i + 1)..node_positions.len() {
+            let (entity_i, pos_i, charge_i) = node_positions[i];
+            let (entity_j, pos_j, charge_j) = node_positions[j];
+
+            let diff = pos_i - pos_j;
+            let distance = diff.length().max(0.1); // Avoid division by zero
+            let force_magnitude = settings.repulsion_strength * charge_i * charge_j / (distance * distance);
+            let force = diff.normalize() * force_magnitude;
+
+            // Apply forces
+            if let Ok((_, _, mut force_node_i, _)) = nodes.get_mut(entity_i) {
+                let mass = force_node_i.mass;
+                force_node_i.velocity += force * delta_time / mass;
+            }
+            if let Ok((_, _, mut force_node_j, _)) = nodes.get_mut(entity_j) {
+                let mass = force_node_j.mass;
+                force_node_j.velocity -= force * delta_time / mass;
+            }
+        }
+    }
+
+    // Apply spring forces for edges
+    for edge in edges.iter() {
+        let mut source_pos = None;
+        let mut target_pos = None;
+        let mut source_entity = None;
+        let mut target_entity = None;
+
+        // Find source and target positions
+        for (entity, transform, _, graph_node) in nodes.iter() {
+            if graph_node.node_id == edge.source {
+                source_pos = Some(transform.translation);
+                source_entity = Some(entity);
+            }
+            if graph_node.node_id == edge.target {
+                target_pos = Some(transform.translation);
+                target_entity = Some(entity);
+            }
+        }
+
+        if let (Some(source_pos), Some(target_pos), Some(source_entity), Some(target_entity)) =
+            (source_pos, target_pos, source_entity, target_entity) {
+
+            let diff = target_pos - source_pos;
+            let distance = diff.length();
+            let force_magnitude = settings.spring_strength * (distance - settings.spring_length);
+            let force = diff.normalize() * force_magnitude;
+
+            // Apply spring forces
+            if let Ok((_, _, mut force_node, _)) = nodes.get_mut(source_entity) {
+                let mass = force_node.mass;
+                force_node.velocity += force * delta_time / mass;
+            }
+            if let Ok((_, _, mut force_node, _)) = nodes.get_mut(target_entity) {
+                let mass = force_node.mass;
+                force_node.velocity -= force * delta_time / mass;
+            }
+        }
+    }
+
+    // Apply center force to keep graph centered
+    for (_, transform, mut force_node, _) in nodes.iter_mut() {
+        let center_force = -transform.translation * settings.center_force;
+        let mass = force_node.mass;
+        force_node.velocity += center_force * delta_time / mass;
+    }
+}
+
+/// Update node positions based on forces
+fn update_node_positions(
+    mut query: Query<(&mut Transform, &ForceNode), With<ForceLayoutParticipant>>,
+    time: Res<Time>,
+) {
+    let delta_time = time.delta_secs();
+
+    for (mut transform, force_node) in query.iter_mut() {
+        // Update position based on velocity
+        transform.translation += force_node.velocity * delta_time;
+
+        // Keep nodes on the same Y plane
+        transform.translation.y = 0.0;
     }
 }
