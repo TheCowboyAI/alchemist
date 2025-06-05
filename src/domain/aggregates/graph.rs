@@ -203,10 +203,10 @@ mod tests {
         // Given
         let id = GraphId::new();
         let name = "Test Graph".to_string();
-        let description = Some("Test Description".to_string());
+        let description = "Test Description".to_string();
 
         // When
-        let graph = Graph::new(id, name.clone(), description.clone());
+        let graph = Graph::new(id, name.clone(), Some(description.clone()));
 
         // Then
         assert_eq!(graph.id, id);
@@ -223,7 +223,7 @@ mod tests {
             DomainEvent::Graph(GraphEvent::GraphCreated { id: event_id, metadata }) => {
                 assert_eq!(*event_id, id);
                 assert_eq!(metadata.name, name);
-                assert!(metadata.tags.contains(&description.unwrap()));
+                assert!(metadata.tags.contains(&description));
             }
             _ => panic!("Expected GraphCreated event"),
         }

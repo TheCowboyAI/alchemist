@@ -2,6 +2,7 @@
 
 pub mod aggregates;
 pub mod commands;
+pub mod content_types;
 pub mod events;
 pub mod services;
 pub mod value_objects;
@@ -9,6 +10,7 @@ pub mod value_objects;
 pub mod prelude {
     pub use super::aggregates::*;
     pub use super::commands::*;
+    pub use super::content_types::*;
     pub use super::events::*;
     pub use super::value_objects::*;
 }

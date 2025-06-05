@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-07T10:30:00-07:00",
-    "version": "2.5.0"
+    "updated": "2025-06-07T14:30:00-07:00",
+    "version": "2.6.0"
   },
   "nodes": [
     {
@@ -562,6 +562,34 @@
           "Update Information Alchemist to use external library"
         ]
       }
+    },
+    {
+      "id": "ia-specific-types-complete",
+      "label": "IA Content Types Implemented",
+      "type": "milestone",
+      "position": { "x": 750, "y": 200, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-07",
+        "description": "IA-specific IPLD content types implemented",
+        "details": [
+          "Created domain content_types module",
+          "Implemented GraphContent with conceptual positioning",
+          "Created NodeIPLDContent and EdgeIPLDContent to avoid naming conflicts",
+          "Added ConceptualSpaceContent for semantic spaces",
+          "Implemented WorkflowContent for workflow definitions",
+          "Created EventContent with ContentChain support",
+          "All types implement TypedContent trait from cim-ipld",
+          "Custom codecs assigned (0x300100-0x300106)",
+          "Comprehensive tests for CID generation and serialization"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-07",
+        "references": [
+          "/doc/plan/cim-ipld-integration-plan.md",
+          "/src/domain/content_types/"
+        ]
+      }
     }
   ],
   "edges": [
@@ -809,6 +837,20 @@
       "target": "phase-1.5",
       "label": "unblock",
       "type": "sequence"
+    },
+    {
+      "id": "e7p",
+      "source": "cim-ipld-extraction",
+      "target": "ia-specific-types-complete",
+      "label": "implement",
+      "type": "sequence"
+    },
+    {
+      "id": "e7q",
+      "source": "ia-specific-types-complete",
+      "target": "object-store-integration",
+      "label": "next",
+      "type": "sequence"
     }
   ],
   "project": "Information Alchemist CIM Integration",
@@ -897,7 +939,7 @@
       "id": "phase-1.5",
       "name": "Phase 1.5: IPLD Integration",
       "status": "in-progress",
-      "progress": 25,
+      "progress": 50,
       "tasks": [
         {
           "id": "cim-ipld-extraction",
@@ -909,9 +951,9 @@
         {
           "id": "ia-specific-types",
           "name": "IA-Specific Content Types",
-          "status": "pending",
-          "progress": 0,
-          "details": "Define Information Alchemist specific content types using external cim-ipld library"
+          "status": "completed",
+          "progress": 100,
+          "details": "Implemented IA-specific content types: GraphContent, NodeIPLDContent, EdgeIPLDContent, ConceptualSpaceContent, WorkflowContent, and EventContent with full TypedContent trait implementation and CID support"
         },
         {
           "id": "object-store-integration",
@@ -1154,14 +1196,14 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Implementing IA-specific content types and object store integration using cim-ipld library",
+  "current_focus": "Integrating NATS Object Store with cim-ipld for content-addressed storage",
   "next_steps": [
-    "Define Information Alchemist specific content types (GraphContent, NodeContent, EdgeContent)",
-    "Implement custom codecs for IA domain objects",
     "Integrate NATS Object Store with cim-ipld for content-addressed storage",
+    "Create NatsObjectStore wrapper for content storage by CID",
+    "Implement content storage service with deduplication",
     "Update event store to use CID chains from cim-ipld",
-    "Create comprehensive tests for IA-specific IPLD integration",
-    "Begin Phase 2: Graph Domain Model implementation"
+    "Implement custom codecs for efficient serialization",
+    "Create comprehensive tests for object store integration"
   ],
   "blockers": [],
   "notes": [
@@ -1173,6 +1215,7 @@
     "Dynamic linking issue resolved - must use 'nix build' or 'nix run' for reliable execution",
     "CIM-IPLD successfully extracted as standalone library at github.com/TheCowboyAI/cim-ipld",
     "Information Alchemist now uses cim-ipld as a git submodule dependency",
-    "All tests passing with external cim-ipld integration"
+    "All tests passing with external cim-ipld integration",
+    "IA-specific content types implemented with TypedContent trait and custom codecs"
   ]
 }
