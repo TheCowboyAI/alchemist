@@ -5,7 +5,8 @@
 This plan outlines the implementation of dog-fooding capabilities in Information Alchemist, allowing it to visualize its own development journey through both progress tracking and git integration.
 
 **WE TAKE THIS VERY SERIOUSLY**
-WHILE WE ARE USING DDD AND ECS AND CMD|QRY->EVT, WE ARE ALSO BUILDING THE SYSTEM TO CREATE THEM
+WHILE WE ARE USING DDD BOUNDARIES AND ENTITY COMPONENT SYSTEM AND CMD|QRY->EVT PATTERNS, WE ARE ALSO BUILDING THE SYSTEM TO CREATE AND MODEL THEM AT A DOMAIN LEVEL
+
 ## Implementation Phases
 
 ### Phase 1: Progress Graph Loader (Week 3, during Phase 2)
