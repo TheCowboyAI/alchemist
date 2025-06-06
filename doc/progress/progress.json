@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-07T14:30:00-07:00",
-    "version": "2.6.0"
+    "updated": "2025-06-08T20:30:00-07:00",
+    "version": "2.7.0"
   },
   "nodes": [
     {
@@ -675,6 +675,62 @@
           "/doc/completed/cim-ipld-nats-integration.md"
         ]
       }
+    },
+    {
+      "id": "bevy-linking-fix",
+      "label": "Bevy 0.16 Experimental Linking Fix",
+      "type": "milestone",
+      "position": { "x": 850, "y": -300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-08",
+        "description": "Fixed Bevy 0.16 experimental feature undefined symbol errors",
+        "details": [
+          "Identified undefined symbols in ViewDepthTexture and OcclusionCullingSubview",
+          "Root cause: Component derive macro not generating register_required_components",
+          "Patched bevy-patched submodule with manual Component implementations",
+          "Switched from crates.io to patched Bevy version",
+          "Excluded bevy-patched from workspace to avoid conflicts",
+          "Application now builds and runs without symbol lookup errors",
+          "Created comprehensive QA documentation for future reference",
+          "Solution works for both Bevy 0.16.0 and 0.16.1"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-08",
+        "references": [
+          "/bevy-patched/crates/bevy_render/src/view/mod.rs",
+          "/bevy-patched/crates/bevy_render/src/experimental/occlusion_culling/mod.rs",
+          "/doc/qa/bevy-0.16-experimental-linking-fix.md"
+        ]
+      }
+    },
+    {
+      "id": "nats-replay-implementation",
+      "label": "NATS Event Replay System",
+      "type": "milestone",
+      "position": { "x": 875, "y": -200, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-08",
+        "description": "Implemented NATS event replay functionality with graph visualization",
+        "details": [
+          "Created nats_replay module with event generation and replay",
+          "Implemented GraphCreated, NodeAdded, and EdgeConnected events",
+          "Added EventReplayer system for processing events from NATS",
+          "Created graph_visualization plugin integrating all systems",
+          "Successfully tested with 114 events (2 graphs, 28 nodes, 84 edges)",
+          "Events stored in NATS JetStream event-store stream",
+          "Verified event persistence with NATS CLI tools",
+          "Graph animates smoothly with force-directed layout during replay"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-08",
+        "references": [
+          "/src/presentation/bevy_systems/nats_replay.rs",
+          "/src/presentation/plugins/graph_visualization.rs",
+          "/src/bin/test_nats.rs"
+        ]
+      }
     }
   ],
   "edges": [
@@ -942,6 +998,27 @@
       "source": "object-store-integration",
       "target": "phase-2",
       "label": "enables",
+      "type": "sequence"
+    },
+    {
+      "id": "e7s",
+      "source": "cim-ipld-nats-integration",
+      "target": "bevy-linking-fix",
+      "label": "blocked",
+      "type": "sequence"
+    },
+    {
+      "id": "e7t",
+      "source": "bevy-linking-fix",
+      "target": "nats-replay-implementation",
+      "label": "enabled",
+      "type": "sequence"
+    },
+    {
+      "id": "e7u",
+      "source": "nats-replay-implementation",
+      "target": "phase-2",
+      "label": "ready for",
       "type": "sequence"
     }
   ],
@@ -1288,14 +1365,14 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Completing NATS Object Store integration",
+  "current_focus": "Ready to begin Phase 2: Graph Domain Model implementation",
   "next_steps": [
-    "Fix remaining compilation issues in object store implementation",
-    "Create comprehensive tests for object store integration",
-    "Update event store to use CID chains from cim-ipld",
-    "Implement custom codecs for efficient serialization",
-    "Create integration tests with real NATS server",
-    "Document object store usage patterns"
+    "Implement Graph Aggregate with domain logic",
+    "Create rich Node and Edge entities with behavior",
+    "Design command pattern for graph mutations",
+    "Define domain events for all graph operations",
+    "Integrate conceptual positioning into domain model",
+    "Create command handlers that emit proper events"
   ],
   "blockers": [],
   "notes": [
@@ -1309,6 +1386,10 @@
     "Information Alchemist now uses cim-ipld as a git submodule dependency",
     "All tests passing with external cim-ipld integration",
     "IA-specific content types implemented with TypedContent trait and custom codecs",
-    "NATS Object Store wrapper implemented with compression, bucket management, and caching"
+    "NATS Object Store wrapper implemented with compression, bucket management, and caching",
+    "Fixed Bevy 0.16 experimental feature linking issues by patching Component implementations",
+    "NATS event replay system implemented and tested with 114 events",
+    "Graph visualization now supports smooth animations and force-directed layout",
+    "Ready to proceed with Phase 2: Domain Model implementation"
   ]
 }
