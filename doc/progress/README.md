@@ -115,17 +115,75 @@ nix develop -c cargo test
 
 ## Progress Tracking
 
-Progress is tracked in `progress.json` which contains:
-- 900+ nodes representing milestones, tasks, and achievements
-- 150+ edges showing dependencies and relationships
-- Complete development history from project inception
+This folder contains the current progress tracking for the Information Alchemist CIM implementation.
 
-### Key Milestones Achieved
-- **Migration Start**: Decision to adopt event sourcing
-- **Architecture Design**: CIM integration planned
-- **CIM-IPLD Extraction**: Standalone library created
-- **QA Compliance Review**: 78% compliance achieved
-- **Graph Aggregate Complete**: Domain model foundation ready
+## Main Progress File
+
+- **`progress.json`** - The single source of truth for project progress. This file contains:
+  - A graph structure of all milestones, tasks, and phases
+  - Current status of each component
+  - Relationships between different work items
+  - Historical notes and accomplishments
+
+## Current Status (January 6, 2025)
+
+- **Phase 0 (NATS Integration)**: ✅ Complete
+- **Phase 1 (Event Infrastructure)**: ✅ Complete
+- **Phase 1.5 (IPLD Integration)**: ✅ Complete
+- **Phase 2 (Graph Domain Model)**: 🚧 60% Complete
+- **Phase 3 (CQRS Implementation)**: 🚧 40% Complete
+- **Phase 4 (Conceptual Spaces)**: 📅 Pending
+- **Phase 5 (AI Agent Integration)**: 📅 Pending
+- **Phase 6 (Dog-fooding & Polish)**: 📅 Pending
+
+## Recent Accomplishments
+
+### January 6, 2025
+- ✅ Completed Graph aggregate with full command handlers and business rules
+- ✅ Created comprehensive integration test suite (end-to-end, error recovery, projections)
+- ✅ Implemented read model projections with GraphSummaryProjection
+- ✅ Designed bidirectional event flow architecture for external system integration
+- ✅ Fixed all linting errors - application now compiles cleanly
+- ✅ Application runs successfully with cargo watch support
+
+## How to Use
+
+1. **Check Current Status**: Open `progress.json` and look for:
+   - `current_focus` - What we're working on now
+   - `next_steps` - Prioritized list of upcoming tasks
+   - `blockers` - Any issues preventing progress
+
+2. **Update Progress**: When completing tasks:
+   - Update the relevant node's status and progress percentage
+   - Add details about what was accomplished
+   - Update the `updated` timestamp and version
+   - Add notes about significant accomplishments
+
+3. **Visualize Progress**: The progress.json file is designed to be visualized as a graph in the Information Alchemist itself (dog-fooding).
+
+## Archived Documents
+
+Completed phase documents have been moved to `/doc/archive/`:
+- `phase-0-nats-integration-completed.md`
+- `phase-1-event-infrastructure-completed.md`
+- `event-sourcing-progress-graph-old.md`
+
+## Next Steps
+
+See `progress.json` for the current `next_steps` array, which includes:
+- Implementing remaining domain aggregates (Workflow, ConceptualSpace)
+- Creating command handlers for all domain operations
+- Increasing test coverage to 80% minimum
+- Documenting domain model patterns
+
+## Version History
+
+The progress.json file uses semantic versioning:
+- Major version: Significant phase completions
+- Minor version: Milestone completions
+- Patch version: Daily updates
+
+Current version: 2.9.0
 
 ## Success Metrics
 

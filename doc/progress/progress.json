@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2024-12-20T14:30:00-07:00",
-    "version": "2.8.0"
+    "updated": "2025-01-06T21:00:00-07:00",
+    "version": "2.9.0"
   },
   "nodes": [
     {
@@ -1082,6 +1082,42 @@
       }
     },
     {
+      "id": "integration-tests-projections-complete",
+      "label": "Integration Tests & Projections Implementation",
+      "type": "milestone",
+      "position": { "x": 900, "y": 150, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-06",
+        "description": "Completed comprehensive integration tests, projections, and fixed all linting errors",
+        "details": [
+          "Implemented Graph aggregate with full command handlers and business rules",
+          "Created comprehensive integration test suite (end-to-end, error recovery, projections)",
+          "Implemented read model projections with GraphSummaryProjection",
+          "Designed bidirectional event flow architecture for external system integration",
+          "Corrected module naming to follow DDD principles (domain capabilities, not technology)",
+          "Added 15 domain modules covering all core business capabilities",
+          "Implemented presentation/domain event separation with aggregators",
+          "Updated user stories and acceptance tests to align with CIM vision",
+          "Fixed all linting errors - application now compiles cleanly",
+          "Fixed trait object safety issues in ExternalProjection and IngestHandler",
+          "Application runs successfully with both cargo and nix",
+          "Set up cargo watch for automatic recompilation during development"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-06",
+        "references": [
+          "/src/domain/aggregates/graph.rs",
+          "/tests/integration/",
+          "/src/application/projections/",
+          "/src/application/projections/external/",
+          "/src/presentation/aggregators/",
+          "/doc/completed/event-classification-phase1-complete.md",
+          "/doc/completed/presentation-domain-separation-clarified.md"
+        ]
+      }
+    },
+    {
       "id": "phase-0",
       "label": "Phase 0: NATS Integration Foundation",
       "type": "phase",
@@ -1215,65 +1251,79 @@
     {
       "id": "phase-2",
       "name": "Phase 2: Graph Domain Model",
-      "status": "pending",
-      "progress": 0,
+      "status": "in_progress",
+      "progress": 60,
       "tasks": [
         {
           "id": "graph-aggregate",
           "name": "Graph Aggregate",
-          "status": "pending",
-          "progress": 0,
-          "details": "Domain logic for graph operations"
+          "status": "completed",
+          "progress": 100,
+          "details": "Domain logic for graph operations - fully implemented with validation and business rules"
         },
         {
           "id": "node-edge-entities",
           "name": "Node/Edge Entities",
-          "status": "pending",
-          "progress": 0,
-          "details": "Rich domain objects with behavior"
+          "status": "completed",
+          "progress": 100,
+          "details": "Rich domain objects with behavior - Node and Edge value objects implemented"
         },
         {
           "id": "graph-commands",
           "name": "Graph Commands",
-          "status": "pending",
-          "progress": 0,
-          "details": "Command pattern for graph mutations"
+          "status": "completed",
+          "progress": 100,
+          "details": "Command pattern for graph mutations - all graph commands implemented"
         },
         {
           "id": "domain-events",
           "name": "Domain Events",
+          "status": "completed",
+          "progress": 100,
+          "details": "Event types for all graph operations - comprehensive event types defined"
+        },
+        {
+          "id": "workflow-aggregate",
+          "name": "Workflow Aggregate",
           "status": "pending",
           "progress": 0,
-          "details": "Event types for all graph operations"
+          "details": "Domain logic for workflow operations"
+        },
+        {
+          "id": "conceptual-space-aggregate",
+          "name": "Conceptual Space Aggregate",
+          "status": "pending",
+          "progress": 0,
+          "details": "Domain logic for conceptual space operations"
         }
       ]
     },
     {
       "id": "phase-3",
       "name": "Phase 3: CQRS Implementation",
-      "status": "pending",
-      "progress": 0,
+      "status": "in_progress",
+      "progress": 40,
       "tasks": [
         {
           "id": "command-handlers",
           "name": "Command Handlers",
-          "status": "pending",
-          "progress": 0,
-          "details": "Process commands and emit events"
+          "status": "completed",
+          "progress": 100,
+          "details": "Process commands and emit events - Graph command handlers fully implemented"
         },
         {
           "id": "query-handlers",
           "name": "Query Handlers",
-          "status": "pending",
-          "progress": 0,
-          "details": "Optimized read models"
+          "status": "in_progress",
+          "progress": 50,
+          "details": "Optimized read models - Basic query handlers implemented, need more"
         },
         {
           "id": "projections",
           "name": "Projections",
-          "status": "pending",
-          "progress": 0,
-          "details": "Event-driven view updates"
+          "status": "completed",
+          "progress": 100,
+          "details": "Event-driven view updates - GraphSummaryProjection and external projections implemented"
         },
         {
           "id": "snapshot-management",
@@ -1442,6 +1492,13 @@
       "target": "core-entity-modules-added",
       "relationship": "expanded_by",
       "label": "Added missing core entity modules"
+    },
+    {
+      "id": "edge-event-classification-to-integration",
+      "source": "event-classification-phase1",
+      "target": "integration-tests-projections-complete",
+      "relationship": "completed_by",
+      "label": "Full implementation with tests"
     }
   ],
   "milestones": [
@@ -1488,19 +1545,18 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Addressing QA compliance gaps before Phase 2",
+  "current_focus": "Phase 2: Graph Domain Model Implementation",
   "next_steps": [
-    "Priority 1: Complete Graph Aggregate with command handlers and validation",
-    "Priority 1: Create integration test suite with NATS end-to-end tests",
-    "Priority 1: Implement read model projections for CQRS queries",
-    "Update progress.json after each priority completion",
+    "Implement remaining domain aggregates (Workflow, ConceptualSpace)",
+    "Create command handlers for all domain operations",
+    "Implement domain services for complex business logic",
+    "Add comprehensive domain event tests",
     "Increase test coverage to 80% minimum",
-    "Document TDD workflow with examples"
+    "Document domain model patterns and usage"
   ],
   "blockers": [
-    "Domain aggregate incomplete - blocking Phase 2 progress",
-    "Test coverage below 80% target - quality gate not met",
-    "Missing integration tests - cannot verify end-to-end functionality"
+    "Test coverage still below 80% target - need more unit tests",
+    "Some integration tests need NATS server running - consider test containers"
   ],
   "notes": [
     "Successfully completed Phase 1 with all infrastructure in place",
@@ -1522,6 +1578,9 @@
     "All tests passing, project builds successfully, ready for Phase 2 implementation",
     "QA Compliance Review (January 2025): Overall compliance 78%, strong architecture foundation",
     "Critical gaps identified: incomplete domain model, test coverage below 80%, missing integration tests",
-    "Created remediation plan with prioritized actions to address all compliance gaps"
+    "Created remediation plan with prioritized actions to address all compliance gaps",
+    "January 6, 2025: Completed major milestone - Graph aggregate, integration tests, projections all implemented",
+    "Fixed all linting errors, application now builds and runs cleanly with cargo watch support",
+    "Phase 2 is 60% complete, Phase 3 is 40% complete - significant progress on core functionality"
   ]
 }
