@@ -251,6 +251,6 @@ The proper fix should come from upstream Bevy. Consider:
 
 ---
 
-**Last Updated**: 2024-01-06
+**Last Updated**: 2025-06-05
 **Affected Versions**: Bevy 0.16.0, 0.16.1
 **Status**: Workaround implemented, awaiting upstream fix

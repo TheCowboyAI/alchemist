@@ -21,6 +21,7 @@ async fn connect_nats() -> Result<(async_nats::Client, jetstream::Context), Box<
 }
 
 /// Helper to create a unique test bucket name
+#[allow(dead_code)]
 fn test_bucket_name(base: &str) -> String {
     format!("test-{}-{}", base, uuid::Uuid::new_v4().to_string().split('-').next().unwrap())
 }
@@ -28,7 +29,7 @@ fn test_bucket_name(base: &str) -> String {
 #[tokio::test]
 async fn test_store_and_retrieve_graph() -> Result<(), Box<dyn std::error::Error>> {
     let (_client, jetstream) = connect_nats().await?;
-    let object_store = Arc::new(NatsObjectStore::new(jetstream).await?);
+    let object_store = Arc::new(NatsObjectStore::new(jetstream, 1024).await?);
 
     // Create a test graph
     let graph = GraphContent {
@@ -262,6 +263,7 @@ async fn test_batch_operations() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Helper function to clean up test buckets
+#[allow(dead_code)]
 async fn cleanup_test_buckets(jetstream: &jetstream::Context) -> Result<(), Box<dyn std::error::Error>> {
     // For now, just clean up known buckets
     // async-nats 0.41 doesn't have a simple way to list all object stores
