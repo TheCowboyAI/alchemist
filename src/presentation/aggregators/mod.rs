@@ -31,21 +31,11 @@ pub trait EventAggregator: Send + Sync + 'static {
 }
 
 /// Resource that manages all aggregators
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct AggregatorManager {
     pub drag: DragAggregator,
     pub layout: LayoutAggregator,
     pub selection: SelectionAggregator,
-}
-
-impl Default for AggregatorManager {
-    fn default() -> Self {
-        Self {
-            drag: DragAggregator::new(),
-            layout: LayoutAggregator::new(),
-            selection: SelectionAggregator::new(),
-        }
-    }
 }
 
 impl AggregatorManager {

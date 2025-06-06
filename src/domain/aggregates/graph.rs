@@ -196,7 +196,7 @@ impl Graph {
                     return Err(GraphError::GraphNotFound(id));
                 }
                 if !self.metadata.tags.contains(&tag) {
-                    return Err(GraphError::InvalidOperation(format!("Tag '{}' not found", tag)));
+                    return Err(GraphError::InvalidOperation(format!("Tag '{tag}' not found")));
                 }
                 self.emit_event(DomainEvent::Graph(GraphEvent::GraphUntagged { id, tag }));
                 Ok(self.get_uncommitted_events())
@@ -283,7 +283,7 @@ impl Graph {
                 }
 
                 // Get position before removal
-                let position = self.nodes[&node_id].position.clone();
+                let position = self.nodes[&node_id].position;
 
                 // Following DDD principles: remove old, add new
                 self.emit_event(DomainEvent::Node(NodeEvent::NodeRemoved {
@@ -575,7 +575,7 @@ impl Graph {
                     let node = Node {
                         id: *node_id,
                         content,
-                        position: position.clone(),
+                        position: *position,
                     };
 
                     // Add to petgraph

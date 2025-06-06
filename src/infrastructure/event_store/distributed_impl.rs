@@ -69,7 +69,7 @@ impl EventStore for DistributedEventStore {
 
     async fn get_events(&self, aggregate_id: String) -> Result<Vec<DomainEvent>, EventStoreError> {
         // Create subject filter for this aggregate
-        let subject = format!("events.{}.>", aggregate_id);
+        let subject = format!("events.{aggregate_id}.>");
 
         // Get stream handle
         let stream = self.jetstream

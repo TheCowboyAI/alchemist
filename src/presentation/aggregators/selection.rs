@@ -20,6 +20,12 @@ pub struct SelectionAggregator {
     has_changed: bool,
 }
 
+impl Default for SelectionAggregator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SelectionAggregator {
     pub fn new() -> Self {
         Self {
@@ -70,7 +76,7 @@ impl EventAggregator for SelectionAggregator {
     fn process_event(&mut self, event: &dyn std::any::Any) -> Option<DomainCommand> {
         if let Some(selection_changed) = event.downcast_ref::<SelectionChanged>() {
             self.handle_selection_changed(selection_changed);
-        } else if let Some(_) = event.downcast_ref::<SelectionCleared>() {
+        } else if event.downcast_ref::<SelectionCleared>().is_some() {
             self.handle_selection_cleared();
         }
 

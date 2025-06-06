@@ -7,7 +7,6 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use thiserror::Error;
-use tokio::sync::mpsc;
 use futures::stream::Stream;
 use std::pin::Pin;
 
@@ -69,7 +68,7 @@ pub trait ExternalProjection: Send + Sync {
     type Connection: Send + Sync;
 
     /// Create a new instance with configuration
-    fn new(config: Self::Config) -> Self;
+    fn new(config: Self::Config) -> Self where Self: Sized;
 
     /// Establish connection to the external system
     async fn connect(&self) -> Result<Self::Connection, ProjectionError>;
@@ -93,12 +92,13 @@ pub trait ExternalProjection: Send + Sync {
     }
 
     /// Health check for the projection
-    async fn health_check(&self, conn: &mut Self::Connection) -> Result<(), ProjectionError> {
+    async fn health_check(&self, _conn: &mut Self::Connection) -> Result<(), ProjectionError> {
         Ok(())
     }
 }
 
 /// Batch projection wrapper for performance
+#[allow(dead_code)]
 pub struct BatchProjection<T: ExternalProjection> {
     projection: T,
     buffer: Vec<DomainEvent>,
@@ -142,6 +142,7 @@ impl<T: ExternalProjection> BatchProjection<T> {
 }
 
 /// Resilient projection with retry and circuit breaker
+#[allow(dead_code)]
 pub struct ResilientProjection<T: ExternalProjection> {
     projection: T,
     retry_policy: RetryPolicy,
@@ -168,6 +169,7 @@ impl Default for RetryPolicy {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct CircuitBreaker {
     failure_threshold: u32,
     success_threshold: u32,
@@ -178,6 +180,7 @@ pub struct CircuitBreaker {
 }
 
 #[derive(Debug, PartialEq)]
+#[allow(dead_code)]
 enum CircuitState {
     Closed,
     Open,
@@ -232,7 +235,7 @@ pub trait IngestHandler: Send + Sync {
     type Config: Send + Sync;
 
     /// Create a new handler instance
-    fn new(config: Self::Config) -> Self;
+    fn new(config: Self::Config) -> Self where Self: Sized;
 
     /// Subscribe to the external system's event stream
     async fn subscribe(&self) -> Result<EventStream<Self::Event>, IngestError>;
@@ -255,6 +258,7 @@ pub trait IngestHandler: Send + Sync {
 }
 
 /// Event correlation for transforming external events
+#[allow(dead_code)]
 pub struct EventCorrelator {
     rules: Vec<CorrelationRule>,
 }
@@ -267,8 +271,9 @@ pub struct CorrelationRule {
 }
 
 /// Bidirectional event manager
+#[allow(dead_code)]
 pub struct BidirectionalEventManager {
-    projections: Vec<Box<dyn ExternalProjection>>,
+    projections: Vec<Box<dyn ExternalProjection<Config = (), Connection = ()>>>,
     ingest_handlers: Vec<Box<dyn IngestHandler<Event = serde_json::Value, Config = ()>>>,
     event_correlator: EventCorrelator,
 }

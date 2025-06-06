@@ -26,10 +26,18 @@ pub struct LayoutAggregator {
 }
 
 struct ActiveLayout {
+    #[allow(dead_code)]
     layout_type: LayoutType,
+    #[allow(dead_code)]
     start_time: f32,
     iterations: u32,
     total_energy: f32,
+}
+
+impl Default for LayoutAggregator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LayoutAggregator {

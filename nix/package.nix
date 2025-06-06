@@ -8,7 +8,13 @@ pkgs.rustPlatform.buildRustPackage rec {
   version = "0.1.0";
 
   # Use root directory as source
-  src = ../.;
+  # For local builds with submodules, we need to use the git worktree
+  src = if (builtins.pathExists ../.git)
+    then builtins.fetchGit {
+      url = ../.;
+      submodules = true;
+    }
+    else ../.;
 
   # Use the Cargo lock file
   cargoLock.lockFile = ../Cargo.lock;

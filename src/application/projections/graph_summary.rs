@@ -227,12 +227,7 @@ mod tests {
                 // Create graph
         let create_event = DomainEvent::Graph(GraphEvent::GraphCreated {
             id: graph_id,
-            metadata: GraphMetadata {
-                name: "Test Graph".to_string(),
-                description: Some("A test graph".to_string()),
-                tags: vec!["test".to_string()],
-                properties: HashMap::new(),
-            },
+            metadata: GraphMetadata::new("Test Graph".to_string()),
         });
 
         projection.handle_event(create_event, 1).await.unwrap();

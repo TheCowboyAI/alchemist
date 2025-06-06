@@ -18,6 +18,12 @@ pub struct ChainedEvent {
 /// Event chain for managing event sequences
 pub struct EventChain;
 
+impl Default for EventChain {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EventChain {
     pub fn new() -> Self {
         Self

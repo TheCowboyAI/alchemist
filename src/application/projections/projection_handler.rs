@@ -17,6 +17,7 @@ use anyhow::Result;
 
 /// Manages projection updates from event streams
 pub struct ProjectionHandler {
+    #[allow(dead_code)]
     event_store: Arc<dyn EventStore>,
     graph_summary: Arc<RwLock<GraphSummaryProjection>>,
     consumer: Option<jetstream::consumer::Consumer<jetstream::consumer::pull::Config>>,
@@ -212,12 +213,7 @@ mod tests {
         // Create test event
         let event = DomainEvent::Graph(GraphEvent::GraphCreated {
             id: graph_id,
-            metadata: GraphMetadata {
-                name: "Test Graph".to_string(),
-                description: None,
-                tags: vec![],
-                properties: HashMap::new(),
-            },
+            metadata: GraphMetadata::new("Test Graph".to_string()),
         });
 
         // Update projection

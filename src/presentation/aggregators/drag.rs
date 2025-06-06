@@ -22,9 +22,16 @@ pub struct DragAggregator {
 
 struct DragState {
     node_id: NodeId,
+    #[allow(dead_code)]
     start_position: Vec3,
     current_position: Vec3,
     is_multi_select: bool,
+}
+
+impl Default for DragAggregator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DragAggregator {
@@ -53,7 +60,7 @@ impl DragAggregator {
                 z: event.start_position.z,
             };
 
-            self.position_changes.insert(node_id, (original.clone(), original));
+            self.position_changes.insert(node_id, (original, original));
         }
     }
 
@@ -101,7 +108,7 @@ impl DragAggregator {
         let updates: Vec<(NodeId, Position3D)> = self.position_changes
             .iter()
             .filter(|(_, (original, current))| original != current)
-            .map(|(node_id, (_, current))| (*node_id, current.clone()))
+            .map(|(node_id, (_, current))| (*node_id, *current))
             .collect();
 
         if updates.is_empty() {
