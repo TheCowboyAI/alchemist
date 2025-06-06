@@ -1,821 +1,1372 @@
 {
   "metadata": {
     "name": "CIM Vocabulary Graph",
-    "description": "Graph representation of CIM vocabulary with domains as subgraphs and relationships between terms",
-    "version": "1.0.0",
-    "created": "2024-12-04"
+    "description": "Canonical source for CIM vocabulary - generates vocabulary.md and other projections",
+    "version": "2.0.0",
+    "created": "2024-12-04",
+    "updated": "2025-01-06",
+    "projection_rules": {
+      "markdown": {
+        "template": "vocabulary-template.md",
+        "grouping": "category",
+        "sorting": ["category_order", "name"],
+        "sections": [
+          "core-concepts",
+          "event-sourcing",
+          "technical",
+          "implementation-components",
+          "graph-domain",
+          "domain-events",
+          "commands",
+          "infrastructure",
+          "presentation",
+          "integration-patterns",
+          "conceptual-spaces"
+        ]
+      }
+    }
   },
-  "domains": [
+  "categories": [
     {
       "id": "core-concepts",
       "name": "Core Concepts",
-      "description": "Fundamental CIM architecture terms",
-      "color": "#4A90E2"
+      "description": "For detailed implementation, see [Architecture Overview](architecture.md)",
+      "order": 1,
+      "subcategories": [
+        {
+          "id": "architecture-terms",
+          "name": "Architecture Terms",
+          "order": 1
+        },
+        {
+          "id": "event-sourcing-terms",
+          "name": "Event Sourcing Terms",
+          "description": "For implementation details, see [Event-Sourced Architecture](event-sourced-graph-architecture.md)",
+          "order": 2
+        },
+        {
+          "id": "technical-terms",
+          "name": "Technical Terms",
+          "description": "For implementation details, see [Technical Infrastructure](technical.md)",
+          "order": 3
+        },
+        {
+          "id": "implementation-components",
+          "name": "Implementation Components",
+          "order": 4
+        }
+      ]
     },
     {
-      "id": "event-sourcing",
-      "name": "Event Sourcing",
-      "description": "Event sourcing and CQRS patterns",
-      "color": "#7B68EE"
-    },
-    {
-      "id": "technical",
-      "name": "Technical",
-      "description": "Technical infrastructure and patterns",
-      "color": "#50C878"
-    },
-    {
-      "id": "graph-domain",
-      "name": "Graph Domain",
-      "description": "Graph aggregate and related concepts",
-      "color": "#FF6B6B"
+      "id": "domain-categories",
+      "name": "Domain Categories",
+      "description": "For full domain documentation, see [Domain Categorization](domain_categorization.md)",
+      "order": 2,
+      "subcategories": [
+        {
+          "id": "graph-domain",
+          "name": "Graph Domain (Event-Sourced)",
+          "order": 1
+        },
+        {
+          "id": "identifiers",
+          "name": "Identifiers",
+          "order": 2
+        },
+        {
+          "id": "spatial-metadata",
+          "name": "Spatial and Metadata",
+          "order": 3
+        }
+      ]
     },
     {
       "id": "domain-events",
       "name": "Domain Events",
-      "description": "Event types in the system",
-      "color": "#FFD93D"
+      "order": 3,
+      "subcategories": [
+        {
+          "id": "graph-events",
+          "name": "Graph Events",
+          "order": 1
+        },
+        {
+          "id": "cid-chain-events",
+          "name": "CID Chain Events",
+          "order": 2
+        }
+      ]
     },
     {
       "id": "commands",
       "name": "Commands",
-      "description": "Command types for state changes",
-      "color": "#6BCB77"
+      "order": 4,
+      "subcategories": [
+        {
+          "id": "graph-commands",
+          "name": "Graph Commands",
+          "order": 1
+        },
+        {
+          "id": "aggregated-commands",
+          "name": "Aggregated Commands",
+          "order": 2
+        }
+      ]
     },
     {
       "id": "infrastructure",
-      "name": "Infrastructure",
-      "description": "Infrastructure components and services",
-      "color": "#FF8C42"
+      "name": "Infrastructure Components",
+      "order": 5,
+      "subcategories": [
+        {
+          "id": "event-infrastructure",
+          "name": "Event Infrastructure",
+          "order": 1
+        },
+        {
+          "id": "projections",
+          "name": "Projections",
+          "order": 2
+        },
+        {
+          "id": "command-handlers",
+          "name": "Command Handlers",
+          "order": 3
+        }
+      ]
     },
     {
-      "id": "bevy-integration",
-      "name": "Bevy Integration",
-      "description": "Bevy ECS components for visualization",
-      "color": "#C56CF0"
+      "id": "presentation",
+      "name": "Presentation Layer",
+      "order": 6,
+      "subcategories": [
+        {
+          "id": "components",
+          "name": "Components",
+          "order": 1
+        },
+        {
+          "id": "presentation-events",
+          "name": "Presentation Events",
+          "order": 2
+        },
+        {
+          "id": "aggregators",
+          "name": "Aggregators",
+          "order": 3
+        }
+      ]
     },
     {
-      "id": "knowledge-domain",
-      "name": "Knowledge Domain",
-      "description": "Knowledge management concepts",
-      "color": "#45B7D1"
+      "id": "integration-patterns",
+      "name": "Integration Patterns",
+      "order": 7
     },
     {
-      "id": "organizational",
-      "name": "Organizational",
-      "description": "Organization and user management",
-      "color": "#96CEB4"
-    },
-    {
-      "id": "business",
-      "name": "Business",
-      "description": "Business concepts and models",
-      "color": "#DDA0DD"
-    },
-    {
-      "id": "governance",
-      "name": "Governance",
-      "description": "Policies and governance",
-      "color": "#F4A460"
+      "id": "conceptual-spaces",
+      "name": "Conceptual Spaces (Planned)",
+      "order": 8
     }
   ],
-  "nodes": [
+  "terms": [
     {
       "id": "cim",
-      "label": "CIM",
-      "domain": "core-concepts",
-      "type": "concept",
-      "definition": "Composable Information Machine - A framework for building distributed systems"
+      "name": "CIM (Composable Information Machine)",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Framework",
+      "taxonomy": null,
+      "definition": "A framework for building distributed systems that transform scattered information into organized, actionable knowledge",
+      "relationships": {
+        "contains": ["leaf-node", "domain", "agent"],
+        "uses": ["event", "command", "query"]
+      },
+      "usage_context": "Overall system architecture",
+      "code_reference": null
+    },
+    {
+      "id": "leaf-node",
+      "name": "Leaf Node",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Infrastructure",
+      "taxonomy": null,
+      "definition": "A CIM Node that hosts many Containers providing services, capabilities, AI Agents, and read models, used by the CIM",
+      "relationships": {
+        "part-of": ["cim"],
+        "hosts": ["container", "agent", "read-model"]
+      },
+      "usage_context": "Distributed system deployment",
+      "code_reference": null
     },
     {
       "id": "domain",
-      "label": "Domain",
-      "domain": "core-concepts",
-      "type": "concept",
-      "definition": "A unique set of ideas and concepts that cannot be further reduced"
+      "name": "Domain",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Concept",
+      "taxonomy": null,
+      "definition": "A unique set of ideas and concepts that cannot be further reduced, representing a specific area of knowledge or business function",
+      "relationships": {
+        "part-of": ["cim"],
+        "contains": ["aggregate", "entity", "value-object"]
+      },
+      "usage_context": "Domain-driven design boundaries",
+      "code_reference": null
     },
     {
       "id": "agent",
-      "label": "Agent",
-      "domain": "core-concepts",
-      "type": "concept",
-      "definition": "A self-contained functional unit within CIM"
+      "name": "Agent",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Service",
+      "taxonomy": null,
+      "definition": "A self-contained functional unit within CIM that provides specific services (e.g., AI, communications, documentation)",
+      "relationships": {
+        "part-of": ["cim"],
+        "hosted-by": ["leaf-node"],
+        "processes": ["event", "command"]
+      },
+      "usage_context": "Autonomous service provision",
+      "code_reference": null
     },
     {
       "id": "event",
-      "label": "Event",
-      "domain": "core-concepts",
-      "type": "concept",
-      "definition": "A record of something that happened within the CIM system"
+      "name": "Event",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Message",
+      "taxonomy": null,
+      "definition": "A record of something that happened within the CIM system",
+      "relationships": {
+        "processed-by": ["agent", "event-store"],
+        "specialized-as": ["domain-event", "presentation-event"]
+      },
+      "usage_context": "System communication",
+      "code_reference": null
     },
     {
       "id": "command",
-      "label": "Command",
-      "domain": "core-concepts",
-      "type": "concept",
-      "definition": "An instruction that modifies CIM state"
+      "name": "Command",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Message",
+      "taxonomy": null,
+      "definition": "An instruction that modifies CIM state",
+      "relationships": {
+        "handled-by": ["command-handler"],
+        "produces": ["domain-event"]
+      },
+      "usage_context": "State modification",
+      "code_reference": null
     },
     {
       "id": "query",
-      "label": "Query",
-      "domain": "core-concepts",
-      "type": "concept",
-      "definition": "An instruction that observes CIM state"
+      "name": "Query",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Message",
+      "taxonomy": null,
+      "definition": "An instruction that observes CIM state",
+      "relationships": {
+        "handled-by": ["query-handler"],
+        "reads-from": ["projection", "read-model"]
+      },
+      "usage_context": "State observation",
+      "code_reference": null
+    },
+    {
+      "id": "message",
+      "name": "Message",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Concept",
+      "taxonomy": null,
+      "definition": "Any transmission within the CIM system",
+      "relationships": {
+        "specialized-as": ["event", "command", "query"]
+      },
+      "usage_context": "System communication",
+      "code_reference": null
+    },
+    {
+      "id": "observation",
+      "name": "Observation",
+      "category": "core-concepts",
+      "subcategory": "architecture-terms",
+      "type": "Concept",
+      "taxonomy": null,
+      "definition": "A snapshot of state at a particular time",
+      "relationships": {
+        "captured-by": ["query"],
+        "stored-in": ["projection"]
+      },
+      "usage_context": "State monitoring",
+      "code_reference": null
     },
     {
       "id": "domain-event",
-      "label": "Domain Event",
-      "domain": "event-sourcing",
-      "type": "pattern",
-      "definition": "A persistent business fact that represents something that happened"
+      "name": "Domain Event",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Event",
+      "taxonomy": null,
+      "definition": "A persistent business fact that represents something that happened in the domain",
+      "relationships": {
+        "specializes": ["event"],
+        "stored-in": ["event-store"],
+        "wrapped-by": ["event-envelope"],
+        "produces": ["projection"]
+      },
+      "usage_context": "Business state changes",
+      "code_reference": "src/domain/events/mod.rs"
+    },
+    {
+      "id": "presentation-event",
+      "name": "Presentation Event",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Event",
+      "taxonomy": null,
+      "definition": "A UI interaction that stays within the presentation layer (e.g., animations, drag operations)",
+      "relationships": {
+        "specializes": ["event"],
+        "aggregated-by": ["event-aggregator"],
+        "stays-in": ["presentation-layer"]
+      },
+      "usage_context": "UI state management",
+      "code_reference": "src/presentation/events/mod.rs"
     },
     {
       "id": "event-store",
-      "label": "Event Store",
-      "domain": "event-sourcing",
-      "type": "component",
-      "definition": "System for storing and managing event streams with append-only semantics"
+      "name": "Event Store",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Infrastructure",
+      "taxonomy": null,
+      "definition": "System for storing and managing event streams with append-only semantics",
+      "relationships": {
+        "stores": ["domain-event", "event-envelope"],
+        "uses": ["cid-chain"],
+        "implemented-as": ["distributed-event-store"]
+      },
+      "usage_context": "Event persistence",
+      "code_reference": "src/infrastructure/event_store/mod.rs"
     },
     {
       "id": "event-envelope",
-      "label": "Event Envelope",
-      "domain": "event-sourcing",
-      "type": "value-object",
-      "definition": "Container for an event with metadata"
+      "name": "Event Envelope",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Value Object",
+      "taxonomy": null,
+      "definition": "Container for an event with metadata including timestamp, sequence, and correlation IDs",
+      "relationships": {
+        "wraps": ["domain-event"],
+        "contains": ["event-metadata"],
+        "stored-in": ["event-store"]
+      },
+      "usage_context": "Event metadata management",
+      "code_reference": "src/domain/events/envelope.rs"
+    },
+    {
+      "id": "cid-chain",
+      "name": "CID Chain",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Cryptographic chain of Content IDs ensuring event integrity and immutability",
+      "relationships": {
+        "secures": ["event-store"],
+        "links": ["domain-event"],
+        "uses": ["ipld"]
+      },
+      "usage_context": "Event integrity verification",
+      "code_reference": "src/domain/events/cid_chain.rs"
     },
     {
       "id": "aggregate",
-      "label": "Aggregate",
-      "domain": "event-sourcing",
-      "type": "pattern",
-      "definition": "A cluster of domain objects treated as a single unit"
+      "name": "Aggregate",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "A cluster of domain objects treated as a single unit for data changes",
+      "relationships": {
+        "has": ["aggregate-root"],
+        "contains": ["entity", "value-object"],
+        "emits": ["domain-event"]
+      },
+      "usage_context": "Domain consistency boundary",
+      "code_reference": "src/domain/aggregates/mod.rs"
     },
     {
       "id": "aggregate-root",
-      "label": "Aggregate Root",
-      "domain": "event-sourcing",
-      "type": "pattern",
-      "definition": "The entry point to an aggregate that ensures consistency"
+      "name": "Aggregate Root",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "The entry point to an aggregate that ensures consistency",
+      "relationships": {
+        "entry-point-to": ["aggregate"],
+        "handles": ["command"],
+        "enforces": ["invariants"]
+      },
+      "usage_context": "Aggregate access control",
+      "code_reference": "src/domain/aggregates/mod.rs"
     },
     {
       "id": "command-handler",
-      "label": "Command Handler",
-      "domain": "event-sourcing",
-      "type": "component",
-      "definition": "Component that processes commands and generates domain events"
+      "name": "Command Handler",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Component",
+      "taxonomy": null,
+      "definition": "Component that processes commands and generates domain events",
+      "relationships": {
+        "processes": ["command"],
+        "uses": ["aggregate"],
+        "generates": ["domain-event"]
+      },
+      "usage_context": "Command processing",
+      "code_reference": "src/application/command_handlers/mod.rs"
     },
     {
       "id": "projection",
-      "label": "Projection",
-      "domain": "event-sourcing",
-      "type": "pattern",
-      "definition": "A read model built from domain events"
+      "name": "Projection",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "A read model built from domain events for query optimization",
+      "relationships": {
+        "built-from": ["domain-event"],
+        "serves": ["query"],
+        "specialized-as": ["graph-summary-projection", "external-projection"]
+      },
+      "usage_context": "Query optimization",
+      "code_reference": "src/application/projections/mod.rs"
+    },
+    {
+      "id": "event-sourcing",
+      "name": "Event Sourcing",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Architectural pattern where state changes are stored as a sequence of events",
+      "relationships": {
+        "uses": ["domain-event", "event-store"],
+        "enables": ["time-travel", "audit-trail"]
+      },
+      "usage_context": "State management pattern",
+      "code_reference": null
     },
     {
       "id": "cqrs",
-      "label": "CQRS",
-      "domain": "event-sourcing",
-      "type": "pattern",
-      "definition": "Command Query Responsibility Segregation pattern"
+      "name": "CQRS (Command Query Responsibility Segregation)",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Pattern separating read and write models",
+      "relationships": {
+        "separates": ["command", "query"],
+        "uses": ["command-handler", "projection"]
+      },
+      "usage_context": "Architecture pattern",
+      "code_reference": null
+    },
+    {
+      "id": "event-aggregator",
+      "name": "Event Aggregator",
+      "category": "core-concepts",
+      "subcategory": "event-sourcing-terms",
+      "type": "Component",
+      "taxonomy": null,
+      "definition": "Component that collects multiple presentation events into domain commands",
+      "relationships": {
+        "aggregates": ["presentation-event"],
+        "produces": ["command"],
+        "examples": ["drag-aggregator", "selection-aggregator"]
+      },
+      "usage_context": "UI event batching",
+      "code_reference": "src/presentation/aggregators/mod.rs"
     },
     {
       "id": "ddd",
-      "label": "DDD",
-      "domain": "technical",
-      "type": "methodology",
-      "definition": "Domain-Driven Design approach"
+      "name": "DDD (Domain-Driven Design)",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Methodology",
+      "taxonomy": null,
+      "definition": "A software design approach focusing on modeling software to match a domain according to expert input",
+      "relationships": {
+        "defines": ["domain", "aggregate", "bounded-context"],
+        "uses": ["ubiquitous-language"]
+      },
+      "usage_context": "Software design methodology",
+      "code_reference": null
     },
     {
       "id": "eda",
-      "label": "EDA",
-      "domain": "technical",
-      "type": "pattern",
-      "definition": "Event-Driven Architecture pattern"
+      "name": "EDA (Event-Driven Architecture)",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "An architectural pattern where components communicate through events",
+      "relationships": {
+        "uses": ["event", "event-store"],
+        "enables": ["loose-coupling", "scalability"]
+      },
+      "usage_context": "System architecture",
+      "code_reference": null
     },
     {
-      "id": "petgraph",
-      "label": "Petgraph",
-      "domain": "technical",
-      "type": "library",
-      "definition": "Rust graph data structure library"
+      "id": "ecs",
+      "name": "ECS (Entity Component System)",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Data-oriented architecture pattern used by Bevy for high-performance visualization",
+      "relationships": {
+        "used-by": ["bevy"],
+        "organizes": ["entity", "component", "system"]
+      },
+      "usage_context": "Game engine architecture",
+      "code_reference": null
     },
     {
-      "id": "bevy-ecs",
-      "label": "Bevy ECS",
-      "domain": "technical",
-      "type": "framework",
-      "definition": "Entity Component System framework for visualization"
+      "id": "nats",
+      "name": "NATS",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Infrastructure",
+      "taxonomy": null,
+      "definition": "Message broker system used for internal CIM communication",
+      "relationships": {
+        "provides": ["pub-sub", "request-reply"],
+        "hosts": ["jetstream"]
+      },
+      "usage_context": "Message infrastructure",
+      "code_reference": "src/infrastructure/nats/mod.rs"
     },
     {
-      "id": "graph",
-      "label": "Graph",
-      "domain": "graph-domain",
-      "type": "aggregate-root",
-      "definition": "Event-sourced aggregate representing nodes and edges"
+      "id": "jetstream",
+      "name": "JetStream",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Infrastructure",
+      "taxonomy": null,
+      "definition": "NATS persistence layer for reliable event storage",
+      "relationships": {
+        "part-of": ["nats"],
+        "provides": ["persistence", "replay"],
+        "used-by": ["distributed-event-store"]
+      },
+      "usage_context": "Event persistence",
+      "code_reference": "src/infrastructure/nats/jetstream.rs"
     },
     {
-      "id": "node",
-      "label": "Node",
-      "domain": "graph-domain",
-      "type": "entity",
-      "definition": "A discrete point in a graph"
+      "id": "content-addressing",
+      "name": "Content-Addressing",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Method of storing and retrieving information based on its content rather than location",
+      "relationships": {
+        "uses": ["cid", "hash"],
+        "enables": ["deduplication", "integrity"]
+      },
+      "usage_context": "Data storage pattern",
+      "code_reference": null
     },
     {
-      "id": "edge",
-      "label": "Edge",
-      "domain": "graph-domain",
-      "type": "entity",
-      "definition": "A connection between nodes"
+      "id": "ipld",
+      "name": "IPLD",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Format",
+      "taxonomy": null,
+      "definition": "InterPlanetary Linked Data format for content-addressed data structures",
+      "relationships": {
+        "uses": ["cid", "dag"],
+        "enables": ["cid-chain"]
+      },
+      "usage_context": "Data format",
+      "code_reference": "cim-ipld/src/mod.rs"
     },
     {
-      "id": "graph-id",
-      "label": "GraphId",
-      "domain": "graph-domain",
-      "type": "value-object",
-      "definition": "UUID-based identifier for graphs"
+      "id": "bevy",
+      "name": "Bevy",
+      "category": "core-concepts",
+      "subcategory": "technical-terms",
+      "type": "Framework",
+      "taxonomy": null,
+      "definition": "Rust game engine using ECS for our visualization layer",
+      "relationships": {
+        "uses": ["ecs"],
+        "provides": ["rendering", "input-handling"]
+      },
+      "usage_context": "UI framework",
+      "code_reference": null
     },
     {
-      "id": "node-id",
-      "label": "NodeId",
-      "domain": "graph-domain",
-      "type": "value-object",
-      "definition": "UUID-based identifier for nodes"
+      "id": "distributed-event-store",
+      "name": "DistributedEventStore",
+      "category": "core-concepts",
+      "subcategory": "implementation-components",
+      "type": "Service",
+      "taxonomy": null,
+      "definition": "Distributed event storage using NATS JetStream",
+      "relationships": {
+        "uses": ["nats-jetstream"],
+        "stores": ["chained-event"],
+        "indexes": ["by-aggregate", "by-sequence"]
+      },
+      "usage_context": "Distributed persistence",
+      "code_reference": "src/infrastructure/event_store/distributed_impl.rs"
     },
     {
-      "id": "edge-id",
-      "label": "EdgeId",
-      "domain": "graph-domain",
-      "type": "value-object",
-      "definition": "UUID-based identifier for edges"
-    },
-    {
-      "id": "position-3d",
-      "label": "Position3D",
-      "domain": "graph-domain",
-      "type": "value-object",
-      "definition": "3D spatial coordinates"
-    },
-    {
-      "id": "graph-metadata",
-      "label": "GraphMetadata",
-      "domain": "graph-domain",
-      "type": "value-object",
-      "definition": "Descriptive information about a graph"
-    },
-    {
-      "id": "node-content",
-      "label": "NodeContent",
-      "domain": "graph-domain",
-      "type": "value-object",
-      "definition": "Payload of a node"
-    },
-    {
-      "id": "edge-relationship",
-      "label": "EdgeRelationship",
-      "domain": "graph-domain",
-      "type": "value-object",
-      "definition": "Description of edge semantics"
-    },
-    {
-      "id": "graph-created",
-      "label": "GraphCreated",
-      "domain": "domain-events",
-      "type": "event",
-      "definition": "Record that a graph was created"
-    },
-    {
-      "id": "node-added",
-      "label": "NodeAdded",
-      "domain": "domain-events",
-      "type": "event",
-      "definition": "Record that a node was added"
-    },
-    {
-      "id": "edge-connected",
-      "label": "EdgeConnected",
-      "domain": "domain-events",
-      "type": "event",
-      "definition": "Record that an edge was established"
-    },
-    {
-      "id": "node-removed",
-      "label": "NodeRemoved",
-      "domain": "domain-events",
-      "type": "event",
-      "definition": "Record that a node was removed"
-    },
-    {
-      "id": "edge-disconnected",
-      "label": "EdgeDisconnected",
-      "domain": "domain-events",
-      "type": "event",
-      "definition": "Record that an edge was removed"
-    },
-    {
-      "id": "layout-applied",
-      "label": "LayoutApplied",
-      "domain": "domain-events",
-      "type": "event",
-      "definition": "Record that a layout algorithm was applied"
-    },
-    {
-      "id": "create-graph-cmd",
-      "label": "CreateGraph",
-      "domain": "commands",
-      "type": "command",
-      "definition": "Command to create a new graph"
-    },
-    {
-      "id": "add-node-cmd",
-      "label": "AddNode",
-      "domain": "commands",
-      "type": "command",
-      "definition": "Command to add a node"
-    },
-    {
-      "id": "connect-nodes-cmd",
-      "label": "ConnectNodes",
-      "domain": "commands",
-      "type": "command",
-      "definition": "Command to create an edge"
-    },
-    {
-      "id": "event-store-impl",
-      "label": "EventStore",
-      "domain": "infrastructure",
-      "type": "service",
-      "definition": "Append-only store for domain events"
-    },
-    {
-      "id": "graph-repository",
-      "label": "GraphRepository",
-      "domain": "infrastructure",
-      "type": "repository",
-      "definition": "Repository for graph aggregates"
-    },
-    {
-      "id": "graph-read-model",
-      "label": "GraphReadModel",
-      "domain": "infrastructure",
-      "type": "read-model",
-      "definition": "Optimized read model using Petgraph"
-    },
-    {
-      "id": "graph-command-handler",
-      "label": "GraphCommandHandler",
-      "domain": "infrastructure",
-      "type": "service",
-      "definition": "Handles graph commands"
-    },
-    {
-      "id": "graph-node-component",
-      "label": "GraphNode",
-      "domain": "bevy-integration",
-      "type": "component",
-      "definition": "ECS component for visual nodes"
-    },
-    {
-      "id": "graph-edge-component",
-      "label": "GraphEdge",
-      "domain": "bevy-integration",
-      "type": "component",
-      "definition": "ECS component for visual edges"
-    },
-    {
-      "id": "domain-event-occurred",
-      "label": "DomainEventOccurred",
-      "domain": "bevy-integration",
-      "type": "event",
-      "definition": "Bevy event wrapping domain events"
+      "id": "object-store",
+      "name": "Object Store",
+      "category": "core-concepts",
+      "subcategory": "implementation-components",
+      "type": "Service",
+      "taxonomy": null,
+      "definition": "System for storing immutable data with content addressing",
+      "relationships": {
+        "uses": ["content-addressing", "cid"],
+        "stores": ["large-payload"]
+      },
+      "usage_context": "Large data storage",
+      "code_reference": "src/infrastructure/object_store/mod.rs"
     },
     {
       "id": "event-bridge",
-      "label": "EventBridge",
-      "domain": "bevy-integration",
-      "type": "system",
-      "definition": "System polling EventStore"
+      "name": "Event Bridge",
+      "category": "core-concepts",
+      "subcategory": "implementation-components",
+      "type": "Service",
+      "taxonomy": null,
+      "definition": "Async/sync bridge between NATS and Bevy ECS",
+      "relationships": {
+        "connects": ["nats", "bevy"],
+        "uses": ["crossbeam-channel"],
+        "manages": ["event-flow"]
+      },
+      "usage_context": "System integration",
+      "code_reference": "src/infrastructure/event_bridge/mod.rs"
     },
     {
-      "id": "fact",
-      "label": "Fact",
-      "domain": "knowledge-domain",
-      "type": "entity",
-      "definition": "A proven claim with verifiable evidence"
+      "id": "projection-handler",
+      "name": "Projection Handler",
+      "category": "core-concepts",
+      "subcategory": "implementation-components",
+      "type": "Service",
+      "taxonomy": null,
+      "definition": "System that updates read models from events",
+      "relationships": {
+        "processes": ["domain-event"],
+        "updates": ["projection"],
+        "manages": ["checkpoint"]
+      },
+      "usage_context": "Read model updates",
+      "code_reference": "src/application/projections/mod.rs"
     },
     {
-      "id": "claim",
-      "label": "Claim",
-      "domain": "knowledge-domain",
-      "type": "entity",
-      "definition": "An idea with repeatable construction"
+      "id": "external-projection",
+      "name": "External Projection",
+      "category": "core-concepts",
+      "subcategory": "implementation-components",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Projection that syncs with external systems bidirectionally",
+      "relationships": {
+        "specializes": ["projection"],
+        "uses": ["ingest-handler"],
+        "enables": ["bidirectional-sync"]
+      },
+      "usage_context": "External integration",
+      "code_reference": "src/application/projections/external/mod.rs"
     },
     {
-      "id": "theory",
-      "label": "Theory",
-      "domain": "knowledge-domain",
-      "type": "aggregate",
-      "definition": "A belief with supporting context"
+      "id": "repository",
+      "name": "Repository",
+      "category": "core-concepts",
+      "subcategory": "implementation-components",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Pattern for aggregate persistence and retrieval",
+      "relationships": {
+        "loads": ["aggregate"],
+        "uses": ["event-store"],
+        "provides": ["persistence-abstraction"]
+      },
+      "usage_context": "Data access layer",
+      "code_reference": "src/infrastructure/repositories/mod.rs"
     },
     {
-      "id": "organization",
-      "label": "Organization",
-      "domain": "organizational",
-      "type": "entity",
-      "definition": "A structural entity"
+      "id": "read-model",
+      "name": "Read Model",
+      "category": "core-concepts",
+      "subcategory": "implementation-components",
+      "type": "Pattern",
+      "taxonomy": null,
+      "definition": "Optimized data structure for queries, built from events",
+      "relationships": {
+        "built-from": ["domain-event"],
+        "serves": ["query"],
+        "example": ["graph-summary-projection"]
+      },
+      "usage_context": "Query optimization",
+      "code_reference": "src/application/projections/mod.rs"
     },
     {
-      "id": "operator",
-      "label": "Operator",
-      "domain": "organizational",
-      "type": "entity",
-      "definition": "System controller"
+      "id": "graph",
+      "name": "Graph",
+      "category": "domain-categories",
+      "subcategory": "graph-domain",
+      "type": "Aggregate Root",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "An event-sourced aggregate representing a collection of nodes and edges with full history tracking",
+      "relationships": {
+        "contains": ["node", "edge"],
+        "has": ["graph-id", "graph-metadata", "version"],
+        "emits": ["graph-created", "graph-renamed", "graph-deleted"]
+      },
+      "usage_context": "Primary aggregate for organizing and visualizing relationships",
+      "code_reference": "src/domain/aggregates/graph.rs"
     },
     {
-      "id": "account",
-      "label": "Account",
-      "domain": "organizational",
-      "type": "entity",
-      "definition": "A managed group or entity"
+      "id": "node",
+      "name": "Node",
+      "category": "domain-categories",
+      "subcategory": "graph-domain",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "An immutable point in a graph representing a single concept",
+      "relationships": {
+        "part-of": ["graph"],
+        "has": ["node-id", "node-content", "position-3d"],
+        "connected-by": ["edge"],
+        "created-by": ["node-added"]
+      },
+      "usage_context": "Fundamental unit of information within a graph",
+      "code_reference": "src/domain/value_objects.rs"
     },
     {
-      "id": "user",
-      "label": "User",
-      "domain": "organizational",
-      "type": "entity",
-      "definition": "A managed person"
+      "id": "edge",
+      "name": "Edge",
+      "category": "domain-categories",
+      "subcategory": "graph-domain",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "An immutable connection between nodes representing a relationship",
+      "relationships": {
+        "part-of": ["graph"],
+        "connects": ["node"],
+        "has": ["edge-id", "edge-relationship"],
+        "created-by": ["edge-added"]
+      },
+      "usage_context": "Defining relationships between nodes",
+      "code_reference": "src/domain/value_objects.rs"
     },
     {
-      "id": "business-model",
-      "label": "Business Model",
-      "domain": "business",
-      "type": "aggregate",
-      "definition": "Operational framework for value creation"
+      "id": "graph-model",
+      "name": "GraphModel",
+      "category": "domain-categories",
+      "subcategory": "graph-domain",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "Recognition of standard graph patterns (K7, C5, State Machines, etc.)",
+      "relationships": {
+        "describes": ["graph"],
+        "enables": ["structure-preserving-morphism"],
+        "used-by": ["hud-system"]
+      },
+      "usage_context": "Pattern recognition and graph transformations",
+      "code_reference": "src/domain/value_objects.rs"
     },
     {
-      "id": "value-proposition",
-      "label": "Value Proposition",
-      "domain": "business",
-      "type": "entity",
-      "definition": "Benefit offering to stakeholders"
+      "id": "graph-id",
+      "name": "GraphId",
+      "category": "domain-categories",
+      "subcategory": "identifiers",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "An immutable UUID-based identifier for a graph aggregate",
+      "relationships": {
+        "identifies": ["graph"],
+        "used-in": ["graph-command", "graph-event"]
+      },
+      "usage_context": "Ensuring unique identification across event streams",
+      "code_reference": "src/domain/value_objects.rs"
     },
     {
-      "id": "solution",
-      "label": "Solution",
-      "domain": "business",
-      "type": "entity",
-      "definition": "Resolution to a defined problem"
+      "id": "node-id",
+      "name": "NodeId",
+      "category": "domain-categories",
+      "subcategory": "identifiers",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "An immutable UUID-based identifier for nodes",
+      "relationships": {
+        "identifies": ["node"],
+        "referenced-by": ["edge", "command", "event"]
+      },
+      "usage_context": "Unique identification in event-sourced operations",
+      "code_reference": "src/domain/value_objects.rs"
     },
     {
-      "id": "policy",
-      "label": "Policy",
-      "domain": "governance",
-      "type": "service",
-      "definition": "Operational guideline"
+      "id": "edge-id",
+      "name": "EdgeId",
+      "category": "domain-categories",
+      "subcategory": "identifiers",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "An immutable UUID-based identifier for edges",
+      "relationships": {
+        "identifies": ["edge"],
+        "links": ["node-id"]
+      },
+      "usage_context": "Tracking edge lifecycle through events",
+      "code_reference": "src/domain/value_objects.rs"
     },
     {
-      "id": "ethics",
-      "label": "Ethics",
-      "domain": "governance",
-      "type": "service",
-      "definition": "Moral principles"
+      "id": "position-3d",
+      "name": "Position3D",
+      "category": "domain-categories",
+      "subcategory": "spatial-metadata",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "Immutable 3D spatial coordinates for node positioning",
+      "relationships": {
+        "positions": ["node"],
+        "updated-by": ["node-moved"]
+      },
+      "usage_context": "Spatial positioning for visualization",
+      "code_reference": "src/domain/value_objects.rs"
+    },
+    {
+      "id": "graph-metadata",
+      "name": "GraphMetadata",
+      "category": "domain-categories",
+      "subcategory": "spatial-metadata",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "Immutable descriptive information about a graph",
+      "relationships": {
+        "describes": ["graph"],
+        "contains": ["name", "bounded-context", "created-at", "updated-at", "tags"]
+      },
+      "usage_context": "Graph identification and search",
+      "code_reference": "src/domain/value_objects.rs"
+    },
+    {
+      "id": "node-content",
+      "name": "NodeContent",
+      "category": "domain-categories",
+      "subcategory": "spatial-metadata",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "Immutable payload of a node including label and properties",
+      "relationships": {
+        "contained-in": ["node"],
+        "has": ["label", "node-type", "properties"]
+      },
+      "usage_context": "Storing node information",
+      "code_reference": "src/domain/value_objects.rs"
+    },
+    {
+      "id": "edge-relationship",
+      "name": "EdgeRelationship",
+      "category": "domain-categories",
+      "subcategory": "spatial-metadata",
+      "type": "Value Object",
+      "taxonomy": "Graph Taxonomy",
+      "definition": "Immutable description of edge semantics",
+      "relationships": {
+        "defines": ["edge"],
+        "contains": ["relation-type", "strength"]
+      },
+      "usage_context": "Qualifying relationships",
+      "code_reference": "src/domain/value_objects.rs"
+    },
+    {
+      "id": "graph-created",
+      "name": "GraphCreated",
+      "category": "domain-events",
+      "subcategory": "graph-events",
+      "type": "Event",
+      "taxonomy": "Graph Events",
+      "definition": "Immutable record that a new graph aggregate was created",
+      "relationships": {
+        "contains": ["graph-id", "graph-metadata"],
+        "stored-in": ["event-store"],
+        "projected-to": ["graph-summary-projection"]
+      },
+      "usage_context": "Graph lifecycle tracking",
+      "code_reference": "src/domain/events/mod.rs"
+    },
+    {
+      "id": "node-added",
+      "name": "NodeAdded",
+      "category": "domain-events",
+      "subcategory": "graph-events",
+      "type": "Event",
+      "taxonomy": "Graph Events",
+      "definition": "Immutable record that a node was added to a graph",
+      "relationships": {
+        "contains": ["graph-id", "node-id", "node-content", "position-3d"],
+        "updates": ["graph"],
+        "triggers": ["visual-entity-creation"]
+      },
+      "usage_context": "Node creation tracking",
+      "code_reference": "src/domain/events/mod.rs"
+    },
+    {
+      "id": "edge-added",
+      "name": "EdgeAdded",
+      "category": "domain-events",
+      "subcategory": "graph-events",
+      "type": "Event",
+      "taxonomy": "Graph Events",
+      "definition": "Immutable record that an edge was established",
+      "relationships": {
+        "contains": ["graph-id", "edge-id", "source", "target", "edge-relationship"],
+        "updates": ["graph"],
+        "triggers": ["edge-visualization"]
+      },
+      "usage_context": "Relationship establishment",
+      "code_reference": "src/domain/events/mod.rs"
+    },
+    {
+      "id": "node-removed",
+      "name": "NodeRemoved",
+      "category": "domain-events",
+      "subcategory": "graph-events",
+      "type": "Event",
+      "taxonomy": "Graph Events",
+      "definition": "Immutable record that a node was removed",
+      "relationships": {
+        "contains": ["graph-id", "node-id"],
+        "cascades": ["edge-removal"]
+      },
+      "usage_context": "Node deletion tracking",
+      "code_reference": "src/domain/events/mod.rs"
+    },
+    {
+      "id": "edge-removed",
+      "name": "EdgeRemoved",
+      "category": "domain-events",
+      "subcategory": "graph-events",
+      "type": "Event",
+      "taxonomy": "Graph Events",
+      "definition": "Immutable record that an edge was removed",
+      "relationships": {
+        "contains": ["graph-id", "edge-id"],
+        "updates": ["graph"]
+      },
+      "usage_context": "Relationship removal",
+      "code_reference": "src/domain/events/mod.rs"
+    },
+    {
+      "id": "chained-event",
+      "name": "ChainedEvent",
+      "category": "domain-events",
+      "subcategory": "cid-chain-events",
+      "type": "Event Wrapper",
+      "taxonomy": "Event Infrastructure",
+      "definition": "Event wrapper that includes CID chain information",
+      "relationships": {
+        "contains": ["event", "cid", "previous-cid"],
+        "ensures": ["cryptographic-integrity"],
+        "part-of": ["event-chain"]
+      },
+      "usage_context": "Tamper-proof event history",
+      "code_reference": "src/domain/events/cid_chain.rs"
+    },
+    {
+      "id": "create-graph",
+      "name": "CreateGraph",
+      "category": "commands",
+      "subcategory": "graph-commands",
+      "type": "Command",
+      "taxonomy": "Graph Commands",
+      "definition": "Command to create a new graph aggregate",
+      "relationships": {
+        "contains": ["graph-metadata"],
+        "produces": ["graph-created"],
+        "handled-by": ["graph-command-handler"]
+      },
+      "usage_context": "Graph initialization",
+      "code_reference": "src/domain/commands/mod.rs"
+    },
+    {
+      "id": "add-node",
+      "name": "AddNode",
+      "category": "commands",
+      "subcategory": "graph-commands",
+      "type": "Command",
+      "taxonomy": "Graph Commands",
+      "definition": "Command to add a node to a graph",
+      "relationships": {
+        "contains": ["graph-id", "node-content", "position-3d"],
+        "produces": ["node-added"],
+        "validates": ["graph-exists"]
+      },
+      "usage_context": "Node creation",
+      "code_reference": "src/domain/commands/mod.rs"
+    },
+    {
+      "id": "add-edge",
+      "name": "AddEdge",
+      "category": "commands",
+      "subcategory": "graph-commands",
+      "type": "Command",
+      "taxonomy": "Graph Commands",
+      "definition": "Command to create an edge between nodes",
+      "relationships": {
+        "contains": ["graph-id", "source", "target", "edge-relationship"],
+        "produces": ["edge-added"],
+        "validates": ["nodes-exist"]
+      },
+      "usage_context": "Relationship creation",
+      "code_reference": "src/domain/commands/mod.rs"
+    },
+    {
+      "id": "move-nodes",
+      "name": "MoveNodes",
+      "category": "commands",
+      "subcategory": "aggregated-commands",
+      "type": "Aggregated Command",
+      "taxonomy": "Graph Commands",
+      "definition": "Command aggregated from multiple drag events",
+      "relationships": {
+        "aggregated-from": ["drag-started", "drag-updated", "drag-ended"],
+        "contains": ["node-positions"],
+        "produces": ["node-moved"]
+      },
+      "usage_context": "Batch position updates from UI interactions",
+      "code_reference": "src/domain/commands/aggregated_commands.rs"
+    },
+    {
+      "id": "distributed-event-store",
+      "name": "DistributedEventStore",
+      "category": "infrastructure",
+      "subcategory": "event-infrastructure",
+      "type": "Service",
+      "taxonomy": "Event Sourcing Infrastructure",
+      "definition": "NATS JetStream-based distributed event store",
+      "relationships": {
+        "uses": ["nats-jetstream"],
+        "stores": ["chained-event"],
+        "indexes": ["by-aggregate", "by-sequence"]
+      },
+      "usage_context": "Distributed event persistence",
+      "code_reference": "src/infrastructure/event_store/distributed_impl.rs"
+    },
+    {
+      "id": "event-bridge-impl",
+      "name": "EventBridge",
+      "category": "infrastructure",
+      "subcategory": "event-infrastructure",
+      "type": "Service",
+      "taxonomy": "Integration Infrastructure",
+      "definition": "Bidirectional bridge between async NATS and sync Bevy",
+      "relationships": {
+        "connects": ["nats-client", "bevy-ecs"],
+        "uses": ["crossbeam-channels"],
+        "manages": ["event-flow"]
+      },
+      "usage_context": "Async/sync integration",
+      "code_reference": "src/infrastructure/event_bridge/mod.rs"
+    },
+    {
+      "id": "graph-summary-projection",
+      "name": "GraphSummaryProjection",
+      "category": "infrastructure",
+      "subcategory": "projections",
+      "type": "Read Model",
+      "taxonomy": "CQRS Infrastructure",
+      "definition": "Optimized read model for graph summaries",
+      "relationships": {
+        "projects-from": ["graph-events"],
+        "contains": ["graph-summary-data"],
+        "serves": ["summary-queries"]
+      },
+      "usage_context": "Fast graph overview queries",
+      "code_reference": "src/application/projections/graph_summary.rs"
+    },
+    {
+      "id": "external-projection-impl",
+      "name": "ExternalProjection",
+      "category": "infrastructure",
+      "subcategory": "projections",
+      "type": "Integration Pattern",
+      "taxonomy": "CQRS Infrastructure",
+      "definition": "Projection that syncs with external systems",
+      "relationships": {
+        "implements": ["bidirectional-sync"],
+        "uses": ["ingest-handler"],
+        "manages": ["external-state"]
+      },
+      "usage_context": "External system integration",
+      "code_reference": "src/application/projections/external/mod.rs"
+    },
+    {
+      "id": "graph-command-handler",
+      "name": "GraphCommandHandler",
+      "category": "infrastructure",
+      "subcategory": "command-handlers",
+      "type": "Service",
+      "taxonomy": "CQRS Infrastructure",
+      "definition": "Handles graph commands and generates events",
+      "relationships": {
+        "processes": ["graph-commands"],
+        "uses": ["graph-aggregate"],
+        "generates": ["domain-events"]
+      },
+      "usage_context": "Command processing",
+      "code_reference": "src/application/command_handlers/graph_handler.rs"
+    },
+    {
+      "id": "graph-node-component",
+      "name": "GraphNode (Component)",
+      "category": "presentation",
+      "subcategory": "components",
+      "type": "Component",
+      "taxonomy": "Bevy ECS",
+      "definition": "ECS component linking visual entities to domain nodes",
+      "relationships": {
+        "references": ["node-id", "graph-id"],
+        "attached-to": ["visual-entities"],
+        "created-by": ["event-systems"]
+      },
+      "usage_context": "Visual representation",
+      "code_reference": "src/presentation/components/mod.rs"
+    },
+    {
+      "id": "graph-edge-component",
+      "name": "GraphEdge (Component)",
+      "category": "presentation",
+      "subcategory": "components",
+      "type": "Component",
+      "taxonomy": "Bevy ECS",
+      "definition": "ECS component for edge visualization",
+      "relationships": {
+        "references": ["edge-id", "source", "target"],
+        "attached-to": ["edge-visuals"]
+      },
+      "usage_context": "Edge rendering",
+      "code_reference": "src/presentation/components/mod.rs"
+    },
+    {
+      "id": "drag-started",
+      "name": "DragStarted",
+      "category": "presentation",
+      "subcategory": "presentation-events",
+      "type": "UI Event",
+      "taxonomy": "Bevy Events",
+      "definition": "Event when user starts dragging a node",
+      "relationships": {
+        "contains": ["node-id", "start-position"],
+        "part-of": ["drag-sequence"],
+        "aggregated-to": ["move-nodes"]
+      },
+      "usage_context": "UI interaction tracking",
+      "code_reference": "src/presentation/events/interaction.rs"
+    },
+    {
+      "id": "animation-frame",
+      "name": "AnimationFrame",
+      "category": "presentation",
+      "subcategory": "presentation-events",
+      "type": "Animation Event",
+      "taxonomy": "Bevy Events",
+      "definition": "Event for animation progress updates",
+      "relationships": {
+        "contains": ["progress", "target"],
+        "stays-in": ["presentation-layer"],
+        "never-becomes": ["domain-event"]
+      },
+      "usage_context": "Smooth visual transitions",
+      "code_reference": "src/presentation/events/animation.rs"
+    },
+    {
+      "id": "drag-aggregator",
+      "name": "DragAggregator",
+      "category": "presentation",
+      "subcategory": "aggregators",
+      "type": "Aggregator",
+      "taxonomy": "Event Aggregation",
+      "definition": "Collects drag events into move commands",
+      "relationships": {
+        "processes": ["drag-started", "drag-updated", "drag-ended"],
+        "produces": ["move-nodes"],
+        "manages": ["drag-state"]
+      },
+      "usage_context": "UI event aggregation",
+      "code_reference": "src/presentation/aggregators/drag.rs"
+    },
+    {
+      "id": "selection-aggregator",
+      "name": "SelectionAggregator",
+      "category": "presentation",
+      "subcategory": "aggregators",
+      "type": "Aggregator",
+      "taxonomy": "Event Aggregation",
+      "definition": "Manages node selection state",
+      "relationships": {
+        "processes": ["node-clicked", "selection-cleared"],
+        "maintains": ["selected-set"],
+        "emits": ["selection-changed"]
+      },
+      "usage_context": "Multi-selection handling",
+      "code_reference": "src/presentation/aggregators/selection.rs"
+    },
+    {
+      "id": "bidirectional-event-flow",
+      "name": "Bidirectional Event Flow",
+      "category": "integration-patterns",
+      "subcategory": null,
+      "type": "Integration Pattern",
+      "taxonomy": "System Integration",
+      "definition": "Pattern for two-way event synchronization with external systems",
+      "relationships": {
+        "uses": ["external-projection", "ingest-handler"],
+        "enables": ["system-integration"],
+        "maintains": ["consistency"]
+      },
+      "usage_context": "CRM, ERP, Analytics integration",
+      "code_reference": "Design document"
+    },
+    {
+      "id": "event-correlation",
+      "name": "Event Correlation",
+      "category": "integration-patterns",
+      "subcategory": null,
+      "type": "Pattern",
+      "taxonomy": "System Integration",
+      "definition": "Matching external events to internal domain events",
+      "relationships": {
+        "maps": ["external-to-internal"],
+        "uses": ["correlation-rules"],
+        "part-of": ["bidirectional-flow"]
+      },
+      "usage_context": "External event processing",
+      "code_reference": "src/application/projections/external/mod.rs"
+    },
+    {
+      "id": "conceptual-point",
+      "name": "ConceptualPoint",
+      "category": "conceptual-spaces",
+      "subcategory": null,
+      "type": "Value Object",
+      "taxonomy": "Conceptual Space",
+      "definition": "Position in semantic space representing meaning",
+      "relationships": {
+        "positions": ["concepts"],
+        "enables": ["similarity-calculation"],
+        "maps-to": ["visual-position"]
+      },
+      "usage_context": "Semantic positioning",
+      "code_reference": "TBD"
+    },
+    {
+      "id": "conceptual-space",
+      "name": "ConceptualSpace",
+      "category": "conceptual-spaces",
+      "subcategory": null,
+      "type": "Aggregate",
+      "taxonomy": "Conceptual Space",
+      "definition": "Multi-dimensional space for semantic representation",
+      "relationships": {
+        "contains": ["conceptual-points"],
+        "defines": ["dimensions"],
+        "enables": ["ai-reasoning"]
+      },
+      "usage_context": "Knowledge representation",
+      "code_reference": "TBD"
     }
   ],
-  "edges": [
+  "relationships": [
     {
-      "id": "e1",
+      "id": "r1",
+      "type": "contains",
+      "source": "cim",
+      "target": "leaf-node",
+      "bidirectional": false
+    },
+    {
+      "id": "r2",
+      "type": "hosts",
+      "source": "leaf-node",
+      "target": "agent",
+      "bidirectional": false
+    },
+    {
+      "id": "r3",
+      "type": "specializes",
       "source": "domain-event",
       "target": "event",
-      "relationship": "specializes",
-      "label": "is-a"
+      "bidirectional": false
     },
     {
-      "id": "e2",
-      "source": "event-store-impl",
-      "target": "event-store",
-      "relationship": "implements",
-      "label": "implements"
-    },
-    {
-      "id": "e3",
-      "source": "event-envelope",
+      "id": "r4",
+      "type": "stores",
+      "source": "event-store",
       "target": "domain-event",
-      "relationship": "contains",
-      "label": "wraps"
+      "bidirectional": false
     },
     {
-      "id": "e4",
-      "source": "graph",
-      "target": "aggregate-root",
-      "relationship": "implements",
-      "label": "is-a"
-    },
-    {
-      "id": "e5",
-      "source": "graph",
-      "target": "node",
-      "relationship": "contains",
-      "label": "contains"
-    },
-    {
-      "id": "e6",
-      "source": "graph",
-      "target": "edge",
-      "relationship": "contains",
-      "label": "contains"
-    },
-    {
-      "id": "e7",
-      "source": "node",
-      "target": "node-id",
-      "relationship": "identified-by",
-      "label": "has"
-    },
-    {
-      "id": "e8",
-      "source": "edge",
-      "target": "edge-id",
-      "relationship": "identified-by",
-      "label": "has"
-    },
-    {
-      "id": "e9",
-      "source": "graph",
-      "target": "graph-id",
-      "relationship": "identified-by",
-      "label": "has"
-    },
-    {
-      "id": "e10",
-      "source": "edge",
-      "target": "node",
-      "relationship": "connects",
-      "label": "connects"
-    },
-    {
-      "id": "e11",
+      "id": "r5",
+      "type": "processes",
       "source": "command-handler",
       "target": "command",
-      "relationship": "processes",
-      "label": "handles"
+      "bidirectional": false
     },
     {
-      "id": "e12",
+      "id": "r6",
+      "type": "generates",
       "source": "command-handler",
       "target": "domain-event",
-      "relationship": "produces",
-      "label": "emits"
+      "bidirectional": false
     },
     {
-      "id": "e13",
-      "source": "graph-command-handler",
-      "target": "command-handler",
-      "relationship": "implements",
-      "label": "is-a"
-    },
-    {
-      "id": "e14",
-      "source": "create-graph-cmd",
-      "target": "graph-created",
-      "relationship": "produces",
-      "label": "generates"
-    },
-    {
-      "id": "e15",
-      "source": "add-node-cmd",
-      "target": "node-added",
-      "relationship": "produces",
-      "label": "generates"
-    },
-    {
-      "id": "e16",
-      "source": "connect-nodes-cmd",
-      "target": "edge-connected",
-      "relationship": "produces",
-      "label": "generates"
-    },
-    {
-      "id": "e17",
-      "source": "event-store-impl",
-      "target": "event-envelope",
-      "relationship": "stores",
-      "label": "persists"
-    },
-    {
-      "id": "e18",
-      "source": "graph-repository",
-      "target": "event-store-impl",
-      "relationship": "uses",
-      "label": "queries"
-    },
-    {
-      "id": "e19",
-      "source": "graph-repository",
-      "target": "graph",
-      "relationship": "manages",
-      "label": "loads/saves"
-    },
-    {
-      "id": "e20",
+      "id": "r7",
+      "type": "built-from",
       "source": "projection",
       "target": "domain-event",
-      "relationship": "built-from",
-      "label": "projects"
+      "bidirectional": false
     },
     {
-      "id": "e21",
-      "source": "graph-read-model",
-      "target": "projection",
-      "relationship": "implements",
-      "label": "is-a"
-    },
-    {
-      "id": "e22",
-      "source": "graph-read-model",
-      "target": "petgraph",
-      "relationship": "uses",
-      "label": "powered-by"
-    },
-    {
-      "id": "e23",
-      "source": "cqrs",
-      "target": "command",
-      "relationship": "separates",
-      "label": "write-model"
-    },
-    {
-      "id": "e24",
-      "source": "cqrs",
-      "target": "query",
-      "relationship": "separates",
-      "label": "read-model"
-    },
-    {
-      "id": "e25",
-      "source": "event-bridge",
-      "target": "event-store-impl",
-      "relationship": "polls",
-      "label": "reads-from"
-    },
-    {
-      "id": "e26",
-      "source": "event-bridge",
-      "target": "domain-event-occurred",
-      "relationship": "emits",
-      "label": "publishes"
-    },
-    {
-      "id": "e27",
-      "source": "domain-event-occurred",
-      "target": "event-envelope",
-      "relationship": "contains",
-      "label": "wraps"
-    },
-    {
-      "id": "e28",
-      "source": "graph-node-component",
-      "target": "node-id",
-      "relationship": "references",
-      "label": "links-to"
-    },
-    {
-      "id": "e29",
-      "source": "graph-edge-component",
-      "target": "edge-id",
-      "relationship": "references",
-      "label": "links-to"
-    },
-    {
-      "id": "e30",
-      "source": "graph-node-component",
-      "target": "bevy-ecs",
-      "relationship": "component-of",
-      "label": "uses"
-    },
-    {
-      "id": "e31",
-      "source": "graph-edge-component",
-      "target": "bevy-ecs",
-      "relationship": "component-of",
-      "label": "uses"
-    },
-    {
-      "id": "e32",
-      "source": "node",
-      "target": "node-content",
-      "relationship": "contains",
-      "label": "has"
-    },
-    {
-      "id": "e33",
-      "source": "node",
-      "target": "position-3d",
-      "relationship": "positioned-at",
-      "label": "has"
-    },
-    {
-      "id": "e34",
-      "source": "edge",
-      "target": "edge-relationship",
-      "relationship": "describes",
-      "label": "has"
-    },
-    {
-      "id": "e35",
+      "id": "r8",
+      "type": "contains",
       "source": "graph",
-      "target": "graph-metadata",
-      "relationship": "describes",
-      "label": "has"
+      "target": "node",
+      "bidirectional": false
     },
     {
-      "id": "e36",
-      "source": "aggregate",
-      "target": "ddd",
-      "relationship": "pattern-of",
-      "label": "from"
+      "id": "r9",
+      "type": "contains",
+      "source": "graph",
+      "target": "edge",
+      "bidirectional": false
     },
     {
-      "id": "e37",
-      "source": "domain-event",
-      "target": "eda",
-      "relationship": "pattern-of",
-      "label": "implements"
-    },
-    {
-      "id": "e38",
-      "source": "fact",
-      "target": "claim",
-      "relationship": "validates",
-      "label": "proves"
-    },
-    {
-      "id": "e39",
-      "source": "theory",
-      "target": "claim",
-      "relationship": "contains",
-      "label": "uses"
-    },
-    {
-      "id": "e40",
-      "source": "theory",
-      "target": "fact",
-      "relationship": "supported-by",
-      "label": "uses"
-    },
-    {
-      "id": "e41",
-      "source": "account",
-      "target": "user",
-      "relationship": "contains",
-      "label": "manages"
-    },
-    {
-      "id": "e42",
-      "source": "operator",
-      "target": "account",
-      "relationship": "contains",
-      "label": "manages"
-    },
-    {
-      "id": "e43",
-      "source": "organization",
-      "target": "operator",
-      "relationship": "has",
-      "label": "operated-by"
-    },
-    {
-      "id": "e44",
-      "source": "value-proposition",
-      "target": "business-model",
-      "relationship": "part-of",
-      "label": "supports"
-    },
-    {
-      "id": "e45",
-      "source": "solution",
-      "target": "value-proposition",
-      "relationship": "implements",
-      "label": "delivers"
-    },
-    {
-      "id": "e46",
-      "source": "policy",
-      "target": "ethics",
-      "relationship": "guided-by",
-      "label": "follows"
-    },
-    {
-      "id": "e47",
-      "source": "agent",
-      "target": "cim",
-      "relationship": "component-of",
-      "label": "within"
-    },
-    {
-      "id": "e48",
-      "source": "domain",
-      "target": "cim",
-      "relationship": "organizes",
-      "label": "structures"
+      "id": "r10",
+      "type": "connects",
+      "source": "edge",
+      "target": "node",
+      "bidirectional": true
     }
   ]
 }
