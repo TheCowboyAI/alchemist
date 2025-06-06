@@ -1,3 +1,7 @@
 [submodule "cim-ipld"]
 	path = cim-ipld
 	url = https://github.com/TheCowboyAI/cim-ipld.git
+
+[submodule "bevy-patched"]
+	path = bevy-patched
+	url = https://github.com/bevyengine/bevy.git
