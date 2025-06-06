@@ -87,7 +87,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Content addressing
 cim-ipld = { path = "cim-ipld" }
-cid = "0.11"
+cid = { version = "0.11", features = ["serde"] }
 multihash = { version = "0.19", features = ["std"] }
 blake3 = "1.5"
 

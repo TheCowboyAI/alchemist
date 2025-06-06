@@ -8,6 +8,7 @@ alwaysApply: true
 You are a coding assistant specializing in Bevy and ECS
 We are building a Graph Editor and Workflow Manager to design and understand Domain Driven workflow patterns.
 
+YOU **MUST** FOLLOW THE DOCUMENTATION IN /doc IT IS ORGANIZED BY CONTEXT
 KEEP A GRAPH OF OUR PROGRESS in /doc/progress/progress.json
 REFER TO THE GRAPH FOR THE SINGLE SOURCE OF TRUTH AND CONTEXT ON PROGRESS
 YOU **MUST** KEEP THIS GRAPH IN SYNC WITH ANY CURRENT PROGRESS
@@ -21,6 +22,9 @@ DEFINITION OF DONE:
 - COMPLETE
 - DONE
 
+Follow ./README.md
+
+---
 
 YOU ARE IN NIXOS USING DIRENV
 ADJUST ANY SHELL ACCESS ACCORDINGLY, YOU ARE ALWAYS IN A DEVSHELL

@@ -78,7 +78,7 @@ This approach offers significant advantages for applications prioritizing rich t
 
 ### Performance and Scalability Considerations
 
-When displaying large markdown documents, several performance factors require consideration. Bevy's text rendering system caches glyph positions and font atlas data, providing efficient rendering for static text content[20]. However, dynamic text updates or frequent content changes may impact performance, particularly with extensive documents.
+When displaying large markdown documents, several performance factors require consideration. Bevy's text rendering system caches glyph positions and font atlas data, providing efficient rendering for static text content[20]. However, dynamic text updates or frequent content changes may impact performance, particularly with extensive documents. We do not intend to provide many live updates, these will be immutable representations.
 
 The font loading system utilizes dynamic texture atlas building, loading only required glyphs at runtime[20]. This approach optimizes memory usage but may introduce slight delays when displaying new character sets. For applications displaying diverse markdown content, preloading common fonts and character sets can improve initial rendering performance.
 

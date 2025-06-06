@@ -480,6 +480,32 @@
       }
     },
     {
+      "id": "presentation-domain-separation",
+      "label": "Presentation vs Domain Event Separation",
+      "type": "milestone",
+      "position": { "x": 800, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-02",
+        "description": "Clarified architectural separation between presentation and domain events",
+        "details": [
+          "Created comprehensive documentation on event separation",
+          "Defined presentation events (animations, UI state) vs domain events",
+          "Documented graph model recognition (K7, C5, state machines)",
+          "Designed structure-preserving morphisms",
+          "Created refactoring plan for implementation",
+          "Established aggregation patterns for UI operations"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-02",
+        "references": [
+          "/doc/design/presentation-vs-domain-events.md",
+          "/doc/design/graph-models-and-morphisms.md",
+          "/doc/plan/refactor-to-presentation-domain-separation.md"
+        ]
+      }
+    },
+    {
       "id": "phase-2",
       "label": "Phase 2: Domain Model with CIM Extensions",
       "type": "phase",
@@ -810,370 +836,309 @@
           "/tests/domain/"
         ]
       }
-    }
-  ],
-  "edges": [
-    {
-      "id": "e1",
-      "source": "migration-start",
-      "target": "architecture-design",
-      "label": "design",
-      "type": "sequence"
     },
     {
-      "id": "e2",
-      "source": "architecture-design",
-      "target": "legacy-archived",
-      "label": "archive",
-      "type": "sequence"
+      "id": "graph-aggregate-complete",
+      "label": "Graph Aggregate Implementation Complete",
+      "type": "milestone",
+      "position": { "x": 950, "y": -100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-06",
+        "description": "Completed full Graph aggregate with command handlers and business rules",
+        "details": [
+          "Implemented all command handlers for Graph, Node, and Edge commands",
+          "Added comprehensive business rule validation",
+          "Enforced DDD principles: value object immutability via remove/add pattern",
+          "Added cascade delete for edges when nodes are removed",
+          "Implemented max capacity limits (10k nodes, 100k edges)",
+          "Created comprehensive test suite with 15+ command handler tests",
+          "All business invariants enforced with proper error handling"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-06",
+        "references": [
+          "/src/domain/aggregates/graph.rs",
+          "/tests/domain/aggregates/graph_tests.rs"
+        ]
+      }
     },
     {
-      "id": "e3",
-      "source": "legacy-archived",
-      "target": "project-setup",
-      "label": "setup",
-      "type": "sequence"
+      "id": "user-stories-updated",
+      "label": "User Stories Updated for CIM",
+      "type": "milestone",
+      "position": { "x": 975, "y": -100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-06",
+        "description": "Updated user stories to reflect CIM architecture and comprehensive test coverage",
+        "details": [
+          "Restructured stories around Event Sourcing and CQRS patterns",
+          "Added stories for CID chain integrity and content types",
+          "Updated test references to match actual implementation",
+          "Documented 20 user stories with 95% coverage",
+          "Aligned with 90+ tests across all layers",
+          "Added current implementation status and achievements"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-06",
+        "references": [
+          "/doc/testing/user-stories.md"
+        ]
+      }
     },
     {
-      "id": "e3a",
-      "source": "project-setup",
-      "target": "vocabulary-updated",
-      "label": "document",
-      "type": "sequence"
+      "id": "acceptance-tests-aligned",
+      "label": "Acceptance Tests Aligned with CIM Vision",
+      "type": "milestone",
+      "position": { "x": 1000, "y": -100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-06",
+        "description": "Aligned acceptance tests with CIM vision for graph manipulation and AI-driven development",
+        "details": [
+          "Added tests for loading graphs from multiple sources",
+          "Created tests for multiple visualization modes and morphisms",
+          "Added DDD component creation and modeling tests",
+          "Included graph composition and bounded context tests",
+          "Added AI-driven code generation and optimization tests",
+          "Defined comprehensive fitness functions for production readiness",
+          "Established success criteria for all major features"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-06",
+        "references": [
+          "/doc/testing/acceptance-tests.md",
+          "/doc/completed/acceptance-tests-aligned-with-vision.md"
+        ]
+      }
     },
     {
-      "id": "e3b",
-      "source": "vocabulary-updated",
-      "target": "cim-design-justification",
-      "label": "justify",
-      "type": "sequence"
+      "id": "integration-tests-projections-started",
+      "label": "Integration Tests & Projections Implementation Started",
+      "type": "milestone",
+      "position": { "x": 1025, "y": -100, "z": 0 },
+      "data": {
+        "status": "in_progress",
+        "date": "2025-01-06",
+        "description": "Started implementing Priority 1 items: integration tests and read model projections",
+        "details": [
+          "Created comprehensive implementation plan for integration tests and projections",
+          "Implemented GraphSummaryProjection with event handling and statistics",
+          "Created Projection trait for consistent projection pattern",
+          "Implemented ProjectionHandler for subscribing to events and updating projections",
+          "Created ProjectionPlugin for Bevy integration",
+          "Added comprehensive end-to-end integration tests",
+          "Tests cover complete flow: Command → NATS → Event Store → Projection → Query",
+          "Added tests for concurrent operations, error recovery, and performance",
+          "Fixed compilation issues with command handlers and event structures"
+        ],
+        "progress": 40,
+        "references": [
+          "/doc/plan/integration-tests-and-projections-plan.md",
+          "/src/application/projections/graph_summary.rs",
+          "/src/application/projections/projection_handler.rs",
+          "/tests/integration/end_to_end_tests.rs"
+        ]
+      }
     },
     {
-      "id": "e3c",
-      "source": "cim-design-justification",
-      "target": "cim-architecture-revision",
-      "label": "revise",
-      "type": "sequence"
+      "id": "bidirectional-projections-architecture",
+      "label": "Bidirectional External System Projections Architecture",
+      "type": "milestone",
+      "position": { "x": 1050, "y": -100, "z": 0 },
+      "data": {
+        "status": "in_progress",
+        "date": "2025-01-06",
+        "description": "Designed comprehensive bidirectional event flow architecture for external system integration",
+        "details": [
+          "Recognized need for bidirectional event flow - not just projecting TO but ingesting FROM external systems",
+          "Created multi-system projections plan covering Neo4j, JSON, n8n, Paperless-NGx, SearXNG, and email",
+          "Designed bidirectional event flow architecture with correlation and enrichment",
+          "Implemented base ExternalProjection and IngestHandler traits",
+          "Added event correlation and transformation patterns",
+          "Created placeholder modules for each external system integration",
+          "Established feedback loops for continuous learning and automation",
+          "Graph acts as central nervous system for entire information ecosystem"
+        ],
+        "progress": 20,
+        "references": [
+          "/doc/plan/multi-system-projections-plan.md",
+          "/doc/plan/bidirectional-event-flow-architecture.md",
+          "/src/application/projections/external/mod.rs"
+        ]
+      }
     },
     {
-      "id": "e3d",
-      "source": "cim-architecture-revision",
-      "target": "dog-fooding-design",
-      "label": "enhance",
-      "type": "sequence"
+      "id": "ddd-module-architecture-correction",
+      "label": "Domain-Driven Module Architecture Correction",
+      "type": "milestone",
+      "position": { "x": 1075, "y": -100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-06",
+        "description": "Corrected module naming to follow DDD principles - modules named by domain capability, not technology",
+        "details": [
+          "Recognized incorrect naming pattern (Neo4j Module vs GraphPersistence Module)",
+          "Created proper domain-driven module architecture document",
+          "Defined 10 core domain modules by their business capabilities",
+          "Each module has trait interface with multiple possible implementations",
+          "Established Anti-Corruption Layer pattern for external system integration",
+          "Module names reflect domain concepts: GraphPersistence, WorkflowOrchestration, DocumentIntelligence, etc.",
+          "Technology choices (Neo4j, n8n, etc.) are implementation details behind ACL",
+          "All modules communicate through NATS with domain-focused event naming"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-06",
+        "references": [
+          "/doc/plan/domain-driven-module-architecture.md"
+        ]
+      }
     },
     {
-      "id": "e4",
-      "source": "dog-fooding-design",
-      "target": "phase-0-start",
-      "label": "implement",
-      "type": "sequence"
+      "id": "documentation-consistency-fixes",
+      "label": "Documentation Consistency Fixes",
+      "type": "milestone",
+      "position": { "x": 1100, "y": -50, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-06",
+        "description": "Fixed all documentation inconsistencies identified in QA review",
+        "details": [
+          "Updated multi-system-projections-plan.md to use domain module names",
+          "Clarified distinction between internal read model projections and external system projections",
+          "Added missing Communication Module (11th module) to domain-driven-module-architecture.md",
+          "Created NATS subject naming standard document for consistent event routing",
+          "Updated all configuration examples to use domain-focused naming",
+          "Fixed bidirectional-event-flow-architecture.md to reflect domain module names",
+          "Established standard pattern: {domain}.events.{aggregate}.{event}",
+          "Created migration guide from legacy naming patterns",
+          "All documents now consistent with 85% → 100% consistency score"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-06",
+        "references": [
+          "/doc/qa/plan-consistency-review-2025-06-06.md",
+          "/doc/plan/fix-plan-inconsistencies-2025-06-06.md",
+          "/doc/design/nats-subject-naming-standard.md"
+        ]
+      }
     },
     {
-      "id": "e5",
-      "source": "phase-0-start",
-      "target": "phase-0-nats-client",
-      "label": "contains",
-      "type": "hierarchy"
+      "id": "core-entity-modules-added",
+      "label": "Core Entity Modules Added",
+      "type": "milestone",
+      "position": { "x": 1150, "y": 0, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-06",
+        "description": "Added core business entity modules for fundamental domain concepts",
+        "details": [
+          "Added IdentityManagement Module for People/Person and Organization/OrganizationalUnit",
+          "Added AccessControl Module for Operator/Account/User and Agent management",
+          "Added LocationIntelligence Module for Location/GeoCoordinates/Address handling",
+          "Added NetworkAnalysis Module for Network/Relationship analysis",
+          "Created comprehensive core-entity-projections-plan.md with bidirectional sync patterns",
+          "Defined projections TO and injections FROM external systems for each entity type",
+          "Included privacy and compliance considerations for PII handling",
+          "Updated multi-system-projections-plan.md to include all 15 domain modules",
+          "Total modules: 15 (up from 11) covering all core business capabilities"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-06",
+        "references": [
+          "/doc/plan/domain-driven-module-architecture.md",
+          "/doc/plan/core-entity-projections-plan.md",
+          "/doc/plan/multi-system-projections-plan.md"
+        ]
+      }
     },
     {
-      "id": "e6",
-      "source": "phase-0-start",
-      "target": "phase-0-security",
-      "label": "contains",
-      "type": "hierarchy"
+      "id": "event-classification-phase1",
+      "label": "Event Classification Phase 1 Implementation",
+      "type": "milestone",
+      "position": { "x": 850, "y": 150, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-02",
+        "description": "Implemented presentation event separation and aggregation system",
+        "details": [
+          "Created presentation events module structure (animation, interaction, layout)",
+          "Implemented event aggregators for drag, layout, and selection operations",
+          "Added DomainCommand types for aggregated operations",
+          "Created GraphModel value object for K7, C5, state machines, etc.",
+          "Established clear separation: animations stay in Bevy, business changes go to NATS",
+          "Implemented aggregation pattern to convert many UI events into single domain commands",
+          "All code compiles successfully with only minor warnings"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-02",
+        "references": [
+          "/src/presentation/events/",
+          "/src/presentation/aggregators/",
+          "/src/domain/commands/aggregated_commands.rs",
+          "/src/domain/value_objects.rs"
+        ]
+      }
     },
-    {
-      "id": "e7",
-      "source": "phase-0-start",
-      "target": "phase-0-event-bridge",
-      "label": "contains",
-      "type": "hierarchy"
-    },
-    {
-      "id": "e7a",
-      "source": "phase-0-start",
-      "target": "testing-framework",
-      "label": "enhanced",
-      "type": "parallel"
-    },
-    {
-      "id": "e7b",
-      "source": "testing-framework",
-      "target": "basic-graph-visualization",
-      "label": "visualize",
-      "type": "sequence"
-    },
-    {
-      "id": "e7c",
-      "source": "basic-graph-visualization",
-      "target": "documentation-republishing",
-      "label": "document",
-      "type": "sequence"
-    },
-    {
-      "id": "e7d",
-      "source": "documentation-republishing",
-      "target": "cid-chain-implementation",
-      "label": "design",
-      "type": "sequence"
-    },
-    {
-      "id": "e7e",
-      "source": "documentation-republishing",
-      "target": "k7-complete-graph",
-      "label": "enhance",
-      "type": "sequence"
-    },
-    {
-      "id": "e7e",
-      "source": "k7-complete-graph",
-      "target": "event-driven-animation",
-      "label": "animate",
-      "type": "sequence"
-    },
-    {
-      "id": "e7f",
-      "source": "event-driven-animation",
-      "target": "smooth-animations-force-layout",
-      "label": "enhance",
-      "type": "sequence"
-    },
-    {
-      "id": "e7g",
-      "source": "smooth-animations-force-layout",
-      "target": "test-configuration-optional",
-      "label": "optimize",
-      "type": "sequence"
-    },
-    {
-      "id": "e8",
-      "source": "phase-0-start",
-      "target": "phase-1",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e9",
-      "source": "phase-1",
-      "target": "phase-2",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e10",
-      "source": "phase-2",
-      "target": "phase-3",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e11",
-      "source": "phase-3",
-      "target": "phase-4",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e12",
-      "source": "phase-4",
-      "target": "phase-5",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e13",
-      "source": "phase-5",
-      "target": "phase-6",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e14",
-      "source": "phase-6",
-      "target": "phase-7",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e15",
-      "source": "phase-7",
-      "target": "completion",
-      "label": "complete",
-      "type": "sequence"
-    },
-    {
-      "id": "e7h",
-      "source": "test-configuration-optional",
-      "target": "cid-chain-implementation",
-      "label": "implement",
-      "type": "sequence"
-    },
-    {
-      "id": "e7i",
-      "source": "cid-chain-implementation",
-      "target": "distributed-event-store",
-      "label": "integrate",
-      "type": "sequence"
-    },
-    {
-      "id": "e7j",
-      "source": "distributed-event-store",
-      "target": "event-bridge-implementation",
-      "label": "connect",
-      "type": "sequence"
-    },
-    {
-      "id": "e7k",
-      "source": "event-bridge-implementation",
-      "target": "phase-1",
-      "label": "complete",
-      "type": "sequence"
-    },
-    {
-      "id": "e7l",
-      "source": "event-bridge-implementation",
-      "target": "dynamic-linking-fix",
-      "label": "resolve",
-      "type": "parallel"
-    },
-    {
-      "id": "e7m",
-      "source": "dynamic-linking-fix",
-      "target": "phase-1",
-      "label": "enable",
-      "type": "sequence"
-    },
-    {
-      "id": "e7n",
-      "source": "dynamic-linking-fix",
-      "target": "cim-ipld-extraction",
-      "label": "enable",
-      "type": "sequence"
-    },
-    {
-      "id": "e7o",
-      "source": "cim-ipld-extraction",
-      "target": "phase-1.5",
-      "label": "unblock",
-      "type": "sequence"
-    },
-    {
-      "id": "e7p",
-      "source": "cim-ipld-extraction",
-      "target": "ia-specific-types-complete",
-      "label": "implement",
-      "type": "sequence"
-    },
-    {
-      "id": "e7q",
-      "source": "ia-specific-types-complete",
-      "target": "object-store-integration",
-      "label": "next",
-      "type": "sequence"
-    },
-    {
-      "id": "e7r",
-      "source": "object-store-integration",
-      "target": "phase-2",
-      "label": "enables",
-      "type": "sequence"
-    },
-    {
-      "id": "e7s",
-      "source": "cim-ipld-nats-integration",
-      "target": "bevy-linking-fix",
-      "label": "blocked",
-      "type": "sequence"
-    },
-    {
-      "id": "e7t",
-      "source": "bevy-linking-fix",
-      "target": "nats-replay-implementation",
-      "label": "enabled",
-      "type": "sequence"
-    },
-    {
-      "id": "e7u",
-      "source": "nats-replay-implementation",
-      "target": "qa-report-december-2024",
-      "label": "triggers",
-      "type": "sequence"
-    },
-    {
-      "id": "e7v",
-      "source": "qa-report-december-2024",
-      "target": "phase-2",
-      "label": "blocks until fixed",
-      "type": "blocker"
-    },
-    {
-      "id": "e7w",
-      "source": "qa-report-december-2024",
-      "target": "qa-compliance-review-2025",
-      "label": "triggers",
-      "type": "sequence"
-    },
-    {
-      "id": "e7x",
-      "source": "qa-compliance-review-2025",
-      "target": "qa-remediation-plan",
-      "label": "creates",
-      "type": "sequence"
-    },
-    {
-      "id": "e7y",
-      "source": "qa-remediation-plan",
-      "target": "phase-2",
-      "label": "unblocks",
-      "type": "sequence"
-    }
-  ],
-  "project": "Information Alchemist CIM Integration",
-  "description": "Transforming Information Alchemist into a CIM leaf node with event sourcing, conceptual spaces, and AI readiness",
-  "phases": [
     {
       "id": "phase-0",
-      "name": "Phase 0: NATS Integration Foundation",
-      "status": "completed",
-      "progress": 100,
-      "tasks": [
-        {
-          "id": "nats-client-setup",
-          "name": "NATS Client Setup",
-          "status": "completed",
-          "progress": 100,
-          "details": "Basic NATS client with connection management implemented"
-        },
-        {
-          "id": "basic-graph-visualization",
-          "name": "Basic Graph Visualization",
-          "status": "completed",
-          "progress": 100,
-          "details": "Bevy-based graph rendering with nodes and edges"
-        },
-        {
-          "id": "event-driven-animation",
-          "name": "Event-Driven Animation System",
-          "status": "completed",
-          "progress": 100,
-          "details": "Smooth transitions for graph mutations"
-        },
-        {
-          "id": "security-configuration",
-          "name": "Security Configuration",
-          "status": "completed",
-          "progress": 100,
-          "details": "JWT auth, TLS, and credentials support implemented"
-        },
-        {
-          "id": "event-bridge-architecture",
-          "name": "Event Bridge Architecture",
-          "status": "completed",
-          "progress": 100,
-          "details": "Async/sync bridge between NATS and Bevy ECS implemented"
-        }
-      ]
+      "label": "Phase 0: NATS Integration Foundation",
+      "type": "phase",
+      "position": { "x": 500, "y": 0, "z": 0 },
+      "data": {
+        "status": "completed",
+        "progress": 100,
+        "week": 1,
+        "description": "NATS client setup, secure connection, event bridge",
+        "completed_date": "2025-06-05",
+        "details": [
+          "NATS client implemented and working",
+          "Basic graph visualization complete",
+          "Event-driven animation with recording/replay",
+          "Smooth animations and force-directed layout",
+          "Event bridge between NATS and Bevy implemented",
+          "Security configuration with JWT, TLS, and credentials support",
+          "Comprehensive test suite for event bridge"
+        ],
+        "tasks": [
+          {
+            "id": "nats-client-setup",
+            "name": "NATS Client Setup",
+            "status": "completed",
+            "progress": 100,
+            "details": "Basic NATS client with connection management implemented"
+          },
+          {
+            "id": "basic-graph-visualization",
+            "name": "Basic Graph Visualization",
+            "status": "completed",
+            "progress": 100,
+            "details": "Bevy-based graph rendering with nodes and edges"
+          },
+          {
+            "id": "event-driven-animation",
+            "name": "Event-Driven Animation System",
+            "status": "completed",
+            "progress": 100,
+            "details": "Smooth transitions for graph mutations"
+          },
+          {
+            "id": "security-configuration",
+            "name": "Security Configuration",
+            "status": "completed",
+            "progress": 100,
+            "details": "JWT auth, TLS, and credentials support implemented"
+          },
+          {
+            "id": "event-bridge-architecture",
+            "name": "Event Bridge Architecture",
+            "status": "completed",
+            "progress": 100,
+            "details": "Async/sync bridge between NATS and Bevy ECS implemented"
+          }
+        ]
+      }
     },
     {
       "id": "phase-1",
@@ -1426,6 +1391,57 @@
           "details": "Complete user and developer docs"
         }
       ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-qa-to-presentation-separation",
+      "source": "qa-remediation-plan",
+      "target": "presentation-domain-separation",
+      "relationship": "leads_to",
+      "label": "Architectural clarification"
+    },
+    {
+      "id": "edge-presentation-to-phase2",
+      "source": "presentation-domain-separation",
+      "target": "phase-2",
+      "relationship": "enables",
+      "label": "Foundation for domain model"
+    },
+    {
+      "id": "edge-separation-to-event-classification",
+      "source": "presentation-domain-separation",
+      "target": "event-classification-phase1",
+      "relationship": "implemented_by",
+      "label": "Phase 1 implementation"
+    },
+    {
+      "id": "edge-projections-to-bidirectional",
+      "source": "integration-tests-projections-started",
+      "target": "bidirectional-projections-architecture",
+      "relationship": "expanded_to",
+      "label": "Expanded scope to bidirectional flow"
+    },
+    {
+      "id": "edge-bidirectional-to-ddd-correction",
+      "source": "bidirectional-projections-architecture",
+      "target": "ddd-module-architecture-correction",
+      "relationship": "corrected_by",
+      "label": "Applied DDD naming principles"
+    },
+    {
+      "id": "edge-ddd-to-consistency-fixes",
+      "source": "ddd-module-architecture-correction",
+      "target": "documentation-consistency-fixes",
+      "relationship": "required",
+      "label": "Documentation alignment needed"
+    },
+    {
+      "id": "edge-consistency-to-core-entities",
+      "source": "documentation-consistency-fixes",
+      "target": "core-entity-modules-added",
+      "relationship": "expanded_by",
+      "label": "Added missing core entity modules"
     }
   ],
   "milestones": [

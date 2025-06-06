@@ -24,6 +24,40 @@ Comprehensive design covering:
 - AI agent interface
 - Modular plugin system
 
+### 🎭 [presentation-vs-domain-events.md](./presentation-vs-domain-events.md)
+**Critical Distinction: Presentation Events vs Domain Events**
+
+Essential architectural principle:
+- NOT every event is a domain event
+- Presentation events (animations, UI state) stay in Bevy
+- Domain events represent business-meaningful state changes
+- Aggregation pattern for UI operations
+- Graph model recognition (K7, C5, State Machines, etc.)
+- Structure-preserving morphisms
+
+### 📐 [graph-models-and-morphisms.md](./graph-models-and-morphisms.md)
+**Graph Models and Structure-Preserving Transformations**
+
+Mathematical foundation for graph operations:
+- Complete graphs (Kn), Cycle graphs (Cn)
+- State machines (Mealy, Moore)
+- Domain-specific models (Address, Workflow)
+- Model recognition and validation
+- Structure-preserving morphisms
+- Template-based creation
+
+### 🎯 [hud.md](./hud.md)
+**Heads-Up Display - Power Tool for Graph Understanding**
+
+Comprehensive HUD system for real-time graph insights:
+- Model recognition with confidence scoring
+- Real-time statistics and metrics
+- Selection context analysis
+- Transformation preview
+- Performance monitoring
+- Smart visibility and positioning
+- [Implementation example](./hud-implementation-example.md)
+
 ## Key Concepts
 
 ### System Architecture

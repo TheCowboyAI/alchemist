@@ -7,6 +7,10 @@ use crate::domain::value_objects::*;
 use bevy::prelude::*;
 use serde_json;
 
+// Async command handlers for integration with event store
+pub mod graph_command_handler;
+pub use graph_command_handler::{GraphCommandHandler, CommandHandler};
+
 /// System that processes commands and generates events
 pub fn process_commands(
     mut commands: EventReader<CommandEvent>,

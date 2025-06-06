@@ -89,6 +89,11 @@ impl Position3D {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
+
+    /// Check if all coordinates are finite (not NaN or infinite)
+    pub fn is_finite(&self) -> bool {
+        self.x.is_finite() && self.y.is_finite() && self.z.is_finite()
+    }
 }
 
 impl Default for Position3D {
@@ -411,5 +416,89 @@ mod tests {
         let serialized = serde_json::to_string(&node_type).unwrap();
         let deserialized: NodeType = serde_json::from_str(&serialized).unwrap();
         assert_eq!(node_type, deserialized);
+    }
+}
+
+/// Mathematical graph models
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum GraphModel {
+    /// Complete graph Kn - every vertex connected to every other vertex
+    CompleteGraph { order: usize },
+
+    /// Cycle graph Cn - vertices connected in a cycle
+    CycleGraph { order: usize },
+
+    /// Path graph Pn - vertices connected in a line
+    PathGraph { order: usize },
+
+    /// Bipartite graph Km,n
+    BipartiteGraph { m: usize, n: usize },
+
+    /// Star graph - one central node connected to all others
+    StarGraph { satellites: usize },
+
+    /// Tree structure
+    Tree {
+        branching_factor: usize,
+        depth: usize,
+    },
+
+    /// Mealy state machine
+    MealyMachine {
+        states: Vec<String>,
+        inputs: Vec<String>,
+        outputs: Vec<String>,
+    },
+
+    /// Moore state machine
+    MooreMachine {
+        states: Vec<String>,
+        inputs: Vec<String>,
+        outputs: Vec<String>,
+    },
+
+    /// Domain-specific models
+    AddressGraph,
+    WorkflowGraph { workflow_type: String },
+    ConceptualGraph { space_name: String },
+
+    /// Unknown or custom model
+    Custom { name: String, properties: serde_json::Value },
+}
+
+impl GraphModel {
+    /// Get the expected number of nodes for this model
+    pub fn expected_nodes(&self) -> Option<usize> {
+        match self {
+            GraphModel::CompleteGraph { order } => Some(*order),
+            GraphModel::CycleGraph { order } => Some(*order),
+            GraphModel::PathGraph { order } => Some(*order),
+            GraphModel::BipartiteGraph { m, n } => Some(m + n),
+            GraphModel::StarGraph { satellites } => Some(satellites + 1),
+            GraphModel::Tree { branching_factor, depth } => {
+                // Calculate total nodes in a complete tree
+                let mut total = 0;
+                let mut level_nodes = 1;
+                for _ in 0..=*depth {
+                    total += level_nodes;
+                    level_nodes *= branching_factor;
+                }
+                Some(total)
+            }
+            _ => None, // Variable or unknown
+        }
+    }
+
+    /// Get the expected number of edges for this model
+    pub fn expected_edges(&self) -> Option<usize> {
+        match self {
+            GraphModel::CompleteGraph { order } => Some(order * (order - 1) / 2),
+            GraphModel::CycleGraph { order } => Some(*order),
+            GraphModel::PathGraph { order } => Some(order.saturating_sub(1)),
+            GraphModel::BipartiteGraph { m, n } => Some(m * n),
+            GraphModel::StarGraph { satellites } => Some(*satellites),
+            GraphModel::Tree { .. } => self.expected_nodes().map(|n| n.saturating_sub(1)),
+            _ => None, // Variable or unknown
+        }
     }
 }

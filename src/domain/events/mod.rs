@@ -5,10 +5,12 @@ use serde::{Deserialize, Serialize};
 pub mod edge_events;
 pub mod graph_events;
 pub mod node_events;
+pub mod cid_chain;
 
 pub use edge_events::EdgeEvent;
 pub use graph_events::GraphEvent;
 pub use node_events::NodeEvent;
+pub use cid_chain::{ChainedEvent, EventChain};
 
 /// All domain events in the system
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

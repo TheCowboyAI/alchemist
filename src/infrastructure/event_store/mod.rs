@@ -7,11 +7,14 @@ use uuid::Uuid;
 
 mod local;
 pub mod distributed;
+pub mod distributed_impl;
 pub mod memory;
 
 use local::LocalEventStore;
 
-pub use distributed::{DistributedEventStore, DistributedEventStoreConfig, EventStoreStats};
+// Re-export the new implementation as the primary one
+pub use distributed_impl::DistributedEventStore;
+pub use distributed::{DistributedEventStoreConfig, EventStoreStats};
 pub use memory::InMemoryEventStore;
 
 use crate::domain::events::DomainEvent;
@@ -124,12 +127,18 @@ pub fn get_aggregate_events(aggregate_id: GraphId) -> Vec<EventEnvelope> {
 /// Trait for async event stores
 #[async_trait]
 pub trait EventStore: Send + Sync {
-    /// Store an event
+    /// Append events to the store for a specific aggregate
+    async fn append_events(&self, aggregate_id: String, events: Vec<DomainEvent>) -> Result<(), EventStoreError>;
+
+    /// Get all events for an aggregate
+    async fn get_events(&self, aggregate_id: String) -> Result<Vec<DomainEvent>, EventStoreError>;
+
+    /// Store an event (legacy method)
     async fn store(&self, event: DomainEvent) -> Result<(), EventStoreError>;
 
-    /// Load events for an aggregate
+    /// Load events for an aggregate (legacy method)
     async fn load_events(&self, aggregate_id: Uuid) -> Result<Vec<DomainEvent>, EventStoreError>;
 
-    /// Load all events
+    /// Load all events (legacy method)
     async fn load_all_events(&self) -> Result<Vec<DomainEvent>, EventStoreError>;
 }

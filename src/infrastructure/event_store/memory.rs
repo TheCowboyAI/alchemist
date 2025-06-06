@@ -58,6 +58,23 @@ impl EventStore for InMemoryEventStore {
         let events = self.events.read().await;
         Ok(events.values().flatten().cloned().collect())
     }
+
+    async fn append_events(&self, aggregate_id: String, events: Vec<DomainEvent>) -> Result<(), EventStoreError> {
+        let aggregate_uuid = Uuid::parse_str(&aggregate_id)
+            .map_err(|e| EventStoreError::SerializationError(e.to_string()))?;
+
+        let mut store = self.events.write().await;
+        let entry = store.entry(aggregate_uuid).or_insert_with(Vec::new);
+        entry.extend(events);
+        Ok(())
+    }
+
+    async fn get_events(&self, aggregate_id: String) -> Result<Vec<DomainEvent>, EventStoreError> {
+        let aggregate_uuid = Uuid::parse_str(&aggregate_id)
+            .map_err(|e| EventStoreError::SerializationError(e.to_string()))?;
+
+        self.load_events(aggregate_uuid).await
+    }
 }
 
 #[cfg(test)]

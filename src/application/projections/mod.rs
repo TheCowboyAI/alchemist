@@ -1,5 +1,13 @@
 //! Projections (Read Models) - These ARE Resources
 
+pub mod graph_summary;
+pub mod projection_handler;
+pub mod external;
+
+pub use graph_summary::{GraphSummaryProjection, GraphSummary, Projection};
+pub use projection_handler::{ProjectionHandler, ProjectionPlugin};
+pub use external::{ExternalProjection, IngestHandler, BidirectionalEventManager};
+
 use crate::domain::value_objects::{
     EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, Position3D,
 };

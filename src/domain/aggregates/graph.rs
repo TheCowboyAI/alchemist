@@ -6,9 +6,11 @@ use std::collections::HashMap;
 use thiserror::Error;
 
 use crate::domain::{
-    events::{DomainEvent, GraphEvent},
+    commands::{Command, EdgeCommand, GraphCommand, NodeCommand},
+    events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
     value_objects::*,
 };
+use serde_json;
 
 #[derive(Error, Debug)]
 pub enum GraphError {
@@ -29,9 +31,30 @@ pub enum GraphError {
 
     #[error("Edge already exists: {0}")]
     EdgeAlreadyExists(EdgeId),
+
+    #[error("Self-loop not allowed: node {0} cannot connect to itself")]
+    SelfLoopNotAllowed(NodeId),
+
+    #[error("Duplicate edge: edge already exists between {0} and {1}")]
+    DuplicateEdge(NodeId, NodeId),
+
+    #[error("Graph is at maximum capacity: {0} nodes")]
+    GraphAtCapacity(usize),
+
+    #[error("Invalid node position: position must be finite")]
+    InvalidNodePosition,
+
+    #[error("Cascade delete would remove {0} edges")]
+    CascadeDeleteWarning(usize),
 }
 
 pub type Result<T> = std::result::Result<T, GraphError>;
+
+/// Maximum number of nodes allowed in a graph
+const MAX_NODES: usize = 10_000;
+
+/// Maximum number of edges allowed in a graph
+const MAX_EDGES: usize = 100_000;
 
 /// The Graph aggregate root
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,7 +65,6 @@ pub struct Graph {
 
     // Petgraph for efficient graph operations
     #[serde(skip)]
-    #[allow(dead_code)]
     graph: StableGraph<NodeId, EdgeId>,
 
     // Component storage
@@ -101,6 +123,9 @@ impl Graph {
             metadata,
         }));
 
+        // Reset version to 0 after creation
+        graph.version = 0;
+
         graph
     }
 
@@ -123,6 +148,337 @@ impl Graph {
         }
 
         graph
+    }
+
+    /// Handle commands - main entry point for all operations
+    pub fn handle_command(&mut self, command: Command) -> Result<Vec<DomainEvent>> {
+        match command {
+            Command::Graph(cmd) => self.handle_graph_command(cmd),
+            Command::Node(cmd) => self.handle_node_command(cmd),
+            Command::Edge(cmd) => self.handle_edge_command(cmd),
+        }
+    }
+
+    /// Handle graph-level commands
+    fn handle_graph_command(&mut self, command: GraphCommand) -> Result<Vec<DomainEvent>> {
+        match command {
+            GraphCommand::CreateGraph { .. } => {
+                Err(GraphError::InvalidOperation("Graph already exists".to_string()))
+            }
+            GraphCommand::DeleteGraph { id } => {
+                if id != self.id {
+                    return Err(GraphError::GraphNotFound(id));
+                }
+                self.emit_event(DomainEvent::Graph(GraphEvent::GraphDeleted { id }));
+                Ok(self.get_uncommitted_events())
+            }
+            GraphCommand::RenameGraph { id, new_name } => {
+                if id != self.id {
+                    return Err(GraphError::GraphNotFound(id));
+                }
+                let old_name = self.metadata.name.clone();
+                self.emit_event(DomainEvent::Graph(GraphEvent::GraphRenamed {
+                    id,
+                    old_name,
+                    new_name,
+                }));
+                Ok(self.get_uncommitted_events())
+            }
+            GraphCommand::TagGraph { id, tag } => {
+                if id != self.id {
+                    return Err(GraphError::GraphNotFound(id));
+                }
+                self.emit_event(DomainEvent::Graph(GraphEvent::GraphTagged { id, tag }));
+                Ok(self.get_uncommitted_events())
+            }
+            GraphCommand::UntagGraph { id, tag } => {
+                if id != self.id {
+                    return Err(GraphError::GraphNotFound(id));
+                }
+                if !self.metadata.tags.contains(&tag) {
+                    return Err(GraphError::InvalidOperation(format!("Tag '{}' not found", tag)));
+                }
+                self.emit_event(DomainEvent::Graph(GraphEvent::GraphUntagged { id, tag }));
+                Ok(self.get_uncommitted_events())
+            }
+        }
+    }
+
+    /// Handle node-level commands
+    fn handle_node_command(&mut self, command: NodeCommand) -> Result<Vec<DomainEvent>> {
+        match command {
+            NodeCommand::AddNode { graph_id, node_id, content, position } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                // Validate business rules
+                if self.nodes.contains_key(&node_id) {
+                    return Err(GraphError::NodeAlreadyExists(node_id));
+                }
+
+                if self.nodes.len() >= MAX_NODES {
+                    return Err(GraphError::GraphAtCapacity(MAX_NODES));
+                }
+
+                                if !position.is_finite() {
+                    return Err(GraphError::InvalidNodePosition);
+                }
+
+                // Convert NodeContent to metadata HashMap
+                let mut metadata = std::collections::HashMap::new();
+                metadata.insert("label".to_string(), serde_json::json!(content.label));
+                metadata.insert("node_type".to_string(), serde_json::to_value(&content.node_type).unwrap());
+                for (k, v) in content.properties {
+                    metadata.insert(k, v);
+                }
+
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeAdded {
+                    graph_id,
+                    node_id,
+                    metadata,
+                    position,
+                }));
+                Ok(self.get_uncommitted_events())
+            }
+            NodeCommand::RemoveNode { graph_id, node_id } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                if !self.nodes.contains_key(&node_id) {
+                    return Err(GraphError::NodeNotFound(node_id));
+                }
+
+                // Find all edges connected to this node
+                let connected_edges: Vec<EdgeId> = self.edges
+                    .iter()
+                    .filter(|(_, edge)| edge.source == node_id || edge.target == node_id)
+                    .map(|(id, _)| *id)
+                    .collect();
+
+                // Emit edge removal events first (cascade delete)
+                for edge_id in connected_edges {
+                    self.emit_event(DomainEvent::Edge(EdgeEvent::EdgeRemoved {
+                        graph_id,
+                        edge_id,
+                    }));
+                }
+
+                // Then emit node removal event
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeRemoved {
+                    graph_id,
+                    node_id,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+            NodeCommand::UpdateNode { graph_id, node_id, content } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                                if !self.nodes.contains_key(&node_id) {
+                    return Err(GraphError::NodeNotFound(node_id));
+                }
+
+                // Get position before removal
+                let position = self.nodes[&node_id].position.clone();
+
+                // Following DDD principles: remove old, add new
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeRemoved {
+                    graph_id,
+                    node_id,
+                }));
+
+                // Convert NodeContent to metadata HashMap
+                let mut metadata = std::collections::HashMap::new();
+                metadata.insert("label".to_string(), serde_json::json!(content.label));
+                metadata.insert("node_type".to_string(), serde_json::to_value(&content.node_type).unwrap());
+                for (k, v) in content.properties {
+                    metadata.insert(k, v);
+                }
+
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeAdded {
+                    graph_id,
+                    node_id,
+                    metadata,
+                    position,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+            NodeCommand::MoveNode { graph_id, node_id, position } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                if !self.nodes.contains_key(&node_id) {
+                    return Err(GraphError::NodeNotFound(node_id));
+                }
+
+                if !position.is_finite() {
+                    return Err(GraphError::InvalidNodePosition);
+                }
+
+                                // Following DDD principles: remove old, add new
+                let content = self.nodes[&node_id].content.clone();
+
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeRemoved {
+                    graph_id,
+                    node_id,
+                }));
+
+                // Convert NodeContent to metadata HashMap
+                let mut metadata = std::collections::HashMap::new();
+                metadata.insert("label".to_string(), serde_json::json!(content.label));
+                metadata.insert("node_type".to_string(), serde_json::to_value(&content.node_type).unwrap());
+                for (k, v) in content.properties {
+                    metadata.insert(k, v);
+                }
+
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeAdded {
+                    graph_id,
+                    node_id,
+                    metadata,
+                    position,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+            NodeCommand::SelectNode { graph_id, node_id } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                if !self.nodes.contains_key(&node_id) {
+                    return Err(GraphError::NodeNotFound(node_id));
+                }
+
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeSelected {
+                    graph_id,
+                    node_id,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+            NodeCommand::DeselectNode { graph_id, node_id } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                if !self.nodes.contains_key(&node_id) {
+                    return Err(GraphError::NodeNotFound(node_id));
+                }
+
+                self.emit_event(DomainEvent::Node(NodeEvent::NodeDeselected {
+                    graph_id,
+                    node_id,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+        }
+    }
+
+    /// Handle edge-level commands
+    fn handle_edge_command(&mut self, command: EdgeCommand) -> Result<Vec<DomainEvent>> {
+        match command {
+            EdgeCommand::ConnectEdge { graph_id, edge_id, source, target, relationship } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                // Validate business rules
+                if self.edges.contains_key(&edge_id) {
+                    return Err(GraphError::EdgeAlreadyExists(edge_id));
+                }
+
+                if !self.nodes.contains_key(&source) {
+                    return Err(GraphError::NodeNotFound(source));
+                }
+
+                if !self.nodes.contains_key(&target) {
+                    return Err(GraphError::NodeNotFound(target));
+                }
+
+                if source == target {
+                    return Err(GraphError::SelfLoopNotAllowed(source));
+                }
+
+                // Check for duplicate edges
+                let duplicate_exists = self.edges.values().any(|edge| {
+                    (edge.source == source && edge.target == target) ||
+                    (edge.source == target && edge.target == source)
+                });
+
+                if duplicate_exists {
+                    return Err(GraphError::DuplicateEdge(source, target));
+                }
+
+                                if self.edges.len() >= MAX_EDGES {
+                    return Err(GraphError::GraphAtCapacity(MAX_EDGES));
+                }
+
+                self.emit_event(DomainEvent::Edge(EdgeEvent::EdgeConnected {
+                    graph_id,
+                    edge_id,
+                    source,
+                    target,
+                    relationship,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+            EdgeCommand::DisconnectEdge { graph_id, edge_id } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                if !self.edges.contains_key(&edge_id) {
+                    return Err(GraphError::EdgeNotFound(edge_id));
+                }
+
+                self.emit_event(DomainEvent::Edge(EdgeEvent::EdgeRemoved {
+                    graph_id,
+                    edge_id,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+            EdgeCommand::SelectEdge { graph_id, edge_id } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                if !self.edges.contains_key(&edge_id) {
+                    return Err(GraphError::EdgeNotFound(edge_id));
+                }
+
+                self.emit_event(DomainEvent::Edge(EdgeEvent::EdgeSelected {
+                    graph_id,
+                    edge_id,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+            EdgeCommand::DeselectEdge { graph_id, edge_id } => {
+                if graph_id != self.id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                if !self.edges.contains_key(&edge_id) {
+                    return Err(GraphError::EdgeNotFound(edge_id));
+                }
+
+                self.emit_event(DomainEvent::Edge(EdgeEvent::EdgeDeselected {
+                    graph_id,
+                    edge_id,
+                }));
+
+                Ok(self.get_uncommitted_events())
+            }
+        }
     }
 
     /// Update graph metadata
@@ -154,10 +510,21 @@ impl Graph {
         self.uncommitted_events.clear();
     }
 
+    /// Get node count (for testing)
+    pub fn node_count(&self) -> usize {
+        self.nodes.len()
+    }
+
+    /// Get edge count (for testing)
+    pub fn edge_count(&self) -> usize {
+        self.edges.len()
+    }
+
     /// Emit an event
     fn emit_event(&mut self, event: DomainEvent) {
         self.apply_event(&event);
         self.uncommitted_events.push(event);
+        self.version += 1;
     }
 
     /// Apply an event to update state
@@ -184,12 +551,111 @@ impl Graph {
                     // Mark as deleted
                 }
             },
-            DomainEvent::Node(_node_event) => {
-                // TODO: Handle node events
-            }
-            DomainEvent::Edge(_edge_event) => {
-                // TODO: Handle edge events
-            }
+            DomainEvent::Node(node_event) => match node_event {
+                NodeEvent::NodeAdded { graph_id: _, node_id, metadata, position } => {
+                    // Convert metadata HashMap back to NodeContent
+                    let label = metadata.get("label")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("").to_string();
+
+                    let node_type = metadata.get("node_type")
+                        .and_then(|v| serde_json::from_value(v.clone()).ok())
+                        .unwrap_or(NodeType::Custom("Unknown".to_string()));
+
+                    let mut properties = metadata.clone();
+                    properties.remove("label");
+                    properties.remove("node_type");
+
+                    let content = NodeContent {
+                        label,
+                        node_type,
+                        properties,
+                    };
+
+                    let node = Node {
+                        id: *node_id,
+                        content,
+                        position: position.clone(),
+                    };
+
+                    // Add to petgraph
+                    let idx = self.graph.add_node(*node_id);
+                    self.node_indices.insert(*node_id, idx);
+
+                    // Add to storage
+                    self.nodes.insert(*node_id, node);
+                }
+                NodeEvent::NodeRemoved { graph_id: _, node_id } => {
+                    // Remove from petgraph
+                    if let Some(idx) = self.node_indices.remove(node_id) {
+                        self.graph.remove_node(idx);
+                    }
+
+                    // Remove from storage
+                    self.nodes.remove(node_id);
+                }
+                NodeEvent::NodeSelected { .. } | NodeEvent::NodeDeselected { .. } | NodeEvent::NodeMetadataUpdated { .. } => {
+                    // Selection state and metadata updates are handled in presentation layer
+                }
+            },
+            DomainEvent::Edge(edge_event) => match edge_event {
+                EdgeEvent::EdgeConnected { graph_id: _, edge_id, source, target, relationship } => {
+                    let edge = Edge {
+                        id: *edge_id,
+                        source: *source,
+                        target: *target,
+                        relationship: relationship.clone(),
+                    };
+
+                    // Add to petgraph
+                    if let (Some(&source_idx), Some(&target_idx)) =
+                        (self.node_indices.get(source), self.node_indices.get(target)) {
+                        let idx = self.graph.add_edge(source_idx, target_idx, *edge_id);
+                        self.edge_indices.insert(*edge_id, idx);
+                    }
+
+                    // Add to storage
+                    self.edges.insert(*edge_id, edge);
+                }
+                EdgeEvent::EdgeRemoved { graph_id: _, edge_id } => {
+                    // Remove from petgraph
+                    if let Some(idx) = self.edge_indices.remove(edge_id) {
+                        self.graph.remove_edge(idx);
+                    }
+
+                    // Remove from storage
+                    self.edges.remove(edge_id);
+                }
+                EdgeEvent::EdgeAdded { graph_id: _, edge_id, source, target, metadata: _ } => {
+                    // EdgeAdded is used for simple edge creation without relationship details
+                    let edge = Edge {
+                        id: *edge_id,
+                        source: *source,
+                        target: *target,
+                        relationship: EdgeRelationship {
+                            relationship_type: RelationshipType::Custom("Default".to_string()),
+                            properties: std::collections::HashMap::new(),
+                            bidirectional: false,
+                        },
+                    };
+
+                    // Add to petgraph
+                    if let (Some(&source_idx), Some(&target_idx)) =
+                        (self.node_indices.get(source), self.node_indices.get(target)) {
+                        let idx = self.graph.add_edge(source_idx, target_idx, *edge_id);
+                        self.edge_indices.insert(*edge_id, idx);
+                    }
+
+                    // Add to storage
+                    self.edges.insert(*edge_id, edge);
+                }
+                EdgeEvent::EdgeDisconnected { .. } => {
+                    // Handle disconnection if needed
+                }
+                EdgeEvent::EdgeSelected { .. } | EdgeEvent::EdgeDeselected { .. } | EdgeEvent::EdgeMetadataUpdated { .. } => {
+                    // Selection state and metadata updates are handled in presentation layer
+                }
+            },
         }
     }
 }

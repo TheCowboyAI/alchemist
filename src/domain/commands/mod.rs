@@ -2,10 +2,15 @@
 
 use serde::{Deserialize, Serialize};
 
+pub mod aggregated_commands;
 pub mod edge_commands;
 pub mod graph_commands;
 pub mod node_commands;
 
+pub use aggregated_commands::{
+    DomainCommand, UpdateNodePositions, UpdateGraphSelection,
+    RecognizeGraphModel, ApplyGraphMorphism, MorphismType
+};
 pub use edge_commands::EdgeCommand;
 pub use graph_commands::GraphCommand;
 pub use node_commands::NodeCommand;

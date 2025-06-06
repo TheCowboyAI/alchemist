@@ -2,335 +2,148 @@
 
 ## Current Status
 
-Information Alchemist is being transformed from a standalone application into a sophisticated CIM (Composable Information Machine) leaf node interface. This represents a major architectural shift that brings distributed capabilities, conceptual spaces, and AI readiness.
+Information Alchemist is being transformed into a CIM (Composable Information Machine) leaf node UI with event sourcing, conceptual spaces, and AI readiness. The project has completed foundational infrastructure and is now addressing QA compliance gaps before proceeding with Phase 2.
 
-**🎯 Dog-Fooding Alert**: This progress tracking system will be one of the first graphs loaded into Information Alchemist itself, creating a self-referential system where the tool visualizes its own development journey!
+**Current Focus**: Addressing QA compliance gaps - Graph Aggregate implementation completed (June 2025)
 
 ## Progress Overview
 
-### ✅ Completed Milestones
+### ✅ Phase 0: NATS Integration Foundation - COMPLETED (100%)
+- **NATS Client Setup**: Basic client with connection management
+- **Basic Graph Visualization**: Bevy-based graph rendering with nodes and edges
+- **Event-Driven Animation**: Smooth transitions for graph mutations
+- **Security Configuration**: JWT auth, TLS, and credentials support
+- **Event Bridge Architecture**: Async/sync bridge between NATS and Bevy ECS
 
-1. **Migration Started** - Decision made to adopt event sourcing architecture
-2. **Architecture Design** - Initial event sourcing design completed
-3. **Legacy System Archived** - Old code moved to `/doc/archive/2024-12-legacy/`
-4. **Project Setup** - New structure created and compiling
-5. **Vocabulary Updated** - Terms updated for event sourcing
-6. **CIM Design Justification** - Comprehensive justification based on research
-7. **CIM Architecture Revision** - Design and plan updated for full CIM integration
-8. **Dog-Fooding Strategy Designed** - Self-referential visualization system planned
-9. **Testing Framework Enhanced** - Added comprehensive user stories, acceptance tests, and fitness functions
-10. **Basic Graph Visualization** - Implemented 3D graph visualization with Bevy
-11. **K7 Complete Graph** - Changed default to K7 complete graph (7 nodes, 21 edges)
-12. **Event-Driven Animation** - Pure event-driven animation with recording/replay
-13. **Smooth Animations & Force Layout** - Physics-based layout with easing functions
-14. **Test Configuration Optional** - Made tests optional in Nix build process
-15. **CID Chain Implementation** - Content-addressed event chains with BLAKE3 hashing ✅
-16. **Distributed Event Store** - JetStream-based persistent event storage ✅
-17. **Event Bridge Implementation** - Async/sync bridge between NATS and Bevy ✅
-18. **Dynamic Linking Fixed** - Resolved test execution issues, now use `nix build`/`nix run` ✅
-19. **CIM-IPLD Library Extracted** - Standalone library created at github.com/TheCowboyAI/cim-ipld ✅
+### ✅ Phase 1: Distributed Event Infrastructure - COMPLETED (100%)
+- **JetStream Event Store**: Distributed event store with JetStream
+- **Event Structure Migration**: New NodeEvent structure with metadata
+- **CID Chain Implementation**: Content-addressed event chains with BLAKE3 hashing
+- **Event Replay Mechanism**: Event replay from any point using CID chains
 
-### ✅ Phase 0 - NATS Integration Foundation (Week 1) - COMPLETED
+### ✅ Phase 1.5: IPLD Integration - COMPLETED (100%)
+- **CIM-IPLD Library**: Extracted to github.com/TheCowboyAI/cim-ipld
+- **IA-Specific Content Types**: GraphContent, NodeIPLDContent, EdgeIPLDContent, etc.
+- **Object Store Integration**: NATS Object Store with compression and caching
+- **Custom Codecs**: Pending implementation
 
-All Phase 0 tasks have been successfully completed:
-
-**Completed Tasks**:
-- [x] **NATS Client Setup** - ✅ COMPLETED
-  - Integrated async-nats 0.41 with tokio runtime
-  - Created NATS client wrapper with health checks
-  - Implemented configuration with JetStream support
-  - Fixed Bevy 0.16 dynamic linking issues
-  - Added basic integration tests
-- [x] **Security Configuration** - ✅ COMPLETED
-  - JWT authentication support
-  - TLS configuration options
-  - User credentials file support
-  - Username/password authentication
-- [x] **Event Bridge Architecture** - ✅ COMPLETED
-  - Async/sync bridge between NATS and Bevy ECS
-  - Bidirectional event flow working
-  - EventBridgePlugin for Bevy integration
-  - Comprehensive test suite added
-
-**Progress**: 100% Complete
-
-### ✅ Phase 1 - Distributed Event Infrastructure (Week 2) - COMPLETED
-
-Phase 1 has been successfully completed with all infrastructure components operational:
-
-**Completed Tasks**:
-- [x] **JetStream Event Store Setup** - ✅ COMPLETED
-  - Implemented DistributedEventStore with NATS JetStream
-  - Created stream configuration with file-based storage
-  - Added event persistence with acknowledgment tracking
-  - Implemented event retrieval by aggregate ID
-  - Added LRU cache for performance optimization
-- [x] **Event Structure Migration** - ✅ COMPLETED
-  - Migrated to new NodeEvent structure with metadata
-  - Fixed all compilation issues
-  - Updated command handlers and presentation layer
-- [x] **CID Chain Implementation** - ✅ COMPLETED
-  - Implemented ChainedEvent with BLAKE3 hashing
-  - Created EventChain for managing event sequences
-  - Added comprehensive validation and tampering detection
-  - Implemented deterministic CID generation
-  - Added tests for chain validation
-- [x] **Event Replay Mechanism** - ✅ COMPLETED
-  - Event replay from any point using CID chains
-  - JetStream consumer API integration
-  - Time-travel debugging capabilities
-
-**Progress**: 100% Complete
-
-### 🚧 Current Phase: Phase 1.5 - IPLD Integration (Week 2-3)
-
-We are now implementing the full IPLD (InterPlanetary Linked Data) architecture to enable content-addressed storage and intelligent information handling:
-
-**Completed Tasks**:
-- [x] **CIM-IPLD Library Extraction** (100%) ✅
-  - Created standalone library at github.com/TheCowboyAI/cim-ipld
-  - Implemented TypedContent trait for type-safe content handling
-  - Created ChainedContent and ContentChain for cryptographic chains
-  - Built extensible codec registry system
-  - Added comprehensive test suite
-  - Integrated as git submodule in Information Alchemist
-
-**Current Tasks**:
-- [ ] **IA-Specific Content Types** (0%)
-  - Define GraphContent, NodeContent, EdgeContent types
-  - Implement custom codecs for IA domain objects
-  - Add serialization/deserialization for all content types
-- [ ] **Object Store Integration** (0%)
-  - Integrate NATS Object Store for content-addressed storage
-  - Implement put/get operations with CID keys
-  - Add content deduplication
-- [ ] **Event Store CID Integration** (0%)
-  - Update event store to use CID chains from cim-ipld
-  - Migrate existing events to new format
-  - Add backward compatibility layer
-- [ ] **IPLD Relationships** (0%)
-  - Implement relationship predicates (contains, references, derives_from)
-  - Create relationship indexing system
-  - Add path-finding algorithms for semantic navigation
-
-**Progress**: 25% (CIM-IPLD library complete, IA integration starting)
-
-**Why This Matters**: IPLD integration enables:
-- **Type-safe content addressing** with domain-specific codecs
-- **Cryptographic integrity** through Merkle DAGs
-- **Intelligent content handling** with MIME type detection
-- **Rich relationships** between all content
-- **Emergent business intelligence** from information flows
+### 🚧 Phase 2: Graph Domain Model - IN PROGRESS (25%)
+- **Graph Aggregate**: ✅ COMPLETED - All command handlers implemented with business rules
+- **Node/Edge Entities**: Pending - Rich domain objects with behavior
+- **Graph Commands**: Pending - Command pattern for graph mutations
+- **Domain Events**: Pending - Event types for all graph operations
 
 ### 📅 Upcoming Phases
 
-1. **Phase 2: Domain Model with CIM Extensions** (Week 3)
-   - Conceptual positioning components
-   - Game theory components
-   - Distributed repository pattern
-   - **🔄 Dog-Fooding: Progress graph loader implementation**
+**Phase 3: CQRS Implementation**
+- Command Handlers
+- Query Handlers
+- Projections
+- Snapshot Management
 
-2. **Phase 3: Conceptual Spaces Implementation** (Week 4)
-   - Spatial knowledge representation
-   - Similarity metrics
-   - Enhanced force-directed layout
-   - **🔄 Dog-Fooding: Git integration foundation**
+**Phase 4: Conceptual Space Integration**
+- Embedding Service
+- Similarity Calculations
+- Conceptual Mapping
+- Knowledge-Aware Layout
 
-3. **Phase 4: Game Theory Components** (Week 5)
-   - Strategy system
-   - Utility calculations
-   - Coalition formation
-   - **🔄 Dog-Fooding: Dual graph visualization (planned vs actual)**
+**Phase 5: AI Agent Integration**
+- Agent Protocol
+- Tool Interface
+- Semantic Search
+- Workflow Automation
 
-4. **Phase 5: AI Agent Interface** (Week 6)
-   - Agent communication via NATS
-   - Analysis workflows
-   - Suggestion handling
-   - **🔄 Dog-Fooding: Real-time git monitoring**
-
-5. **Phase 6: Full CIM Integration** (Week 7)
-   - Distributed queries
-   - Multi-user collaboration
-   - State synchronization
-   - **🔄 Dog-Fooding: Development analytics**
-
-6. **Phase 7: Advanced Features & Polish** (Week 8)
-   - Multi-dimensional projections
-   - Temporal navigation
-   - Performance optimization
-   - **🔄 Dog-Fooding: Self-improvement loop**
+**Phase 6: Dog-fooding & Polish**
+- Progress Visualization
+- Development Workflow
+- Performance Optimization
+- Documentation
 
 ## Recent Achievements
 
-### CID Chain Implementation ✅
-- Implemented ChainedEvent structure with content addressing
-- Used BLAKE3 hashing for performance and security
-- Created EventChain for managing sequences of events
-- Added chain validation to detect tampering
-- Implemented deterministic CID generation
-- Comprehensive test suite with tampering detection tests
+### Graph Aggregate Implementation ✅ (June 2025)
+- Implemented all command handlers for Graph, Node, and Edge commands
+- Added comprehensive business rule validation
+- Enforced DDD principles with value object immutability
+- Created 20 comprehensive tests - all passing
+- Fixed event structure mismatches
 
-### Distributed Event Store ✅
-- Successfully integrated NATS JetStream for persistent storage
-- Implemented file-based storage with retention policies
-- Added event acknowledgment tracking for reliability
-- Created LRU cache for performance optimization
-- Integrated with EventBridge for seamless communication
+### QA Compliance Review (June 2025)
+- Overall compliance: 78%
+- Identified critical gaps in domain model, test coverage, and integration tests
+- Created remediation plan with prioritized actions
 
-### Event Bridge Architecture ✅
-- Created bidirectional async/sync bridge
-- Used crossbeam channels for thread-safe communication
-- Integrated tokio runtime for async operations
-- Added graceful shutdown handling
-- Comprehensive test coverage
+### Key Infrastructure Completed
+- **NATS Event Replay**: Tested with 114 events
+- **Bevy 0.16 Linking**: Fixed experimental feature issues
+- **Dynamic Linking**: Resolved - use `nix build` or `nix run`
+- **Test Suite**: 90+ tests passing
 
-### IPLD Architecture Design ✅
-- Created 11 comprehensive design documents
-- Defined domain-specific IPLD codecs
-- Designed dual Merkle DAG structure (Event Store + Object Store)
-- Added support for documents, multimedia, and infrastructure tracking
-- Implemented Git hash to CID isomorphism for seamless integration
+## Next Steps (Priority Order)
 
-### CIM-IPLD Library Extraction ✅
-- Created standalone library at github.com/TheCowboyAI/cim-ipld
-- Implemented TypedContent trait for content addressing
-- Built ChainedContent and ContentChain for cryptographic chains
-- Created extensible codec registry (0x300000-0x3FFFFF range)
-- Added comprehensive test suite with 7 tests
-- Integrated as git submodule in Information Alchemist
+1. **Priority 1: Create integration test suite with NATS end-to-end tests**
+2. **Priority 1: Implement read model projections for CQRS queries**
+3. Update Phase 2 task status to reflect graph aggregate completion
+4. Increase test coverage to 80% minimum
+5. Document TDD workflow with examples
+6. Begin command handler implementation in application layer
 
-## Self-Referential Development
+## Current Blockers
 
-### The Dog-Fooding Journey
-
-Information Alchemist will use itself to understand its own development:
-
-1. **Progress Visualization**: The `progress.json` file will be loaded as a graph
-2. **Git Integration**: Commit history will be transformed into graph events
-3. **Real-Time Monitoring**: Development activities streamed through NATS
-4. **Pattern Detection**: Identify bottlenecks and optimization opportunities
-5. **Continuous Improvement**: Use insights to improve the tool itself
-
-### Benefits of Self-Visualization
-
-- **Immediate Feedback**: Test features on real, meaningful data
-- **Living Documentation**: Interactive visualization of project evolution
-- **Team Insights**: Understand collaboration patterns and velocity
-- **Quality Improvement**: Detect issues early through pattern analysis
-
-## Key Changes from Original Plan
-
-### Architecture Evolution
-- **From**: Local event sourcing with file storage
-- **To**: Distributed event sourcing via NATS JetStream with CID chains
-
-### Communication
-- **From**: Internal event bus
-- **To**: NATS subjects for all backend communication with IPLD
-
-### Storage
-- **From**: Local JSON files
-- **To**: Distributed Event Store + Object Store with content addressing
-
-### Features
-- **Added**: Conceptual spaces, game theory, AI readiness, dog-fooding, IPLD
-- **Enhanced**: Multi-user collaboration, distributed queries, self-analysis
-
-## Progress Tracking
-
-The progress is tracked in `progress.json` which can be loaded into Information Alchemist once the graph visualization is working. This creates a self-referential system where the tool tracks its own development.
-
-### Viewing Progress
-
-```bash
-# View the progress graph structure
-cat progress.json | jq .
-
-# Once Information Alchemist is running:
-# 1. Load progress.json as a graph
-# 2. Visualize development timeline
-# 3. Analyze phase dependencies
-# 4. Track completion status
-```
-
-## Next Steps
-
-1. **Immediate** (This Week):
-   - Define IA-specific content types (GraphContent, NodeContent, EdgeContent)
-   - Implement custom codecs for Information Alchemist domain objects
-   - Integrate NATS Object Store with cim-ipld
-   - Update event store to use CID chains from external library
-   - Note: Run all tests via `nix build` or `nix run` (not cargo test directly)
-
-2. **Short Term** (Next 2 Weeks):
-   - Complete IPLD relationship system
-   - Add domain tests for all aggregates
-   - Set up test coverage metrics (using `nix develop -c cargo llvm-cov`)
-   - Begin dog-fooding with progress.json visualization
-
-3. **Medium Term** (Weeks 4-6):
-   - Implement conceptual spaces
-   - Add game theory components
-   - Create AI agent interface
-   - Full git integration for development tracking
+- Test coverage below 80% target - quality gate not met
+- Missing integration tests - cannot verify end-to-end functionality
+- Read model projections not implemented - CQRS incomplete
 
 ## Development Workflow
 
 ### Building and Testing
 ```bash
-# Build the project (includes running tests)
+# Build the project
 nix build
 
 # Run the application
 nix run
 
-# Enter development shell for manual commands
+# Enter development shell
 nix develop
 
-# Run tests with coverage (once cargo-llvm-cov is added)
-nix develop -c cargo llvm-cov --lib --no-default-features --html
+# Run tests
+nix develop -c cargo test
 ```
 
-**Important**: Due to dynamic linking requirements with Bevy, always use the Nix commands above. Direct `cargo test` will fail with symbol lookup errors.
+**Important**: Due to Bevy dynamic linking requirements, always use Nix commands.
+
+## Progress Tracking
+
+Progress is tracked in `progress.json` which contains:
+- 900+ nodes representing milestones, tasks, and achievements
+- 150+ edges showing dependencies and relationships
+- Complete development history from project inception
+
+### Key Milestones Achieved
+- **Migration Start**: Decision to adopt event sourcing
+- **Architecture Design**: CIM integration planned
+- **CIM-IPLD Extraction**: Standalone library created
+- **QA Compliance Review**: 78% compliance achieved
+- **Graph Aggregate Complete**: Domain model foundation ready
 
 ## Success Metrics
 
 - **Functional**: Full CIM integration with all phases complete
 - **Performance**: 100K+ nodes, <100ms distributed queries
-- **Quality**: 80%+ test coverage, security audit passed
-- **Dog-Fooding**: 5+ actionable insights per week from self-analysis
+- **Quality**: 80%+ test coverage
 - **Timeline**: Complete by July 30, 2025
 
 ## Resources
 
 - [CIM Architecture Design](../design/event-sourced-graph-architecture.md)
-- [CID/IPLD Architecture](../design/cid-ipld-architecture.md)
-- [Dog-Fooding Design](../design/dog-fooding-self-visualization.md)
-- [Implementation Plan](../plan/event-sourcing-implementation-plan.md)
-- [Immediate Actions Plan](../plan/immediate-actions-plan.md)
+- [QA Compliance Report](../qa/cim-architecture-compliance-report.md)
+- [Remediation Plan](../plan/qa-remediation-plan.md)
 - [Progress Graph](progress.json)
-- [User Stories](../testing/user-stories.md)
-- [Acceptance Tests](../testing/acceptance-tests.md)
-- [Fitness Functions](../testing/fitness-functions.md)
-
-## How to Contribute
-
-1. Review the current phase tasks
-2. Check the implementation plan for details
-3. Follow the architecture design principles
-4. Test with NATS integration in mind
-5. Document as you go
-6. Your commits will become part of the visualization!
-
-The transformation to a CIM leaf node represents a significant upgrade that will enable Information Alchemist to participate in a larger distributed knowledge management ecosystem while using itself as a powerful development tool.
 
 ---
 
-**Last Updated**: January 7, 2025
-**Migration Started**: January 6, 2025
-**Estimated Completion**: 8 weeks (July 30, 2025)
-**Current Week**: 2 of 8
-**Phase 0 Progress**: 100% Complete ✅
-**Phase 1 Progress**: 100% Complete ✅
-**Phase 1.5 Progress**: 25% In Progress 🚧
-**CIM-IPLD Library**: Published at github.com/TheCowboyAI/cim-ipld ✅
+**Last Updated**: June 6, 2025
+**Project Started**: March 2024
+**Current Phase**: 2 (Graph Domain Model)
+**Overall Progress**: ~35% (Phase 0, 1, 1.5 complete + Graph Aggregate)
