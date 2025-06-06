@@ -15,7 +15,8 @@ all = { level = "warn", priority = -1 }
 all = { level = "warn", priority = -1 }
 
 [workspace]
-exclude = ["examples/", "cim-ipld/"]
+exclude = ["examples/", "bevy-patched"]
+resolver = "2"
 
 [features]
 default = []
@@ -23,9 +24,12 @@ dynamic = ["bevy/dynamic_linking"]
 dev = [
   "bevy/asset_processor",
   "bevy/file_watcher",
+  "bevy/default",
   "dynamic"
 ]
 integration-tests = []
+# Feature for testing without problematic Bevy features
+test-minimal = ["bevy/bevy_ui", "bevy/bevy_winit", "bevy/default_font", "bevy/bevy_text"]
 
 [dependencies]
 # Core dependencies
@@ -33,14 +37,40 @@ rand = "0.9"
 uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-bevy = { version = "0.16.1", features = ["wayland"] }
+
+# Bevy - use default features for dev, minimal for production
+bevy = { path = "bevy-patched", default-features = false, features = [
+  "animation",
+  "bevy_asset",
+  "bevy_audio",
+  "bevy_gilrs",
+  "bevy_scene",
+  "bevy_winit",
+  "bevy_core_pipeline",
+  "bevy_pbr",
+  "bevy_gltf",
+  "bevy_render",
+  "bevy_sprite",
+  "bevy_text",
+  "bevy_ui",
+  "multi_threaded",
+  "png",
+  "hdr",
+  "vorbis",
+  "x11",
+  "bevy_gizmos",
+  "tonemapping_luts",
+  "default_font",
+  "webgl2",
+  "sysinfo_plugin",
+] }
 
 # Graph library
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
 
 # Async runtime
-tokio = { version = "1.42", features = ["full"] }
+tokio = { version = "1.45", features = ["full"] }
 async-trait = "0.1"
 
 # NATS messaging
@@ -83,7 +113,7 @@ tempfile = "3.8"
 uuid = { version = "1.10", features = ["v4"] }
 
 [profile.dev]
-opt-level = 1
+opt-level = 3
 
 [profile.dev.package."*"]
 opt-level = 3
@@ -106,3 +136,11 @@ path = "src/lib.rs"
 [[bin]]
 name = "ia"
 path = "src/main.rs"
+
+[[bin]]
+name = "test_nats"
+path = "src/bin/test_nats.rs"
+
+# Disable the problematic experimental features
+[package.metadata.bevy]
+experimental_fixed_timestep = false

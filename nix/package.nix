@@ -7,15 +7,8 @@ pkgs.rustPlatform.buildRustPackage rec {
   pname = "ia";
   version = "0.1.0";
 
-  # Use root directory as source, including bevy-patched
-  src = lib.cleanSourceWith {
-    src = ../.;
-    filter = path: type:
-      # Include everything except .git and target directories
-      !(lib.hasSuffix "/.git" path) &&
-      !(lib.hasSuffix "/target" path) &&
-      !(lib.hasInfix "/target/" path);
-  };
+  # Use root directory as source
+  src = ../.;
 
   # Use the Cargo lock file
   cargoLock.lockFile = ../Cargo.lock;
@@ -32,8 +25,10 @@ pkgs.rustPlatform.buildRustPackage rec {
     makeWrapper
   ];
 
-  # Production build flags - disable dynamic linking for Nix builds
-  cargoBuildFlags = "--no-default-features";
+  # Production build flags - build without dynamic linking to avoid Bevy 0.16.1 issues
+  cargoBuildFlags = "";
+
+
 
   # Disable tests by default - we'll run them explicitly when needed
   doCheck = false;
@@ -48,10 +43,27 @@ pkgs.rustPlatform.buildRustPackage rec {
   # Disable patchelf initially to preserve RPATH
   dontPatchELF = true;
 
-  # Post-fixup phase to manually patch RPATH
+    # Install phase to copy assets
+  postInstall = ''
+    # Copy assets if they exist
+    if [ -d assets ]; then
+      mkdir -p $out/share/ia
+      cp -r assets $out/share/ia/
+    fi
+  '';
+
+      # Post-fixup phase to manually patch RPATH and wrap binaries
   postFixup = ''
-    # Add vulkan-loader to RPATH to fix experimental occlusion culling linking issues
-    patchelf --add-rpath ${pkgs.vulkan-loader}/lib $out/bin/*
+    # Add necessary libraries to RPATH
+    for bin in $out/bin/*; do
+      patchelf --add-rpath "${pkgs.lib.makeLibraryPath nonRustDeps}" "$bin"
+
+      # Wrap the binary with proper library paths
+      wrapProgram "$bin" \
+        --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath nonRustDeps}" \
+        --set VK_LAYER_PATH "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d" \
+        --set BEVY_ASSET_ROOT "$out/share/ia/assets"
+    done
   '';
 
   # Metadata

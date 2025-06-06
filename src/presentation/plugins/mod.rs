@@ -83,6 +83,7 @@ fn handle_domain_events(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     time: Res<Time>,
+    node_query: Query<(Entity, &GraphNode)>,
 ) {
     for event in events.read() {
         info!("Received domain event: {:?}", event.event);
@@ -132,6 +133,7 @@ fn handle_domain_events(
                     *source,
                     *target,
                     &time,
+                    &node_query,
                 );
             }
             _ => {}
@@ -306,39 +308,55 @@ fn spawn_edge(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     graph_id: GraphId,
     edge_id: EdgeId,
-    source: NodeId,
-    target: NodeId,
+    source_id: NodeId,
+    target_id: NodeId,
     time: &Time,
+    node_query: &Query<(Entity, &GraphNode)>,
 ) {
-    let edge_mesh = meshes.add(Cylinder::new(0.05, 1.0));
-    let edge_material = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.6, 0.6, 0.6),
-        metallic: 0.1,
-        perceptual_roughness: 0.8,
-        ..default()
-    });
+    // Find source and target entities
+    let mut source_entity = None;
+    let mut target_entity = None;
 
-    commands.spawn((
-        GraphEdge {
-            edge_id,
-            graph_id,
-            source,
-            target,
-        },
-        Mesh3d(edge_mesh),
-        MeshMaterial3d(edge_material),
-        Transform::default(),
-        EdgeDrawAnimation {
-            start_time: time.elapsed_secs(),
-            duration: 0.3,
-            progress: 0.0,
-        },
-    ));
+    for (entity, node) in node_query.iter() {
+        if node.node_id == source_id {
+            source_entity = Some(entity);
+        }
+        if node.node_id == target_id {
+            target_entity = Some(entity);
+        }
+    }
+
+    if let (Some(source), Some(target)) = (source_entity, target_entity) {
+        let edge_mesh = meshes.add(Cylinder::new(0.05, 1.0));
+        let edge_material = materials.add(StandardMaterial {
+            base_color: Color::srgb(0.6, 0.6, 0.6),
+            metallic: 0.1,
+            perceptual_roughness: 0.8,
+            ..default()
+        });
+
+        commands.spawn((
+            GraphEdge {
+                edge_id,
+                graph_id,
+                source,
+                target,
+            },
+            Mesh3d(edge_mesh),
+            MeshMaterial3d(edge_material),
+            Transform::default(),
+            EdgeDrawAnimation {
+                start_time: time.elapsed_secs(),
+                duration: 0.3,
+                progress: 0.0,
+            },
+        ));
+    }
 }
 
 /// Update edge positions to connect nodes
 fn update_edge_positions(
-    node_query: Query<(&GraphNode, &Transform), Without<GraphEdge>>,
+    node_query: Query<(Entity, &Transform), With<GraphNode>>,
     mut edge_query: Query<
         (&GraphEdge, &mut Transform, Option<&EdgeDrawAnimation>),
         Without<GraphNode>,
@@ -349,11 +367,11 @@ fn update_edge_positions(
         let mut source_pos = None;
         let mut target_pos = None;
 
-        for (node, transform) in node_query.iter() {
-            if node.node_id == edge.source {
+        for (entity, transform) in node_query.iter() {
+            if entity == edge.source {
                 source_pos = Some(transform.translation);
             }
-            if node.node_id == edge.target {
+            if entity == edge.target {
                 target_pos = Some(transform.translation);
             }
         }
@@ -586,12 +604,12 @@ fn apply_force_layout(
         let mut target_entity = None;
 
         // Find source and target positions
-        for (entity, transform, _, graph_node) in nodes.iter() {
-            if graph_node.node_id == edge.source {
+        for (entity, transform, _, _) in nodes.iter() {
+            if entity == edge.source {
                 source_pos = Some(transform.translation);
                 source_entity = Some(entity);
             }
-            if graph_node.node_id == edge.target {
+            if entity == edge.target {
                 target_pos = Some(transform.translation);
                 target_entity = Some(entity);
             }

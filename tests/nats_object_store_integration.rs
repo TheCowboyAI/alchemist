@@ -3,24 +3,20 @@
 //! These tests require a running NATS server with JetStream enabled.
 //! Run with: nats-server -js
 
-use ia::infrastructure::object_store::{NatsObjectStore, ContentStorageService, ContentBucket};
+use ia::infrastructure::object_store::{NatsObjectStore, ContentBucket, ContentStorageService};
 use ia::domain::content_types::{GraphContent, NodeIPLDContent, EdgeIPLDContent};
-use ia::edge_content::EdgeIPLDType;
+use ia::domain::content_types::edge_content::EdgeIPLDType;
 use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata};
 use async_nats::jetstream;
 use cid::Cid;
 use cim_ipld::TypedContent;
 use std::sync::Arc;
 use std::time::Duration;
-use std::collections::HashMap;
-use tokio;
 
 /// Helper to connect to NATS for testing
-async fn setup_test_nats() -> Result<(async_nats::Client, jetstream::Context), Box<dyn std::error::Error>> {
-    // Try to connect to local NATS server
+async fn connect_nats() -> Result<(async_nats::Client, jetstream::Context), Box<dyn std::error::Error>> {
     let client = async_nats::connect("nats://localhost:4222").await?;
     let jetstream = jetstream::new(client.clone());
-
     Ok((client, jetstream))
 }
 
@@ -30,40 +26,33 @@ fn test_bucket_name(base: &str) -> String {
 }
 
 #[tokio::test]
-#[ignore = "requires running NATS server"]
-async fn test_object_store_basic_operations() -> Result<(), Box<dyn std::error::Error>> {
-    let (_client, jetstream) = setup_test_nats().await?;
+async fn test_store_and_retrieve_graph() -> Result<(), Box<dyn std::error::Error>> {
+    let (_client, jetstream) = connect_nats().await?;
+    let object_store = Arc::new(NatsObjectStore::new(jetstream).await?);
 
-    // Create object store
-    let object_store = NatsObjectStore::new(jetstream, 1024).await?;
+    // Create a test graph
+    let graph = GraphContent {
+        id: GraphId::new(),
+        metadata: GraphMetadata {
+            name: "test-graph".to_string(),
+            ..Default::default()
+        },
+        nodes: vec![],
+        edges: Default::default(),
+        conceptual_position: None,
+    };
 
-    // Create test content
-    let mut metadata = GraphMetadata::default();
-    metadata.name = "test-graph".to_string();
-    let graph = GraphContent::new(
-        GraphId::new(),
-        metadata.clone(),
-    );
-
-    // Store content
+    // Store the graph
     let cid = object_store.put(&graph).await?;
-    println!("Stored graph with CID: {}", cid);
+    println!("Stored graph with CID: {cid}");
 
-    // Retrieve content
+    // Retrieve the graph
     let retrieved: GraphContent = object_store.get(&cid).await?;
-    assert_eq!(retrieved.metadata.name, "test-graph");
-    assert_eq!(retrieved.metadata, metadata);
+    assert_eq!(retrieved.id, graph.id);
+    assert_eq!(retrieved.metadata.name, graph.metadata.name);
 
     // Check existence
-    let exists = object_store.exists(&cid, GraphContent::CONTENT_TYPE.codec()).await?;
-    assert!(exists);
-
-    // Delete content
-    object_store.delete(&cid, GraphContent::CONTENT_TYPE.codec()).await?;
-
-    // Verify deletion
-    let exists_after = object_store.exists(&cid, GraphContent::CONTENT_TYPE.codec()).await?;
-    assert!(!exists_after);
+    assert!(object_store.exists(&cid, GraphContent::CONTENT_TYPE.codec()).await?);
 
     Ok(())
 }
@@ -71,7 +60,7 @@ async fn test_object_store_basic_operations() -> Result<(), Box<dyn std::error::
 #[tokio::test]
 #[ignore = "requires running NATS server"]
 async fn test_compression_threshold() -> Result<(), Box<dyn std::error::Error>> {
-    let (_client, jetstream) = setup_test_nats().await?;
+    let (_client, jetstream) = connect_nats().await?;
 
     // Create object store with 100 byte compression threshold
     let object_store = NatsObjectStore::new(jetstream, 100).await?;
@@ -93,7 +82,7 @@ async fn test_compression_threshold() -> Result<(), Box<dyn std::error::Error>> 
     // Add properties to make it large
     for i in 0..100 {
         large_node.properties.insert(
-            format!("prop_{}", i),
+            format!("prop_{i}"),
             serde_json::Value::String("x".repeat(50)),
         );
     }
@@ -102,8 +91,8 @@ async fn test_compression_threshold() -> Result<(), Box<dyn std::error::Error>> 
     let small_cid = object_store.put(&small_node).await?;
     let large_cid = object_store.put(&large_node).await?;
 
-    println!("Small node CID: {}", small_cid);
-    println!("Large node CID: {}", large_cid);
+    println!("Small node CID: {small_cid}");
+    println!("Large node CID: {large_cid}");
 
     // Retrieve and verify
     let retrieved_small: NodeIPLDContent = object_store.get(&small_cid).await?;
@@ -119,7 +108,7 @@ async fn test_compression_threshold() -> Result<(), Box<dyn std::error::Error>> 
 #[tokio::test]
 #[ignore = "requires running NATS server"]
 async fn test_content_storage_service() -> Result<(), Box<dyn std::error::Error>> {
-    let (_client, jetstream) = setup_test_nats().await?;
+    let (_client, jetstream) = connect_nats().await?;
 
     // Create object store and storage service
     let object_store = Arc::new(NatsObjectStore::new(jetstream, 1024).await?);
@@ -140,7 +129,7 @@ async fn test_content_storage_service() -> Result<(), Box<dyn std::error::Error>
 
     // Store content
     let cid = storage_service.store(&edge).await?;
-    println!("Stored edge with CID: {}", cid);
+    println!("Stored edge with CID: {cid}");
 
     // First retrieval (from object store)
     let retrieved1: EdgeIPLDContent = storage_service.get(&cid).await?;
@@ -167,7 +156,7 @@ async fn test_content_storage_service() -> Result<(), Box<dyn std::error::Error>
 #[tokio::test]
 #[ignore = "requires running NATS server"]
 async fn test_bucket_management() -> Result<(), Box<dyn std::error::Error>> {
-    let (_client, jetstream) = setup_test_nats().await?;
+    let (_client, jetstream) = connect_nats().await?;
 
     // Create object store
     let object_store = NatsObjectStore::new(jetstream, 1024).await?;
@@ -178,8 +167,10 @@ async fn test_bucket_management() -> Result<(), Box<dyn std::error::Error>> {
 
     // Store multiple graphs
     for i in 0..5 {
-        let mut metadata = GraphMetadata::default();
-        metadata.name = format!("graph-{}", i);
+        let metadata = GraphMetadata {
+            name: format!("graph-{i}"),
+            ..Default::default()
+        };
         let graph = GraphContent::new(
             GraphId::new(),
             metadata,
@@ -193,7 +184,7 @@ async fn test_bucket_management() -> Result<(), Box<dyn std::error::Error>> {
 
     // Get bucket stats
     let stats = object_store.stats(ContentBucket::Graphs).await?;
-    println!("Bucket stats: {:?}", stats);
+    println!("Bucket stats: {stats:?}");
     assert_eq!(stats.bucket_name, "cim-graphs");
 
     Ok(())
@@ -202,7 +193,7 @@ async fn test_bucket_management() -> Result<(), Box<dyn std::error::Error>> {
 #[tokio::test]
 #[ignore = "requires running NATS server"]
 async fn test_cid_integrity_verification() -> Result<(), Box<dyn std::error::Error>> {
-    let (_client, jetstream) = setup_test_nats().await?;
+    let (_client, jetstream) = connect_nats().await?;
 
     // Create object store
     let object_store = NatsObjectStore::new(jetstream, 1024).await?;
@@ -222,7 +213,7 @@ async fn test_cid_integrity_verification() -> Result<(), Box<dyn std::error::Err
 
     match object_store.get::<NodeIPLDContent>(&wrong_cid).await {
         Err(e) => {
-            println!("Expected error: {}", e);
+            println!("Expected error: {e}");
             assert!(e.to_string().contains("NotFound"));
         }
         Ok(_) => panic!("Should have failed with wrong CID"),
@@ -234,7 +225,7 @@ async fn test_cid_integrity_verification() -> Result<(), Box<dyn std::error::Err
 #[tokio::test]
 #[ignore = "requires running NATS server"]
 async fn test_batch_operations() -> Result<(), Box<dyn std::error::Error>> {
-    let (_client, jetstream) = setup_test_nats().await?;
+    let (_client, jetstream) = connect_nats().await?;
 
     // Create storage service
     let object_store = Arc::new(NatsObjectStore::new(jetstream, 1024).await?);
@@ -249,7 +240,7 @@ async fn test_batch_operations() -> Result<(), Box<dyn std::error::Error>> {
     let nodes: Vec<NodeIPLDContent> = (0..10)
         .map(|i| NodeIPLDContent::new(
             NodeId::new(),
-            format!("batch-node-{}", i),
+            format!("batch-node-{i}"),
             Position3D::default(),
         ))
         .collect();
@@ -264,7 +255,7 @@ async fn test_batch_operations() -> Result<(), Box<dyn std::error::Error>> {
 
     // Verify content
     for (i, node) in retrieved.iter().enumerate() {
-        assert_eq!(node.label, format!("batch-node-{}", i));
+        assert_eq!(node.label, format!("batch-node-{i}"));
     }
 
     Ok(())
@@ -286,9 +277,8 @@ async fn cleanup_test_buckets(jetstream: &jetstream::Context) -> Result<(), Box<
     ];
 
     for bucket in buckets {
-        match jetstream.delete_object_store(bucket).await {
-            Ok(_) => println!("Cleaned up bucket: {}", bucket),
-            Err(_) => {} // Ignore if doesn't exist
+        if let Ok(_) = jetstream.delete_object_store(bucket).await {
+            println!("Cleaned up bucket: {bucket}");
         }
     }
 

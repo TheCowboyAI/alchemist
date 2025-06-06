@@ -37,8 +37,8 @@ pkgs.mkShell {
     bacon
 
     # NATS for testing
-    nats-server
     natscli
+    nsc
   ];
 
   nativeBuildInputs = with pkgs; [
@@ -76,8 +76,11 @@ pkgs.mkShell {
   RUSTFLAGS = "-C link-arg=-fuse-ld=mold -C link-arg=-Wl,-rpath,${pkgs.vulkan-loader}/lib -Zshare-generics=y";
   BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
 
-  # Library paths
-  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (nonRustDeps ++ [ pkgs.vulkan-loader ]);
+  # Library paths - include Rust standard library path
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (nonRustDeps ++ [
+    pkgs.vulkan-loader
+    rust-toolchain
+  ]) + ":${rust-toolchain}/lib:${toString ../.}/target/debug/deps:${toString ../.}/target/release/deps";
 
   # PKG_CONFIG_PATH for finding system libraries
   PKG_CONFIG_PATH = pkgs.lib.makeSearchPath "lib/pkgconfig" [

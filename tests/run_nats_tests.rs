@@ -24,5 +24,10 @@ fn run_nats_integration_tests() {
     println!("2. Run: cargo test --lib");
 
     // For now, just verify our object store code compiles
-    assert!(true);
+}
+
+#[test]
+fn test_nats_integration() {
+    // This test is a placeholder for NATS integration tests
+    // Real tests would connect to NATS and verify functionality
 }

@@ -10,13 +10,13 @@ pub struct GraphNode {
     pub graph_id: GraphId,
 }
 
-/// Component marking an entity as a graph edge
+/// Component for graph edges
 #[derive(Component)]
 pub struct GraphEdge {
     pub edge_id: EdgeId,
     pub graph_id: GraphId,
-    pub source: NodeId,
-    pub target: NodeId,
+    pub source: Entity,
+    pub target: Entity,
 }
 
 /// Component for node labels
@@ -114,3 +114,7 @@ pub struct EventReplayer {
     pub current_index: usize,
     pub speed_multiplier: f32, // 1.0 = normal speed, 2.0 = double speed, etc.
 }
+
+/// Component for animation progress
+#[derive(Component)]
+pub struct AnimationProgress(pub f32);

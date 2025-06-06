@@ -162,7 +162,7 @@ impl NatsObjectStore {
                 // Create new bucket
                 let config = jetstream::object_store::Config {
                     bucket: bucket_name.to_string(),
-                    description: Some(format!("CIM content bucket for {}", bucket_name)),
+                    description: Some(format!("CIM content bucket for {bucket_name}")),
                     max_age: Duration::from_secs(365 * 24 * 60 * 60), // 365 days
                     ..Default::default()
                 };
@@ -234,7 +234,7 @@ impl NatsObjectStore {
             .map_err(|e| ObjectStoreError::Storage(e.to_string()))?;
 
         // For now, assume compressed if data looks compressed (starts with zstd magic)
-        let compressed = data.len() >= 4 && &data[0..4] == &[0x28, 0xb5, 0x2f, 0xfd];
+        let compressed = data.len() >= 4 && data[0..4] == [0x28, 0xb5, 0x2f, 0xfd];
 
         // Decompress if needed
         let data = if compressed {
@@ -299,7 +299,7 @@ impl NatsObjectStore {
             if let Ok(cid) = Cid::try_from(info.name.as_str()) {
                 objects.push(ObjectInfo {
                     cid,
-                    size: info.size as usize,
+                    size: info.size,
                     created_at: SystemTime::now(), // NATS doesn't provide mtime in the API
                     compressed: info.headers
                         .as_ref()

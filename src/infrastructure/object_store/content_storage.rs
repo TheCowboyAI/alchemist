@@ -65,7 +65,7 @@ impl ContentStorageService {
         // Cache the content
         let data = content.to_bytes()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
-        self.cache_content(cid.clone(), data, T::CONTENT_TYPE.codec()).await;
+        self.cache_content(cid, data, T::CONTENT_TYPE.codec()).await;
 
         info!("Stored content: {} (type: {})", cid, T::CONTENT_TYPE.codec());
         Ok(cid)
@@ -88,7 +88,7 @@ impl ContentStorageService {
         // Cache for future use
         let data = content.to_bytes()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
-        self.cache_content(cid.clone(), data, T::CONTENT_TYPE.codec()).await;
+        self.cache_content(*cid, data, T::CONTENT_TYPE.codec()).await;
 
         Ok(content)
     }
@@ -149,7 +149,7 @@ impl ContentStorageService {
         let mut current_size = self.current_cache_size.write().await;
 
         // Check if we need to evict entries
-        while *current_size + size > self.max_cache_size && cache.len() > 0 {
+        while *current_size + size > self.max_cache_size && !cache.is_empty() {
             if let Some((_, evicted)) = cache.pop_lru() {
                 *current_size -= evicted.size;
             }
