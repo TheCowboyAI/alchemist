@@ -7,6 +7,7 @@
 
 ### Architecture Terms
 - **CIM (Composable Information Machine)**: A framework for building distributed systems that transform scattered information into organized, actionable knowledge
+- **Leaf Node**: A CIM Node that hosts many Containers providing services, capabilities, AI Agents, and read models, used by the CIM
 - **Domain**: A unique set of ideas and concepts that cannot be further reduced, representing a specific area of knowledge or business function
 - **Agent**: A self-contained functional unit within CIM that provides specific services (e.g., AI, communications, documentation)
 - **Event**: A record of something that happened within the CIM system
@@ -18,128 +19,96 @@
 ### Event Sourcing Terms
 *For implementation details, see [Event-Sourced Architecture](event-sourced-graph-architecture.md)*
 - **Domain Event**: A persistent business fact that represents something that happened in the domain
+- **Presentation Event**: A UI interaction that stays within the presentation layer (e.g., animations, drag operations)
 - **Event Store**: System for storing and managing event streams with append-only semantics
 - **Event Envelope**: Container for an event with metadata including timestamp, sequence, and correlation IDs
+- **CID Chain**: Cryptographic chain of Content IDs ensuring event integrity and immutability
 - **Aggregate**: A cluster of domain objects treated as a single unit for data changes
 - **Aggregate Root**: The entry point to an aggregate that ensures consistency
 - **Command Handler**: Component that processes commands and generates domain events
 - **Projection**: A read model built from domain events for query optimization
 - **Event Sourcing**: Architectural pattern where state changes are stored as a sequence of events
 - **CQRS (Command Query Responsibility Segregation)**: Pattern separating read and write models
+- **Event Aggregator**: Component that collects multiple presentation events into domain commands
 
 ### Technical Terms
 *For implementation details, see [Technical Infrastructure](technical.md)*
 - **DDD (Domain-Driven Design)**: A software design approach focusing on modeling software to match a domain according to expert input
 - **EDA (Event-Driven Architecture)**: An architectural pattern where components communicate through events
-- **FRP (Functional Reactive Programming)**: Programming paradigm for reactive programming using functional programming concepts
+- **ECS (Entity Component System)**: Data-oriented architecture pattern used by Bevy for high-performance visualization
 - **NATS**: Message broker system used for internal CIM communication
+- **JetStream**: NATS persistence layer for reliable event storage
 - **Content-Addressing**: Method of storing and retrieving information based on its content rather than location
-- **Petgraph**: Rust graph data structure library used for efficient graph storage
-- **Bevy ECS**: Entity Component System framework used for visualization and UI
+- **IPLD**: InterPlanetary Linked Data format for content-addressed data structures
+- **Bevy**: Rust game engine using ECS for our visualization layer
 
 ### Implementation Components
-- **Event Store**: System for storing and managing event streams
+- **Event Store**: Distributed event storage using NATS JetStream
 - **Object Store**: System for storing immutable data with content addressing
-- **Ontology**: System for managing relationships and classifications
-- **Bundle**: Collection of reusable components and resources
-- **Read Model**: Optimized data structure for queries, built from events
+- **Event Bridge**: Async/sync bridge between NATS and Bevy ECS
+- **Projection Handler**: System that updates read models from events
+- **External Projection**: Projection that syncs with external systems bidirectionally
 - **Repository**: Pattern for aggregate persistence and retrieval
+- **Read Model**: Optimized data structure for queries, built from events
 
 ## Domain Categories
 *For full domain documentation, see [Domain Categorization](domain_categorization.md)*
 
-### Knowledge Management
-*Detailed in [Knowledge Management](knowledge_management.md)*
-- **Fact**: A proven claim with verifiable evidence
-- **Claim**: An idea with repeatable construction
-- **Theory**: A belief with supporting context and sources
-- **Idea**: A preliminary thought without formal theory
-- **Argument**: Support or opposition for a claim
+### Graph Domain (Event-Sourced)
 
-### Organizational
-- **Goal**: A defined achievement target
-- **Organization**: A structural entity
-- **Operator**: A system controller
-- **Account**: A managed group or entity
-- **User**: A managed person
-
-### Business
-- **Business Model**: Operational framework for value creation
-- **Value Proposition**: Benefit offering to stakeholders
-- **Solution**: Resolution to a defined problem
-- **Proposal**: Formal suggestion for action
-
-### Governance
-- **Policy**: Operational guideline
-- **Law**: Regulatory framework
-- **Ethics**: Moral principles
-- **Politics**: Power dynamics and relationships
-
-### Technical
-- **Model**: System representation
-- **Equipment**: Physical resource
-- **Environment**: Contextual setting
-- **Location**: Spatial information
-- **Secret**: Protected information
-
-### Infrastructure
-- **App**: The local Application
-- **Local**: The local Container
-- **Domain Implementation**: Specific instance of CIM for a particular organization or purpose
-- **Leaf**: A Deterministic Host Node
-- **Cluster**: A Managed Cluster of Leaf Nodes
-- **SuperCluster**: A Managed Cluster of Clusters
-
-### Security
-*Detailed in [Security Model](security.md)*
-- **mTLS**: Mutual Transport Layer Security authentication
-- **YubiKey**: Hardware authentication device
-- **OpenPGP**: Encryption standard
-- **OpenSSL**: Cryptographic software library
-
----
-
-## Graph Domain (Event-Sourced)
-
-### Term: Graph
+#### Term: Graph
 - **Category**: Domain Object
 - **Type**: Aggregate Root
 - **Taxonomy**: Graph Taxonomy
 - **Definition**: An event-sourced aggregate representing a collection of nodes and edges with full history tracking
 - **Relationships**:
-  * Contains: Nodes, Edges (via Petgraph)
+  * Contains: Nodes, Edges
   * Has: GraphId, GraphMetadata, Version
   * Emits: GraphCreated, GraphRenamed, GraphDeleted
 - **Usage Context**: Primary aggregate for organizing and visualizing relationships
 - **Code Reference**: `src/domain/aggregates/graph.rs`
 
-### Term: Node
+#### Term: Node
 - **Category**: Domain Object
-- **Type**: Entity
+- **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: A discrete point in a graph representing a single concept, tracked through events
+- **Definition**: An immutable point in a graph representing a single concept
 - **Relationships**:
   * Part-Of: Graph Aggregate
   * Has: NodeId, NodeContent, Position3D
   * Connected-By: Edges
   * Created-By: NodeAdded event
 - **Usage Context**: Fundamental unit of information within a graph
-- **Code Reference**: `src/domain/aggregates/node.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: Edge
+#### Term: Edge
 - **Category**: Domain Object
-- **Type**: Entity
+- **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
-- **Definition**: An event-sourced connection between nodes representing a relationship
+- **Definition**: An immutable connection between nodes representing a relationship
 - **Relationships**:
   * Part-Of: Graph Aggregate
   * Connects: Source NodeId, Target NodeId
-  * Has: EdgeId, EdgeRelationship, Weight
-  * Created-By: EdgeConnected event
+  * Has: EdgeId, EdgeRelationship
+  * Created-By: EdgeAdded event
 - **Usage Context**: Defining relationships between nodes
-- **Code Reference**: `src/domain/aggregates/edge.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: GraphId
+#### Term: GraphModel
+- **Category**: Domain Object
+- **Type**: Value Object
+- **Taxonomy**: Graph Taxonomy
+- **Definition**: Recognition of standard graph patterns (K7, C5, State Machines, etc.)
+- **Relationships**:
+  * Describes: Graph structure
+  * Enables: Structure-preserving morphisms
+  * Used-By: HUD system
+- **Usage Context**: Pattern recognition and graph transformations
+- **Code Reference**: `src/domain/value_objects.rs`
+
+### Identifiers
+
+#### Term: GraphId
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
@@ -148,31 +117,33 @@
   * Identifies: Graph Aggregate
   * Used-In: All graph commands and events
 - **Usage Context**: Ensuring unique identification across event streams
-- **Code Reference**: `src/domain/values/identifiers.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: NodeId
+#### Term: NodeId
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
 - **Definition**: An immutable UUID-based identifier for nodes
 - **Relationships**:
-  * Identifies: Node Entity
+  * Identifies: Node
   * Referenced-By: Edges, Commands, Events
 - **Usage Context**: Unique identification in event-sourced operations
-- **Code Reference**: `src/domain/values/identifiers.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: EdgeId
+#### Term: EdgeId
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
 - **Definition**: An immutable UUID-based identifier for edges
 - **Relationships**:
-  * Identifies: Edge Entity
+  * Identifies: Edge
   * Links: Source and Target NodeIds
 - **Usage Context**: Tracking edge lifecycle through events
-- **Code Reference**: `src/domain/values/identifiers.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: Position3D
+### Spatial and Metadata
+
+#### Term: Position3D
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
@@ -181,20 +152,20 @@
   * Positions: Node
   * Updated-By: NodeMoved event
 - **Usage Context**: Spatial positioning for visualization
-- **Code Reference**: `src/domain/values/position.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: GraphMetadata
+#### Term: GraphMetadata
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
 - **Definition**: Immutable descriptive information about a graph
 - **Relationships**:
   * Describes: Graph
-  * Contains: Name, CreatedAt, UpdatedAt, Tags
+  * Contains: Name, BoundedContext, CreatedAt, UpdatedAt, Tags
 - **Usage Context**: Graph identification and search
-- **Code Reference**: `src/domain/values/metadata.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: NodeContent
+#### Term: NodeContent
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
@@ -203,9 +174,9 @@
   * Contained-In: Node
   * Has: Label, NodeType, Properties
 - **Usage Context**: Storing node information
-- **Code Reference**: `src/domain/values/content.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
-### Term: EdgeRelationship
+#### Term: EdgeRelationship
 - **Category**: Domain Object
 - **Type**: Value Object
 - **Taxonomy**: Graph Taxonomy
@@ -214,11 +185,13 @@
   * Defines: Edge meaning
   * Contains: RelationType, Strength
 - **Usage Context**: Qualifying relationships
-- **Code Reference**: `src/domain/values/relationship.rs`
+- **Code Reference**: `src/domain/value_objects.rs`
 
 ## Domain Events
 
-### Term: GraphCreated
+### Graph Events
+
+#### Term: GraphCreated
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
@@ -226,35 +199,35 @@
 - **Relationships**:
   * Contains: GraphId, GraphMetadata
   * Stored-In: EventStore
-  * Projected-To: GraphReadModel
+  * Projected-To: GraphSummaryProjection
 - **Usage Context**: Graph lifecycle tracking
-- **Code Reference**: `src/domain/events/graph_events.rs`
+- **Code Reference**: `src/domain/events/mod.rs`
 
-### Term: NodeAdded
+#### Term: NodeAdded
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
 - **Definition**: Immutable record that a node was added to a graph
 - **Relationships**:
-  * Contains: GraphId, Node
+  * Contains: GraphId, NodeId, NodeContent, Position
   * Updates: Graph Aggregate
   * Triggers: Visual entity creation
 - **Usage Context**: Node creation tracking
-- **Code Reference**: `src/domain/events/graph_events.rs`
+- **Code Reference**: `src/domain/events/mod.rs`
 
-### Term: EdgeConnected
+#### Term: EdgeAdded
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
 - **Definition**: Immutable record that an edge was established
 - **Relationships**:
-  * Contains: GraphId, Edge
-  * Updates: Petgraph structure
+  * Contains: GraphId, EdgeId, Source, Target, Relationship
+  * Updates: Graph structure
   * Triggers: Edge visualization
 - **Usage Context**: Relationship establishment
-- **Code Reference**: `src/domain/events/graph_events.rs`
+- **Code Reference**: `src/domain/events/mod.rs`
 
-### Term: NodeRemoved
+#### Term: NodeRemoved
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
@@ -263,33 +236,38 @@
   * Contains: GraphId, NodeId
   * Cascades: Edge removal
 - **Usage Context**: Node deletion tracking
-- **Code Reference**: `src/domain/events/graph_events.rs`
+- **Code Reference**: `src/domain/events/mod.rs`
 
-### Term: EdgeDisconnected
+#### Term: EdgeRemoved
 - **Category**: Domain Event
 - **Type**: Event
 - **Taxonomy**: Graph Events
 - **Definition**: Immutable record that an edge was removed
 - **Relationships**:
   * Contains: GraphId, EdgeId
-  * Updates: Petgraph structure
+  * Updates: Graph structure
 - **Usage Context**: Relationship removal
-- **Code Reference**: `src/domain/events/graph_events.rs`
+- **Code Reference**: `src/domain/events/mod.rs`
 
-### Term: LayoutApplied
-- **Category**: Domain Event
-- **Type**: Event
-- **Taxonomy**: Graph Events
-- **Definition**: Immutable record that a layout algorithm was applied
+### CID Chain Events
+
+#### Term: ChainedEvent
+- **Category**: Infrastructure
+- **Type**: Event Wrapper
+- **Taxonomy**: Event Infrastructure
+- **Definition**: Event wrapper that includes CID chain information
 - **Relationships**:
-  * Contains: GraphId, LayoutType, Positions
-  * Updates: Node positions
-- **Usage Context**: Layout change tracking
-- **Code Reference**: `src/domain/events/graph_events.rs`
+  * Contains: Event, CID, PreviousCID
+  * Ensures: Cryptographic integrity
+  * Part-Of: EventChain
+- **Usage Context**: Tamper-proof event history
+- **Code Reference**: `src/domain/events/cid_chain.rs`
 
 ## Commands
 
-### Term: CreateGraph
+### Graph Commands
+
+#### Term: CreateGraph
 - **Category**: Command
 - **Type**: Command
 - **Taxonomy**: Graph Commands
@@ -299,9 +277,9 @@
   * Produces: GraphCreated event
   * Handled-By: GraphCommandHandler
 - **Usage Context**: Graph initialization
-- **Code Reference**: `src/domain/commands/graph_commands.rs`
+- **Code Reference**: `src/domain/commands/mod.rs`
 
-### Term: AddNode
+#### Term: AddNode
 - **Category**: Command
 - **Type**: Command
 - **Taxonomy**: Graph Commands
@@ -311,73 +289,107 @@
   * Produces: NodeAdded event
   * Validates: Graph exists
 - **Usage Context**: Node creation
-- **Code Reference**: `src/domain/commands/graph_commands.rs`
+- **Code Reference**: `src/domain/commands/mod.rs`
 
-### Term: ConnectNodes
+#### Term: AddEdge
 - **Category**: Command
 - **Type**: Command
 - **Taxonomy**: Graph Commands
 - **Definition**: Command to create an edge between nodes
 - **Relationships**:
   * Contains: GraphId, Source, Target, Relationship
-  * Produces: EdgeConnected event
+  * Produces: EdgeAdded event
   * Validates: Nodes exist
 - **Usage Context**: Relationship creation
-- **Code Reference**: `src/domain/commands/graph_commands.rs`
+- **Code Reference**: `src/domain/commands/mod.rs`
+
+### Aggregated Commands
+
+#### Term: MoveNodes
+- **Category**: Command
+- **Type**: Aggregated Command
+- **Taxonomy**: Graph Commands
+- **Definition**: Command aggregated from multiple drag events
+- **Relationships**:
+  * Aggregated-From: DragStarted, DragUpdated, DragEnded
+  * Contains: NodePositions map
+  * Produces: Multiple NodeMoved events
+- **Usage Context**: Batch position updates from UI interactions
+- **Code Reference**: `src/domain/commands/aggregated_commands.rs`
 
 ## Infrastructure Components
 
-### Term: EventStore
+### Event Infrastructure
+
+#### Term: DistributedEventStore
 - **Category**: Infrastructure
 - **Type**: Service
 - **Taxonomy**: Event Sourcing Infrastructure
-- **Definition**: Append-only store for domain events with indexing
+- **Definition**: NATS JetStream-based distributed event store
 - **Relationships**:
-  * Stores: EventEnvelopes
-  * Indexes: By aggregate, sequence, timestamp
-  * Persists-To: JsonFilePersistence
-- **Usage Context**: Event persistence and retrieval
-- **Code Reference**: `src/infrastructure/event_store/mod.rs`
+  * Uses: NATS JetStream
+  * Stores: ChainedEvents
+  * Indexes: By aggregate, sequence
+- **Usage Context**: Distributed event persistence
+- **Code Reference**: `src/infrastructure/event_store/distributed_impl.rs`
 
-### Term: GraphRepository
+#### Term: EventBridge
 - **Category**: Infrastructure
-- **Type**: Repository
-- **Taxonomy**: Event Sourcing Infrastructure
-- **Definition**: Repository for loading and saving graph aggregates via events
+- **Type**: Service
+- **Taxonomy**: Integration Infrastructure
+- **Definition**: Bidirectional bridge between async NATS and sync Bevy
 - **Relationships**:
-  * Uses: EventStore
-  * Rebuilds: Aggregates from events
-  * Caches: Loaded aggregates
-- **Usage Context**: Aggregate persistence
-- **Code Reference**: `src/infrastructure/repositories/graph_repository.rs`
+  * Connects: NATS client, Bevy ECS
+  * Uses: Crossbeam channels
+  * Manages: Event flow
+- **Usage Context**: Async/sync integration
+- **Code Reference**: `src/infrastructure/event_bridge/mod.rs`
 
-### Term: GraphReadModel
-- **Category**: Infrastructure
+### Projections
+
+#### Term: GraphSummaryProjection
+- **Category**: Application
 - **Type**: Read Model
 - **Taxonomy**: CQRS Infrastructure
-- **Definition**: Optimized read model for graph queries using Petgraph
+- **Definition**: Optimized read model for graph summaries
 - **Relationships**:
-  * Projects-From: Domain events
-  * Contains: StableGraph, Indices, Caches
-  * Serves: GraphQueries
-- **Usage Context**: Query optimization
-- **Code Reference**: `src/application/projections/graph_read_model.rs`
+  * Projects-From: Graph events
+  * Contains: GraphSummary data
+  * Serves: Summary queries
+- **Usage Context**: Fast graph overview queries
+- **Code Reference**: `src/application/projections/graph_summary.rs`
 
-### Term: GraphCommandHandler
+#### Term: ExternalProjection
+- **Category**: Application
+- **Type**: Integration Pattern
+- **Taxonomy**: CQRS Infrastructure
+- **Definition**: Projection that syncs with external systems
+- **Relationships**:
+  * Implements: Bidirectional sync
+  * Uses: IngestHandler
+  * Manages: External state
+- **Usage Context**: External system integration
+- **Code Reference**: `src/application/projections/external/mod.rs`
+
+### Command Handlers
+
+#### Term: GraphCommandHandler
 - **Category**: Application
 - **Type**: Service
 - **Taxonomy**: CQRS Infrastructure
 - **Definition**: Handles graph commands and generates events
 - **Relationships**:
   * Processes: GraphCommands
+  * Uses: GraphAggregate
   * Generates: DomainEvents
-  * Uses: EventStore, GraphRepository
 - **Usage Context**: Command processing
-- **Code Reference**: `src/application/command_handlers/graph_command_handler.rs`
+- **Code Reference**: `src/application/command_handlers/graph_handler.rs`
 
-## Bevy Integration Components
+## Presentation Layer
 
-### Term: GraphNode
+### Components
+
+#### Term: GraphNode (Component)
 - **Category**: Presentation
 - **Type**: Component
 - **Taxonomy**: Bevy ECS
@@ -385,283 +397,125 @@
 - **Relationships**:
   * References: NodeId, GraphId
   * Attached-To: Visual entities
-  * Created-By: Event bridge
+  * Created-By: Event systems
 - **Usage Context**: Visual representation
-- **Code Reference**: `src/presentation/components/graph_components.rs`
+- **Code Reference**: `src/presentation/components/mod.rs`
 
-### Term: GraphEdge
+#### Term: GraphEdge (Component)
 - **Category**: Presentation
 - **Type**: Component
 - **Taxonomy**: Bevy ECS
 - **Definition**: ECS component for edge visualization
 - **Relationships**:
-  * References: EdgeId, Source Entity, Target Entity
+  * References: EdgeId, Source, Target
   * Attached-To: Edge visuals
 - **Usage Context**: Edge rendering
-- **Code Reference**: `src/presentation/components/graph_components.rs`
+- **Code Reference**: `src/presentation/components/mod.rs`
 
-### Term: DomainEventOccurred
-- **Category**: Presentation
-- **Type**: Event
-- **Taxonomy**: Bevy ECS
-- **Definition**: Bevy event wrapping domain events for ECS processing
-- **Relationships**:
-  * Contains: EventEnvelope
-  * Processed-By: Event bridge systems
-  * Triggers: Visual updates
-- **Usage Context**: Domain-ECS bridge
-- **Code Reference**: `src/presentation/bevy_systems/event_bridge.rs`
+### Presentation Events
 
-### Term: EventBridge
-- **Category**: Presentation
-- **Type**: System
-- **Taxonomy**: Bevy ECS
-- **Definition**: System that polls EventStore and converts to Bevy events
+#### Term: DragStarted
+- **Category**: Presentation Event
+- **Type**: UI Event
+- **Taxonomy**: Bevy Events
+- **Definition**: Event when user starts dragging a node
 - **Relationships**:
-  * Polls: EventStore
-  * Emits: DomainEventOccurred
-  * Manages: Backpressure
-- **Usage Context**: Event synchronization
-- **Code Reference**: `src/presentation/bevy_systems/event_bridge.rs`
+  * Contains: NodeId, StartPosition
+  * Part-Of: Drag sequence
+  * Aggregated-To: MoveNodes command
+- **Usage Context**: UI interaction tracking
+- **Code Reference**: `src/presentation/events/interaction.rs`
+
+#### Term: AnimationFrame
+- **Category**: Presentation Event
+- **Type**: Animation Event
+- **Taxonomy**: Bevy Events
+- **Definition**: Event for animation progress updates
+- **Relationships**:
+  * Contains: Progress, Target
+  * Stays-In: Presentation layer
+  * Never-Becomes: Domain event
+- **Usage Context**: Smooth visual transitions
+- **Code Reference**: `src/presentation/events/animation.rs`
+
+### Aggregators
+
+#### Term: DragAggregator
+- **Category**: Presentation
+- **Type**: Aggregator
+- **Taxonomy**: Event Aggregation
+- **Definition**: Collects drag events into move commands
+- **Relationships**:
+  * Processes: DragStarted, DragUpdated, DragEnded
+  * Produces: MoveNodes command
+  * Manages: Drag state
+- **Usage Context**: UI event aggregation
+- **Code Reference**: `src/presentation/aggregators/drag.rs`
+
+#### Term: SelectionAggregator
+- **Category**: Presentation
+- **Type**: Aggregator
+- **Taxonomy**: Event Aggregation
+- **Definition**: Manages node selection state
+- **Relationships**:
+  * Processes: NodeClicked, SelectionCleared
+  * Maintains: Selected set
+  * Emits: SelectionChanged
+- **Usage Context**: Multi-selection handling
+- **Code Reference**: `src/presentation/aggregators/selection.rs`
+
+## Integration Patterns
+
+### Term: Bidirectional Event Flow
+- **Category**: Architecture Pattern
+- **Type**: Integration Pattern
+- **Taxonomy**: System Integration
+- **Definition**: Pattern for two-way event synchronization with external systems
+- **Relationships**:
+  * Uses: ExternalProjection, IngestHandler
+  * Enables: System integration
+  * Maintains: Consistency
+- **Usage Context**: CRM, ERP, Analytics integration
+- **Code Reference**: Design document
+
+### Term: Event Correlation
+- **Category**: Integration
+- **Type**: Pattern
+- **Taxonomy**: System Integration
+- **Definition**: Matching external events to internal domain events
+- **Relationships**:
+  * Maps: External to internal events
+  * Uses: Correlation rules
+  * Part-Of: Bidirectional flow
+- **Usage Context**: External event processing
+- **Code Reference**: `src/application/projections/external/mod.rs`
+
+## Conceptual Spaces (Planned)
+
+### Term: ConceptualPoint
+- **Category**: Domain Object
+- **Type**: Value Object
+- **Taxonomy**: Conceptual Space
+- **Definition**: Position in semantic space representing meaning
+- **Relationships**:
+  * Positions: Concepts
+  * Enables: Similarity calculation
+  * Maps-To: Visual position
+- **Usage Context**: Semantic positioning
+- **Code Reference**: TBD
+
+### Term: ConceptualSpace
+- **Category**: Domain Object
+- **Type**: Aggregate
+- **Taxonomy**: Conceptual Space
+- **Definition**: Multi-dimensional space for semantic representation
+- **Relationships**:
+  * Contains: ConceptualPoints
+  * Defines: Dimensions
+  * Enables: AI reasoning
+- **Usage Context**: Knowledge representation
+- **Code Reference**: TBD
 
 ---
 
-## Knowledge Domain
-
-### Term: Research
-- **Category**: Domain Object
-- **Type**: Aggregate
-- **Taxonomy**: Knowledge Taxonomy
-- **Definition**: A systematic investigation to establish facts, test theories, and develop new understanding
-- **Relationships**:
-  * Contains: Evidence, Methods, Findings
-  * Validates: Claims
-  * Produces: Knowledge
-- **Usage Context**: Foundation for knowledge creation and validation
-- **Code Reference**: TBD
-
-### Term: Evidence
-- **Category**: Domain Object
-- **Type**: Entity
-- **Taxonomy**: Knowledge Taxonomy
-- **Definition**: Observable data or information that supports or contradicts a claim
-- **Relationships**:
-  * Supports: Facts, Claims
-  * Part-Of: Research
-  * Has: Classification
-- **Usage Context**: Basis for fact validation and theory building
-- **Code Reference**: TBD
-
-### Term: Method
-- **Category**: Domain Object
-- **Type**: Value Object
-- **Taxonomy**: Knowledge Taxonomy
-- **Definition**: A systematic procedure for collecting and analyzing evidence
-- **Relationships**:
-  * Part-Of: Research
-  * Produces: Evidence
-  * Follows: Standards
-- **Usage Context**: Ensures reproducibility and validity of research
-- **Code Reference**: TBD
-
-### Term: Finding
-- **Category**: Domain Object
-- **Type**: Entity
-- **Taxonomy**: Knowledge Taxonomy
-- **Definition**: A specific result or insight derived from research
-- **Relationships**:
-  * Based-On: Evidence
-  * Supports: Claims
-  * Part-Of: Research
-- **Usage Context**: Building blocks for knowledge construction
-- **Code Reference**: TBD
-
-### Term: Citation
-- **Category**: Domain Object
-- **Type**: Value Object
-- **Taxonomy**: Knowledge Taxonomy
-- **Definition**: A reference to a source of information or evidence
-- **Relationships**:
-  * References: Source
-  * Validates: Claims
-  * Supports: Research
-- **Usage Context**: Tracking and validating information sources
-- **Code Reference**: TBD
-
-### Term: Knowledge Graph
-- **Category**: Technical Concept
-- **Type**: Aggregate
-- **Taxonomy**: Knowledge Taxonomy
-- **Definition**: A structured representation of relationships between knowledge entities
-- **Relationships**:
-  * Contains: Nodes, Edges
-  * Represents: Relationships
-  * Enables: Navigation
-- **Usage Context**: Visual and programmatic knowledge exploration
-- **Code Reference**: TBD
-
-### Term: Fact
-- **Category**: Domain Object
-- **Type**: Entity
-- **Taxonomy**: Storage Taxonomy
-- **Definition**: A proven claim with verifiable evidence and reproducible validation
-- **Relationships**:
-  * Validates: Claims
-  * Supports: Theories
-  * Contains: Proofs
-- **Usage Context**: Foundation for building reliable knowledge base
-- **Code Reference**: TBD
-
-### Term: Claim
-- **Category**: Domain Object
-- **Type**: Entity
-- **Taxonomy**: Storage Taxonomy
-- **Definition**: An assertion that has a repeatable construction method
-- **Relationships**:
-  * Depends-On: Facts
-  * Supports: Theories
-  * Contains: Arguments
-- **Usage Context**: Building blocks for theories and knowledge construction
-- **Code Reference**: TBD
-
-### Term: Theory
-- **Category**: Domain Object
-- **Type**: Aggregate
-- **Taxonomy**: Storage Taxonomy
-- **Definition**: A structured belief system with context, explanation, and sources
-- **Relationships**:
-  * Contains: Claims
-  * Uses: Facts
-  * Supports: Models
-- **Usage Context**: Framework for understanding complex systems
-- **Code Reference**: TBD
-
-## Organization Domain
-
-### Term: Operator
-- **Category**: Business Concept
-- **Type**: Entity
-- **Taxonomy**: Configuration Taxonomy
-- **Definition**: Organization responsible for operating a CIM instance
-- **Relationships**:
-  * Manages: Tenants
-  * Configures: Policies
-  * Contains: Accounts
-- **Usage Context**: Primary administrative entity for CIM operations
-- **Code Reference**: TBD
-
-### Term: Account
-- **Category**: Business Concept
-- **Type**: Entity
-- **Taxonomy**: Configuration Taxonomy
-- **Definition**: A group or individual identity within the CIM system
-- **Relationships**:
-  * Part-Of: Operator
-  * Contains: Users
-  * Has: Permissions
-- **Usage Context**: Access control and resource management
-- **Code Reference**: TBD
-
-## Agent Domain
-
-### Term: Agent
-- **Category**: Technical Concept
-- **Type**: Service
-- **Taxonomy**: Processing Rules
-- **Definition**: An autonomous entity capable of performing tasks within the CIM
-- **Relationships**:
-  * Uses: AI Tools
-  * Processes: Information Entities
-  * Has: Behaviors
-- **Usage Context**: Automated processing and decision making
-- **Code Reference**: TBD
-
-### Term: Behavior
-- **Category**: Technical Concept
-- **Type**: Value Object
-- **Taxonomy**: Processing Rules
-- **Definition**: Defined patterns of action and response for agents
-- **Relationships**:
-  * Configures: Agent
-  * Follows: Policies
-  * Uses: Models
-- **Usage Context**: Defining how agents interact with the system
-- **Code Reference**: TBD
-
-## Business Domain
-
-### Term: Value Proposition
-- **Category**: Business Concept
-- **Type**: Aggregate
-- **Taxonomy**: Business Rules
-- **Definition**: The unique value offered by a solution or service
-- **Relationships**:
-  * Supports: Business Model
-  * Contains: Solutions
-  * Targets: Goals
-- **Usage Context**: Defining business value and market positioning
-- **Code Reference**: TBD
-
-### Term: Solution
-- **Category**: Business Concept
-- **Type**: Entity
-- **Taxonomy**: Business Rules
-- **Definition**: A specific implementation addressing business needs
-- **Relationships**:
-  * Part-Of: Value Proposition
-  * Uses: Models
-  * Achieves: Goals
-- **Usage Context**: Concrete implementations of business value
-- **Code Reference**: TBD
-
-## Environment Domain
-
-### Term: Equipment
-- **Category**: Technical Concept
-- **Type**: Entity
-- **Taxonomy**: Configuration Taxonomy
-- **Definition**: Physical or virtual resources used by the CIM
-- **Relationships**:
-  * Located-In: Environment
-  * Supports: Solutions
-  * Has: Preferences
-- **Usage Context**: Resource management and deployment
-- **Code Reference**: TBD
-
-### Term: Location
-- **Category**: Business Concept
-- **Type**: Value Object
-- **Taxonomy**: Configuration Taxonomy
-- **Definition**: Physical or logical placement of CIM components
-- **Relationships**:
-  * Contains: Equipment
-  * Follows: Policies
-  * Has: Environment
-- **Usage Context**: Geographic and logical resource organization
-- **Code Reference**: TBD
-
-## Governance Domain
-
-### Term: Policy
-- **Category**: Business Concept
-- **Type**: Service
-- **Taxonomy**: Configuration Taxonomy
-- **Definition**: Rules and guidelines governing CIM operation
-- **Relationships**:
-  * Governs: Behaviors
-  * Enforces: Ethics
-  * Follows: Laws
-- **Usage Context**: System governance and compliance
-- **Code Reference**: TBD
-
-### Term: Ethics
-- **Category**: Cross-Cutting
-- **Type**: Service
-- **Taxonomy**: Business Rules
-- **Definition**: Moral principles and values guiding CIM operation
-- **Relationships**:
-  * Guides: Policies
-  * Influences: Decisions
-  * Aligns-With: Laws
-- **Usage Context**: Ethical decision making and governance
-- **Code Reference**: TBD
+*This vocabulary is continuously updated as the system evolves. For the latest implementation details, refer to the source code and documentation.*
