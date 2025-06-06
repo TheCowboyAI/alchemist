@@ -59,6 +59,71 @@ fn detect_collisions(
 ```
 Use events for cross-system communication to decouple logic[4][6].
 
+## Value Object Immutability in DDD & Event Sourcing
+
+**Value Objects are immutable by definition**
+In our DDD and Event Sourcing architecture, Value Objects CANNOT be "updated". They are replaced entirely:
+
+```rust
+// ❌ WRONG - Never have "update" events for value objects
+enum EdgeEvent {
+    EdgeUpdated { old_edge: Edge, new_edge: Edge }, // DON'T DO THIS
+}
+
+// ✅ CORRECT - Remove old, add new
+enum EdgeEvent {
+    EdgeRemoved { edge_id: EdgeId },
+    EdgeAdded { edge_id: EdgeId, source: NodeId, target: NodeId, relationship: EdgeRelationship },
+}
+```
+
+**Why this matters:**
+1. **Events are immutable** - They represent facts that happened
+2. **Value Objects have no identity** - Changing any property creates a new object
+3. **Clear audit trail** - Removal and addition are distinct business events
+4. **Prevents confusion** - No ambiguity about partial updates
+
+**Pattern for Value Object changes:**
+```rust
+// When an edge relationship changes:
+fn change_edge_relationship(
+    mut events: EventWriter<EdgeEvent>,
+    old_edge: Edge,
+    new_relationship: EdgeRelationship,
+) {
+    // First remove the old edge
+    events.send(EdgeEvent::EdgeRemoved {
+        edge_id: old_edge.id,
+    });
+
+    // Then add the new edge with updated relationship
+    events.send(EdgeEvent::EdgeAdded {
+        edge_id: EdgeId::new(), // New identity
+        source: old_edge.source,
+        target: old_edge.target,
+        relationship: new_relationship,
+    });
+}
+```
+
+**Component updates follow the same principle:**
+```rust
+// For ECS components that represent value objects
+fn update_edge_component(
+    mut commands: Commands,
+    entity: Entity,
+    new_edge: Edge,
+) {
+    // Remove old component entirely
+    commands.entity(entity).remove::<EdgeComponent>();
+
+    // Insert new component
+    commands.entity(entity).insert(EdgeComponent::from(new_edge));
+}
+```
+
+This approach ensures our event stream accurately reflects the domain model and maintains the integrity of our Event Sourcing implementation.
+
 ## Entity Relationships
 **Relational components**
 ```rust

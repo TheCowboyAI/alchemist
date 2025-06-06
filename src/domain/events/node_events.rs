@@ -15,12 +15,10 @@ pub enum NodeEvent {
         graph_id: GraphId,
         node_id: NodeId,
     },
-    NodeMoved {
-        graph_id: GraphId,
-        node_id: NodeId,
-        old_position: Position3D,
-        new_position: Position3D,
-    },
+    // NOTE: To change a node's position (value object), you must:
+    // 1. NodeRemoved (remove the node at old position)
+    // 2. NodeAdded (add the node at new position)
+    // This follows DDD principles where value objects are immutable
     NodeMetadataUpdated {
         graph_id: GraphId,
         node_id: NodeId,
@@ -43,7 +41,6 @@ impl NodeEvent {
         match self {
             NodeEvent::NodeAdded { .. } => "NodeAdded",
             NodeEvent::NodeRemoved { .. } => "NodeRemoved",
-            NodeEvent::NodeMoved { .. } => "NodeMoved",
             NodeEvent::NodeMetadataUpdated { .. } => "NodeMetadataUpdated",
             NodeEvent::NodeSelected { .. } => "NodeSelected",
             NodeEvent::NodeDeselected { .. } => "NodeDeselected",
@@ -54,7 +51,6 @@ impl NodeEvent {
         match self {
             NodeEvent::NodeAdded { graph_id, .. }
             | NodeEvent::NodeRemoved { graph_id, .. }
-            | NodeEvent::NodeMoved { graph_id, .. }
             | NodeEvent::NodeMetadataUpdated { graph_id, .. }
             | NodeEvent::NodeSelected { graph_id, .. }
             | NodeEvent::NodeDeselected { graph_id, .. } => *graph_id,
@@ -65,7 +61,6 @@ impl NodeEvent {
         match self {
             NodeEvent::NodeAdded { node_id, .. }
             | NodeEvent::NodeRemoved { node_id, .. }
-            | NodeEvent::NodeMoved { node_id, .. }
             | NodeEvent::NodeMetadataUpdated { node_id, .. }
             | NodeEvent::NodeSelected { node_id, .. }
             | NodeEvent::NodeDeselected { node_id, .. } => *node_id,

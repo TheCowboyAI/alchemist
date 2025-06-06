@@ -16,11 +16,6 @@ pub enum EdgeCommand {
         graph_id: GraphId,
         edge_id: EdgeId,
     },
-    UpdateEdge {
-        graph_id: GraphId,
-        edge_id: EdgeId,
-        relationship: EdgeRelationship,
-    },
     SelectEdge {
         graph_id: GraphId,
         edge_id: EdgeId,
@@ -36,7 +31,6 @@ impl EdgeCommand {
         match self {
             EdgeCommand::ConnectEdge { .. } => "ConnectEdge",
             EdgeCommand::DisconnectEdge { .. } => "DisconnectEdge",
-            EdgeCommand::UpdateEdge { .. } => "UpdateEdge",
             EdgeCommand::SelectEdge { .. } => "SelectEdge",
             EdgeCommand::DeselectEdge { .. } => "DeselectEdge",
         }
@@ -46,7 +40,6 @@ impl EdgeCommand {
         match self {
             EdgeCommand::ConnectEdge { graph_id, .. }
             | EdgeCommand::DisconnectEdge { graph_id, .. }
-            | EdgeCommand::UpdateEdge { graph_id, .. }
             | EdgeCommand::SelectEdge { graph_id, .. }
             | EdgeCommand::DeselectEdge { graph_id, .. } => *graph_id,
         }

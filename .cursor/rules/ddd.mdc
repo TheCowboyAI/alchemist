@@ -3,7 +3,6 @@ description: DDD Best Practices
 globs:
 alwaysApply: true
 ---
-
 You are an expert in Domain-Driven Design (DDD) for event-driven architectures, particularly focused on Rust, NATS, and distributed systems.
 
 # Domain-Driven Design Naming Convention Guideline
@@ -60,6 +59,102 @@ This document establishes strict and comprehensive naming conventions for all co
   - Example: `Address`, `TimeRange`.
 - **Value objects must be immutable and clearly distinguish themselves from entities.**
   - Example: `Address` (value object), `User` (entity).
+
+### Value Object Immutability in Event Sourcing
+
+**Critical Principle**: Value Objects CANNOT be "updated" in Event Sourcing - they are replaced entirely.
+
+```rust
+// ❌ WRONG - Never create "update" events for value objects
+pub enum EdgeEvent {
+    EdgeUpdated {
+        edge_id: EdgeId,
+        old_relationship: EdgeRelationship,
+        new_relationship: EdgeRelationship,
+    }, // This violates DDD principles!
+}
+
+// ✅ CORRECT - Remove and recreate
+pub enum EdgeEvent {
+    EdgeRemoved { edge_id: EdgeId },
+    EdgeAdded {
+        edge_id: EdgeId,
+        source: NodeId,
+        target: NodeId,
+        relationship: EdgeRelationship,
+    },
+}
+```
+
+**Why This Matters**:
+1. **Events are immutable facts** - They record what happened, not what changed
+2. **Value Objects have no lifecycle** - They exist or don't exist, no in-between
+3. **Clear event semantics** - Removal and addition are distinct business events
+4. **Audit trail integrity** - Shows the complete replacement, not a partial mutation
+
+**Implementation Pattern**:
+```rust
+// When changing a value object property
+impl GraphAggregate {
+    pub fn change_edge_relationship(
+        &mut self,
+        edge_id: EdgeId,
+        new_relationship: EdgeRelationship,
+    ) -> Result<Vec<DomainEvent>> {
+        let old_edge = self.edges.get(&edge_id)
+            .ok_or(DomainError::EdgeNotFound)?;
+
+        // Generate two events: removal then addition
+        let events = vec![
+            DomainEvent::EdgeRemoved {
+                graph_id: self.id,
+                edge_id,
+            },
+            DomainEvent::EdgeAdded {
+                graph_id: self.id,
+                edge_id: EdgeId::new(), // New identity
+                source: old_edge.source,
+                target: old_edge.target,
+                relationship: new_relationship,
+            },
+        ];
+
+        // Apply both events
+        for event in &events {
+            self.apply_event(event)?;
+        }
+
+        Ok(events)
+    }
+}
+```
+
+**Event Handler Pattern**:
+```rust
+// Handle value object replacement in projections
+impl EventHandler for GraphProjection {
+    fn handle_event(&mut self, event: DomainEvent) -> Result<()> {
+        match event {
+            DomainEvent::EdgeRemoved { edge_id, .. } => {
+                self.edges.remove(&edge_id);
+                self.invalidate_cache_for_edge(&edge_id);
+            }
+            DomainEvent::EdgeAdded { edge_id, source, target, relationship, .. } => {
+                self.edges.insert(edge_id, EdgeView {
+                    source,
+                    target,
+                    relationship,
+                });
+                self.update_indices(&edge_id);
+            }
+            // No EdgeUpdated event should exist!
+        }
+        Ok(())
+    }
+}
+```
+
+This pattern ensures that our event stream accurately represents the immutable nature of value objects and maintains the integrity of our Event Sourcing implementation.
 
 ---
 
@@ -259,7 +354,6 @@ This guideline ensures that naming within your project is Domain-Driven Design c
 - **Shared Database**: Each context should own its data
 - **Generic Events**: Events should be specific to business concepts
 - **Missing Boundaries**: Clearly define what belongs to each context
-```
 
 ## Composing Bounded Contexts for Event-Driven Workflows
 

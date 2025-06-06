@@ -19,12 +19,6 @@ pub enum EdgeEvent {
         source: NodeId,
         target: NodeId,
     },
-    EdgeUpdated {
-        graph_id: GraphId,
-        edge_id: EdgeId,
-        old_relationship: EdgeRelationship,
-        new_relationship: EdgeRelationship,
-    },
     EdgeSelected {
         graph_id: GraphId,
         edge_id: EdgeId,
@@ -58,7 +52,6 @@ impl EdgeEvent {
         match self {
             EdgeEvent::EdgeConnected { .. } => "EdgeConnected",
             EdgeEvent::EdgeDisconnected { .. } => "EdgeDisconnected",
-            EdgeEvent::EdgeUpdated { .. } => "EdgeUpdated",
             EdgeEvent::EdgeSelected { .. } => "EdgeSelected",
             EdgeEvent::EdgeDeselected { .. } => "EdgeDeselected",
             EdgeEvent::EdgeAdded { .. } => "EdgeAdded",
@@ -71,7 +64,6 @@ impl EdgeEvent {
         match self {
             EdgeEvent::EdgeConnected { graph_id, .. }
             | EdgeEvent::EdgeDisconnected { graph_id, .. }
-            | EdgeEvent::EdgeUpdated { graph_id, .. }
             | EdgeEvent::EdgeSelected { graph_id, .. }
             | EdgeEvent::EdgeDeselected { graph_id, .. }
             | EdgeEvent::EdgeAdded { graph_id, .. }
@@ -84,7 +76,6 @@ impl EdgeEvent {
         match self {
             EdgeEvent::EdgeConnected { edge_id, .. }
             | EdgeEvent::EdgeDisconnected { edge_id, .. }
-            | EdgeEvent::EdgeUpdated { edge_id, .. }
             | EdgeEvent::EdgeSelected { edge_id, .. }
             | EdgeEvent::EdgeDeselected { edge_id, .. }
             | EdgeEvent::EdgeAdded { edge_id, .. }

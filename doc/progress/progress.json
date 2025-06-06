@@ -417,6 +417,58 @@
       }
     },
     {
+      "id": "qa-compliance-review-2025",
+      "label": "QA Compliance Review 2025",
+      "type": "milestone",
+      "position": { "x": 750, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-01",
+        "description": "Comprehensive QA review against all .cursor/rules",
+        "details": [
+          "Evaluated compliance with CIM architecture rules (85%)",
+          "Assessed DDD implementation (82%)",
+          "Verified event sourcing patterns (88%)",
+          "Checked testing compliance (65% - below target)",
+          "Validated Bevy ECS patterns (90%)",
+          "Confirmed NixOS environment setup (95%)",
+          "Identified critical gaps in domain model and test coverage",
+          "Created detailed compliance report with scores"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-01",
+        "references": [
+          "/doc/qa/cim-architecture-compliance-report.md"
+        ]
+      }
+    },
+    {
+      "id": "qa-remediation-plan",
+      "label": "QA Remediation Plan",
+      "type": "milestone",
+      "position": { "x": 775, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-01",
+        "description": "Action plan to address QA compliance gaps",
+        "details": [
+          "Priority 1: Complete domain aggregate implementation",
+          "Priority 1: Create integration test suite",
+          "Priority 1: Implement read model projections",
+          "Priority 2: Increase test coverage to 80%",
+          "Priority 2: Complete Phase 2 domain model",
+          "Priority 2: Document TDD process",
+          "Priority 3: Implement conceptual spaces",
+          "Created detailed task breakdown with timelines"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-01",
+        "references": [
+          "/doc/plan/qa-remediation-plan.md"
+        ]
+      }
+    },
+    {
       "id": "phase-1",
       "label": "Phase 1: Distributed Event Infrastructure",
       "type": "phase",
@@ -1054,6 +1106,27 @@
       "target": "phase-2",
       "label": "blocks until fixed",
       "type": "blocker"
+    },
+    {
+      "id": "e7w",
+      "source": "qa-report-december-2024",
+      "target": "qa-compliance-review-2025",
+      "label": "triggers",
+      "type": "sequence"
+    },
+    {
+      "id": "e7x",
+      "source": "qa-compliance-review-2025",
+      "target": "qa-remediation-plan",
+      "label": "creates",
+      "type": "sequence"
+    },
+    {
+      "id": "e7y",
+      "source": "qa-remediation-plan",
+      "target": "phase-2",
+      "label": "unblocks",
+      "type": "sequence"
     }
   ],
   "project": "Information Alchemist CIM Integration",
@@ -1399,16 +1472,20 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Ready for Phase 2: Graph Domain Model implementation",
+  "current_focus": "Addressing QA compliance gaps before Phase 2",
   "next_steps": [
-    "Implement Graph Aggregate with full domain logic",
-    "Create rich Node and Edge entities with behavior",
-    "Design command pattern for graph mutations",
-    "Define domain events for all graph operations",
-    "Integrate conceptual positioning into domain model",
-    "Create command handlers that emit proper events"
+    "Priority 1: Complete Graph Aggregate with command handlers and validation",
+    "Priority 1: Create integration test suite with NATS end-to-end tests",
+    "Priority 1: Implement read model projections for CQRS queries",
+    "Update progress.json after each priority completion",
+    "Increase test coverage to 80% minimum",
+    "Document TDD workflow with examples"
   ],
-  "blockers": [],
+  "blockers": [
+    "Domain aggregate incomplete - blocking Phase 2 progress",
+    "Test coverage below 80% target - quality gate not met",
+    "Missing integration tests - cannot verify end-to-end functionality"
+  ],
   "notes": [
     "Successfully completed Phase 1 with all infrastructure in place",
     "CID chain implementation complete with BLAKE3 hashing and validation",
@@ -1426,6 +1503,9 @@
     "Graph visualization now supports smooth animations and force-directed layout",
     "QA Report (December 2024): Fixed all critical issues - compilation error, linting warnings",
     "Created comprehensive domain test suite with 27 tests for aggregates, commands, and events",
-    "All tests passing, project builds successfully, ready for Phase 2 implementation"
+    "All tests passing, project builds successfully, ready for Phase 2 implementation",
+    "QA Compliance Review (January 2025): Overall compliance 78%, strong architecture foundation",
+    "Critical gaps identified: incomplete domain model, test coverage below 80%, missing integration tests",
+    "Created remediation plan with prioritized actions to address all compliance gaps"
   ]
 }

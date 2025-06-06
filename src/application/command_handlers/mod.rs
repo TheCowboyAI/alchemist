@@ -136,16 +136,16 @@ fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
             events.into_iter().next()
         }
         NodeCommand::MoveNode {
-            graph_id,
-            node_id,
-            position,
+            graph_id: _,
+            node_id: _,
+            position: _,
         } => {
-            Some(DomainEvent::Node(NodeEvent::NodeMoved {
-                graph_id: *graph_id,
-                node_id: *node_id,
-                old_position: *position, // TODO: Get from aggregate
-                new_position: *position,
-            }))
+            // NOTE: To move a node (change its position value object), we should:
+            // 1. Emit NodeRemoved event
+            // 2. Emit NodeAdded event with new position
+            // For now, returning None until we implement proper aggregate handling
+            // TODO: Implement proper position change handling through aggregate
+            None
         }
         NodeCommand::SelectNode { graph_id, node_id } => {
             Some(DomainEvent::Node(NodeEvent::NodeSelected {
@@ -186,18 +186,10 @@ fn handle_edge_command(command: &EdgeCommand) -> Option<DomainEvent> {
                 target: NodeId::default(), // TODO: Get from aggregate
             }))
         }
-        EdgeCommand::UpdateEdge {
-            graph_id,
-            edge_id,
-            relationship,
-        } => {
-            Some(DomainEvent::Edge(EdgeEvent::EdgeUpdated {
-                graph_id: *graph_id,
-                edge_id: *edge_id,
-                old_relationship: relationship.clone(), // TODO: Get from aggregate
-                new_relationship: relationship.clone(),
-            }))
-        }
+        // NOTE: To change an edge relationship (value object), you must:
+        // 1. DisconnectEdge (remove the old edge)
+        // 2. ConnectEdge (create a new edge with the new relationship)
+        // This follows DDD principles where value objects are immutable
         EdgeCommand::SelectEdge { graph_id, edge_id } => {
             Some(DomainEvent::Edge(EdgeEvent::EdgeSelected {
                 graph_id: *graph_id,
