@@ -1,190 +1,86 @@
-# CIM-Integrated Event-Sourced Graph Architecture
+# Design Documentation
 
-## Overview
+This directory contains design documents for the Information Alchemist CIM implementation.
 
-Information Alchemist is a sophisticated UI leaf node in the Composable Information Machine (CIM) cluster, providing:
-- **CIM Integration**: Full NATS-based communication with distributed backend
-- **Event Sourcing**: Complete audit trail via distributed event store
-- **Conceptual Spaces**: Spatial knowledge representation based on Gärdenfors
-- **Game Theory**: Strategic components for multi-agent coordination
-- **AI Ready**: Prepared for intelligent agent integration
-- **Performance**: Designed for 100K+ nodes with distributed scalability
+## Directory Structure
 
-## Architecture Documents
+### 📂 current/
+**Active design documents currently being implemented or referenced**
 
-### 📋 [event-sourced-graph-architecture.md](./event-sourced-graph-architecture.md)
-**Complete CIM-Integrated Architecture Design**
+- **[event-sourced-graph-architecture.md](./current/event-sourced-graph-architecture.md)** - Complete CIM-integrated architecture design
+- **[presentation-vs-domain-events.md](./current/presentation-vs-domain-events.md)** - Critical distinction between UI and business events
+- **[graph-models-and-morphisms.md](./current/graph-models-and-morphisms.md)** - Mathematical foundation for graph operations
+- **[value-object-immutability.md](./current/value-object-immutability.md)** - DDD principles for value objects in event sourcing
+- **[nats-subject-naming-standard.md](./current/nats-subject-naming-standard.md)** - NATS messaging conventions
+- **[hud.md](./current/hud.md)** - Heads-Up Display design for graph insights (upcoming implementation)
+- **[hud-implementation-example.md](./current/hud-implementation-example.md)** - Concrete HUD implementation patterns
 
-Comprehensive design covering:
-- CIM leaf node architecture
-- NATS messaging integration
-- Distributed storage (Event Store + Object Store)
-- Conceptual spaces implementation
-- Game theory components
-- AI agent interface
-- Modular plugin system
+### 📂 reference/
+**Reference materials and future considerations**
 
-### 🎭 [presentation-vs-domain-events.md](./presentation-vs-domain-events.md)
-**Critical Distinction: Presentation Events vs Domain Events**
+- **[bevy-text.md](./reference/bevy-text.md)** - Text rendering considerations for future UI enhancements
 
-Essential architectural principle:
-- NOT every event is a domain event
-- Presentation events (animations, UI state) stay in Bevy
-- Domain events represent business-meaningful state changes
-- Aggregation pattern for UI operations
-- Graph model recognition (K7, C5, State Machines, etc.)
-- Structure-preserving morphisms
+### Completed Designs
+Implemented designs have been moved to `/doc/completed/`. These include:
+- CID/IPLD architecture documents (implemented in cim-ipld library)
+- Dog-fooding self-visualization design
+- Documentation reorganization plans
 
-### 📐 [graph-models-and-morphisms.md](./graph-models-and-morphisms.md)
-**Graph Models and Structure-Preserving Transformations**
+## Key Design Principles
 
-Mathematical foundation for graph operations:
-- Complete graphs (Kn), Cycle graphs (Cn)
-- State machines (Mealy, Moore)
-- Domain-specific models (Address, Workflow)
+### 1. Event-Driven Architecture
+- All state changes flow through immutable events
+- Clear separation between presentation and domain events
+- NATS-based distributed messaging
+
+### 2. Domain-Driven Design
+- Aggregates enforce business rules
+- Value objects are immutable
+- Commands express intent, events record facts
+
+### 3. CIM Integration
+- NATS subjects follow hierarchical naming
+- Distributed event and object stores
+- Conceptual spaces for semantic relationships
+
+### 4. Graph-First Approach
+- Everything is a graph (workflows, knowledge, relationships)
+- Structure-preserving transformations
 - Model recognition and validation
-- Structure-preserving morphisms
-- Template-based creation
 
-### 🎯 [hud.md](./hud.md)
-**Heads-Up Display - Power Tool for Graph Understanding**
+## Current Focus Areas
 
-Comprehensive HUD system for real-time graph insights:
-- Model recognition with confidence scoring
-- Real-time statistics and metrics
-- Selection context analysis
-- Transformation preview
-- Performance monitoring
-- Smart visibility and positioning
-- [Implementation example](./hud-implementation-example.md)
+1. **Domain Model Implementation** - Completing aggregates and command handlers
+2. **CQRS Pattern** - Separating reads and writes effectively
+3. **HUD System** - Real-time graph insights and metrics (next up)
+4. **Integration Testing** - End-to-end event flow validation
 
-## Key Concepts
+## Design Evolution
 
-### System Architecture
+Our design documents evolve through stages:
+1. **Draft** → Initial ideas in main folder
+2. **Current** → Move to `current/` when ready for implementation
+3. **Reference** → Move to `reference/` if deferred
+4. **Completed** → Move to `/doc/completed/` when fully implemented
 
-Information Alchemist operates as part of the CIM cluster:
+## Quick Reference
 
-```
-CIM Cluster (Backend Nodes, Event Store, Object Store)
-                    ↓
-              NATS Messaging
-                    ↓
-     Information Alchemist (CIM Leaf Node)
-```
+### For Developers
+- Start with [event-sourced-graph-architecture.md](./current/event-sourced-graph-architecture.md) for the big picture
+- Read [presentation-vs-domain-events.md](./current/presentation-vs-domain-events.md) before implementing any events
+- Follow [nats-subject-naming-standard.md](./current/nats-subject-naming-standard.md) for all NATS subjects
 
-### Communication via NATS
+### For Understanding Graph Operations
+- [graph-models-and-morphisms.md](./current/graph-models-and-morphisms.md) explains our graph theory foundation
+- [hud.md](./current/hud.md) shows how we'll visualize graph properties
 
-All backend communication uses NATS subjects:
-- **Commands**: `graph.commands.*`, `node.commands.*`
-- **Events**: `graph.events.*`, `node.events.*`
-- **Queries**: `graph.queries.*`, `node.queries.*`
-- **AI Agents**: `agent.commands.*`, `agent.events.*`
+### For DDD Principles
+- [value-object-immutability.md](./current/value-object-immutability.md) is critical for event sourcing
 
-### Enhanced Components
+## Contributing
 
-1. **Conceptual Positioning**
-   - Spatial knowledge representation
-   - Semantic similarity calculations
-   - Category-based clustering
-
-2. **Game Theory**
-   - Strategy components
-   - Utility functions
-   - Coalition formation
-
-3. **AI Integration**
-   - Agent communication interface
-   - Analysis requests
-   - Suggestion handling
-
-### Architecture Layers
-
-```
-Presentation (Bevy ECS Visualization)
-    ↓
-Application (Commands, Queries, Projections)
-    ↓
-Domain (Graph Aggregate with Conceptual Spaces)
-    ↓
-Infrastructure (NATS Client, Distributed Storage)
-```
-
-### Performance Targets
-
-- **Nodes**: 100K+ supported
-- **Local Query**: < 10ms latency
-- **Distributed Query**: < 100ms latency
-- **Frame Rate**: 60 FPS maintained
-- **Memory**: < 2GB for 100K nodes
-
-## Implementation Status
-
-Migrating to full CIM integration. See [implementation plan](../plan/event-sourcing-implementation-plan.md) for details.
-
-### Phases
-- [ ] Phase 0: NATS Integration Foundation
-- [ ] Phase 1: Distributed Event Infrastructure
-- [ ] Phase 2: Domain Model with CIM Extensions
-- [ ] Phase 3: Conceptual Spaces Implementation
-- [ ] Phase 4: Game Theory Components
-- [ ] Phase 5: AI Agent Interface
-- [ ] Phase 6: Full CIM Integration
-- [ ] Phase 7: Advanced Features
-
-## Quick Start
-
-The new architecture provides all legacy features plus:
-- Distributed graph storage and queries
-- Real-time collaboration
-- Conceptual space navigation
-- Strategic agent interactions
-- AI-powered analysis
-
-## Development Guidelines
-
-### CIM Integration Principles
-- **Distributed First**: Design for NATS communication
-- **Event Driven**: All state changes via events
-- **Modular**: Plugin-based architecture
-- **Resilient**: Handle network failures gracefully
-- **Secure**: JWT authentication, TLS encryption
-
-### Domain Language
-Following CIM vocabulary:
-- Events: Past-tense facts (`NodeAdded`, not `AddNode`)
-- Commands: Imperative verbs (`AddNode`, not `NodeAdded`)
-- Subjects: Hierarchical naming (`graph.events.created`)
-- Components: Domain-specific (`ConceptualPosition`, `StrategyComponent`)
-
-### Code Organization
-```
-src/
-├── domain/          # Business logic with CIM concepts
-├── infrastructure/  # NATS, distributed storage
-├── application/     # Command/query handlers
-└── presentation/    # Bevy ECS visualization
-```
-
-### Testing Strategy
-- Domain logic: Pure unit tests
-- NATS integration: Integration tests
-- Distributed: System tests
-- Performance: Continuous benchmarks
-
-## Key Differences from Standalone
-
-| Standalone | CIM-Integrated |
-|------------|----------------|
-| Local storage | Distributed Event/Object Store |
-| Direct mutations | NATS messaging |
-| Simple events | Full event sourcing |
-| Basic layout | Conceptual space positioning |
-| Single user | Multi-user collaboration |
-| No AI | AI agent ready |
-
-## Resources
-
-- [Implementation Plan](../plan/event-sourcing-implementation-plan.md)
-- [Published Documentation](../publish/)
-- [CIM Research](../research/)
-- [Vocabulary](../publish/vocabulary.md)
+When adding new design documents:
+1. Start in the main design folder for drafts
+2. Move to `current/` when ready for implementation
+3. Move to `reference/` if deferred for future consideration
+4. Move to `/doc/completed/` once fully implemented in code

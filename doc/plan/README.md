@@ -1,150 +1,97 @@
-# CIM-Integrated Event Sourcing Implementation Plan
+# Plan Documentation
 
-## Overview
+This directory contains active implementation plans for the Information Alchemist CIM project.
 
-This directory contains the implementation plan for transforming Information Alchemist into a sophisticated CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness.
+## Directory Structure
 
-## Current Plan
+### 📂 current/
+**Active plans currently being executed**
 
-### 📋 [event-sourcing-implementation-plan.md](./event-sourcing-implementation-plan.md)
-**Active CIM Integration Plan**
+- **[event-sourcing-implementation-plan.md](./current/event-sourcing-implementation-plan.md)** - Main 8-week phased implementation plan
+- **[qa-remediation-plan.md](./current/qa-remediation-plan.md)** - Plan to address QA compliance gaps
 
-8-week phased approach:
-1. **Week 1**: NATS Integration Foundation
-2. **Week 2**: Distributed Event Infrastructure
-3. **Week 3**: Domain Model with CIM Extensions
-4. **Week 4**: Conceptual Spaces Implementation
-5. **Week 5**: Game Theory Components
-6. **Week 6**: AI Agent Interface
-7. **Week 7**: Full CIM Integration
-8. **Week 8**: Advanced Features & Polish
+### Completed Plans
+Executed plans have been moved to `/doc/completed/`. These include:
+- Integration testing framework
+- Event separation refactoring
+- External system integration design
+- Domain modules implementation
+- IPLD library extraction
+- And many more...
 
-## Implementation Status
+## Current Implementation Status
 
-### Phase 0: NATS Integration Foundation (Current)
-- [ ] NATS client setup
-- [ ] Secure connection
-- [ ] Event bridge architecture
-- [ ] Subject naming
+### Active: Event Sourcing Implementation Plan
+**8-week phased approach** (Currently in Week 3-4)
 
-### Phase 1: Distributed Event Infrastructure
-- [ ] JetStream event store
-- [ ] Object store integration
-- [ ] Content addressing (CID)
-- [ ] Distributed caching
+✅ **Phase 0**: NATS Integration Foundation (Complete)
+✅ **Phase 1**: Distributed Event Infrastructure (Complete)
+✅ **Phase 1.5**: IPLD Integration (Complete)
+🚧 **Phase 2**: Graph Domain Model (60% Complete)
+🚧 **Phase 3**: CQRS Implementation (40% Complete)
+📅 **Phase 4**: Conceptual Spaces (Pending)
+📅 **Phase 5**: AI Agent Integration (Pending)
+📅 **Phase 6**: Dog-fooding & Polish (Pending)
 
-### Phase 2: Domain Model Extensions
-- [ ] Conceptual positioning
-- [ ] Game theory components
-- [ ] Distributed repository
-- [ ] CID-based storage
+### Active: QA Remediation Plan
+**Addressing compliance gaps**
 
-### Phase 3: Conceptual Spaces
-- [ ] Spatial knowledge system
-- [ ] Similarity metrics
-- [ ] Force-directed enhancements
-- [ ] Category visualization
-
-### Phase 4: Game Theory
-- [ ] Strategy system
-- [ ] Utility calculations
-- [ ] Coalition formation
-- [ ] Strategic visualization
-
-### Phase 5: AI Agent Interface
-- [ ] Agent communication
-- [ ] Discovery system
-- [ ] Analysis workflows
-- [ ] Suggestion handling
-
-### Phase 6: Full CIM Integration
-- [ ] Distributed queries
-- [ ] Multi-user collaboration
-- [ ] State synchronization
-- [ ] Production readiness
-
-### Phase 7: Advanced Features
-- [ ] Multi-dimensional projections
-- [ ] Temporal navigation
-- [ ] Advanced layouts
-- [ ] Final polish
-
-## Development Approach
-
-### CIM Integration Focus
-- NATS-first communication
-- Distributed storage architecture
-- Conceptual space navigation
-- AI agent preparation
-- Modular plugin system
-
-### Testing Strategy
-1. **Unit Tests**: Domain logic with CIM concepts
-2. **Integration Tests**: NATS communication
-3. **System Tests**: Distributed functionality
-4. **Performance Tests**: Scalability verification
-5. **Acceptance Tests**: User feature validation
-
-### Architecture Principles
-```
-Information Alchemist (CIM Leaf Node)
-├── Presentation Layer (Bevy ECS)
-├── Application Layer (CQRS)
-├── Domain Layer (Event Sourcing + Conceptual Spaces)
-└── Infrastructure Layer (NATS + Distributed Storage)
-```
+✅ Graph Aggregate implementation
+✅ Integration test suite creation
+✅ Read model projections
+🚧 Test coverage improvement (target: 80%)
+📅 Remaining domain aggregates
+📅 TDD documentation
 
 ## Success Metrics
 
-### Functional Goals
-- Full CIM cluster integration
-- NATS-based communication
-- Distributed storage working
-- Conceptual spaces active
-- Game theory implemented
-- AI agents connectable
+### Achieved
+- ✅ NATS integration working
+- ✅ Event sourcing operational
+- ✅ Graph aggregate complete
+- ✅ Integration tests passing
+- ✅ Projections implemented
+- ✅ Application builds and runs
 
-### Performance Targets
-- 100K+ nodes supported
-- < 10ms local queries
-- < 100ms distributed queries
-- 60 FPS maintained
-- < 2GB memory usage
+### In Progress
+- 🚧 Test coverage: ~65% → 80%
+- 🚧 Domain model: 60% complete
+- 🚧 CQRS: 40% complete
 
-### Quality Standards
-- 80%+ test coverage
-- Security audit passed
-- Full documentation
-- User acceptance
-- Production ready
+### Upcoming
+- 📅 Conceptual spaces
+- 📅 AI agent interface
+- 📅 Performance optimization
+- 📅 Multi-user collaboration
 
-## Risk Management
+## Planning Process
 
-### Technical Risks
-- **Distributed Complexity** → Incremental integration
-- **NATS Latency** → Local caching strategies
-- **Conceptual Spaces** → Early prototyping
-- **AI Integration** → Modular interface
+1. **Draft** → Initial plan creation in main folder
+2. **Current** → Move to `current/` when actively executing
+3. **Completed** → Move to `/doc/completed/` when done
 
-### Mitigation Strategies
-- Continuous integration testing
-- Performance benchmarking
-- Fallback to local operation
-- Progressive feature rollout
+## Quick Reference
 
-## Resources
+### For Current Work
+- Check [event-sourcing-implementation-plan.md](./current/event-sourcing-implementation-plan.md) for phase details
+- Review [qa-remediation-plan.md](./current/qa-remediation-plan.md) for quality priorities
 
-- [CIM Architecture Design](../design/event-sourced-graph-architecture.md)
-- [Published Documentation](../publish/)
-- [CIM Research](../research/)
-- [Vocabulary](../publish/vocabulary.md)
+### For Understanding Past Decisions
+- See `/doc/completed/` for executed plans
+- Each completed plan contributed to the current state
 
-## Getting Started
+## Next Major Milestones
 
-1. Review the CIM architecture design
-2. Set up NATS development environment
-3. Follow the implementation plan phases
-4. Test distributed functionality early
-5. Benchmark performance continuously
+1. **Complete Phase 2** - Finish domain model (Workflow, ConceptualSpace aggregates)
+2. **Complete Phase 3** - Full CQRS with query handlers and snapshots
+3. **Start Phase 4** - Conceptual spaces implementation
+4. **Achieve 80% Test Coverage** - Critical quality gate
 
-The goal is to create a powerful UI for the CIM distributed backend, leveraging conceptual spaces for intuitive knowledge management and preparing for AI-enhanced workflows.
+## Contributing
+
+When creating new plans:
+1. Start with clear objectives and success criteria
+2. Break down into actionable tasks
+3. Include timelines and dependencies
+4. Move to `current/` when starting execution
+5. Move to `/doc/completed/` when fully executed
