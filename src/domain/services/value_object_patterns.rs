@@ -64,19 +64,17 @@ impl ValueObjectChangePatterns {
     ) -> Vec<DomainEvent> {
         vec![
             // First, disconnect the old edge
-            DomainEvent::Edge(EdgeEvent::EdgeDisconnected {
+            DomainEvent::Edge(EdgeEvent::EdgeRemoved {
                 graph_id,
                 edge_id: old_edge_id,
-                source,
-                target,
             }),
             // Then, connect a new edge with the new relationship
             DomainEvent::Edge(EdgeEvent::EdgeConnected {
                 graph_id,
-                edge_id: EdgeId::new(), // New edge ID for the new value object
+                edge_id: EdgeId::new(), // New identity
                 source,
                 target,
-                relationship: new_relationship,
+                relationship: new_relationship.relationship_type.to_string(),
             }),
         ]
     }
@@ -197,18 +195,14 @@ mod tests {
 
         // First event should be disconnection
         match &events[0] {
-            DomainEvent::Edge(EdgeEvent::EdgeDisconnected {
+            DomainEvent::Edge(EdgeEvent::EdgeRemoved {
                 graph_id: g,
                 edge_id: e,
-                source: s,
-                target: t,
             }) => {
                 assert_eq!(*g, graph_id);
                 assert_eq!(*e, old_edge_id);
-                assert_eq!(*s, source);
-                assert_eq!(*t, target);
             }
-            _ => panic!("Expected EdgeDisconnected event"),
+            _ => panic!("Expected EdgeRemoved event"),
         }
 
         // Second event should be connection with new relationship
@@ -224,7 +218,7 @@ mod tests {
                 assert_ne!(*e, old_edge_id); // Should be a new edge ID
                 assert_eq!(*s, source);
                 assert_eq!(*t, target);
-                assert_eq!(*r, new_relationship);
+                assert_eq!(*r, new_relationship.relationship_type.to_string());
             }
             _ => panic!("Expected EdgeConnected event"),
         }

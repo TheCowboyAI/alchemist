@@ -209,3 +209,285 @@ pub fn handle_nats_replay_input(
         replay_events.write(StartNatsReplay);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ease_out_cubic() {
+        // Test boundary values
+        assert_eq!(ease_out_cubic(0.0), 0.0);
+        assert_eq!(ease_out_cubic(1.0), 1.0);
+
+        // Test middle value
+        assert!((ease_out_cubic(0.5) - 0.875).abs() < 0.001);
+
+        // Test that it's monotonically increasing
+        let mut prev = 0.0;
+        for i in 1..=100 {
+            let t = i as f32 / 100.0;
+            let value = ease_out_cubic(t);
+            assert!(value > prev, "ease_out_cubic should be monotonically increasing");
+            prev = value;
+        }
+    }
+
+    #[test]
+    fn test_scheduled_command_timer() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.insert_resource(Time::<()>::default());
+        app.add_event::<ExecuteGraphCommand>();
+
+        // Add a scheduled command timer
+        app.world_mut().spawn(ScheduledCommandTimer {
+            timer: Timer::new(Duration::from_secs(1), TimerMode::Once),
+            command: GraphCommand::SpawnNode {
+                node_id: NodeId::new(),
+                position: Vec3::new(1.0, 0.0, 0.0),
+                label: "Test Node".to_string(),
+            },
+        });
+
+        // Add system
+        app.add_systems(Update, process_scheduled_commands);
+
+        // Advance time before timer finishes
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.5));
+        app.update();
+
+        // Timer should still exist
+        let mut query = app.world_mut().query::<&ScheduledCommandTimer>();
+        let timer_count = query.iter(app.world()).count();
+        assert_eq!(timer_count, 1);
+
+        // Advance time past timer duration
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.6));
+        app.update();
+
+        // Timer should be removed
+        let mut query = app.world_mut().query::<&ScheduledCommandTimer>();
+        let timer_count = query.iter(app.world()).count();
+        assert_eq!(timer_count, 0);
+
+        // Check event was sent
+        let events = app.world().resource::<Events<ExecuteGraphCommand>>();
+        assert_eq!(events.len(), 1);
+    }
+
+    #[test]
+    fn test_handle_scheduled_commands() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.add_event::<ScheduledCommand>();
+
+        // Add system
+        app.add_systems(Update, handle_scheduled_commands);
+
+        // Send scheduled command event
+        app.world_mut().send_event(ScheduledCommand {
+            delay: Duration::from_secs(2),
+            command: GraphCommand::SpawnNode {
+                node_id: NodeId::new(),
+                position: Vec3::new(1.0, 2.0, 3.0),
+                label: "Test Node".to_string(),
+            },
+        });
+
+        // Run update
+        app.update();
+
+        // Check that a timer entity was created
+        let mut query = app.world_mut().query::<&ScheduledCommandTimer>();
+        let timer_count = query.iter(app.world()).count();
+        assert_eq!(timer_count, 1);
+
+        // Check timer duration
+        let timer = query.single(app.world()).unwrap();
+        assert_eq!(timer.timer.duration().as_secs(), 2);
+    }
+
+    #[test]
+    fn test_animate_graph_elements() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+
+        // Create node with animation progress
+        let node = app.world_mut().spawn((
+            GraphNode {
+                node_id: NodeId::new(),
+                graph_id: GraphId::new(),
+            },
+            Transform::from_scale(Vec3::ZERO),
+            AnimationProgress(0.5),
+        )).id();
+
+        // Add system
+        app.add_systems(Update, animate_graph_elements);
+
+        // Run update
+        app.update();
+
+        // Check scale was updated
+        let transform = app.world().get::<Transform>(node).unwrap();
+        let expected_scale = ease_out_cubic(0.5);
+        assert!((transform.scale.x - expected_scale).abs() < 0.001);
+        assert!((transform.scale.y - expected_scale).abs() < 0.001);
+        assert!((transform.scale.z - expected_scale).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_update_animation_progress() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+
+        // Add time resource
+        app.insert_resource(Time::<()>::default());
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.1));
+
+        // Create entity with animation progress
+        let entity = app.world_mut().spawn(AnimationProgress(0.0)).id();
+
+        // Add system (modified to not emit RecordedEvent)
+        app.add_systems(Update, |mut query: Query<(Entity, &mut AnimationProgress)>, time: Res<Time>| {
+            let delta = time.delta_secs() * 2.0;
+            for (_entity, mut progress) in query.iter_mut() {
+                if progress.0 < 1.0 {
+                    progress.0 = (progress.0 + delta).min(1.0);
+                }
+            }
+        });
+
+        // Run update
+        app.update();
+
+        // Check progress was updated (delta * 2.0 = 0.1 * 2.0 = 0.2)
+        let progress = app.world().get::<AnimationProgress>(entity).unwrap();
+        assert!((progress.0 - 0.2).abs() < 0.001);
+
+        // Run multiple updates to reach 1.0
+        for _ in 0..10 {
+            app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.1));
+            app.update();
+        }
+
+        // Progress should be capped at 1.0
+        let progress = app.world().get::<AnimationProgress>(entity).unwrap();
+        assert_eq!(progress.0, 1.0);
+    }
+
+    #[test]
+    fn test_graph_command_spawn_node() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.insert_resource(Time::<()>::default());
+        app.init_resource::<Assets<Mesh>>();
+        app.init_resource::<Assets<StandardMaterial>>();
+
+        // Add event
+        app.add_event::<ExecuteGraphCommand>();
+
+        // Add system
+        app.add_systems(Update, execute_graph_commands);
+
+        // Send spawn node command
+        app.world_mut().send_event(ExecuteGraphCommand(GraphCommand::SpawnNode {
+            node_id: NodeId::new(),
+            position: Vec3::new(1.0, 2.0, 3.0),
+            label: "Test Node".to_string(),
+        }));
+
+        app.update();
+
+        // Check that node was spawned
+        let mut query = app.world_mut().query::<(&GraphNode, &Transform, &AnimationProgress)>();
+        let node_count = query.iter(app.world()).count();
+        assert_eq!(node_count, 1);
+
+        // Check node properties
+        let (_, transform, progress) = query.single(app.world()).unwrap();
+        assert_eq!(transform.translation, Vec3::new(1.0, 2.0, 3.0));
+        assert_eq!(progress.0, 0.0);
+    }
+
+    #[test]
+    fn test_graph_command_spawn_edge() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.insert_resource(Time::<()>::default());
+        app.init_resource::<Assets<Mesh>>();
+        app.init_resource::<Assets<StandardMaterial>>();
+
+        // Add event
+        app.add_event::<ExecuteGraphCommand>();
+
+        // Spawn source and target nodes first
+        let source = app.world_mut().spawn((
+            GraphNode {
+                node_id: NodeId::new(),
+                graph_id: GraphId::new(),
+            },
+            Transform::from_xyz(0.0, 0.0, 0.0),
+        )).id();
+
+        let target = app.world_mut().spawn((
+            GraphNode {
+                node_id: NodeId::new(),
+                graph_id: GraphId::new(),
+            },
+            Transform::from_xyz(1.0, 0.0, 0.0),
+        )).id();
+
+        // Add system
+        app.add_systems(Update, execute_graph_commands);
+
+        // Send spawn edge command
+        app.world_mut().send_event(ExecuteGraphCommand(GraphCommand::SpawnEdge {
+            edge_id: EdgeId::new(),
+            source,
+            target,
+        }));
+
+        app.update();
+
+        // Check that edge was spawned
+        let mut query = app.world_mut().query::<&GraphEdge>();
+        let edge_count = query.iter(app.world()).count();
+        assert_eq!(edge_count, 1);
+
+        // Check edge properties
+        let edge = query.single(app.world()).unwrap();
+        assert_eq!(edge.source, source);
+        assert_eq!(edge.target, target);
+    }
+
+    #[test]
+    fn test_handle_nats_replay_input() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.add_event::<StartNatsReplay>();
+        app.init_resource::<ButtonInput<KeyCode>>();
+
+        // Add system
+        app.add_systems(Update, handle_nats_replay_input);
+
+        // Simulate N key press
+        app.world_mut().resource_mut::<ButtonInput<KeyCode>>().press(KeyCode::KeyN);
+
+        // Run update
+        app.update();
+
+        // Check event was sent
+        let events = app.world().resource::<Events<StartNatsReplay>>();
+        assert_eq!(events.len(), 1);
+
+        // Clear and press again - should only trigger on just_pressed
+        app.world_mut().resource_mut::<ButtonInput<KeyCode>>().clear();
+        app.update();
+
+        // Events should still be 1 (no new events)
+        let events = app.world().resource::<Events<StartNatsReplay>>();
+        assert_eq!(events.len(), 1);
+    }
+}

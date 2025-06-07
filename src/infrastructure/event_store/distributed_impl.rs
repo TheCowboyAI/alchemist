@@ -1,7 +1,7 @@
 //! Implementation of EventStore trait for DistributedEventStore
 
 use super::{EventStore, EventStoreError};
-use crate::domain::events::DomainEvent;
+use crate::domain::events::{DomainEvent, NodeEvent, EdgeEvent, workflow::WorkflowEvent};
 use async_nats::jetstream::{self, stream::Config as StreamConfig};
 use async_trait::async_trait;
 
@@ -126,9 +126,36 @@ impl EventStore for DistributedEventStore {
                 GraphEvent::GraphRenamed { id, .. } => id.to_string(),
                 GraphEvent::GraphTagged { id, .. } => id.to_string(),
                 GraphEvent::GraphUntagged { id, .. } => id.to_string(),
+                GraphEvent::GraphUpdated { graph_id, .. } => graph_id.to_string(),
+                GraphEvent::GraphImportRequested { graph_id, .. } => graph_id.to_string(),
+                GraphEvent::GraphImportCompleted { graph_id, .. } => graph_id.to_string(),
+                GraphEvent::GraphImportFailed { graph_id, .. } => graph_id.to_string(),
             },
-            DomainEvent::Node(node_event) => node_event.graph_id().to_string(),
-            DomainEvent::Edge(edge_event) => edge_event.graph_id().to_string(),
+            DomainEvent::Node(node_event) => match node_event {
+                NodeEvent::NodeAdded { graph_id, .. } => graph_id.to_string(),
+                NodeEvent::NodeRemoved { graph_id, .. } => graph_id.to_string(),
+                NodeEvent::NodeUpdated { graph_id, .. } => graph_id.to_string(),
+                NodeEvent::NodeMoved { graph_id, .. } => graph_id.to_string(),
+                NodeEvent::NodeContentChanged { graph_id, .. } => graph_id.to_string(),
+            },
+            DomainEvent::Edge(edge_event) => match edge_event {
+                EdgeEvent::EdgeConnected { graph_id, .. } => graph_id.to_string(),
+                EdgeEvent::EdgeRemoved { graph_id, .. } => graph_id.to_string(),
+                EdgeEvent::EdgeUpdated { graph_id, .. } => graph_id.to_string(),
+                EdgeEvent::EdgeReversed { graph_id, .. } => graph_id.to_string(),
+            },
+            DomainEvent::Workflow(workflow_event) => match workflow_event {
+                WorkflowEvent::WorkflowCreated(e) => e.workflow_id.to_string(),
+                WorkflowEvent::StepAdded(e) => e.workflow_id.to_string(),
+                WorkflowEvent::StepsConnected(e) => e.workflow_id.to_string(),
+                WorkflowEvent::WorkflowValidated(e) => e.workflow_id.to_string(),
+                WorkflowEvent::WorkflowStarted(e) => e.workflow_id.to_string(),
+                WorkflowEvent::StepCompleted(e) => e.workflow_id.to_string(),
+                WorkflowEvent::WorkflowPaused(e) => e.workflow_id.to_string(),
+                WorkflowEvent::WorkflowResumed(e) => e.workflow_id.to_string(),
+                WorkflowEvent::WorkflowCompleted(e) => e.workflow_id.to_string(),
+                WorkflowEvent::WorkflowFailed(e) => e.workflow_id.to_string(),
+            },
         };
 
         self.append_events(aggregate_id, vec![event]).await

@@ -118,7 +118,6 @@ impl Projection for GraphSummaryProjection {
                 }
             }
 
-            DomainEvent::Edge(EdgeEvent::EdgeAdded { graph_id, .. }) |
             DomainEvent::Edge(EdgeEvent::EdgeConnected { graph_id, .. }) => {
                 if let Some(summary) = self.summaries.get_mut(&graph_id) {
                     summary.edge_count += 1;
@@ -127,8 +126,7 @@ impl Projection for GraphSummaryProjection {
                 }
             }
 
-            DomainEvent::Edge(EdgeEvent::EdgeRemoved { graph_id, .. }) |
-            DomainEvent::Edge(EdgeEvent::EdgeDisconnected { graph_id, .. }) => {
+            DomainEvent::Edge(EdgeEvent::EdgeRemoved { graph_id, .. }) => {
                 if let Some(summary) = self.summaries.get_mut(&graph_id) {
                     summary.edge_count = summary.edge_count.saturating_sub(1);
                     summary.last_modified = timestamp;

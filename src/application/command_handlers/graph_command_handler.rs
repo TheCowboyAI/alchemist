@@ -77,6 +77,10 @@ impl CommandHandler for GraphCommandHandler {
             Command::Graph(graph_cmd) => self.handle_graph_command(graph_cmd).await,
             Command::Node(node_cmd) => self.handle_node_command(node_cmd).await,
             Command::Edge(edge_cmd) => self.handle_edge_command(edge_cmd).await,
+            Command::Workflow(_) => {
+                // Workflow commands should be handled by WorkflowCommandHandler
+                Err(CommandHandlerError::Other("Workflow commands should be handled by WorkflowCommandHandler".to_string()))
+            }
         }
     }
 }
@@ -84,10 +88,10 @@ impl CommandHandler for GraphCommandHandler {
 impl GraphCommandHandler {
     async fn handle_graph_command(&self, command: GraphCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         match command {
-            GraphCommand::CreateGraph { id, name } => {
+            GraphCommand::CreateGraph { id, name, metadata } => {
                 // For create, we start with a new aggregate
                 let mut aggregate = Graph::new(id, name.clone(), None);
-                let events = aggregate.handle_command(Command::Graph(GraphCommand::CreateGraph { id, name }))?;
+                let events = aggregate.handle_command(Command::Graph(GraphCommand::CreateGraph { id, name, metadata }))?;
 
                 // Store events
                 self.event_store.append_events(id.to_string(), events.clone()).await?;
@@ -101,6 +105,16 @@ impl GraphCommandHandler {
                     GraphCommand::TagGraph { id, .. } => *id,
                     GraphCommand::UntagGraph { id, .. } => *id,
                     GraphCommand::DeleteGraph { id } => *id,
+                    GraphCommand::UpdateGraph { id, .. } => *id,
+                    GraphCommand::AddNode { graph_id, .. } => *graph_id,
+                    GraphCommand::UpdateNode { graph_id, .. } => *graph_id,
+                    GraphCommand::RemoveNode { graph_id, .. } => *graph_id,
+                    GraphCommand::ConnectNodes { graph_id, .. } => *graph_id,
+                    GraphCommand::DisconnectNodes { graph_id, .. } => *graph_id,
+                    GraphCommand::UpdateEdge { graph_id, .. } => *graph_id,
+                    GraphCommand::ImportGraph { graph_id, .. } => *graph_id,
+                    GraphCommand::ImportFromFile { graph_id, .. } => *graph_id,
+                    GraphCommand::ImportFromUrl { graph_id, .. } => *graph_id,
                     GraphCommand::CreateGraph { .. } => unreachable!(),
                 };
 

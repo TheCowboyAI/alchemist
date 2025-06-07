@@ -10,10 +10,15 @@ alwaysApply: true
 1. **Test-First Development** - Never write production code without failing test first[2][10]
 2. **Domain Isolation** - All domain logic tests MUST NOT contain Bevy/NATS dependencies[1][4]
 3. **Headless Execution** - All tests must run in BEVY_HEADLESS=1 mode with Wayland disabled[3][7]
-4. **Test Coverage** - 80%+
+4. **Test Coverage** - 95%+
 
 We operate on Events and Event Handlers.
-ALL Events should be ABLE to be handled, in other words a handler exists, but may not always get called.
+ALL Events should be ABLE to be handled, in other words a handler exists, but may not always get called. It should still have tests.
+
+We issue Commands and Command Handlers.
+ALL Commands should be ABLE to be handled, in other words a handler exists, but may not always get called. It should still have tests.
+
+You DO NOT need to test actual rendering, but you DO need to test everything the rendering expects to be there IS.
 
 ## Bevy ECS Testing Directives
 ```

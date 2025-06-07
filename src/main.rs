@@ -1,15 +1,13 @@
 //! Information Alchemist - Main Entry Point
 
 use bevy::prelude::*;
+use tracing::info;
 use ia::application::CommandEvent;
-use ia::domain::commands::{Command, GraphCommand};
-use ia::domain::value_objects::GraphId;
 use ia::infrastructure::event_bridge::{EventBridge, EventBridgePlugin};
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
 use ia::presentation::plugins::GraphEditorPlugin;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
-use tracing::info;
 
 fn main() {
     // Create tokio runtime for NATS
@@ -47,22 +45,10 @@ fn main() {
 }
 
 /// Create an initial graph to demonstrate the system
-fn setup(mut commands: EventWriter<CommandEvent>) {
+fn setup(commands: EventWriter<CommandEvent>) {
     info!("Starting Information Alchemist");
 
-    // Send a test command
-    info!("Creating initial graph through command");
-    let graph_id = GraphId::new();
-
-    commands.write(CommandEvent {
-        command: Command::Graph(GraphCommand::CreateGraph {
-            id: graph_id,
-            name: "Test Graph".to_string(),
-        }),
-    });
-
-    info!(
-        "Initial graph creation command sent with id: {:?}",
-        graph_id
-    );
+    // Don't create a graph automatically - let the import system handle it
+    info!("Keyboard shortcuts are ready - check the console for instructions");
+    info!("Press 'I' to import a graph or use mouse buttons as shown");
 }

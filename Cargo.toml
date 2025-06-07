@@ -37,6 +37,7 @@ rand = "0.9"
 uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde-xml-rs = "0.6"
 
 # Bevy - use default features for dev, minimal for production
 bevy = { path = "bevy-patched", default-features = false, features = [
@@ -140,6 +141,14 @@ path = "src/main.rs"
 [[bin]]
 name = "test_nats"
 path = "src/bin/test_nats.rs"
+
+[[bin]]
+name = "import_graph"
+path = "src/bin/import_graph.rs"
+
+[[bin]]
+name = "test_import_flow"
+path = "src/bin/test_import_flow.rs"
 
 # Disable the problematic experimental features
 [package.metadata.bevy]

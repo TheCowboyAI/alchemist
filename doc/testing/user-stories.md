@@ -279,6 +279,74 @@ This document contains user stories for our Composable Information Machine (CIM)
 
 **Tests:** Performance benchmarks, load tests
 
+## Import & Integration Context
+
+### Story 21: Import Graph from External Formats
+**As a** user
+**I want** to import graphs from various formats (Mermaid, Cypher, etc.)
+**So that** I can work with existing graph data
+
+**Acceptance Criteria:**
+- ⚠️ Support Mermaid diagram import
+- ⚠️ Support Cypher query import
+- ⚠️ Support Arrows.app JSON import
+- ⚠️ Auto-detect format from content
+- ⚠️ Generate appropriate domain events
+
+**Tests:** `test_import_mermaid`, `test_import_cypher`, `test_import_arrows_app`, `test_import_format_detection`
+
+### Story 22: Handle All Commands and Events
+**As a** developer
+**I want** every command and event to have a handler
+**So that** the system is complete per TDD rules
+
+**Acceptance Criteria:**
+- ❌ Every command type has a handler
+- ❌ Every event type has a handler
+- ❌ Handlers exist even if not always called
+- ❌ Proper error handling for unknown commands/events
+
+**Tests:** Handler existence tests, command rejection tests, event processing failure tests
+
+### Story 23: Workflow State Machine
+**As a** workflow designer
+**I want** complete workflow state transitions
+**So that** workflows execute reliably
+
+**Acceptance Criteria:**
+- ✅ Basic state transitions implemented
+- ❌ Pause/resume functionality
+- ❌ Failure handling and recovery
+- ❌ Parallel execution support
+
+**Tests:** `test_workflow_state_transitions`, `test_workflow_pause_resume`, `test_workflow_failure_handling`, `test_workflow_parallel_execution`
+
+### Story 24: Query Handler Coverage
+**As a** developer
+**I want** query handlers for all projections
+**So that** CQRS read side is complete
+
+**Acceptance Criteria:**
+- ❌ Graph summary queries
+- ❌ Node search queries
+- ❌ Workflow status queries
+- ❌ Event history queries
+
+**Tests:** `test_graph_summary_query`, `test_node_search_query`, `test_workflow_status_query`, `test_event_history_query`
+
+### Story 25: Animation and Physics Testing
+**As a** developer
+**I want** deterministic animation and physics
+**So that** visual behavior is testable
+
+**Acceptance Criteria:**
+- ⚠️ Deterministic animation timing
+- ⚠️ Predictable force layout convergence
+- ⚠️ Reliable scheduled command execution
+- ⚠️ Accurate progress tracking
+
+**Tests:** `test_animation_timing`, `test_force_layout_convergence`, `test_scheduled_command_execution`, `test_animation_progress_tracking`
+
 ## Legend
 
 - ✅ Fully implemented and tested
@@ -287,10 +355,10 @@ This document contains user stories for our Composable Information Machine (CIM)
 
 ## Test Coverage Summary
 
-**Total User Stories:** 20
-**Fully Covered:** 19 (95%)
-**Partially Covered:** 1 (5%)
-**Not Covered:** 0 (0%)
+**Total User Stories:** 25
+**Fully Covered:** 12 (48%)
+**Partially Covered:** 8 (32%)
+**Not Covered:** 5 (20%)
 
 ## Current Implementation Status
 

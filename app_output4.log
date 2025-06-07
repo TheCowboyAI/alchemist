@@ -1,0 +1,623 @@
+warning: Git tree '/git/thecowboyai/alchemist' is dirty
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:25
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
+    |                         ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
+    = note: `#[warn(dangerous_implicit_autorefs)]` on by default
+help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
+    |
+759 |         bStillSame = if (&(*pg1).pTriMembers)[i] == (*pg2).pTriMembers[i] {
+    |                         ++                  +
+
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:50
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
+help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (&(*pg2).pTriMembers)[i] {
+    |                                                  ++                  +
+
+warning: `bevy_mikktspace` (lib) generated 2 warnings
+warning: unused import: `std::time::SystemTime`
+ --> src/domain/aggregates/workflow.rs:7:5
+  |
+7 | use std::time::SystemTime;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `EdgeId`, `NodeId`, and `Position3D`
+ --> src/domain/events/graph.rs:2:30
+  |
+2 | ...d, NodeId, EdgeId, Position3D, G...
+  |       ^^^^^^  ^^^^^^  ^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src/presentation/plugins/mod.rs:14:5
+   |
+14 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `bevy::prelude::*`
+  --> src/presentation/systems/import_system.rs:12:5
+   |
+12 | use bevy::prelude::*;
+   |     ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `GraphId` and `Position3D`
+ --> src/presentation/systems/graph_import_processor.rs:8:21
+  |
+8 | ...::{GraphId, NodeId, EdgeId, Position3D},
+  |       ^^^^^^^                  ^^^^^^^^^^
+
+warning: use of deprecated function `rand::thread_rng`: Renamed to `rng`
+    --> src/domain/services/graph_import.rs:2119:29
+     |
+2119 | ...nd::thread_rng();
+     |        ^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+
+warning: unused variable: `url`
+  --> src/application/command_handlers/graph_import_handler.rs:33:33
+   |
+33 | ...:Url { url } => {
+   |           ^^^ help: try ignoring the field: `url: _`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `prefix`
+  --> src/application/command_handlers/graph_import_handler.rs:53:43
+   |
+53 | ...Some(prefix) = &optio...
+   |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_prefix`
+
+warning: unused variable: `options`
+   --> src/application/command_handlers/graph_import_handler.rs:108:9
+    |
+108 |         options: &Impor...
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_options`
+
+warning: unused variable: `options`
+   --> src/application/command_handlers/graph_import_handler.rs:120:9
+    |
+120 |         options: &Impor...
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_options`
+
+warning: unused variable: `url`
+   --> src/domain/services/graph_import.rs:592:39
+    |
+592 | ...&self, url: &str) ->...
+    |           ^^^ help: if this is intentional, prefix it with an underscore: `_url`
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+    --> src/domain/services/graph_import.rs:2125:24
+     |
+2125 | ... rng.gen_range(-ran...
+     |         ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+    --> src/domain/services/graph_import.rs:2126:24
+     |
+2126 | ... rng.gen_range(-ran...
+     |         ^^^^^^^^^
+
+warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
+   --> src/presentation/systems/import_system.rs:244:14
+    |
+244 |     commands.send(Comma...
+    |              ^^^^
+
+warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
+   --> src/presentation/systems/import_system.rs:286:14
+    |
+286 |     commands.send(Comma...
+    |              ^^^^
+
+warning: unused variable: `metadata`
+   --> src/domain/aggregates/graph.rs:187:51
+    |
+187 | ...ame, metadata } => {
+    |         ^^^^^^^^ help: try ignoring the field: `metadata: _`
+
+warning: unused variable: `node_type`
+   --> src/domain/aggregates/graph.rs:231:56
+    |
+231 | ..._id, node_type, posi...
+    |         ^^^^^^^^^ help: try ignoring the field: `node_type: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:694:44
+    |
+694 | ...ed { graph_id, name,...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:713:40
+    |
+713 | ...ed { graph_id, node_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:720:42
+    |
+720 | ...ed { graph_id, node_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:725:42
+    |
+725 | ...ed { graph_id, node_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:735:40
+    |
+735 | ...ed { graph_id, node_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `old_position`
+   --> src/domain/aggregates/graph.rs:735:59
+    |
+735 | ...d, old_position, new...
+    |       ^^^^^^^^^^^^ help: try ignoring the field: `old_position: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:740:49
+    |
+740 | ...ed { graph_id, node_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `old_content`
+   --> src/domain/aggregates/graph.rs:740:68
+    |
+740 | ...d, old_content, new_...
+    |       ^^^^^^^^^^^ help: try ignoring the field: `old_content: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:747:44
+    |
+747 | ...ed { graph_id, edge_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:778:42
+    |
+778 | ...ed { graph_id, edge_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:781:42
+    |
+781 | ...ed { graph_id, edge_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `graph_id`
+   --> src/domain/aggregates/graph.rs:786:43
+    |
+786 | ...ed { graph_id, edge_...
+    |         ^^^^^^^^ help: try ignoring the field: `graph_id: _`
+
+warning: unused variable: `old_source`
+   --> src/domain/aggregates/graph.rs:786:62
+    |
+786 | ...d, old_source, old_t...
+    |       ^^^^^^^^^^ help: try ignoring the field: `old_source: _`
+
+warning: unused variable: `old_target`
+   --> src/domain/aggregates/graph.rs:786:74
+    |
+786 | ...e, old_target, new_s...
+    |       ^^^^^^^^^^ help: try ignoring the field: `old_target: _`
+
+warning: unused variable: `mapping`
+    --> src/domain/services/graph_import.rs:1124:51
+     |
+1124 | ...str, mapping: &Impo...
+     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
+
+warning: unused variable: `mapping`
+    --> src/domain/services/graph_import.rs:1173:53
+     |
+1173 | ...str, mapping: &Impo...
+     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
+
+warning: unused variable: `mapping`
+    --> src/domain/services/graph_import.rs:1307:44
+     |
+1307 | ...str, mapping: &Impo...
+     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
+
+warning: unused variable: `mapping`
+    --> src/domain/services/graph_import.rs:1368:45
+     |
+1368 | ...str, mapping: &Impo...
+     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
+
+warning: unused variable: `mapping`
+    --> src/domain/services/graph_import.rs:1493:41
+     |
+1493 | ...str, mapping: &Impo...
+     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
+
+warning: unused variable: `mapping`
+    --> src/domain/services/graph_import.rs:1624:47
+     |
+1624 | ...str, mapping: &Impo...
+     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
+
+warning: unused variable: `mapping`
+    --> src/domain/services/graph_import.rs:1763:46
+     |
+1763 | ...str, mapping: &Impo...
+     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
+
+warning: unused variable: `max_level`
+    --> src/domain/services/graph_import.rs:2067:13
+     |
+2067 | ...et max_level = leve...
+     |       ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_max_level`
+
+warning: unused variable: `line`
+    --> src/domain/services/graph_import.rs:2245:32
+     |
+2245 | ...ship(line: &str) ->...
+     |         ^^^^ help: if this is intentional, prefix it with an underscore: `_line`
+
+warning: variable does not need to be mutable
+    --> src/domain/services/graph_import.rs:2312:17
+     |
+2312 | ...et mut attributes = ...
+     |       ----^^^^^^^^^^
+     |       |
+     |       help: remove this `mut`
+     |
+     = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `import_state`
+  --> src/presentation/systems/import_system.rs:46:9
+   |
+46 | ...ut import_state: ResM...
+   |       ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_import_state`
+
+warning: variable does not need to be mutable
+  --> src/presentation/systems/import_system.rs:46:5
+   |
+46 |     mut import_state: Re...
+   |     ----^^^^^^^^^^^^
+   |     |
+   |     help: remove this `mut`
+
+warning: unused variable: `commands`
+   --> src/presentation/systems/import_system.rs:325:32
+    |
+325 | ...(mut commands: Comma...
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commands`
+
+warning: variable does not need to be mutable
+   --> src/presentation/systems/import_system.rs:325:28
+    |
+325 | ...lp(mut commands: Com...
+    |       ----^^^^^^^^
+    |       |
+    |       help: remove this `mut`
+
+warning: field `graph` is never read
+  --> src/domain/aggregates/graph.rs:86:5
+   |
+79 | pub struct Graph {
+   |            ----- field in this struct
+...
+86 |     graph: StableGraph<N...
+   |     ^^^^^
+   |
+   = note: `Graph` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: function `schedule_demo_graph` is never used
+   --> src/presentation/plugins/mod.rs:169:4
+    |
+169 | fn schedule_demo_graph(co...
+    |    ^^^^^^^^^^^^^^^^^^^
+
+warning: `ia` (lib) generated 47 warnings (run `cargo fix --lib -p ia` to apply 8 suggestions)
+warning: unused imports: `Command`, `GraphCommand`, `ImportOptions`, `ImportSource`, and `graph_commands::MergeBehavior`
+ --> src/main.rs:6:28
+  |
+6 | ...::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior};
+  |       ^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `GraphId` and `Position3D`
+ --> src/main.rs:7:33
+  |
+7 | ...::{GraphId, Position3D};
+  |       ^^^^^^^  ^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src/main.rs:11:5
+   |
+11 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `bevy::prelude::*`
+  --> src/main.rs:14:5
+   |
+14 | use bevy::prelude::*;
+   |     ^^^^^^^^^^^^^^^^
+
+warning: unused variable: `commands`
+  --> src/main.rs:52:14
+   |
+52 | ...(mut commands: EventW...
+   |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commands`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+  --> src/main.rs:52:10
+   |
+52 | ...up(mut commands: Even...
+   |       ----^^^^^^^^
+   |       |
+   |       help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: `ia` (bin "ia") generated 6 warnings (run `cargo fix --bin "ia"` to apply 5 suggestions)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 0.34s
+     Running `target/x86_64-unknown-linux-gnu/debug/ia`
+Testing direct import - creating sample nodes with visuals
+=== Import System Ready ===
+KEYBOARD SHORTCUTS:
+  Press 'I' to import sample_graph.json
+  Press Space to test keyboard input
+  Press Ctrl+I for original import shortcut
+  Press Ctrl+M to import Mermaid
+  Press Ctrl+D to import DOT
+
+MOUSE SHORTCUTS (if keyboard doesn't work):
+  Right-click to import sample_graph.json
+  Middle-click to import Mermaid
+==========================
+Created 2 test nodes with visual components
+Created test cube at (0, 2, 0)
+Keys pressed: [ControlLeft]
+Key pressed: ControlLeft
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Keys pressed: [KeyI]
+Key pressed: KeyI
+Ctrl is pressed
+Import shortcut triggered (Ctrl+I)
+import_file called with: examples/data/sample_graph.json format: ArrowsApp
+File exists, creating import command...
+Import command sent for graph: GraphId(52ee16b9-15a9-40bb-ad42-faeb5da7680a)
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Keys pressed: [KeyO]
+Key pressed: KeyO
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Keys pressed: [KeyM]
+Key pressed: KeyM
+Ctrl is pressed
+import_file called with: examples/data/workflow.mermaid format: Mermaid
+File exists, creating import command...
+Import command sent for graph: GraphId(bb8f5924-1cd7-4a1a-a83d-78147e4e094e)
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Ctrl is pressed
+Right mouse button clicked - triggering import
+import_file called with: examples/data/sample_graph.json format: ArrowsApp
+File exists, creating import command...
+Import command sent for graph: GraphId(b1687fe8-5a56-4c2c-9602-b482947dbbb3)
+Middle mouse button clicked - importing Mermaid
+import_file called with: examples/data/workflow.mermaid format: Mermaid
+File exists, creating import command...
+Import command sent for graph: GraphId(b0d4a998-57d0-49c6-b173-49d97ca2e533)
+Keys pressed: [AltLeft, SuperLeft]
+Key pressed: AltLeft
+Key pressed: SuperLeft

@@ -1,0 +1,77 @@
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "caption": "User",
+      "labels": ["Person"],
+      "properties": {
+        "name": "Alice",
+        "role": "Developer"
+      },
+      "style": {}
+    },
+    {
+      "id": "n2",
+      "position": {
+        "x": 200,
+        "y": 0,
+        "z": 0
+      },
+      "caption": "Project",
+      "labels": ["Entity"],
+      "properties": {
+        "name": "CIM",
+        "type": "Software"
+      },
+      "style": {}
+    },
+    {
+      "id": "n3",
+      "position": {
+        "x": 100,
+        "y": 150,
+        "z": 0
+      },
+      "caption": "Task",
+      "labels": ["WorkItem"],
+      "properties": {
+        "title": "Implement Graph Import",
+        "status": "In Progress"
+      },
+      "style": {}
+    }
+  ],
+  "relationships": [
+    {
+      "id": "r1",
+      "fromId": "n1",
+      "toId": "n2",
+      "type": "WORKS_ON",
+      "properties": {
+        "since": "2024-01-01"
+      },
+      "style": {}
+    },
+    {
+      "id": "r2",
+      "fromId": "n1",
+      "toId": "n3",
+      "type": "ASSIGNED_TO",
+      "properties": {},
+      "style": {}
+    },
+    {
+      "id": "r3",
+      "fromId": "n3",
+      "toId": "n2",
+      "type": "BELONGS_TO",
+      "properties": {},
+      "style": {}
+    }
+  ]
+}

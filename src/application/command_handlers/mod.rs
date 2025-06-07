@@ -9,7 +9,12 @@ use serde_json;
 
 // Async command handlers for integration with event store
 pub mod graph_command_handler;
+pub mod workflow_command_handler;
+pub mod graph_import_handler;
+
 pub use graph_command_handler::{GraphCommandHandler, CommandHandler};
+pub use workflow_command_handler::WorkflowCommandHandler;
+pub use graph_import_handler::GraphImportHandler;
 
 /// System that processes commands and generates events
 pub fn process_commands(
@@ -36,6 +41,10 @@ pub fn process_commands(
                     events.write(EventNotification { event });
                 }
             }
+            Command::Workflow(_) => {
+                // Handle workflow commands
+                tracing::info!("Processing workflow command");
+            }
         }
     }
 }
@@ -43,7 +52,7 @@ pub fn process_commands(
 /// Handle graph commands and generate events
 fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
     match command {
-        GraphCommand::CreateGraph { id, name } => {
+        GraphCommand::CreateGraph { id, name, metadata: _ } => {
             Some(DomainEvent::Graph(GraphEvent::GraphCreated {
                 id: *id,
                 metadata: GraphMetadata::new(name.clone()),
@@ -68,6 +77,34 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
         }
         GraphCommand::DeleteGraph { id } => {
             Some(DomainEvent::Graph(GraphEvent::GraphDeleted { id: *id }))
+        }
+        GraphCommand::UpdateGraph { id, name, description } => {
+            Some(DomainEvent::Graph(GraphEvent::GraphUpdated {
+                graph_id: *id,
+                name: name.clone(),
+                description: description.clone(),
+            }))
+        }
+        GraphCommand::ImportGraph { graph_id, source, format: _, options } => {
+            // For now, emit the GraphImportRequested event
+            // The process_graph_import_requests system will handle the actual import
+            Some(DomainEvent::Graph(GraphEvent::GraphImportRequested {
+                graph_id: *graph_id,
+                source: source.clone(),
+                format: "arrows_app".to_string(), // TODO: Use the actual format
+                options: options.clone(),
+            }))
+        }
+        GraphCommand::AddNode { .. } |
+        GraphCommand::UpdateNode { .. } |
+        GraphCommand::RemoveNode { .. } |
+        GraphCommand::ConnectNodes { .. } |
+        GraphCommand::DisconnectNodes { .. } |
+        GraphCommand::UpdateEdge { .. } |
+        GraphCommand::ImportFromFile { .. } |
+        GraphCommand::ImportFromUrl { .. } => {
+            // These are handled by the aggregate
+            None
         }
     }
 }
@@ -104,64 +141,30 @@ fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
             node_id,
             content,
         } => {
-            // Convert to metadata update events
-            let mut events = Vec::new();
-
-            // Update label
-            events.push(DomainEvent::Node(NodeEvent::NodeMetadataUpdated {
+            // Convert to content update event
+            Some(DomainEvent::Node(NodeEvent::NodeContentChanged {
                 graph_id: *graph_id,
                 node_id: *node_id,
-                key: "label".to_string(),
-                old_value: None, // TODO: Get from aggregate
-                new_value: Some(serde_json::Value::String(content.label.clone())),
-            }));
-
-            // Update node_type
-            events.push(DomainEvent::Node(NodeEvent::NodeMetadataUpdated {
-                graph_id: *graph_id,
-                node_id: *node_id,
-                key: "node_type".to_string(),
-                old_value: None, // TODO: Get from aggregate
-                new_value: Some(serde_json::to_value(&content.node_type).unwrap()),
-            }));
-
-            // Update other properties
-            for (key, value) in &content.properties {
-                events.push(DomainEvent::Node(NodeEvent::NodeMetadataUpdated {
-                    graph_id: *graph_id,
-                    node_id: *node_id,
-                    key: key.clone(),
-                    old_value: None, // TODO: Get from aggregate
-                    new_value: Some(value.clone()),
-                }));
-            }
-
-            // For now, just return the first event (we'll need to handle multiple events later)
-            events.into_iter().next()
+                old_content: serde_json::Value::Null, // TODO: Get from aggregate
+                new_content: serde_json::to_value(content).unwrap(),
+            }))
         }
         NodeCommand::MoveNode {
-            graph_id: _,
-            node_id: _,
-            position: _,
+            graph_id,
+            node_id,
+            position,
         } => {
-            // NOTE: To move a node (change its position value object), we should:
-            // 1. Emit NodeRemoved event
-            // 2. Emit NodeAdded event with new position
-            // For now, returning None until we implement proper aggregate handling
-            // TODO: Implement proper position change handling through aggregate
+            // Create a move event
+            Some(DomainEvent::Node(NodeEvent::NodeMoved {
+                graph_id: *graph_id,
+                node_id: *node_id,
+                old_position: Position3D::default(), // TODO: Get from aggregate
+                new_position: *position,
+            }))
+        }
+        NodeCommand::SelectNode { .. } | NodeCommand::DeselectNode { .. } => {
+            // Selection is a presentation concern, not a domain event
             None
-        }
-        NodeCommand::SelectNode { graph_id, node_id } => {
-            Some(DomainEvent::Node(NodeEvent::NodeSelected {
-                graph_id: *graph_id,
-                node_id: *node_id,
-            }))
-        }
-        NodeCommand::DeselectNode { graph_id, node_id } => {
-            Some(DomainEvent::Node(NodeEvent::NodeDeselected {
-                graph_id: *graph_id,
-                node_id: *node_id,
-            }))
         }
     }
 }
@@ -180,31 +183,54 @@ fn handle_edge_command(command: &EdgeCommand) -> Option<DomainEvent> {
             edge_id: *edge_id,
             source: *source,
             target: *target,
-            relationship: relationship.clone(),
+            relationship: relationship.relationship_type.to_string(),
         })),
         EdgeCommand::DisconnectEdge { graph_id, edge_id } => {
-            Some(DomainEvent::Edge(EdgeEvent::EdgeDisconnected {
-                graph_id: *graph_id,
-                edge_id: *edge_id,
-                source: NodeId::default(), // TODO: Get from aggregate
-                target: NodeId::default(), // TODO: Get from aggregate
-            }))
-        }
-        // NOTE: To change an edge relationship (value object), you must:
-        // 1. DisconnectEdge (remove the old edge)
-        // 2. ConnectEdge (create a new edge with the new relationship)
-        // This follows DDD principles where value objects are immutable
-        EdgeCommand::SelectEdge { graph_id, edge_id } => {
-            Some(DomainEvent::Edge(EdgeEvent::EdgeSelected {
+            Some(DomainEvent::Edge(EdgeEvent::EdgeRemoved {
                 graph_id: *graph_id,
                 edge_id: *edge_id,
             }))
         }
-        EdgeCommand::DeselectEdge { graph_id, edge_id } => {
-            Some(DomainEvent::Edge(EdgeEvent::EdgeDeselected {
-                graph_id: *graph_id,
-                edge_id: *edge_id,
-            }))
+        EdgeCommand::SelectEdge { .. } | EdgeCommand::DeselectEdge { .. } => {
+            // Selection is a presentation concern, not a domain event
+            None
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::commands::{ImportSource, ImportOptions};
+    use crate::domain::commands::graph_commands::MergeBehavior;
+
+    #[test]
+    fn test_import_graph_command_generates_event() {
+        // Test that ImportGraph commands now generate GraphImportRequested events
+        let graph_id = GraphId::new();
+        let cmd = GraphCommand::ImportGraph {
+            graph_id,
+            source: ImportSource::InlineContent {
+                content: r#"{"nodes": [], "relationships": []}"#.to_string(),
+            },
+            format: "arrows_app".to_string(),
+            options: ImportOptions {
+                merge_behavior: MergeBehavior::AlwaysCreate,
+                id_prefix: None,
+                position_offset: None,
+                mapping: None,
+                validate: true,
+                max_nodes: None,
+            },
+        };
+
+        let result = handle_graph_command(&cmd);
+        assert!(result.is_some(), "ImportGraph should now be handled");
+
+        if let Some(DomainEvent::Graph(GraphEvent::GraphImportRequested { .. })) = result {
+            // Success - the command generates the expected event
+        } else {
+            panic!("Expected GraphImportRequested event");
         }
     }
 }

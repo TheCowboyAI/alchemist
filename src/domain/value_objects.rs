@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
+use std::collections::HashMap;
 
 /// Unique identifier for a graph
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -72,6 +73,72 @@ impl Default for EdgeId {
 }
 
 impl fmt::Display for EdgeId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// Unique identifier for a workflow
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct WorkflowId(pub Uuid);
+
+impl WorkflowId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
+impl Default for WorkflowId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl fmt::Display for WorkflowId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// Unique identifier for a workflow step
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct StepId(pub Uuid);
+
+impl StepId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
+impl Default for StepId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl fmt::Display for StepId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// Unique identifier for a user
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct UserId(pub Uuid);
+
+impl UserId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
+impl Default for UserId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl fmt::Display for UserId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
@@ -193,6 +260,28 @@ pub enum RelationshipType {
 
     // Generic
     Custom(String),
+}
+
+impl fmt::Display for RelationshipType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RelationshipType::Contains => write!(f, "Contains"),
+            RelationshipType::References => write!(f, "References"),
+            RelationshipType::DependsOn => write!(f, "DependsOn"),
+            RelationshipType::Publishes => write!(f, "Publishes"),
+            RelationshipType::Subscribes => write!(f, "Subscribes"),
+            RelationshipType::Implements => write!(f, "Implements"),
+            RelationshipType::Extends => write!(f, "Extends"),
+            RelationshipType::Parent => write!(f, "Parent"),
+            RelationshipType::Merged => write!(f, "Merged"),
+            RelationshipType::Branched => write!(f, "Branched"),
+            RelationshipType::Tagged => write!(f, "Tagged"),
+            RelationshipType::Sequence => write!(f, "Sequence"),
+            RelationshipType::Hierarchy => write!(f, "Hierarchy"),
+            RelationshipType::Blocks => write!(f, "Blocks"),
+            RelationshipType::Custom(s) => write!(f, "{s}"),
+        }
+    }
 }
 
 /// Metadata for a graph
@@ -416,6 +505,333 @@ mod tests {
         let serialized = serde_json::to_string(&node_type).unwrap();
         let deserialized: NodeType = serde_json::from_str(&serialized).unwrap();
         assert_eq!(node_type, deserialized);
+    }
+
+    // New comprehensive tests for better coverage
+
+    #[test]
+    fn test_position3d_is_finite() {
+        // Test finite positions
+        let finite_pos = Position3D::new(1.0, 2.0, 3.0);
+        assert!(finite_pos.is_finite());
+
+        // Test NaN positions
+        let nan_x = Position3D::new(f32::NAN, 2.0, 3.0);
+        assert!(!nan_x.is_finite());
+
+        let nan_y = Position3D::new(1.0, f32::NAN, 3.0);
+        assert!(!nan_y.is_finite());
+
+        let nan_z = Position3D::new(1.0, 2.0, f32::NAN);
+        assert!(!nan_z.is_finite());
+
+        // Test infinite positions
+        let inf_x = Position3D::new(f32::INFINITY, 2.0, 3.0);
+        assert!(!inf_x.is_finite());
+
+        let neg_inf_y = Position3D::new(1.0, f32::NEG_INFINITY, 3.0);
+        assert!(!neg_inf_y.is_finite());
+    }
+
+    #[test]
+    fn test_workflow_id_creation() {
+        let id1 = WorkflowId::new();
+        let id2 = WorkflowId::new();
+
+        // Each ID should be unique
+        assert_ne!(id1, id2);
+
+        // Display should work
+        assert!(!id1.to_string().is_empty());
+        assert_eq!(id1.to_string().len(), 36); // UUID string length
+    }
+
+    #[test]
+    fn test_step_id_creation() {
+        let id1 = StepId::new();
+        let id2 = StepId::default();
+
+        // Each ID should be unique
+        assert_ne!(id1, id2);
+
+        // Display should work
+        assert!(!id1.to_string().is_empty());
+    }
+
+    #[test]
+    fn test_user_id_creation() {
+        let id1 = UserId::new();
+        let id2 = UserId::default();
+
+        // Each ID should be unique
+        assert_ne!(id1, id2);
+
+        // Display should work
+        assert!(!id1.to_string().is_empty());
+    }
+
+    #[test]
+    fn test_relationship_type_display() {
+        // Test all relationship type display implementations
+        assert_eq!(RelationshipType::Contains.to_string(), "Contains");
+        assert_eq!(RelationshipType::References.to_string(), "References");
+        assert_eq!(RelationshipType::DependsOn.to_string(), "DependsOn");
+        assert_eq!(RelationshipType::Publishes.to_string(), "Publishes");
+        assert_eq!(RelationshipType::Subscribes.to_string(), "Subscribes");
+        assert_eq!(RelationshipType::Implements.to_string(), "Implements");
+        assert_eq!(RelationshipType::Extends.to_string(), "Extends");
+        assert_eq!(RelationshipType::Parent.to_string(), "Parent");
+        assert_eq!(RelationshipType::Merged.to_string(), "Merged");
+        assert_eq!(RelationshipType::Branched.to_string(), "Branched");
+        assert_eq!(RelationshipType::Tagged.to_string(), "Tagged");
+        assert_eq!(RelationshipType::Sequence.to_string(), "Sequence");
+        assert_eq!(RelationshipType::Hierarchy.to_string(), "Hierarchy");
+        assert_eq!(RelationshipType::Blocks.to_string(), "Blocks");
+        assert_eq!(RelationshipType::Custom("MyRelation".to_string()).to_string(), "MyRelation");
+    }
+
+    #[test]
+    fn test_graph_metadata_with_tags() {
+        let mut metadata = GraphMetadata::new("Tagged Graph".to_string());
+        metadata.tags.push("important".to_string());
+        metadata.tags.push("v2".to_string());
+
+        assert_eq!(metadata.name, "Tagged Graph");
+        assert_eq!(metadata.tags.len(), 2);
+        assert!(metadata.tags.contains(&"important".to_string()));
+        assert!(metadata.tags.contains(&"v2".to_string()));
+    }
+
+    #[test]
+    fn test_graph_model_expected_nodes() {
+        // Test complete graph
+        assert_eq!(GraphModel::CompleteGraph { order: 5 }.expected_nodes(), Some(5));
+        assert_eq!(GraphModel::CompleteGraph { order: 0 }.expected_nodes(), Some(0));
+
+        // Test cycle graph
+        assert_eq!(GraphModel::CycleGraph { order: 4 }.expected_nodes(), Some(4));
+
+        // Test path graph
+        assert_eq!(GraphModel::PathGraph { order: 3 }.expected_nodes(), Some(3));
+
+        // Test bipartite graph
+        assert_eq!(GraphModel::BipartiteGraph { m: 3, n: 4 }.expected_nodes(), Some(7));
+
+        // Test star graph
+        assert_eq!(GraphModel::StarGraph { satellites: 5 }.expected_nodes(), Some(6)); // 5 satellites + 1 center
+
+        // Test tree
+        let tree = GraphModel::Tree { branching_factor: 2, depth: 2 };
+        assert_eq!(tree.expected_nodes(), Some(7)); // 1 + 2 + 4 = 7 nodes
+
+        let tree2 = GraphModel::Tree { branching_factor: 3, depth: 1 };
+        assert_eq!(tree2.expected_nodes(), Some(4)); // 1 + 3 = 4 nodes
+
+        // Test models with unknown node count
+        assert_eq!(GraphModel::MealyMachine {
+            states: vec![],
+            inputs: vec![],
+            outputs: vec![]
+        }.expected_nodes(), None);
+
+        assert_eq!(GraphModel::AddressGraph.expected_nodes(), None);
+        assert_eq!(GraphModel::WorkflowGraph { workflow_type: "test".to_string() }.expected_nodes(), None);
+    }
+
+    #[test]
+    fn test_graph_model_expected_edges() {
+        // Test complete graph edges: n(n-1)/2
+        assert_eq!(GraphModel::CompleteGraph { order: 5 }.expected_edges(), Some(10)); // 5*4/2 = 10
+        assert_eq!(GraphModel::CompleteGraph { order: 4 }.expected_edges(), Some(6)); // 4*3/2 = 6
+        assert_eq!(GraphModel::CompleteGraph { order: 0 }.expected_edges(), Some(0));
+
+        // Test cycle graph edges: n
+        assert_eq!(GraphModel::CycleGraph { order: 4 }.expected_edges(), Some(4));
+
+        // Test path graph edges: n-1
+        assert_eq!(GraphModel::PathGraph { order: 3 }.expected_edges(), Some(2));
+        assert_eq!(GraphModel::PathGraph { order: 1 }.expected_edges(), Some(0));
+        assert_eq!(GraphModel::PathGraph { order: 0 }.expected_edges(), Some(0)); // saturating_sub
+
+        // Test bipartite graph edges: m*n
+        assert_eq!(GraphModel::BipartiteGraph { m: 3, n: 4 }.expected_edges(), Some(12));
+
+        // Test star graph edges: satellites
+        assert_eq!(GraphModel::StarGraph { satellites: 5 }.expected_edges(), Some(5));
+
+        // Test tree edges: nodes - 1
+        let tree = GraphModel::Tree { branching_factor: 2, depth: 2 };
+        assert_eq!(tree.expected_edges(), Some(6)); // 7 nodes - 1 = 6 edges
+
+        // Test models with unknown edge count
+        assert_eq!(GraphModel::ConceptualGraph { space_name: "test".to_string() }.expected_edges(), None);
+    }
+
+    #[test]
+    fn test_graph_model_variants() {
+        // Test state machine creation
+        let mealy = GraphModel::MealyMachine {
+            states: vec!["S0".to_string(), "S1".to_string()],
+            inputs: vec!["0".to_string(), "1".to_string()],
+            outputs: vec!["A".to_string(), "B".to_string()],
+        };
+
+        match mealy {
+            GraphModel::MealyMachine { states, inputs, outputs } => {
+                assert_eq!(states.len(), 2);
+                assert_eq!(inputs.len(), 2);
+                assert_eq!(outputs.len(), 2);
+            }
+            _ => panic!("Expected MealyMachine"),
+        }
+
+        // Test custom model
+        let custom = GraphModel::Custom {
+            name: "MyModel".to_string(),
+            properties: serde_json::json!({
+                "key": "value",
+                "count": 42
+            }),
+        };
+
+        match custom {
+            GraphModel::Custom { name, properties } => {
+                assert_eq!(name, "MyModel");
+                assert_eq!(properties["key"], "value");
+                assert_eq!(properties["count"], 42);
+            }
+            _ => panic!("Expected Custom"),
+        }
+    }
+
+    #[test]
+    fn test_edge_relationship_bidirectional() {
+        let mut rel = EdgeRelationship {
+            relationship_type: RelationshipType::References,
+            properties: HashMap::new(),
+            bidirectional: true,
+        };
+
+        assert!(rel.bidirectional);
+
+        // Test with properties
+        rel.properties.insert("strength".to_string(), serde_json::json!(0.8));
+        rel.properties.insert("verified".to_string(), serde_json::json!(true));
+
+        assert_eq!(rel.properties.len(), 2);
+        assert_eq!(rel.properties["strength"], 0.8);
+        assert_eq!(rel.properties["verified"], true);
+    }
+
+    #[test]
+    fn test_all_node_types() {
+        // Test all DDD node types
+        let types = vec![
+            NodeType::Entity,
+            NodeType::ValueObject,
+            NodeType::Aggregate,
+            NodeType::Service,
+            NodeType::Repository,
+            NodeType::Factory,
+            NodeType::Event,
+            NodeType::Command,
+            NodeType::Query,
+            NodeType::Policy,
+        ];
+
+        for node_type in types {
+            // Verify they're all different
+            assert_ne!(node_type, NodeType::Custom("test".to_string()));
+        }
+
+        // Test progress tracking types
+        assert_eq!(NodeType::Milestone, NodeType::Milestone);
+        assert_eq!(NodeType::Phase, NodeType::Phase);
+        assert_eq!(NodeType::Task, NodeType::Task);
+
+        // Test Git types
+        assert_eq!(NodeType::GitCommit, NodeType::GitCommit);
+        assert_eq!(NodeType::GitBranch, NodeType::GitBranch);
+        assert_eq!(NodeType::GitTag, NodeType::GitTag);
+        assert_eq!(NodeType::GitMerge, NodeType::GitMerge);
+    }
+
+    #[test]
+    fn test_graph_metadata_timestamps() {
+        let before = std::time::SystemTime::now();
+        let metadata = GraphMetadata::new("Timed Graph".to_string());
+        let after = std::time::SystemTime::now();
+
+        // Created and updated times should be the same initially
+        assert_eq!(metadata.created_at, metadata.updated_at);
+
+        // Times should be within reasonable bounds
+        assert!(metadata.created_at >= before);
+        assert!(metadata.created_at <= after);
+    }
+
+    #[test]
+    fn test_id_copy_semantics() {
+        // All ID types should implement Copy
+        let graph_id = GraphId::new();
+        let graph_id_copy = graph_id; // This is a copy, not a move
+        assert_eq!(graph_id, graph_id_copy);
+
+        let node_id = NodeId::new();
+        let node_id_copy = node_id;
+        assert_eq!(node_id, node_id_copy);
+
+        let edge_id = EdgeId::new();
+        let edge_id_copy = edge_id;
+        assert_eq!(edge_id, edge_id_copy);
+
+        let workflow_id = WorkflowId::new();
+        let workflow_id_copy = workflow_id;
+        assert_eq!(workflow_id, workflow_id_copy);
+
+        let step_id = StepId::new();
+        let step_id_copy = step_id;
+        assert_eq!(step_id, step_id_copy);
+
+        let user_id = UserId::new();
+        let user_id_copy = user_id;
+        assert_eq!(user_id, user_id_copy);
+    }
+
+    #[test]
+    fn test_complex_graph_models() {
+        // Test tree with different parameters
+        let binary_tree = GraphModel::Tree { branching_factor: 2, depth: 3 };
+        assert_eq!(binary_tree.expected_nodes(), Some(15)); // 1 + 2 + 4 + 8 = 15
+
+        let ternary_tree = GraphModel::Tree { branching_factor: 3, depth: 2 };
+        assert_eq!(ternary_tree.expected_nodes(), Some(13)); // 1 + 3 + 9 = 13
+
+        // Test edge cases
+        let single_node_tree = GraphModel::Tree { branching_factor: 0, depth: 0 };
+        assert_eq!(single_node_tree.expected_nodes(), Some(1)); // Just root
+
+        let zero_depth_tree = GraphModel::Tree { branching_factor: 5, depth: 0 };
+        assert_eq!(zero_depth_tree.expected_nodes(), Some(1)); // Just root
+    }
+
+    #[test]
+    fn test_moore_machine_model() {
+        let moore = GraphModel::MooreMachine {
+            states: vec!["Idle".to_string(), "Processing".to_string(), "Done".to_string()],
+            inputs: vec!["start".to_string(), "stop".to_string()],
+            outputs: vec!["0".to_string(), "1".to_string()],
+        };
+
+        match moore {
+            GraphModel::MooreMachine { states, inputs, outputs } => {
+                assert_eq!(states.len(), 3);
+                assert_eq!(inputs.len(), 2);
+                assert_eq!(outputs.len(), 2);
+                assert!(states.contains(&"Idle".to_string()));
+            }
+            _ => panic!("Expected MooreMachine"),
+        }
     }
 }
 

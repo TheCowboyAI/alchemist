@@ -1,0 +1,14 @@
+graph TD
+    Start[Start Process] --> CheckAuth{Authenticated?}
+    CheckAuth -->|Yes| LoadData[Load User Data]
+    CheckAuth -->|No| Login[Show Login]
+    Login --> Authenticate[Authenticate User]
+    Authenticate --> CheckAuth
+    LoadData --> ProcessRequest[Process Request]
+    ProcessRequest --> ValidateInput{Input Valid?}
+    ValidateInput -->|Yes| ExecuteAction[Execute Action]
+    ValidateInput -->|No| ShowError[Show Error]
+    ShowError --> ProcessRequest
+    ExecuteAction --> SaveResult[Save Result]
+    SaveResult --> NotifyUser[Notify User]
+    NotifyUser --> End[End Process]

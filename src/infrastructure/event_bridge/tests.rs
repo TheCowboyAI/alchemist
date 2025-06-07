@@ -118,6 +118,7 @@ fn test_bridge_command_types() {
             crate::domain::commands::GraphCommand::CreateGraph {
                 id: GraphId::new(),
                 name: "Test".to_string(),
+                metadata: std::collections::HashMap::new(),
             },
         )),
         BridgeCommand::Subscribe("test.subject".to_string()),

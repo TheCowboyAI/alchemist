@@ -8,6 +8,8 @@ use crate::domain::value_objects::{
     EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, NodeType, Position3D, RelationshipType,
 };
 use crate::presentation::components::*;
+use crate::presentation::events::{ImportResultEvent, ImportRequestEvent};
+use crate::presentation::systems::{ImportPlugin, display_import_help, process_graph_import_requests, forward_import_results, forward_import_requests, create_test_graph_on_startup};
 use bevy::prelude::*;
 use tracing::info;
 
@@ -20,10 +22,14 @@ impl Plugin for GraphEditorPlugin {
             // Register events
             .add_event::<CommandEvent>()
             .add_event::<EventNotification>()
+            .add_event::<ImportResultEvent>()
+            .add_event::<ImportRequestEvent>()
             // Add resources
             .insert_resource(ForceLayoutSettings::default())
+            // Add import plugin
+            .add_plugins(ImportPlugin)
             // Add systems
-            .add_systems(Startup, (setup_camera, setup_lighting))
+            .add_systems(Startup, (setup_camera, setup_lighting, display_import_help, create_test_graph_on_startup))
             .add_systems(
                 Update,
                 (
@@ -32,6 +38,9 @@ impl Plugin for GraphEditorPlugin {
                     execute_scheduled_commands,
                     // Event handling
                     handle_domain_events,
+                    forward_import_requests,
+                    process_graph_import_requests,
+                    forward_import_results,
                     record_events,
                     replay_events,
                     // Animation systems
@@ -91,8 +100,8 @@ fn handle_domain_events(
         match &event.event {
             DomainEvent::Graph(GraphEvent::GraphCreated { id, metadata }) => {
                 create_graph_visualization(&mut commands, *id, &metadata.name);
-                // Schedule demo nodes creation
-                schedule_demo_graph(&mut commands, *id, &time);
+                // Don't automatically create demo nodes - let imports handle it
+                // schedule_demo_graph(&mut commands, *id, &time);
 
                 // Start recording events for this graph
                 commands.spawn(EventRecorder {

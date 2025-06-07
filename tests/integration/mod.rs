@@ -14,6 +14,12 @@ pub mod cid_chain_tests;
 pub mod projection_tests;
 pub mod error_recovery_tests;
 pub mod end_to_end_tests;
+pub mod graph_import_test;
+pub mod graph_import_integration_test;
+pub mod system_parameter_conflict_test;
+pub mod bevy_system_conflict_test;
+pub mod import_functionality_test;
+pub mod distributed_event_store_tests;
 
 // Re-export common test utilities
 pub use fixtures::*;

@@ -1,0 +1,23 @@
+digraph Network {
+    rankdir=LR;
+    node [shape=box, style=rounded];
+
+    // Nodes
+    Client [label="Client\nApplication"];
+    LoadBalancer [label="Load\nBalancer"];
+    WebServer1 [label="Web Server 1"];
+    WebServer2 [label="Web Server 2"];
+    AppServer [label="Application\nServer"];
+    Database [label="Database\nCluster"];
+    Cache [label="Redis\nCache"];
+
+    // Connections
+    Client -> LoadBalancer;
+    LoadBalancer -> WebServer1;
+    LoadBalancer -> WebServer2;
+    WebServer1 -> AppServer;
+    WebServer2 -> AppServer;
+    AppServer -> Database;
+    AppServer -> Cache;
+    Cache -> Database [style=dashed, label="miss"];
+}

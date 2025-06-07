@@ -13,6 +13,7 @@ pub use interaction::*;
 pub use layout::*;
 
 use bevy::prelude::*;
+use crate::domain::events::DomainEvent;
 
 /// Marker trait for presentation events
 pub trait PresentationEvent: Event + Clone + Send + Sync + 'static {
@@ -36,4 +37,16 @@ pub enum AggregationType {
     LayoutCalculation,
     BatchSelection,
     AnimationSequence,
+}
+
+/// Event for import results that need to be processed
+#[derive(Event, Debug, Clone)]
+pub struct ImportResultEvent {
+    pub event: DomainEvent,
+}
+
+/// Event for import requests that need to be processed
+#[derive(Event, Debug, Clone)]
+pub struct ImportRequestEvent {
+    pub event: DomainEvent,
 }
