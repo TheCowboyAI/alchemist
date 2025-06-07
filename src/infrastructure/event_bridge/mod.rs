@@ -1,5 +1,11 @@
 //! Event Bridge - Async/Sync bridge between NATS and Bevy ECS
 
+pub mod subject_router;
+pub mod event_sequencer;
+
+pub use subject_router::{SubjectRouter, SubjectRouterPlugin, SubjectConsumer, RoutedEvent};
+pub use event_sequencer::{EventSequencer, EventSequencerPlugin};
+
 use crate::domain::commands::Command;
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::nats::{NatsClient, NatsError};

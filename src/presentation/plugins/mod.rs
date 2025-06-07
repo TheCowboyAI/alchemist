@@ -1,5 +1,7 @@
 //! Bevy Plugins for the Presentation Layer
 
+use bevy::prelude::*;
+use tracing::info;
 use crate::application::command_handlers::process_commands;
 use crate::application::{CommandEvent, EventNotification};
 use crate::domain::commands::{Command, EdgeCommand, NodeCommand};
@@ -9,9 +11,22 @@ use crate::domain::value_objects::{
 };
 use crate::presentation::components::*;
 use crate::presentation::events::{ImportResultEvent, ImportRequestEvent};
-use crate::presentation::systems::{ImportPlugin, display_import_help, process_graph_import_requests, forward_import_results, forward_import_requests, create_test_graph_on_startup};
-use bevy::prelude::*;
-use tracing::info;
+use crate::presentation::systems::{
+    ImportPlugin, display_import_help, process_graph_import_requests,
+    forward_import_requests, forward_import_results,
+    display_camera_help, update_orbit_camera, orbit_camera_mouse_rotation,
+    orbit_camera_zoom, orbit_camera_pan, reset_camera_view, focus_camera_on_selection,
+    display_subgraph_help, update_subgraph_boundaries, create_subgraph_from_selection,
+    toggle_subgraph_boundary_type,
+};
+use std::time::SystemTime;
+use crate::presentation::components::{
+    EdgeDrawAnimation, EventRecorder, EventReplayer, ForceLayoutParticipant, ForceLayoutSettings,
+    ForceNode, GraphContainer, GraphEdge, GraphNode, NodeAppearanceAnimation, NodeLabel,
+    RecordedEvent, ScheduledCommand, OrbitCamera,
+};
+use crate::presentation::systems::subgraph_visualization::SubgraphVisualizationPlugin;
+use crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin;
 
 /// Main plugin for the graph editor
 pub struct GraphEditorPlugin;
@@ -27,40 +42,60 @@ impl Plugin for GraphEditorPlugin {
             // Add resources
             .insert_resource(ForceLayoutSettings::default())
             // Add import plugin
-            .add_plugins(ImportPlugin)
+            .add_plugins((
+                ImportPlugin,
+                SubgraphVisualizationPlugin,
+                VoronoiTessellationPlugin,
+            ))
             // Add systems
-            .add_systems(Startup, (setup_camera, setup_lighting, display_import_help, create_test_graph_on_startup))
+            .add_systems(Startup, (setup_camera, setup_lighting, display_import_help, display_camera_help, display_subgraph_help))
             .add_systems(
                 Update,
                 (
-                    // Command processing
-                    process_commands,
+                    // Command processing chain - MUST run in order
+                    (
+                        process_commands,
+                        forward_import_requests,
+                        process_graph_import_requests,
+                        forward_import_results,
+                    ).chain(),
+                    // Other systems can run in parallel
                     execute_scheduled_commands,
-                    // Event handling
                     handle_domain_events,
-                    forward_import_requests,
-                    process_graph_import_requests,
-                    forward_import_results,
                     record_events,
                     replay_events,
                     // Animation systems
                     animate_node_appearance,
                     animate_edge_drawing,
                     // Force-directed layout
-                    apply_force_layout,
-                    update_node_positions,
+                    // apply_force_layout,
+                    // update_node_positions,
                     // Visualization updates
                     update_edge_positions,
+                    // Debug system
+                    debug_node_visibility,
+                    // Camera controller systems
+                    update_orbit_camera,
+                    orbit_camera_mouse_rotation,
+                    orbit_camera_zoom,
+                    orbit_camera_pan,
+                    reset_camera_view,
+                    focus_camera_on_selection,
+                    // Subgraph visualization systems
+                    update_subgraph_boundaries,
+                    create_subgraph_from_selection,
+                    toggle_subgraph_boundary_type,
                 ),
             );
     }
 }
 
-/// Setup basic 3D camera
+/// Setup camera
 fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(100.0, 150.0, 150.0).looking_at(Vec3::new(100.0, 0.0, 0.0), Vec3::Y),
+        OrbitCamera::default(),
     ));
 }
 
@@ -94,11 +129,18 @@ fn handle_domain_events(
     time: Res<Time>,
     node_query: Query<(Entity, &GraphNode)>,
 ) {
+    let event_count = events.len();
+    if event_count > 0 {
+        eprintln!("handle_domain_events: Processing {} events", event_count);
+    }
+
     for event in events.read() {
         info!("Received domain event: {:?}", event.event);
+        eprintln!("handle_domain_events: Received {:?}", event.event.event_type());
 
         match &event.event {
             DomainEvent::Graph(GraphEvent::GraphCreated { id, metadata }) => {
+                eprintln!("handle_domain_events: Creating graph visualization");
                 create_graph_visualization(&mut commands, *id, &metadata.name);
                 // Don't automatically create demo nodes - let imports handle it
                 // schedule_demo_graph(&mut commands, *id, &time);
@@ -115,6 +157,7 @@ fn handle_domain_events(
                 metadata,
                 position,
             }) => {
+                eprintln!("handle_domain_events: Spawning node {:?} at position {:?}", node_id, position);
                 spawn_node(
                     &mut commands,
                     &mut meshes,
@@ -133,6 +176,7 @@ fn handle_domain_events(
                 target,
                 ..
             }) => {
+                eprintln!("handle_domain_events: Spawning edge {:?}", edge_id);
                 spawn_edge(
                     &mut commands,
                     &mut meshes,
@@ -145,7 +189,9 @@ fn handle_domain_events(
                     &node_query,
                 );
             }
-            _ => {}
+            _ => {
+                eprintln!("handle_domain_events: Unhandled event type: {:?}", event.event.event_type());
+            }
         }
     }
 }
@@ -273,12 +319,16 @@ fn spawn_node(
     position: Position3D,
     time: &Time,
 ) {
+    eprintln!("spawn_node: Starting to spawn node {:?}", node_id);
+
     // Extract label from metadata
     let label = metadata
         .get("label")
         .and_then(|v| v.as_str())
         .unwrap_or("Unnamed")
         .to_string();
+
+    eprintln!("spawn_node: Node label: {}", label);
 
     let node_mesh = meshes.add(Sphere::new(0.5));
     let node_material = materials.add(StandardMaterial {
@@ -288,25 +338,33 @@ fn spawn_node(
         ..default()
     });
 
-    commands.spawn((
+    // Convert position but keep y at 0 for consistency with force layout
+    let mut spawn_position: Vec3 = position.into();
+    spawn_position.y = 0.0;
+
+    let entity = commands.spawn((
         GraphNode { node_id, graph_id },
-        NodeLabel { text: label },
+        NodeLabel { text: label.clone() },
         Mesh3d(node_mesh),
         MeshMaterial3d(node_material),
-        Transform::from_translation(position.into()).with_scale(Vec3::ZERO),
+        Transform::from_translation(spawn_position).with_scale(Vec3::splat(1.0)), // Start at full size
         NodeAppearanceAnimation {
             start_time: time.elapsed_secs(),
             duration: 0.5,
-            start_scale: 0.0,
+            start_scale: 1.0,  // Already at full size
             target_scale: 1.0,
         },
-        ForceNode {
-            velocity: Vec3::ZERO,
-            mass: 1.0,
-            charge: 1.0,
-        },
-        ForceLayoutParticipant,
-    ));
+        // Temporarily disable force layout for imported nodes
+        // ForceNode {
+        //     velocity: Vec3::ZERO,
+        //     mass: 1.0,
+        //     charge: 1.0,
+        // },
+        // ForceLayoutParticipant,
+        Visibility::Visible,  // Explicitly set visibility
+    )).id();
+
+    eprintln!("spawn_node: Spawned node {:?} as entity {:?} at position {:?}", node_id, entity, spawn_position);
 }
 
 /// Spawn an edge entity
@@ -666,4 +724,48 @@ fn update_node_positions(
         // Keep nodes on the same Y plane
         transform.translation.y = 0.0;
     }
+}
+
+/// Debug system to monitor node visibility
+fn debug_node_visibility(
+    nodes: Query<(Entity, &GraphNode, &Transform, Option<&Visibility>)>,
+    keyboard: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+    mut last_report: Local<f32>,
+) {
+    // Report every 5 seconds or when V is pressed
+    let should_report = keyboard.just_pressed(KeyCode::KeyV) ||
+                       (time.elapsed_secs() - *last_report > 5.0);
+
+    if should_report {
+        *last_report = time.elapsed_secs();
+
+        let count = nodes.iter().count();
+        eprintln!("\n=== NODE VISIBILITY REPORT ===");
+        eprintln!("Total nodes: {}", count);
+
+        for (entity, node, transform, visibility) in nodes.iter() {
+            eprintln!("Entity {:?}:", entity);
+            eprintln!("  Position: ({:.2}, {:.2}, {:.2})",
+                transform.translation.x,
+                transform.translation.y,
+                transform.translation.z
+            );
+            eprintln!("  Scale: ({:.2}, {:.2}, {:.2})",
+                transform.scale.x,
+                transform.scale.y,
+                transform.scale.z
+            );
+            eprintln!("  Visibility: {:?}", visibility);
+        }
+        eprintln!("==============================\n");
+    }
+}
+
+fn display_subgraph_help() {
+    info!("=== Subgraph Controls ===");
+    info!("Ctrl+G - Create subgraph from selected nodes");
+    info!("B - Toggle boundary type (ConvexHull/BoundingBox/Circle/Voronoi)");
+    info!("V - Toggle Voronoi tessellation visualization");
+    info!("========================");
 }

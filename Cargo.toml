@@ -154,6 +154,54 @@ path = "src/bin/import_graph.rs"
 name = "test_import_flow"
 path = "src/bin/test_import_flow.rs"
 
+[[bin]]
+name = "test_import"
+path = "src/bin/test_import.rs"
+
+[[bin]]
+name = "test_import_debug"
+path = "src/bin/test_import_debug.rs"
+
+[[bin]]
+name = "test_minimal_import"
+path = "src/bin/test_minimal_import.rs"
+
+[[bin]]
+name = "test_keyboard"
+path = "src/bin/test_keyboard.rs"
+
+[[bin]]
+name = "test_import_key"
+path = "src/bin/test_import_key.rs"
+
+[[bin]]
+name = "test_import_direct"
+path = "src/bin/test_import_direct.rs"
+
+[[bin]]
+name = "test_import_simple"
+path = "src/bin/test_import_simple.rs"
+
+[[bin]]
+name = "test_import_existing"
+path = "src/bin/test_import_existing.rs"
+
+[[bin]]
+name = "test_import_visibility"
+path = "src/bin/test_import_visibility.rs"
+
+[[bin]]
+name = "test_import_final"
+path = "src/bin/test_import_final.rs"
+
+[[bin]]
+name = "test_direct_spawn"
+path = "src/bin/test_direct_spawn.rs"
+
+[[bin]]
+name = "test_import_direct_trigger"
+path = "src/bin/test_import_direct_trigger.rs"
+
 # Disable the problematic experimental features
 [package.metadata.bevy]
 experimental_fixed_timestep = false

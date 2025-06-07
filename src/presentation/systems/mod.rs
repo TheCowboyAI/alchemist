@@ -2,9 +2,14 @@
 
 pub mod import_system;
 pub mod graph_import_processor;
+pub mod camera_controller;
+pub mod subgraph_visualization;
+pub mod voronoi_tessellation;
 
-pub use import_system::{ImportPlugin, ImportState, display_import_help, create_test_graph_on_startup};
+pub use import_system::{ImportPlugin, display_import_help, import_file_to_graph};
 pub use graph_import_processor::process_graph_import_requests;
+pub use camera_controller::*;
+pub use subgraph_visualization::*;
 
 use bevy::prelude::*;
 use crate::application::EventNotification;
@@ -17,6 +22,11 @@ pub fn forward_import_requests(
     mut events: EventReader<EventNotification>,
     mut import_requests: EventWriter<ImportRequestEvent>,
 ) {
+    let event_count = events.len();
+    if event_count > 0 {
+        info!("forward_import_requests: Processing {} EventNotifications", event_count);
+    }
+
     for notification in events.read() {
         info!("Checking event for import request: {:?}", notification.event);
         if matches!(&notification.event, DomainEvent::Graph(GraphEvent::GraphImportRequested { .. })) {

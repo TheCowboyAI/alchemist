@@ -3,8 +3,8 @@
     "name": "CIM-Integrated Event Sourcing Implementation Progress",
     "description": "Progress tracking for Information Alchemist transformation into a CIM leaf node with event sourcing, NATS integration, conceptual spaces, and AI readiness",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-01-07T15:00:00-07:00",
-    "version": "2.11.0"
+    "updated": "2025-01-08T12:00:00-07:00",
+    "version": "2.12.0"
   },
   "nodes": [
     {
@@ -465,6 +465,132 @@
         "completed_date": "2025-01-01",
         "references": [
           "/doc/plan/qa-remediation-plan.md"
+        ]
+      }
+    },
+    {
+      "id": "import-system-fix",
+      "label": "Import System Fixed",
+      "type": "milestone",
+      "position": { "x": 850, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-07",
+        "description": "Fixed import functionality to properly render nodes",
+        "details": [
+          "Repositioned camera to view imported nodes",
+          "Added None layout algorithm to preserve positions",
+          "Fixed import count increment for proper offset",
+          "Increased offset to 50 units between imports"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-07",
+        "references": [
+          "/src/presentation/plugins/mod.rs",
+          "/src/domain/services/graph_import.rs"
+        ]
+      }
+    },
+    {
+      "id": "camera-controls",
+      "label": "Camera Control System",
+      "type": "milestone",
+      "position": { "x": 875, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-07",
+        "description": "Implemented orbit camera with pan/zoom/rotate",
+        "details": [
+          "Created OrbitCamera component",
+          "Left mouse drag for orbit",
+          "Right mouse drag for pan",
+          "Mouse wheel for zoom",
+          "R key to reset view",
+          "F key to focus on selection"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-07",
+        "references": [
+          "/src/presentation/systems/camera_controller.rs",
+          "/src/presentation/components/mod.rs"
+        ]
+      }
+    },
+    {
+      "id": "subgraph-visualization",
+      "label": "Subgraph Visualization",
+      "type": "milestone",
+      "position": { "x": 900, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-07",
+        "description": "Visual regions for subgraphs with multiple boundary types",
+        "details": [
+          "Created SubgraphRegion component",
+          "Implemented convex hull boundaries",
+          "Added bounding box and circle options",
+          "Ctrl+G to create subgraph from selection",
+          "B key to toggle boundary types",
+          "Markdown import creates subgraphs from mermaid blocks"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-07",
+        "references": [
+          "/src/presentation/systems/subgraph_visualization.rs",
+          "/src/domain/services/graph_import.rs"
+        ]
+      }
+    },
+    {
+      "id": "voronoi-tessellation",
+      "label": "Voronoi Tessellation",
+      "type": "milestone",
+      "position": { "x": 925, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-08",
+        "description": "Conceptual space partitioning with Voronoi cells",
+        "details": [
+          "Graph as Conceptual Space",
+          "Subgraphs as Quality Dimensions",
+          "Voronoi cells for natural categories",
+          "Lloyd's relaxation for smooth cells",
+          "V key to toggle visualization",
+          "Distance metrics for semantic similarity"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-08",
+        "references": [
+          "/src/presentation/systems/voronoi_tessellation.rs",
+          "/src/presentation/components/mod.rs",
+          "/doc/research/CIM - Conceptual Spaces.md"
+        ]
+      }
+    },
+    {
+      "id": "event-system-redesign",
+      "label": "Event System Redesign",
+      "type": "milestone",
+      "position": { "x": 950, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-08",
+        "description": "Subject-based routing with reliable delivery",
+        "details": [
+          "Created SubjectRouter with NATS-style patterns",
+          "Implemented EventSequencer for ordering",
+          "Global and per-aggregate sequences",
+          "Out-of-order event buffering",
+          "Timeout-based progression",
+          "At-least-once delivery guarantees",
+          "Comprehensive monitoring and statistics"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-08",
+        "references": [
+          "/src/infrastructure/event_bridge/subject_router.rs",
+          "/src/infrastructure/event_bridge/event_sequencer.rs",
+          "/doc/design/current/event-system-architecture.md"
         ]
       }
     },

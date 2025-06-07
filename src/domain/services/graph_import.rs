@@ -470,6 +470,8 @@ impl Default for LayoutConfig {
 /// Layout algorithms for graph visualization
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum LayoutAlgorithm {
+    /// Preserve original positions from import
+    None,
     /// Force-directed layout with configurable forces
     ForceDirected,
     /// Circular layout
@@ -1394,9 +1396,27 @@ impl GraphImportService {
         let mut mermaid_blocks = Vec::new();
         let mut in_mermaid_block = false;
         let mut current_block = String::new();
+        let mut current_heading = String::new();
+        let mut in_heading = false;
+        let mut heading_level = 0;
 
         for event in parser {
             match event {
+                Event::Start(Tag::Heading { level, .. }) => {
+                    in_heading = true;
+                    heading_level = level as usize;
+                    current_heading.clear();
+                }
+                Event::End(TagEnd::Heading(_)) => {
+                    in_heading = false;
+                }
+                Event::Text(text) => {
+                    if in_heading {
+                        current_heading.push_str(&text);
+                    } else if in_mermaid_block {
+                        current_block.push_str(&text);
+                    }
+                }
                 Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(lang))) => {
                     if lang.as_ref() == "mermaid" {
                         in_mermaid_block = true;
@@ -1405,29 +1425,94 @@ impl GraphImportService {
                 }
                 Event::End(TagEnd::CodeBlock) => {
                     if in_mermaid_block {
-                        mermaid_blocks.push(current_block.clone());
+                        mermaid_blocks.push((current_heading.clone(), current_block.clone()));
                         in_mermaid_block = false;
-                    }
-                }
-                Event::Text(text) => {
-                    if in_mermaid_block {
-                        current_block.push_str(&text);
                     }
                 }
                 _ => {}
             }
         }
 
-        // If we found mermaid blocks in markdown, use the first one
-        // Otherwise, treat the entire content as a mermaid diagram
-        let mermaid_diagram = if !mermaid_blocks.is_empty() {
-            &mermaid_blocks[0]
-        } else {
-            mermaid_content
-        };
+        // If we found mermaid blocks in markdown, create subgraphs
+        if !mermaid_blocks.is_empty() {
+            let mut all_nodes = Vec::new();
+            let mut all_edges = Vec::new();
+            let mut metadata = HashMap::new();
+            let mut subgraph_info = Vec::new();
 
-        // Now parse the actual Mermaid syntax
-        self.parse_mermaid_diagram(mermaid_diagram)
+            // Process each mermaid block as a subgraph
+            for (idx, (heading, diagram)) in mermaid_blocks.iter().enumerate() {
+                let subgraph_name = if heading.is_empty() {
+                    format!("Subgraph {}", idx + 1)
+                } else {
+                    heading.clone()
+                };
+
+                // Parse this mermaid diagram
+                match self.parse_mermaid_diagram(diagram) {
+                    Ok(mut subgraph) => {
+                        // Track which nodes belong to this subgraph
+                        let node_ids: Vec<String> = subgraph.nodes.iter()
+                            .map(|n| n.id.clone())
+                            .collect();
+
+                        // Add subgraph prefix to node IDs to avoid conflicts
+                        let prefix = format!("sg{}_", idx);
+                        for node in &mut subgraph.nodes {
+                            node.id = format!("{}{}", prefix, node.id);
+                            // Add subgraph metadata
+                            node.properties.insert("subgraph".to_string(), serde_json::json!(subgraph_name.clone()));
+                            node.properties.insert("subgraph_id".to_string(), serde_json::json!(idx));
+
+                            // Offset positions for each subgraph
+                            node.position.x += (idx as f32) * 400.0;
+                            node.position.y += (idx as f32) * 100.0;
+                        }
+
+                        // Update edge IDs and references
+                        for edge in &mut subgraph.edges {
+                            edge.id = format!("{}{}", prefix, edge.id);
+                            edge.source = format!("{}{}", prefix, edge.source);
+                            edge.target = format!("{}{}", prefix, edge.target);
+                            // Add subgraph metadata
+                            edge.properties.insert("subgraph".to_string(), serde_json::json!(subgraph_name.clone()));
+                            edge.properties.insert("subgraph_id".to_string(), serde_json::json!(idx));
+                        }
+
+                        // Store subgraph information
+                        subgraph_info.push(serde_json::json!({
+                            "id": idx,
+                            "name": subgraph_name,
+                            "node_count": subgraph.nodes.len(),
+                            "edge_count": subgraph.edges.len(),
+                            "node_ids": node_ids.iter().map(|id| format!("{}{}", prefix, id)).collect::<Vec<_>>(),
+                        }));
+
+                        all_nodes.extend(subgraph.nodes);
+                        all_edges.extend(subgraph.edges);
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to parse subgraph '{}': {}", subgraph_name, e);
+                    }
+                }
+            }
+
+            if all_nodes.is_empty() {
+                return Err(DomainError::ValidationError("No valid nodes found in any Mermaid diagram".to_string()));
+            }
+
+            metadata.insert("subgraphs".to_string(), serde_json::json!(subgraph_info));
+            metadata.insert("subgraph_count".to_string(), serde_json::json!(mermaid_blocks.len()));
+
+            Ok(ImportedGraph {
+                nodes: all_nodes,
+                edges: all_edges,
+                metadata,
+            })
+        } else {
+            // Single mermaid diagram without markdown
+            self.parse_mermaid_diagram(mermaid_content)
+        }
     }
 
     fn parse_mermaid_diagram(&self, diagram: &str) -> Result<ImportedGraph, DomainError> {
@@ -1990,6 +2075,7 @@ impl GraphImportService {
         config: &LayoutConfig,
     ) -> Result<(), DomainError> {
         match &config.algorithm {
+            LayoutAlgorithm::None => Ok(()),
             LayoutAlgorithm::ForceDirected => {
                 self.apply_force_directed_layout(graph, &config.parameters)
             }

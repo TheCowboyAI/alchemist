@@ -22,11 +22,18 @@ pub fn process_commands(
     mut events: EventWriter<EventNotification>,
 ) {
     for command_event in commands.read() {
+        tracing::info!("Processing command: {:?}", command_event.command.command_type());
+
         match &command_event.command {
             Command::Graph(graph_cmd) => {
+                tracing::info!("Processing graph command: {:?}", graph_cmd.command_type());
+
                 // Process graph commands
                 if let Some(event) = handle_graph_command(graph_cmd) {
+                    tracing::info!("Generated event: {:?}", event.event_type());
                     events.write(EventNotification { event });
+                } else {
+                    tracing::warn!("No event generated for graph command");
                 }
             }
             Command::Node(node_cmd) => {

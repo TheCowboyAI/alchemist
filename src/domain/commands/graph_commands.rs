@@ -177,3 +177,16 @@ impl GraphCommand {
         }
     }
 }
+
+impl Default for ImportOptions {
+    fn default() -> Self {
+        Self {
+            merge_behavior: MergeBehavior::AlwaysCreate,
+            id_prefix: None,
+            position_offset: None,
+            mapping: None,
+            validate: true,
+            max_nodes: None,
+        }
+    }
+}

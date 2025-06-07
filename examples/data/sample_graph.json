@@ -1,76 +1,58 @@
 {
   "nodes": [
     {
-      "id": "n1",
-      "position": {
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      "caption": "User",
-      "labels": ["Person"],
+      "id": "node1",
+      "position": {"x": 0, "y": 0},
+      "caption": "Start Node",
+      "labels": ["Process", "Entry"],
       "properties": {
-        "name": "Alice",
-        "role": "Developer"
+        "description": "This is where the process begins",
+        "priority": "high"
       },
       "style": {}
     },
     {
-      "id": "n2",
-      "position": {
-        "x": 200,
-        "y": 0,
-        "z": 0
-      },
-      "caption": "Project",
-      "labels": ["Entity"],
+      "id": "node2",
+      "position": {"x": 100, "y": 50},
+      "caption": "Process Data",
+      "labels": ["Process", "Transform"],
       "properties": {
-        "name": "CIM",
-        "type": "Software"
+        "description": "Data transformation step",
+        "duration": "5m"
       },
       "style": {}
     },
     {
-      "id": "n3",
-      "position": {
-        "x": 100,
-        "y": 150,
-        "z": 0
-      },
-      "caption": "Task",
-      "labels": ["WorkItem"],
+      "id": "node3",
+      "position": {"x": 200, "y": 0},
+      "caption": "End Node",
+      "labels": ["Process", "Exit"],
       "properties": {
-        "title": "Implement Graph Import",
-        "status": "In Progress"
+        "description": "Process completion",
+        "status": "success"
       },
       "style": {}
     }
   ],
   "relationships": [
     {
-      "id": "r1",
-      "fromId": "n1",
-      "toId": "n2",
-      "type": "WORKS_ON",
+      "id": "edge1",
+      "fromId": "node1",
+      "toId": "node2",
+      "type": "FLOWS_TO",
       "properties": {
-        "since": "2024-01-01"
+        "condition": "data.isValid"
       },
       "style": {}
     },
     {
-      "id": "r2",
-      "fromId": "n1",
-      "toId": "n3",
-      "type": "ASSIGNED_TO",
-      "properties": {},
-      "style": {}
-    },
-    {
-      "id": "r3",
-      "fromId": "n3",
-      "toId": "n2",
-      "type": "BELONGS_TO",
-      "properties": {},
+      "id": "edge2",
+      "fromId": "node2",
+      "toId": "node3",
+      "type": "COMPLETES",
+      "properties": {
+        "result": "transformed"
+      },
       "style": {}
     }
   ]
