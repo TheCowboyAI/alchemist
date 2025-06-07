@@ -113,11 +113,10 @@ fn test_system_ordering_prevents_conflicts() {
     app.add_systems(Update, (
         // First: Systems that write to EventNotification
         |mut writer: EventWriter<EventNotification>| {
-            writer.send(EventNotification {
+            writer.write(EventNotification {
                 event: ia::domain::events::DomainEvent::Graph(
                     ia::domain::events::GraphEvent::GraphCreated {
-                        graph_id: ia::domain::value_objects::GraphId::new(),
-                        name: "Test".to_string(),
+                        id: ia::domain::value_objects::GraphId::new(),
                         metadata: Default::default(),
                     }
                 ),

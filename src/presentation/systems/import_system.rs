@@ -267,7 +267,7 @@ pub fn import_file_to_graph(
     info!("Importing file to existing graph: {} with format: {:?}", file_path, format);
 
     // Get the current graph ID, or create a new one if none exists
-    let (graph_id, is_new_graph) = if let Ok(container) = graph_query.get_single() {
+    let (graph_id, is_new_graph) = if let Ok(container) = graph_query.single() {
         eprintln!("Using existing graph: {:?}", container.graph_id);
         (container.graph_id, false)
     } else {
@@ -399,7 +399,7 @@ graph LR
 "#;
 
     // Get the current graph ID, or create a new one if none exists
-    let graph_id = if let Ok(container) = graph_query.get_single() {
+    let graph_id = if let Ok(container) = graph_query.single() {
         container.graph_id
     } else {
         let new_id = GraphId::new();

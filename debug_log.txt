@@ -24,17 +24,18 @@ help: try using a raw pointer method instead; or if this reference is intentiona
     |                                                  ++                  +
 
 warning: `bevy_mikktspace` (lib) generated 2 warnings
+   Compiling ia v0.1.0 (/git/thecowboyai/alchemist)
 warning: unused imports: `alphanumeric1`, `is_not`, `many0`, `preceded`, and `separated_list0`
-    --> src/domain/services/graph_import.rs:1522:61
+    --> src/domain/services/graph_import.rs:1531:61
      |
-1522 |             bytes::complete::{tag, take_until, take_while1, is_not},
+1531 |             bytes::complete::{tag, take_until, take_while1, is_not},
      |                                                             ^^^^^^
-1523 |             character::complete::{char, multispace0, multispace1, alphanumeric1},
+1532 |             character::complete::{char, multispace0, multispace1, alphanumeric1},
      |                                                                   ^^^^^^^^^^^^^
-1524 |             combinator::{opt, map, recognize},
-1525 |             multi::{many0, separated_list0},
+1533 |             combinator::{opt, map, recognize},
+1534 |             multi::{many0, separated_list0},
      |                     ^^^^^  ^^^^^^^^^^^^^^^
-1526 |             sequence::{tuple, delimited, preceded, terminated},
+1535 |             sequence::{tuple, delimited, preceded, terminated},
      |                                          ^^^^^^^^
      |
      = note: `#[warn(unused_imports)]` on by default
@@ -106,9 +107,9 @@ warning: unused imports: `Indices` and `PrimitiveTopology`
   |                          ^^^^^^^  ^^^^^^^^^^^^^^^^^
 
 warning: use of deprecated function `rand::thread_rng`: Renamed to `rng`
-    --> src/domain/services/graph_import.rs:2325:29
+    --> src/domain/services/graph_import.rs:2334:29
      |
-2325 |         let mut rng = rand::thread_rng();
+2334 |         let mut rng = rand::thread_rng();
      |                             ^^^^^^^^^^
      |
      = note: `#[warn(deprecated)]` on by default
@@ -140,57 +141,57 @@ warning: unused variable: `options`
     |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_options`
 
 warning: unused variable: `url`
-   --> src/domain/services/graph_import.rs:606:39
+   --> src/domain/services/graph_import.rs:615:39
     |
-606 |     async fn fetch_url_content(&self, url: &str) -> Result<String, DomainError> {
+615 |     async fn fetch_url_content(&self, url: &str) -> Result<String, DomainError> {
     |                                       ^^^ help: if this is intentional, prefix it with an underscore: `_url`
 
 warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
-    --> src/domain/services/graph_import.rs:2331:24
+    --> src/domain/services/graph_import.rs:2340:24
      |
-2331 |                 x: rng.gen_range(-range..range),
+2340 |                 x: rng.gen_range(-range..range),
      |                        ^^^^^^^^^
 
 warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
-    --> src/domain/services/graph_import.rs:2332:24
+    --> src/domain/services/graph_import.rs:2341:24
      |
-2332 |                 y: rng.gen_range(-range..range),
+2341 |                 y: rng.gen_range(-range..range),
      |                        ^^^^^^^^^
 
 warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> src/presentation/systems/graph_import_processor.rs:65:44
+  --> src/presentation/systems/graph_import_processor.rs:68:44
    |
-65 | ...                   import_results.send(ImportResultEvent {
+68 | ...                   import_results.send(ImportResultEvent {
    |                                      ^^^^
 
 warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:218:48
+   --> src/presentation/systems/graph_import_processor.rs:223:48
     |
-218 | ...                   command_events.send(CommandEvent {
+223 | ...                   command_events.send(CommandEvent {
     |                                      ^^^^
 
 warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:260:52
+   --> src/presentation/systems/graph_import_processor.rs:265:52
     |
-260 | ...                   command_events.send(CommandEvent {
+265 | ...                   command_events.send(CommandEvent {
     |                                      ^^^^
 
 warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:269:44
+   --> src/presentation/systems/graph_import_processor.rs:274:44
     |
-269 | ...                   import_results.send(ImportResultEvent {
+274 | ...                   import_results.send(ImportResultEvent {
     |                                      ^^^^
 
 warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:281:44
+   --> src/presentation/systems/graph_import_processor.rs:286:44
     |
-281 | ...                   import_results.send(ImportResultEvent {
+286 | ...                   import_results.send(ImportResultEvent {
     |                                      ^^^^
 
 warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:294:36
+   --> src/presentation/systems/graph_import_processor.rs:299:36
     |
-294 |                     import_results.send(ImportResultEvent {
+299 |                     import_results.send(ImportResultEvent {
     |                                    ^^^^
 
 warning: use of deprecated method `bevy::prelude::EntityCommands::<'a>::despawn_recursive`: Use entity.despawn(), which now automatically despawns recursively.
@@ -320,68 +321,68 @@ warning: unused variable: `old_target`
     |                                                                          ^^^^^^^^^^ help: try ignoring the field: `old_target: _`
 
 warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1142:51
+    --> src/domain/services/graph_import.rs:1151:51
      |
-1142 |     fn import_progress_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+1151 |     fn import_progress_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
      |                                                   ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
 
 warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1191:53
+    --> src/domain/services/graph_import.rs:1200:53
      |
-1191 |     fn import_vocabulary_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+1200 |     fn import_vocabulary_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
      |                                                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
 
 warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1325:44
+    --> src/domain/services/graph_import.rs:1334:44
      |
-1325 |     fn import_cypher(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+1334 |     fn import_cypher(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
      |                                            ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
 
 warning: variable `heading_level` is assigned to, but never used
-    --> src/domain/services/graph_import.rs:1401:17
+    --> src/domain/services/graph_import.rs:1410:17
      |
-1401 |         let mut heading_level = 0;
+1410 |         let mut heading_level = 0;
      |                 ^^^^^^^^^^^^^
      |
      = note: consider using `_heading_level` instead
 
 warning: value assigned to `heading_level` is never read
-    --> src/domain/services/graph_import.rs:1407:21
+    --> src/domain/services/graph_import.rs:1416:21
      |
-1407 |                     heading_level = level as usize;
+1416 |                     heading_level = level as usize;
      |                     ^^^^^^^^^^^^^
      |
      = help: maybe it is overwritten before being read?
      = note: `#[warn(unused_assignments)]` on by default
 
 warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1698:41
+    --> src/domain/services/graph_import.rs:1707:41
      |
-1698 |     fn import_dot(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+1707 |     fn import_dot(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
      |                                         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
 
 warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1829:47
+    --> src/domain/services/graph_import.rs:1838:47
      |
-1829 |     fn import_atom_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+1838 |     fn import_atom_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
      |                                               ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
 
 warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1968:46
+    --> src/domain/services/graph_import.rs:1977:46
      |
-1968 |     fn import_rss_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+1977 |     fn import_rss_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
      |                                              ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
 
 warning: unused variable: `max_level`
-    --> src/domain/services/graph_import.rs:2273:13
+    --> src/domain/services/graph_import.rs:2282:13
      |
-2273 |         let max_level = level_groups.keys().max().copied().unwrap_or(0);
+2282 |         let max_level = level_groups.keys().max().copied().unwrap_or(0);
      |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_max_level`
 
 warning: unused variable: `line`
-    --> src/domain/services/graph_import.rs:2451:32
+    --> src/domain/services/graph_import.rs:2460:32
      |
-2451 | fn extract_cypher_relationship(line: &str) -> Option<CypherRelationship> {
+2460 | fn extract_cypher_relationship(line: &str) -> Option<CypherRelationship> {
      |                                ^^^^ help: if this is intentional, prefix it with an underscore: `_line`
 
 warning: unused variable: `node`
@@ -391,9 +392,9 @@ warning: unused variable: `node`
     |                      ^^^^ help: if this is intentional, prefix it with an underscore: `_node`
 
 warning: unused variable: `subgraph_membership`
-   --> src/presentation/systems/graph_import_processor.rs:168:37
+   --> src/presentation/systems/graph_import_processor.rs:173:37
     |
-168 | ...                   let subgraph_membership = if has_subgraphs {
+173 | ...                   let subgraph_membership = if has_subgraphs {
     |                           ^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_subgraph_membership`
 
 warning: unused variable: `color`
@@ -475,33 +476,33 @@ warning: field `graph` is never read
    = note: `#[warn(dead_code)]` on by default
 
 warning: struct `MermaidNode` is never constructed
-    --> src/domain/services/graph_import.rs:2407:8
+    --> src/domain/services/graph_import.rs:2416:8
      |
-2407 | struct MermaidNode {
+2416 | struct MermaidNode {
      |        ^^^^^^^^^^^
 
 warning: struct `MermaidEdge` is never constructed
-    --> src/domain/services/graph_import.rs:2412:8
+    --> src/domain/services/graph_import.rs:2421:8
      |
-2412 | struct MermaidEdge {
+2421 | struct MermaidEdge {
      |        ^^^^^^^^^^^
 
 warning: function `extract_mermaid_node` is never used
-    --> src/domain/services/graph_import.rs:2456:4
+    --> src/domain/services/graph_import.rs:2465:4
      |
-2456 | fn extract_mermaid_node(line: &str) -> Option<MermaidNode> {
+2465 | fn extract_mermaid_node(line: &str) -> Option<MermaidNode> {
      |    ^^^^^^^^^^^^^^^^^^^^
 
 warning: function `extract_mermaid_edge` is never used
-    --> src/domain/services/graph_import.rs:2475:4
+    --> src/domain/services/graph_import.rs:2484:4
      |
-2475 | fn extract_mermaid_edge(line: &str) -> Option<MermaidEdge> {
+2484 | fn extract_mermaid_edge(line: &str) -> Option<MermaidEdge> {
      |    ^^^^^^^^^^^^^^^^^^^^
 
 warning: function `apply_simple_layout` is never used
-    --> src/domain/services/graph_import.rs:2571:4
+    --> src/domain/services/graph_import.rs:2580:4
      |
-2571 | fn apply_simple_layout(nodes: &mut [ImportedNode]) {
+2580 | fn apply_simple_layout(nodes: &mut [ImportedNode]) {
      |    ^^^^^^^^^^^^^^^^^^^
 
 warning: fields `sequence` and `aggregate_sequence` are never read
@@ -550,79 +551,204 @@ warning: field `subgraph_id` is never read
     |     ^^^^^^^^^^^
 
 warning: `ia` (lib) generated 82 warnings (run `cargo fix --lib -p ia` to apply 12 suggestions)
-   Compiling ia v0.1.0 (/git/thecowboyai/alchemist)
-error: cannot find macro `info` in this scope
-  --> examples/markdown_import_simple.rs:78:9
-   |
-78 |         info!("Keys pressed: {:?}", keyboard.get_just_pressed().collect::<Vec<_>>());
-   |         ^^^^
-   |
-help: consider importing this macro
-   |
-5  + use tracing::info;
-   |
+    Finished `dev` profile [optimized + debuginfo] target(s) in 10.47s
+     Running `target/x86_64-unknown-linux-gnu/debug/examples/markdown_import_simple`
+=== Markdown Import Demo ===
 
-error: cannot find macro `info` in this scope
-  --> examples/markdown_import_simple.rs:82:9
-   |
-82 |         info!("M key detected - importing markdown file");
-   |         ^^^^
-   |
-help: consider importing this macro
-   |
-5  + use tracing::info;
-   |
+Controls:
+  M - Import markdown file
+  Ctrl+D - Cycle through DDD markdown files
+  V - Debug: Show node visibility
+  ESC - Exit
 
-error: cannot find macro `info` in this scope
-   --> examples/markdown_import_simple.rs:109:9
-    |
-109 |         info!("Ctrl+D detected - cycling through files");
-    |         ^^^^
-    |
-help: consider importing this macro
-    |
-5   + use tracing::info;
-    |
+Import System Ready!
+  Press 'I' to import sample graph
+  Press Ctrl+J to import JSON
+  Press Ctrl+M to import Mermaid
+  Press Ctrl+D to import DDD markdown files
+  Press Ctrl+C to import from clipboard
+  Left-click to import JSON
+  Right-click to import Cypher
+  Middle-click to import Mermaid
+Camera Controls:
+Subgraph Controls:
+  Ctrl+G - Create subgraph from selected nodes
+  B - Toggle boundary type (ConvexHull/BoundingBox/Circle)
+Graph created with ID: GraphId(4ace321b-e6c6-4f97-9933-4019d2f288f7)
+  Left Mouse + Drag - Orbit camera
+  Right Mouse + Drag - Pan camera
+  Mouse Wheel - Zoom in/out
+  R - Reset camera view
+  F - Focus on selection
+=== Import System Ready ===
+KEYBOARD SHORTCUTS:
+  Press 'I' to import sample_graph.json
+  Press Space to test keyboard input
+  Press Ctrl+I for original import shortcut
+  Press Ctrl+M to import Mermaid
+  Press Ctrl+D to import DOT
 
-warning: unused import: `std::path::PathBuf`
-  --> examples/markdown_import_simple.rs:18:5
-   |
-18 | use std::path::PathBuf;
-   |     ^^^^^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(unused_imports)]` on by default
+MOUSE SHORTCUTS (if keyboard doesn't work):
+  Right-click to import sample_graph.json
+  Middle-click to import Mermaid
+==========================
+handle_domain_events: Processing 1 events
+handle_domain_events: Received "GraphCreated"
+handle_domain_events: Creating graph visualization
 
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> examples/markdown_import_simple.rs:59:18
-   |
-59 |     event_writer.send(CommandEvent {
-   |                  ^^^^
-   |
-   = note: `#[warn(deprecated)]` on by default
+📄 Importing KECO_DDD_Core_Model.md...
+✅ Import command sent
+process_graph_import_requests: Processing import request for graph GraphId(4ace321b-e6c6-4f97-9933-4019d2f288f7)
+process_graph_import_requests: Content loaded, format requested: arrows_app
+process_graph_import_requests: First 100 chars of content: # KÉCŌ Capital - Domain-Driven Design Core Model
 
-warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
-  --> examples/markdown_import_simple.rs:83:44
-   |
-83 |         if let Ok(container) = graph_query.get_single() {
-   |                                            ^^^^^^^^^^
+This document outlines the core domain objects and
+process_graph_import_requests: Using import format: ArrowsApp
+import_from_content: format = ArrowsApp
+import_from_content: first 100 chars = # KÉCŌ Capital - Domain-Driven Design Core Model
 
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> examples/markdown_import_simple.rs:86:26
-   |
-86 |             event_writer.send(CommandEvent {
-   |                          ^^^^
+This document outlines the core domain objects and
+import_from_content: calling import_arrows_app
+process_graph_import_requests: Import failed: Validation failed: Invalid Arrows.app JSON: expected value at line 1 column 1
+handle_domain_events: Processing 2 events
+handle_domain_events: Received "GraphImportRequested"
+handle_domain_events: Unhandled event type: "GraphImportRequested"
+handle_domain_events: Received "GraphImportCompleted"
+handle_domain_events: Unhandled event type: "GraphImportCompleted"
 
-warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
-   --> examples/markdown_import_simple.rs:110:44
-    |
-110 |         if let Ok(container) = graph_query.get_single() {
-    |                                            ^^^^^^^^^^
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
 
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> examples/markdown_import_simple.rs:127:26
-    |
-127 |             event_writer.send(CommandEvent {
-    |                          ^^^^
 
-warning: `ia` (example "markdown_import_simple") generated 6 warnings
-error: could not compile `ia` (example "markdown_import_simple") due to 3 previous errors; 6 warnings emitted
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== Node Visibility Debug ===
+Total nodes in scene: 0
+No nodes found in the scene!
+=========================
+
+
+📄 Importing KECO_DDD_Core_Model.md...
+✅ Import command sent
+process_graph_import_requests: Processing import request for graph GraphId(4ace321b-e6c6-4f97-9933-4019d2f288f7)
+process_graph_import_requests: Content loaded, format requested: arrows_app
+process_graph_import_requests: First 100 chars of content: # KÉCŌ Capital - Domain-Driven Design Core Model
+
+This document outlines the core domain objects and
+process_graph_import_requests: Using import format: ArrowsApp
+import_from_content: format = ArrowsApp
+import_from_content: first 100 chars = # KÉCŌ Capital - Domain-Driven Design Core Model
+
+This document outlines the core domain objects and
+import_from_content: calling import_arrows_app
+process_graph_import_requests: Import failed: Validation failed: Invalid Arrows.app JSON: expected value at line 1 column 1
+handle_domain_events: Processing 2 events
+handle_domain_events: Received "GraphImportRequested"
+handle_domain_events: Unhandled event type: "GraphImportRequested"
+handle_domain_events: Received "GraphImportCompleted"
+handle_domain_events: Unhandled event type: "GraphImportCompleted"
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== Node Visibility Debug ===
+Total nodes in scene: 0
+No nodes found in the scene!
+=========================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+
+
+=== NODE VISIBILITY REPORT ===
+Total nodes: 0
+==============================
+

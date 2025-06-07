@@ -29,8 +29,8 @@ pub fn orbit_camera_mouse_rotation(
     mut mouse_motion: EventReader<MouseMotion>,
     mut cameras: Query<&mut OrbitCamera>,
 ) {
-    // Only rotate when right mouse button is pressed (left is for selection)
-    if !mouse_button.pressed(MouseButton::Right) {
+    // Only rotate when left mouse button is pressed (as per help text)
+    if !mouse_button.pressed(MouseButton::Left) {
         return;
     }
 
@@ -100,8 +100,8 @@ pub fn orbit_camera_pan(
         pan.y += 1.0;
     }
 
-    // Middle mouse button for mouse panning
-    if mouse_button.pressed(MouseButton::Middle) {
+    // Right mouse button for mouse panning
+    if mouse_button.pressed(MouseButton::Right) {
         let mut delta = Vec2::ZERO;
         for event in mouse_motion.read() {
             delta += event.delta;

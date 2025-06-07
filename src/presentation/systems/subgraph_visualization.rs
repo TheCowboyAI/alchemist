@@ -9,8 +9,8 @@ use crate::presentation::components::{
     SubgraphId, BoundaryType,
 };
 use std::collections::{HashMap, HashSet};
-use tracing::info;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
+use tracing::info;
 
 /// Updates subgraph boundaries when nodes move or membership changes
 pub fn update_subgraph_boundaries(
@@ -39,9 +39,9 @@ pub fn update_subgraph_boundaries(
 
         // Find existing boundary entity if it exists
         let boundary_entity = if let Some(children) = children {
-            children.iter().find(|&child| {
-                boundaries.get(child).is_ok()
-            }).copied()
+            children.iter()
+                .find(|&child| boundaries.get(child).is_ok())
+                .map(|entity| entity)
         } else {
             None
         };
@@ -102,8 +102,9 @@ pub fn update_subgraph_boundaries(
                     );
                 }
             }
-            BoundaryType::Custom => {
-                // Custom boundaries would be handled by specific implementations
+            BoundaryType::Voronoi => {
+                // Voronoi boundaries are handled by the voronoi tessellation system
+                // Just skip here
             }
         }
     }
@@ -383,4 +384,14 @@ pub fn display_subgraph_help() {
     info!("Subgraph Controls:");
     info!("  Ctrl+G - Create subgraph from selected nodes");
     info!("  B - Toggle boundary type (ConvexHull/BoundingBox/Circle)");
+}
+
+/// Plugin for subgraph visualization
+pub struct SubgraphVisualizationPlugin;
+
+impl Plugin for SubgraphVisualizationPlugin {
+    fn build(&self, app: &mut App) {
+        // The systems are already added in the main GraphEditorPlugin
+        // This plugin exists for consistency and potential future expansion
+    }
 }

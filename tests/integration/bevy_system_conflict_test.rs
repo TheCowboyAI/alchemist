@@ -32,7 +32,7 @@ fn system_that_reads_events(mut reader: EventReader<TestEvent>) {
 }
 
 fn system_that_writes_events(mut writer: EventWriter<TestEvent>) {
-    writer.send(TestEvent);
+    writer.write(TestEvent);
 }
 
 #[test]
@@ -99,7 +99,7 @@ fn test_event_reader_writer_internal_conflict() {
         |mut reader: EventReader<TestEvent>, mut writer: EventWriter<TestEvent>| {
             // This system has both reader and writer - no conflict within same system
             for _ in reader.read() {}
-            writer.send(TestEvent);
+            writer.write(TestEvent);
         },
         |mut reader: EventReader<TestEvent>| {
             // Another system reading - this will conflict with the writer above

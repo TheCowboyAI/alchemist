@@ -1,7 +1,9 @@
 //! Voronoi tessellation for conceptual space partitioning
 
 use bevy::prelude::*;
+use bevy::render::mesh::{Indices, PrimitiveTopology};
 use std::collections::{HashMap, HashSet};
+use tracing::info;
 
 use crate::presentation::components::{
     ConceptualPosition, ConceptualSpacePartition, DistanceMetric, GraphNode, QualityDimension,

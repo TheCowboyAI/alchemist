@@ -13,6 +13,7 @@ use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
 use crate::fixtures::*;
 use std::sync::Arc;
 use std::time::Duration;
+use std::collections::HashMap;
 
 #[tokio::test]
 #[ignore = "requires running NATS server"]
@@ -30,23 +31,24 @@ async fn test_complete_command_to_projection_flow() -> Result<(), Box<dyn std::e
     let node_id = NodeId::new();
 
     // Step 1: Submit CreateGraph command
-    let create_graph_cmd = GraphCommand::CreateGraph {
+    let create_cmd = Command::Graph(GraphCommand::CreateGraph {
         id: graph_id,
-        metadata: GraphMetadata {
-            name: "integration-test-graph".to_string(),
-            description: Some("Testing command to projection flow".to_string()),
-            ..Default::default()
+        name: "integration-test-graph".to_string(),
+        metadata: {
+            let mut map = HashMap::new();
+            map.insert("description".to_string(), serde_json::json!("Testing command to projection flow"));
+            map
         },
-    };
+    });
 
     // Process command through handler
     let handler = GraphCommandHandler::new(event_store.clone());
-    let events = handler.handle(create_graph_cmd).await?;
+    let events = handler.handle(create_cmd).await?;
 
     // Verify event was created
     assert_eq!(events.len(), 1);
     match &events[0] {
-        DomainEvent::GraphCreated { id, metadata, .. } => {
+        DomainEvent::Graph(GraphEvent::GraphCreated { id, metadata }) => {
             assert_eq!(*id, graph_id);
             assert_eq!(metadata.name, "integration-test-graph");
         }
@@ -125,9 +127,10 @@ async fn test_multi_aggregate_event_flow() -> Result<(), Box<dyn std::error::Err
     for (i, graph_id) in graph_ids.iter().enumerate() {
         let cmd = GraphCommand::CreateGraph {
             id: *graph_id,
-            metadata: GraphMetadata {
-                name: format!("graph-{}", i),
-                ..Default::default()
+            metadata: {
+                let mut map = HashMap::new();
+                map.insert("name".to_string(), serde_json::json!(format!("graph-{}", i)));
+                map
             },
         };
 
@@ -184,9 +187,10 @@ async fn test_complex_graph_operations_flow() -> Result<(), Box<dyn std::error::
     let graph_id = GraphId::new();
     let create_cmd = GraphCommand::CreateGraph {
         id: graph_id,
-        metadata: GraphMetadata {
-            name: "complex-graph".to_string(),
-            ..Default::default()
+        metadata: {
+            let mut map = HashMap::new();
+            map.insert("name".to_string(), serde_json::json!("complex-graph"));
+            map
         },
     };
 
@@ -271,9 +275,10 @@ async fn test_concurrent_command_processing() -> Result<(), Box<dyn std::error::
     let graph_id = GraphId::new();
     let create_cmd = GraphCommand::CreateGraph {
         id: graph_id,
-        metadata: GraphMetadata {
-            name: "concurrent-test".to_string(),
-            ..Default::default()
+        metadata: {
+            let mut map = HashMap::new();
+            map.insert("name".to_string(), serde_json::json!("concurrent-test"));
+            map
         },
     };
 

@@ -1,8 +1,10 @@
-//! Event sequencing and ordering for reliable event delivery
+//! Event sequencing for reliable ordering
 
 use bevy::prelude::*;
 use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::sync::{Arc, RwLock};
+use std::time::{Duration, Instant};
+use tracing::{debug, error, info, warn};
 
 use crate::domain::events::DomainEvent;
 use crate::domain::value_objects::AggregateId;
@@ -251,7 +253,7 @@ impl EventSequencer {
             .ok()
             .map(|buffers| {
                 buffers.iter()
-                    .map(|(id, buffer)| (*id, AggregateStats {
+                    .map(|(id, buffer)| (id.clone(), AggregateStats {
                         next_sequence: buffer.next_sequence,
                         pending_count: buffer.pending.len(),
                         oldest_pending: buffer.pending.first_key_value()
@@ -316,6 +318,6 @@ fn check_sequence_timeouts(
 
     for event in forced_events {
         warn!("Force-processing timed-out event: {:?}", event.event_type());
-        event_writer.send(crate::application::EventNotification { event });
+        event_writer.write(crate::application::EventNotification { event });
     }
 }

@@ -51,6 +51,9 @@ pub fn process_graph_import_requests(
 
             match content_result {
                 Ok(content) => {
+                    eprintln!("process_graph_import_requests: Content loaded, format requested: {}", format);
+                    eprintln!("process_graph_import_requests: First 100 chars of content: {}", &content.chars().take(100).collect::<String>());
+
                     // Parse format
                     let import_format = match format.as_str() {
                         "arrows_app" => crate::domain::services::ImportFormat::ArrowsApp,
@@ -62,7 +65,7 @@ pub fn process_graph_import_requests(
                         "rss_atom" => crate::domain::services::ImportFormat::RssAtom,
                         _ => {
                             error!("Unknown import format: {}", format);
-                            import_results.write(ImportResultEvent {
+                            import_results.send(ImportResultEvent {
                                 event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                                     graph_id: *graph_id,
                                     imported_nodes: 0,
@@ -73,6 +76,8 @@ pub fn process_graph_import_requests(
                             continue;
                         }
                     };
+
+                    eprintln!("process_graph_import_requests: Using import format: {:?}", import_format);
 
                     // Import the graph
                     match import_service.import_from_content(&content, import_format, options.mapping.as_ref()) {
@@ -215,7 +220,7 @@ pub fn process_graph_import_requests(
                                     position: node.position.clone(),
                                 });
 
-                                command_events.write(CommandEvent {
+                                command_events.send(CommandEvent {
                                     command: node_command,
                                 });
                             }
@@ -257,7 +262,7 @@ pub fn process_graph_import_requests(
                                         },
                                     });
 
-                                    command_events.write(CommandEvent {
+                                    command_events.send(CommandEvent {
                                         command: edge_command,
                                     });
                                 } else {
@@ -266,7 +271,7 @@ pub fn process_graph_import_requests(
                             }
 
                             // Send success result
-                            import_results.write(ImportResultEvent {
+                            import_results.send(ImportResultEvent {
                                 event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                                     graph_id: *graph_id,
                                     imported_nodes: nodes.len(),
@@ -278,7 +283,7 @@ pub fn process_graph_import_requests(
                         Err(e) => {
                             eprintln!("process_graph_import_requests: Import failed: {}", e);
                             error!("Import failed: {}", e);
-                            import_results.write(ImportResultEvent {
+                            import_results.send(ImportResultEvent {
                                 event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                                     graph_id: *graph_id,
                                     imported_nodes: 0,
@@ -291,7 +296,7 @@ pub fn process_graph_import_requests(
                 }
                 Err(e) => {
                     error!("Failed to load content: {}", e);
-                    import_results.write(ImportResultEvent {
+                    import_results.send(ImportResultEvent {
                         event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                             graph_id: *graph_id,
                             imported_nodes: 0,
@@ -357,7 +362,7 @@ mod tests {
         app.add_systems(Update, (
             // Mock system that writes EventNotification
             |mut writer: EventWriter<crate::application::EventNotification>| {
-                writer.write(crate::application::EventNotification {
+                writer.send(crate::application::EventNotification {
                     event: DomainEvent::Graph(GraphEvent::GraphImportRequested {
                         graph_id: GraphId::new(),
                         source: ImportSource::InlineContent {

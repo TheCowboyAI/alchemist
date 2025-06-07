@@ -288,9 +288,11 @@ mod tests {
         let timer_count = query.iter(app.world()).count();
         assert_eq!(timer_count, 0);
 
-        // Check event was sent
+        // Check event was sent - need to read events properly
         let events = app.world().resource::<Events<ExecuteGraphCommand>>();
-        assert_eq!(events.len(), 1, "One event should be sent when timer finishes");
+        let mut reader = events.get_cursor();
+        let event_count = reader.read(events).count();
+        assert_eq!(event_count, 1, "One event should be sent when timer finishes");
     }
 
     #[test]
@@ -375,13 +377,15 @@ mod tests {
             }
         });
 
-        // First update to initialize
+        // First update to initialize (no time has passed)
         app.update();
 
-        // Advance time before running update
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.1));
+        // Check initial progress is still 0
+        let progress = app.world().get::<AnimationProgress>(entity).unwrap();
+        assert_eq!(progress.0, 0.0, "Initial progress should be 0");
 
-        // Run update
+        // Advance time and update
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.1));
         app.update();
 
         // Check progress was updated (delta * 2.0 = 0.1 * 2.0 = 0.2)

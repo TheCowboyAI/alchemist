@@ -9,6 +9,7 @@ use async_nats::jetstream;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
+use std::collections::HashMap;
 
 /// Test NATS configuration
 pub fn test_nats_config() -> NatsConfig {
@@ -125,6 +126,19 @@ impl TestData {
             });
         }
         commands
+    }
+
+    pub fn create_test_graph_command() -> Command {
+        Command::Graph(GraphCommand::CreateGraph {
+            id: GraphId::new(),
+            name: "Test Graph".to_string(),
+            metadata: {
+                let mut map = HashMap::new();
+                map.insert("created_by".to_string(), serde_json::json!("test"));
+                map.insert("version".to_string(), serde_json::json!("1.0"));
+                map
+            },
+        })
     }
 }
 

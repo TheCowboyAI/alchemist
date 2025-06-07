@@ -5,10 +5,11 @@ use ia::application::CommandEvent;
 use ia::domain::{
     commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
     value_objects::{GraphId, Position3D},
+    services::ImportFormat,
 };
 use ia::presentation::plugins::GraphEditorPlugin;
 use ia::presentation::components::GraphContainer;
-use ia::presentation::systems::import_file_to_graph;
+use ia::presentation::systems::{import_file_to_graph, ImportState};
 use std::collections::HashMap;
 
 fn main() {
@@ -42,6 +43,7 @@ fn test_import(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut commands: EventWriter<CommandEvent>,
     graph_query: Query<&GraphContainer>,
+    mut import_state: ResMut<ImportState>,
     mut tested: Local<bool>,
 ) {
     if keyboard.just_pressed(KeyCode::KeyT) && !*tested {
@@ -52,7 +54,8 @@ fn test_import(
             &mut commands,
             &graph_query,
             "examples/data/sample_graph.json",
-            ia::domain::services::ImportFormat::ArrowsApp,
+            ImportFormat::ArrowsApp,
+            &mut import_state,
         );
 
         *tested = true;

@@ -6,7 +6,7 @@ pub mod camera_controller;
 pub mod subgraph_visualization;
 pub mod voronoi_tessellation;
 
-pub use import_system::{ImportPlugin, display_import_help, import_file_to_graph};
+pub use import_system::{ImportPlugin, display_import_help, import_file_to_graph, ImportState};
 pub use graph_import_processor::process_graph_import_requests;
 pub use camera_controller::*;
 pub use subgraph_visualization::*;

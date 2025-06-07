@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource},
+    commands::{Command, GraphCommand, ImportSource, ImportOptions},
     events::{DomainEvent, GraphEvent},
     value_objects::GraphId,
 };
@@ -22,22 +22,21 @@ fn test_import_command_actually_imports() {
     app.world_mut().send_event(CommandEvent {
         command: Command::Graph(GraphCommand::ImportGraph {
             graph_id: GraphId::new(),
-            source: ImportSource::Content {
-                content: r#"{
-                    "nodes": [{
-                        "id": "test-node",
-                        "position": {"x": 0, "y": 0, "z": 0},
-                        "caption": "Test Node"
-                    }],
-                    "relationships": []
-                }"#.to_string(),
-                format: ia::domain::commands::ImportFormat::ArrowsApp,
+            source: ImportSource::InlineContent {
+                content: r#"
+                graph TD
+                    A[Start] --> B[Process]
+                    B --> C[End]
+                "#.to_string(),
             },
-            options: ia::domain::commands::ImportOptions {
-                merge_behavior: ia::domain::commands::MergeBehavior::Replace,
+            format: "mermaid".to_string(),
+            options: ImportOptions {
+                merge_behavior: ia::domain::commands::graph_commands::MergeBehavior::AlwaysCreate,
                 id_prefix: None,
                 position_offset: None,
-                layout_algorithm: None,
+                mapping: None,
+                validate: true,
+                max_nodes: None,
             },
         }),
     });
@@ -48,7 +47,7 @@ fn test_import_command_actually_imports() {
     // Check that a GraphImportRequested event was generated
     let mut import_requested = false;
     let events = app.world().resource::<Events<EventNotification>>();
-    let mut reader = events.get_reader();
+    let mut reader = events.get_cursor();
 
     for event in reader.read(events) {
         if let DomainEvent::Graph(GraphEvent::GraphImportRequested { .. }) = &event.event {
@@ -108,7 +107,7 @@ fn test_import_events_are_processed() {
     // Check that import completed event was generated
     let mut import_completed = false;
     let events = app.world().resource::<Events<EventNotification>>();
-    let mut reader = events.get_reader();
+    let mut reader = events.get_cursor();
 
     for event in reader.read(events) {
         if let DomainEvent::Graph(GraphEvent::GraphImportCompleted { .. }) = &event.event {
@@ -138,7 +137,7 @@ fn test_keyboard_shortcut_triggers_import() {
     // Check that a command was generated
     let mut command_sent = false;
     let events = app.world().resource::<Events<CommandEvent>>();
-    let mut reader = events.get_reader();
+    let mut reader = events.get_cursor();
 
     for event in reader.read(events) {
         if let Command::Graph(GraphCommand::ImportGraph { .. }) = &event.command {
@@ -148,4 +147,62 @@ fn test_keyboard_shortcut_triggers_import() {
     }
 
     assert!(command_sent, "Keyboard shortcut should trigger import command");
+}
+
+#[test]
+fn test_import_request_forwarding() {
+    let mut app = App::new();
+    app.add_plugins(MinimalPlugins);
+    app.add_event::<EventNotification>();
+    app.add_event::<ImportRequestEvent>();
+
+    // Add the forwarding system
+    app.add_systems(Update, forward_import_requests);
+
+    // Send a GraphImportRequested event
+    app.world_mut().send_event(EventNotification {
+        event: DomainEvent::Graph(GraphEvent::GraphImportRequested {
+            graph_id: GraphId::new(),
+            source: ImportSource::InlineContent {
+                content: "test content".to_string(),
+            },
+            format: "mermaid".to_string(),
+            options: Default::default(),
+        }),
+    });
+
+    app.update();
+
+    // Check that ImportRequestEvent was generated
+    let events = app.world().resource::<Events<ImportRequestEvent>>();
+    let mut reader = events.get_cursor();
+    let requests: Vec<_> = reader.read(events).collect();
+    assert_eq!(requests.len(), 1, "Should have forwarded one import request");
+}
+
+#[test]
+fn test_import_result_processing() {
+    let mut app = App::new();
+    app.add_plugins(MinimalPlugins);
+    app.add_event::<ImportResultEvent>();
+    app.add_event::<CommandEvent>();
+
+    // Add the result forwarding system
+    app.add_systems(Update, forward_import_results);
+
+    // Send an ImportResultEvent
+    app.world_mut().send_event(ImportResultEvent {
+        graph_id: GraphId::new(),
+        success: true,
+        node_count: 3,
+        edge_count: 2,
+        error: None,
+    });
+
+    app.update();
+
+    // Check that commands were generated
+    let events = app.world().resource::<Events<CommandEvent>>();
+    let mut reader = events.get_cursor();
+    let commands: Vec<_> = reader.read(events).collect();
 }

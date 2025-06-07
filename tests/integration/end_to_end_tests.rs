@@ -6,7 +6,7 @@
 use ia::domain::aggregates::GraphAggregate;
 use ia::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand};
 use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
-use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata, EdgeRelationship};
+use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, EdgeRelationship};
 use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
 use ia::infrastructure::event_bridge::{EventBridge, BridgeCommand};
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
@@ -17,6 +17,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
 use bevy::prelude::*;
+use std::collections::HashMap;
 
 #[tokio::test]
 #[ignore = "requires running NATS server"]
@@ -213,11 +214,12 @@ async fn test_concurrent_graph_operations() -> Result<(), Box<dyn std::error::Er
             let graph_id = GraphId::new();
             let cmd = GraphCommand::CreateGraph {
                 id: graph_id,
-                metadata: GraphMetadata {
-                    name: format!("Concurrent Graph {}", i),
-                    description: Some(format!("Graph created concurrently #{}", i)),
-                    tags: vec!["concurrent".to_string()],
-                    properties: Default::default(),
+                name: format!("Concurrent Graph {}", i),
+                metadata: {
+                    let mut map = HashMap::new();
+                    map.insert("description".to_string(), serde_json::json!(format!("Graph created concurrently #{}", i)));
+                    map.insert("tags".to_string(), serde_json::json!(vec!["concurrent"]));
+                    map
                 },
             };
 
@@ -292,12 +294,8 @@ async fn test_error_recovery_and_consistency() -> Result<(), Box<dyn std::error:
     // Create graph
     let create_cmd = GraphCommand::CreateGraph {
         id: graph_id,
-        metadata: GraphMetadata {
-            name: "Error Recovery Test".to_string(),
-            description: None,
-            tags: vec![],
-            properties: Default::default(),
-        },
+        name: "Error Recovery Test".to_string(),
+        metadata: HashMap::new(),
     };
 
     handler.handle(create_cmd).await?;
@@ -370,11 +368,12 @@ async fn test_projection_performance() -> Result<(), Box<dyn std::error::Error>>
     let graph_id = GraphId::new();
     let create_cmd = GraphCommand::CreateGraph {
         id: graph_id,
-        metadata: GraphMetadata {
-            name: "Performance Test Graph".to_string(),
-            description: Some("Testing projection performance with many nodes".to_string()),
-            tags: vec!["performance".to_string()],
-            properties: Default::default(),
+        name: "Performance Test Graph".to_string(),
+        metadata: {
+            let mut map = HashMap::new();
+            map.insert("description".to_string(), serde_json::json!("Testing projection performance with many nodes"));
+            map.insert("tags".to_string(), serde_json::json!(vec!["performance"]));
+            map
         },
     };
 

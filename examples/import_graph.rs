@@ -1,7 +1,8 @@
 //! Example: Importing graphs from various sources
 
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, MergeBehavior},
+    commands::{Command, GraphCommand, ImportSource, ImportOptions},
+    commands::graph_commands::MergeBehavior,
     services::{GraphImportService, ImportFormat},
     value_objects::GraphId,
 };

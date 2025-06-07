@@ -10,6 +10,7 @@ use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
 use crate::fixtures::*;
 use std::sync::Arc;
 use std::time::Duration;
+use std::collections::HashMap;
 
 #[tokio::test]
 #[ignore = "requires running NATS server"]
@@ -61,10 +62,8 @@ async fn test_concurrent_modification_handling() -> Result<(), Box<dyn std::erro
     let graph_id = GraphId::new();
     let create_cmd = GraphCommand::CreateGraph {
         id: graph_id,
-        metadata: GraphMetadata {
-            name: "concurrent-mod-test".to_string(),
-            ..Default::default()
-        },
+        name: "concurrent-mod-test".to_string(),
+        metadata: HashMap::new(),
     };
 
     handler.handle(create_cmd).await?;
@@ -187,10 +186,8 @@ async fn test_partial_failure_rollback() -> Result<(), Box<dyn std::error::Error
     let graph_id = GraphId::new();
     let create_cmd = GraphCommand::CreateGraph {
         id: graph_id,
-        metadata: GraphMetadata {
-            name: "rollback-test".to_string(),
-            ..Default::default()
-        },
+        name: "rollback-test".to_string(),
+        metadata: HashMap::new(),
     };
 
     handler.handle(create_cmd).await?;

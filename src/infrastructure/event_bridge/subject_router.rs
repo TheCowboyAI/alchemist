@@ -5,6 +5,7 @@ use crossbeam_channel::{bounded, Receiver, Sender};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use tracing::{debug, error, info, warn};
 
 use crate::domain::events::DomainEvent;
 use crate::domain::value_objects::{AggregateId, EventId};
@@ -184,15 +185,70 @@ impl SubjectRouter {
     /// Convert event to subject
     fn event_to_subject(&self, event: &DomainEvent) -> String {
         match event {
-            DomainEvent::NodeAdded { graph_id, .. } =>
-                format!("event.graph.{}.node.added", graph_id),
-            DomainEvent::EdgeConnected { graph_id, .. } =>
-                format!("event.graph.{}.edge.connected", graph_id),
-            DomainEvent::GraphCreated { graph_id, .. } =>
-                format!("event.graph.{}.created", graph_id),
-            DomainEvent::SubgraphCreated { graph_id, subgraph_id, .. } =>
-                format!("event.graph.{}.subgraph.{}.created", graph_id, subgraph_id),
-            _ => format!("event.unknown.{}", event.event_type()),
+            DomainEvent::Node(node_event) => match node_event {
+                crate::domain::events::NodeEvent::NodeAdded { graph_id, .. } =>
+                    format!("event.graph.{}.node.added", graph_id),
+                crate::domain::events::NodeEvent::NodeRemoved { graph_id, .. } =>
+                    format!("event.graph.{}.node.removed", graph_id),
+                crate::domain::events::NodeEvent::NodeUpdated { graph_id, .. } =>
+                    format!("event.graph.{}.node.updated", graph_id),
+                crate::domain::events::NodeEvent::NodeMoved { graph_id, .. } =>
+                    format!("event.graph.{}.node.moved", graph_id),
+                crate::domain::events::NodeEvent::NodeContentChanged { graph_id, .. } =>
+                    format!("event.graph.{}.node.content_changed", graph_id),
+            },
+            DomainEvent::Edge(edge_event) => match edge_event {
+                crate::domain::events::EdgeEvent::EdgeConnected { graph_id, .. } =>
+                    format!("event.graph.{}.edge.connected", graph_id),
+                crate::domain::events::EdgeEvent::EdgeRemoved { graph_id, .. } =>
+                    format!("event.graph.{}.edge.removed", graph_id),
+                crate::domain::events::EdgeEvent::EdgeUpdated { graph_id, .. } =>
+                    format!("event.graph.{}.edge.updated", graph_id),
+                crate::domain::events::EdgeEvent::EdgeReversed { graph_id, .. } =>
+                    format!("event.graph.{}.edge.reversed", graph_id),
+            },
+            DomainEvent::Graph(graph_event) => match graph_event {
+                crate::domain::events::GraphEvent::GraphCreated { id, .. } =>
+                    format!("event.graph.{}.created", id),
+                crate::domain::events::GraphEvent::GraphDeleted { id } =>
+                    format!("event.graph.{}.deleted", id),
+                crate::domain::events::GraphEvent::GraphRenamed { id, .. } =>
+                    format!("event.graph.{}.renamed", id),
+                crate::domain::events::GraphEvent::GraphTagged { id, .. } =>
+                    format!("event.graph.{}.tagged", id),
+                crate::domain::events::GraphEvent::GraphUntagged { id, .. } =>
+                    format!("event.graph.{}.untagged", id),
+                crate::domain::events::GraphEvent::GraphUpdated { graph_id, .. } =>
+                    format!("event.graph.{}.updated", graph_id),
+                crate::domain::events::GraphEvent::GraphImportRequested { graph_id, .. } =>
+                    format!("event.graph.{}.import_requested", graph_id),
+                crate::domain::events::GraphEvent::GraphImportCompleted { graph_id, .. } =>
+                    format!("event.graph.{}.import_completed", graph_id),
+                crate::domain::events::GraphEvent::GraphImportFailed { graph_id, .. } =>
+                    format!("event.graph.{}.import_failed", graph_id),
+            },
+            DomainEvent::Workflow(workflow_event) => match workflow_event {
+                crate::domain::events::WorkflowEvent::WorkflowCreated(evt) =>
+                    format!("event.workflow.{}.created", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::StepAdded(evt) =>
+                    format!("event.workflow.{}.step_added", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::StepsConnected(evt) =>
+                    format!("event.workflow.{}.steps_connected", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::WorkflowValidated(evt) =>
+                    format!("event.workflow.{}.validated", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::WorkflowStarted(evt) =>
+                    format!("event.workflow.{}.started", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::StepCompleted(evt) =>
+                    format!("event.workflow.{}.step_completed", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::WorkflowPaused(evt) =>
+                    format!("event.workflow.{}.paused", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::WorkflowResumed(evt) =>
+                    format!("event.workflow.{}.resumed", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::WorkflowCompleted(evt) =>
+                    format!("event.workflow.{}.completed", evt.workflow_id),
+                crate::domain::events::WorkflowEvent::WorkflowFailed(evt) =>
+                    format!("event.workflow.{}.failed", evt.workflow_id),
+            },
         }
     }
 

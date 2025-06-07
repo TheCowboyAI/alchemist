@@ -577,13 +577,22 @@ impl GraphImportService {
         format: ImportFormat,
         mapping: Option<&ImportMapping>,
     ) -> Result<ImportedGraph, DomainError> {
+        eprintln!("import_from_content: format = {:?}", format);
+        eprintln!("import_from_content: first 100 chars = {}", &content.chars().take(100).collect::<String>());
+
         // Use provided mapping or default
         let mapping = mapping.cloned().unwrap_or_default();
 
         let mut imported_graph = match format {
-            ImportFormat::ArrowsApp => self.import_arrows_app(content, &mapping)?,
+            ImportFormat::ArrowsApp => {
+                eprintln!("import_from_content: calling import_arrows_app");
+                self.import_arrows_app(content, &mapping)?
+            },
             ImportFormat::Cypher => self.import_cypher(content, &mapping)?,
-            ImportFormat::Mermaid => self.import_mermaid(content)?,
+            ImportFormat::Mermaid => {
+                eprintln!("import_from_content: calling import_mermaid");
+                self.import_mermaid(content)?
+            },
             ImportFormat::Dot => self.import_dot(content, &mapping)?,
             ImportFormat::ProgressJson => self.import_progress_json(content, &mapping)?,
             ImportFormat::VocabularyJson => self.import_vocabulary_json(content, &mapping)?,
@@ -1586,7 +1595,7 @@ impl GraphImportService {
         fn graph_declaration(input: &str) -> IResult<&str, ()> {
             map(
                 tuple((
-                    alt((tag("graph"), tag("flowchart"))),
+                    alt((tag("graph"), tag("flowchart"), tag("classDiagram"))),
                     multispace1,
                     alt((tag("TD"), tag("LR"), tag("TB"), tag("RL"), tag("BT")))
                 )),
@@ -1598,6 +1607,8 @@ impl GraphImportService {
         let mut nodes = HashMap::new();
         let mut edges = Vec::new();
         let mut node_counter = 0;
+        let mut subgraph_stack = Vec::new();
+        let mut current_subgraph = None;
 
         // Split into lines and process each
         let lines: Vec<&str> = diagram.lines()
@@ -1618,21 +1629,41 @@ impl GraphImportService {
 
         // Process each line
         for line in &lines[start_index..] {
+            // Check for subgraph start
+            if line.starts_with("subgraph") {
+                if let Some(name_start) = line.find('[') {
+                    if let Some(name_end) = line.find(']') {
+                        let subgraph_name = &line[name_start + 1..name_end];
+                        current_subgraph = Some(subgraph_name.to_string());
+                        subgraph_stack.push(subgraph_name.to_string());
+                    }
+                }
+                continue;
+            }
+
+            // Check for subgraph end
+            if line.trim() == "end" {
+                subgraph_stack.pop();
+                current_subgraph = subgraph_stack.last().cloned();
+                continue;
+            }
+
             // Try to parse as edge
             if let Ok((_, ((source_id, source_label), (target_id, target_label)))) = edge(line) {
                 // Add source node if not exists
                 if !nodes.contains_key(source_id) {
                     let label = source_label.unwrap_or(source_id).to_string();
+                    let mut properties = HashMap::new();
+                    if let Some(ref sg) = current_subgraph {
+                        properties.insert("subgraph".to_string(), serde_json::json!(sg));
+                    }
+
                     nodes.insert(source_id.to_string(), ImportedNode {
                         id: source_id.to_string(),
                         node_type: "Node".to_string(),
                         label,
-                        position: Position3D {
-                            x: (node_counter % 3) as f32 * 200.0,
-                            y: (node_counter / 3) as f32 * 150.0,
-                            z: 0.0,
-                        },
-                        properties: HashMap::new(),
+                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 }, // Will be laid out later
+                        properties,
                     });
                     node_counter += 1;
                 }
@@ -1640,16 +1671,17 @@ impl GraphImportService {
                 // Add target node if not exists
                 if !nodes.contains_key(target_id) {
                     let label = target_label.unwrap_or(target_id).to_string();
+                    let mut properties = HashMap::new();
+                    if let Some(ref sg) = current_subgraph {
+                        properties.insert("subgraph".to_string(), serde_json::json!(sg));
+                    }
+
                     nodes.insert(target_id.to_string(), ImportedNode {
                         id: target_id.to_string(),
                         node_type: "Node".to_string(),
                         label,
-                        position: Position3D {
-                            x: (node_counter % 3) as f32 * 200.0,
-                            y: (node_counter / 3) as f32 * 150.0,
-                            z: 0.0,
-                        },
-                        properties: HashMap::new(),
+                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 }, // Will be laid out later
+                        properties,
                     });
                     node_counter += 1;
                 }
@@ -1667,16 +1699,17 @@ impl GraphImportService {
             else if let Ok((_, (node_id_str, label))) = node_with_label(line) {
                 if !nodes.contains_key(node_id_str) {
                     let label = label.unwrap_or(node_id_str).to_string();
+                    let mut properties = HashMap::new();
+                    if let Some(ref sg) = current_subgraph {
+                        properties.insert("subgraph".to_string(), serde_json::json!(sg));
+                    }
+
                     nodes.insert(node_id_str.to_string(), ImportedNode {
                         id: node_id_str.to_string(),
                         node_type: "Node".to_string(),
                         label,
-                        position: Position3D {
-                            x: (node_counter % 3) as f32 * 200.0,
-                            y: (node_counter / 3) as f32 * 150.0,
-                            z: 0.0,
-                        },
-                        properties: HashMap::new(),
+                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 }, // Will be laid out later
+                        properties,
                     });
                     node_counter += 1;
                 }
@@ -1687,11 +1720,129 @@ impl GraphImportService {
             return Err(DomainError::ValidationError("No valid nodes found in Mermaid diagram".to_string()));
         }
 
+        // Apply hierarchical layout for better visualization
+        let mut node_vec: Vec<ImportedNode> = nodes.into_values().collect();
+        self.apply_mermaid_layout(&mut node_vec, &edges)?;
+
         Ok(ImportedGraph {
-            nodes: nodes.into_values().collect(),
+            nodes: node_vec,
             edges,
             metadata: HashMap::new(),
         })
+    }
+
+    /// Apply a hierarchical layout to Mermaid diagram nodes
+    fn apply_mermaid_layout(&self, nodes: &mut Vec<ImportedNode>, edges: &[ImportedEdge]) -> Result<(), DomainError> {
+        // Build adjacency lists
+        let mut outgoing: HashMap<String, Vec<String>> = HashMap::new();
+        let mut incoming: HashMap<String, Vec<String>> = HashMap::new();
+
+        for edge in edges {
+            outgoing.entry(edge.source.clone()).or_insert_with(Vec::new).push(edge.target.clone());
+            incoming.entry(edge.target.clone()).or_insert_with(Vec::new).push(edge.source.clone());
+        }
+
+        // Find root nodes (no incoming edges)
+        let root_nodes: Vec<String> = nodes.iter()
+            .filter(|n| !incoming.contains_key(&n.id))
+            .map(|n| n.id.clone())
+            .collect();
+
+        // If no root nodes, pick nodes with minimal incoming edges
+        let root_nodes = if root_nodes.is_empty() {
+            let min_incoming = incoming.values().map(|v| v.len()).min().unwrap_or(0);
+            nodes.iter()
+                .filter(|n| incoming.get(&n.id).map_or(0, |v| v.len()) == min_incoming)
+                .map(|n| n.id.clone())
+                .collect()
+        } else {
+            root_nodes
+        };
+
+        // Assign levels using BFS
+        let mut levels: HashMap<String, usize> = HashMap::new();
+        let mut queue = std::collections::VecDeque::new();
+
+        for root in &root_nodes {
+            queue.push_back((root.clone(), 0));
+        }
+
+        while let Some((node_id, level)) = queue.pop_front() {
+            if levels.contains_key(&node_id) {
+                continue;
+            }
+
+            levels.insert(node_id.clone(), level);
+
+            if let Some(children) = outgoing.get(&node_id) {
+                for child in children {
+                    queue.push_back((child.clone(), level + 1));
+                }
+            }
+        }
+
+        // Group nodes by level
+        let mut level_groups: HashMap<usize, Vec<String>> = HashMap::new();
+        for (node_id, level) in &levels {
+            level_groups.entry(*level).or_insert_with(Vec::new).push(node_id.clone());
+        }
+
+        // Group nodes by subgraph
+        let mut subgraph_groups: HashMap<String, Vec<String>> = HashMap::new();
+        for node in nodes.iter() {
+            let subgraph = node.properties.get("subgraph")
+                .and_then(|v| v.as_str())
+                .unwrap_or("default")
+                .to_string();
+            subgraph_groups.entry(subgraph).or_insert_with(Vec::new).push(node.id.clone());
+        }
+
+        // Layout parameters
+        let level_spacing = 150.0;
+        let node_spacing = 120.0;
+        let subgraph_spacing = 300.0;
+
+        // Position nodes
+        let mut node_positions: HashMap<String, Position3D> = HashMap::new();
+        let mut current_x_offset = 0.0;
+
+        // Layout each subgraph
+        for (subgraph_idx, (_subgraph_name, subgraph_nodes)) in subgraph_groups.iter().enumerate() {
+            let subgraph_x_base = current_x_offset;
+            let mut max_x_in_subgraph: f32 = 0.0;
+
+            // Layout nodes in this subgraph by level
+            for level in 0..=level_groups.len() {
+                let nodes_at_level: Vec<&String> = level_groups.get(&level)
+                    .map(|nodes| nodes.iter().filter(|n| subgraph_nodes.contains(n)).collect())
+                    .unwrap_or_default();
+
+                if nodes_at_level.is_empty() {
+                    continue;
+                }
+
+                let y = level as f32 * level_spacing;
+                let total_width = (nodes_at_level.len() - 1) as f32 * node_spacing;
+                let start_x = subgraph_x_base - total_width / 2.0;
+
+                for (i, node_id) in nodes_at_level.iter().enumerate() {
+                    let x = start_x + (i as f32 * node_spacing);
+                    node_positions.insert((*node_id).clone(), Position3D { x, y, z: 0.0 });
+                    max_x_in_subgraph = max_x_in_subgraph.max(x);
+                }
+            }
+
+            current_x_offset = max_x_in_subgraph + subgraph_spacing;
+        }
+
+        // Apply positions to nodes
+        for node in nodes.iter_mut() {
+            if let Some(pos) = node_positions.get(&node.id) {
+                node.position = *pos;
+            }
+        }
+
+        Ok(())
     }
 
     /// Import from DOT/Graphviz format

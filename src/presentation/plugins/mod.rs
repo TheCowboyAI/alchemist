@@ -1,6 +1,10 @@
 //! Bevy Plugins for the Presentation Layer
 
-use bevy::prelude::*;
+use bevy::{
+    input::mouse::MouseWheel,
+    prelude::*,
+    render::mesh::{Indices, PrimitiveTopology},
+};
 use tracing::info;
 use crate::application::command_handlers::process_commands;
 use crate::application::{CommandEvent, EventNotification};
@@ -12,12 +16,13 @@ use crate::domain::value_objects::{
 use crate::presentation::components::*;
 use crate::presentation::events::{ImportResultEvent, ImportRequestEvent};
 use crate::presentation::systems::{
-    ImportPlugin, display_import_help, process_graph_import_requests,
-    forward_import_requests, forward_import_results,
-    display_camera_help, update_orbit_camera, orbit_camera_mouse_rotation,
-    orbit_camera_zoom, orbit_camera_pan, reset_camera_view, focus_camera_on_selection,
-    display_subgraph_help, update_subgraph_boundaries, create_subgraph_from_selection,
+    forward_import_requests,
+    process_graph_import_requests, forward_import_results,
+    update_orbit_camera, orbit_camera_mouse_rotation, orbit_camera_zoom,
+    orbit_camera_pan, reset_camera_view, focus_camera_on_selection,
+    update_subgraph_boundaries, create_subgraph_from_selection,
     toggle_subgraph_boundary_type,
+    ImportPlugin, display_import_help, display_camera_help,
 };
 use std::time::SystemTime;
 use crate::presentation::components::{
@@ -25,7 +30,7 @@ use crate::presentation::components::{
     ForceNode, GraphContainer, GraphEdge, GraphNode, NodeAppearanceAnimation, NodeLabel,
     RecordedEvent, ScheduledCommand, OrbitCamera,
 };
-use crate::presentation::systems::subgraph_visualization::SubgraphVisualizationPlugin;
+use crate::presentation::systems::subgraph_visualization::{SubgraphVisualizationPlugin, display_subgraph_help};
 use crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin;
 
 /// Main plugin for the graph editor
@@ -68,10 +73,12 @@ impl Plugin for GraphEditorPlugin {
                     animate_node_appearance,
                     animate_edge_drawing,
                     // Force-directed layout
-                    // apply_force_layout,
+                    apply_force_layout,
                     // update_node_positions,
                     // Visualization updates
                     update_edge_positions,
+                    // Label rendering
+                    create_node_labels,
                     // Debug system
                     debug_node_visibility,
                     // Camera controller systems
@@ -726,6 +733,18 @@ fn update_node_positions(
     }
 }
 
+/// System to create text labels for nodes
+fn create_node_labels(
+    mut commands: Commands,
+    nodes: Query<(Entity, &GraphNode, &NodeLabel), Without<Text>>,
+) {
+    for (entity, _graph_node, label) in nodes.iter() {
+        // For now, just log that we would create a label
+        // TODO: Implement proper 3D text rendering
+        eprintln!("Would create label '{}' for node {:?}", label.text, entity);
+    }
+}
+
 /// Debug system to monitor node visibility
 fn debug_node_visibility(
     nodes: Query<(Entity, &GraphNode, &Transform, Option<&Visibility>)>,
@@ -760,12 +779,4 @@ fn debug_node_visibility(
         }
         eprintln!("==============================\n");
     }
-}
-
-fn display_subgraph_help() {
-    info!("=== Subgraph Controls ===");
-    info!("Ctrl+G - Create subgraph from selected nodes");
-    info!("B - Toggle boundary type (ConvexHull/BoundingBox/Circle/Voronoi)");
-    info!("V - Toggle Voronoi tessellation visualization");
-    info!("========================");
 }

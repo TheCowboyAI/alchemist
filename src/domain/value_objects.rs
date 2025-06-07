@@ -6,6 +6,12 @@ use std::fmt;
 use uuid::Uuid;
 use std::collections::HashMap;
 
+/// Type alias for aggregate IDs (using String for flexibility)
+pub type AggregateId = String;
+
+/// Type alias for event IDs (using u64 for sequence numbers)
+pub type EventId = u64;
+
 /// Unique identifier for a graph
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct GraphId(pub Uuid);

@@ -92,13 +92,13 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
                 description: description.clone(),
             }))
         }
-        GraphCommand::ImportGraph { graph_id, source, format: _, options } => {
+        GraphCommand::ImportGraph { graph_id, source, format, options } => {
             // For now, emit the GraphImportRequested event
             // The process_graph_import_requests system will handle the actual import
             Some(DomainEvent::Graph(GraphEvent::GraphImportRequested {
                 graph_id: *graph_id,
                 source: source.clone(),
-                format: "arrows_app".to_string(), // TODO: Use the actual format
+                format: format.clone(), // Use the actual format from the command
                 options: options.clone(),
             }))
         }

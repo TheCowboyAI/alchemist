@@ -202,6 +202,22 @@ path = "src/bin/test_direct_spawn.rs"
 name = "test_import_direct_trigger"
 path = "src/bin/test_import_direct_trigger.rs"
 
+[[example]]
+name = "markdown_import_demo"
+path = "examples/markdown_import_demo.rs"
+
+[[example]]
+name = "import_graph"
+path = "examples/import_graph.rs"
+
+[[example]]
+name = "event_consumer_example"
+path = "examples/event_consumer_example.rs"
+
+[[example]]
+name = "markdown_import_simple"
+path = "examples/markdown_import_simple.rs"
+
 # Disable the problematic experimental features
 [package.metadata.bevy]
 experimental_fixed_timestep = false

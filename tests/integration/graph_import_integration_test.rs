@@ -291,9 +291,12 @@ fn test_complete_import_to_render_pipeline() {
 
     // Verify the edge connects the right nodes
     let (edge, _) = &edges[0];
-    let node_entities: Vec<(Entity, &GraphNode)> = app.world_mut()
+
+    // Collect node entities first to avoid borrow issues
+    let node_entities: Vec<(Entity, NodeId)> = app.world()
         .query::<(Entity, &GraphNode)>()
         .iter(&app.world())
+        .map(|(e, node)| (e, node.node_id))
         .collect();
 
     assert_eq!(node_entities.len(), 2, "Should have 2 node entities");
