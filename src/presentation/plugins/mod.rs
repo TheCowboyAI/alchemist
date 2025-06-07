@@ -737,11 +737,26 @@ fn update_node_positions(
 fn create_node_labels(
     mut commands: Commands,
     nodes: Query<(Entity, &GraphNode, &NodeLabel), Without<Text>>,
+    asset_server: Res<AssetServer>,
 ) {
+    // Use a default font (Bevy built-in or fallback)
+    let font_handle = asset_server.load("fonts/FiraSans-Bold.ttf"); // TODO: Make font configurable
+
     for (entity, _graph_node, label) in nodes.iter() {
-        // For now, just log that we would create a label
-        // TODO: Implement proper 3D text rendering
-        eprintln!("Would create label '{}' for node {:?}", label.text, entity);
+        commands.entity(entity).with_children(|parent| {
+            parent.spawn(Text3dBundle {
+                text: Text::from_section(
+                    &label.text,
+                    TextStyle {
+                        font: font_handle.clone(),
+                        font_size: 18.0,
+                        color: Color::WHITE,
+                    },
+                ),
+                transform: Transform::from_xyz(0.0, 1.0, 0.0), // Slightly above the node
+                ..default()
+            });
+        });
     }
 }
 
