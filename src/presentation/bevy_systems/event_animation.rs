@@ -253,6 +253,19 @@ mod tests {
         // Add system
         app.add_systems(Update, process_scheduled_commands);
 
+        // First update to initialize (no time has passed yet)
+        app.update();
+
+        // Timer should still exist
+        let mut query = app.world_mut().query::<&ScheduledCommandTimer>();
+        let timer_count = query.iter(app.world()).count();
+        assert_eq!(timer_count, 1);
+
+        // No events should have been sent yet
+        let events = app.world().resource::<Events<ExecuteGraphCommand>>();
+        let initial_event_count = events.len();
+        assert_eq!(initial_event_count, 0, "No events should be sent on initialization");
+
         // Advance time before timer finishes
         app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.5));
         app.update();
@@ -261,6 +274,10 @@ mod tests {
         let mut query = app.world_mut().query::<&ScheduledCommandTimer>();
         let timer_count = query.iter(app.world()).count();
         assert_eq!(timer_count, 1);
+
+        // Still no events
+        let events = app.world().resource::<Events<ExecuteGraphCommand>>();
+        assert_eq!(events.len(), 0, "Timer hasn't finished yet");
 
         // Advance time past timer duration
         app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.6));
@@ -273,7 +290,7 @@ mod tests {
 
         // Check event was sent
         let events = app.world().resource::<Events<ExecuteGraphCommand>>();
-        assert_eq!(events.len(), 1);
+        assert_eq!(events.len(), 1, "One event should be sent when timer finishes");
     }
 
     #[test]
@@ -344,7 +361,6 @@ mod tests {
 
         // Add time resource
         app.insert_resource(Time::<()>::default());
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.1));
 
         // Create entity with animation progress
         let entity = app.world_mut().spawn(AnimationProgress(0.0)).id();
@@ -359,12 +375,18 @@ mod tests {
             }
         });
 
+        // First update to initialize
+        app.update();
+
+        // Advance time before running update
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.1));
+
         // Run update
         app.update();
 
         // Check progress was updated (delta * 2.0 = 0.1 * 2.0 = 0.2)
         let progress = app.world().get::<AnimationProgress>(entity).unwrap();
-        assert!((progress.0 - 0.2).abs() < 0.001);
+        assert!((progress.0 - 0.2).abs() < 0.001, "Expected progress 0.2, got {}", progress.0);
 
         // Run multiple updates to reach 1.0
         for _ in 0..10 {

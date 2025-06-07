@@ -187,7 +187,6 @@ mod tests {
 
         // Add time with fixed delta
         app.insert_resource(Time::<()>::default());
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016)); // ~60 FPS
 
         // Add two nodes close together
         let node1 = app.world_mut().spawn((
@@ -211,7 +210,11 @@ mod tests {
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
 
-        // Run update
+        // Advance time and update the app to ensure time delta is available
+        app.update(); // First update to initialize systems
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016)); // ~60 FPS
+
+        // Run update with time delta
         app.update();
 
         // Nodes should repel each other
@@ -219,9 +222,9 @@ mod tests {
         let transform2 = app.world().get::<Transform>(node2).unwrap();
 
         // Node 1 should move left (negative X)
-        assert!(transform1.translation.x < 0.0);
+        assert!(transform1.translation.x < 0.0, "Node 1 should move left, but is at {}", transform1.translation.x);
         // Node 2 should move right (positive X)
-        assert!(transform2.translation.x > 0.5);
+        assert!(transform2.translation.x > 0.5, "Node 2 should move right, but is at {}", transform2.translation.x);
         // Y should remain 0
         assert_eq!(transform1.translation.y, 0.0);
         assert_eq!(transform2.translation.y, 0.0);
@@ -242,7 +245,6 @@ mod tests {
 
         // Add time with fixed delta
         app.insert_resource(Time::<()>::default());
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
 
         // Add two connected nodes far apart
         let node1 = app.world_mut().spawn((
@@ -274,7 +276,11 @@ mod tests {
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
 
-        // Run update
+        // Advance time and update
+        app.update(); // First update to initialize
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
+
+        // Run update with time delta
         app.update();
 
         // Nodes should be pulled together
@@ -282,9 +288,9 @@ mod tests {
         let transform2 = app.world().get::<Transform>(node2).unwrap();
 
         // Node 1 should move right (positive X)
-        assert!(transform1.translation.x > 0.0);
+        assert!(transform1.translation.x > 0.0, "Node 1 should move right, but is at {}", transform1.translation.x);
         // Node 2 should move left (less than 5.0)
-        assert!(transform2.translation.x < 5.0);
+        assert!(transform2.translation.x < 5.0, "Node 2 should move left, but is at {}", transform2.translation.x);
     }
 
     #[test]
@@ -334,9 +340,9 @@ mod tests {
 
         // Add time
         app.insert_resource(Time::<()>::default());
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
 
-        // Add two nodes with different masses
+        // Add two nodes with different masses at the same position
+        // They will repel each other, and the lighter one should move more
         let light_node = app.world_mut().spawn((
             GraphNode {
                 node_id: NodeId::new(),
@@ -354,7 +360,7 @@ mod tests {
                 node_id: NodeId::new(),
                 graph_id: GraphId::new(),
             },
-            Transform::from_xyz(0.0, 0.0, 1.0),
+            Transform::from_xyz(0.1, 0.0, 0.0), // Slightly offset to create repulsion
             ForceNode {
                 velocity: Vec3::ZERO,
                 mass: 10.0,
@@ -364,14 +370,25 @@ mod tests {
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
 
-        // Run update
+        // Advance time and update
+        app.update(); // First update to initialize
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
+
+        // Run update with time delta
         app.update();
 
         // Light node should move more than heavy node
-        let light_velocity = app.world().get::<ForceNode>(light_node).unwrap().velocity;
-        let heavy_velocity = app.world().get::<ForceNode>(heavy_node).unwrap().velocity;
+        let light_transform = app.world().get::<Transform>(light_node).unwrap();
+        let heavy_transform = app.world().get::<Transform>(heavy_node).unwrap();
 
-        assert!(light_velocity.length() > heavy_velocity.length());
+        // Both should have moved due to repulsion
+        let light_displacement = light_transform.translation.x.abs();
+        let heavy_displacement = (heavy_transform.translation.x - 0.1).abs();
+
+        // Light node should have moved more
+        assert!(light_displacement > heavy_displacement,
+            "Light node displacement ({}) should be greater than heavy node displacement ({})",
+            light_displacement, heavy_displacement);
     }
 
     #[test]
