@@ -1,66 +1,75 @@
-# Test Coverage Improvement Summary
+# Test Coverage Improvement Progress
 
-## Overview
-Significantly improved test coverage for the domain layer by adding comprehensive tests for edge cases and error conditions.
+## Current Status
+- **Total Tests**: 153 (143 passed, 9 failed, 1 ignored)
+- **Pass Rate**: 93.5%
+- **Domain Tests**: 108 (all passing!)
+- **Target**: 95% coverage
 
-## Results
-- **Before**: 89 passed, 13 failed (out of 102 tests) - 87% passing
-- **After**: 138 passed, 14 failed (out of 152 tests) - 91% passing
-- **Added**: 50 new tests
+## Work Completed
 
-## Areas Improved
+### Phase 1: Domain Test Coverage ✅
+1. **Graph Aggregate Tests** - 20 tests added
+   - Node operations (add, remove, move, duplicate)
+   - Edge operations (connect, disconnect, self-loop)
+   - Cascading deletes
+   - Event replay consistency
+   - Error conditions
 
-### Graph Aggregate Tests
-Added comprehensive tests for:
-- Node operations (add, remove, move)
-- Edge operations (connect, disconnect)
-- Error conditions (duplicate nodes/edges, self-loops, invalid positions)
-- Node removal cascading to edges
-- Event replay consistency
-- Selection command rejection (presentation concern)
+2. **Workflow Aggregate Tests** - 15 tests added
+   - Step management
+   - Transition handling
+   - Workflow validation
+   - State transitions
+   - Error conditions
 
-### Workflow Aggregate Tests
-Added comprehensive tests for:
-- Duplicate step errors
-- Step connection validation
-- Workflow validation errors (empty, no start, no end)
-- Workflow state transitions
-- Step completion and workflow completion
-- Pause/resume operations
-- Failure handling
-- Invalid state operations
-- Different step types
+3. **Value Objects Tests** - 10 tests added
+   - Position3D validation
+   - ID types and uniqueness
+   - Relationship types
+   - Graph models
 
-### Value Objects Tests
-Added comprehensive tests for:
-- Position3D finite validation (NaN, Infinity)
-- All ID types (WorkflowId, StepId, UserId)
-- RelationshipType display implementations
-- GraphModel expected nodes/edges calculations
-- Complex graph models (trees, state machines)
-- Edge relationship properties
-- All node type variants
-- Copy semantics for all ID types
+4. **Domain Error Tests** - 3 tests added
+   - Display trait implementation
+   - Error trait implementation
+   - Prelude exports
 
-### Domain Error Tests
-Added tests for:
-- Display trait implementation for all error variants
-- Error trait implementation
-- Prelude exports validation
+5. **Import Service Tests** - Fixed and improved
+   - Mermaid parser using nom combinators
+   - Support for different bracket types
+   - Markdown extraction with pulldown-cmark
+   - Arrows.app JSON import fixed
 
-## Key Improvements
+### Phase 2: Application Layer (In Progress)
+- Command handlers need testing
+- Query handlers need testing
+- Event bridge needs testing
 
-1. **Better Error Coverage**: Added tests for all error conditions to ensure proper error handling
-2. **Edge Case Testing**: Covered boundary conditions like NaN positions, empty graphs, etc.
-3. **Event Sourcing**: Added event replay consistency tests
-4. **Domain Isolation**: All domain tests run without Bevy/NATS dependencies
-5. **Value Object Immutability**: Ensured proper testing of immutable value objects
+### Phase 3: Infrastructure Layer (Pending)
+- NATS integration tests
+- Event store tests
+- Repository tests
+
+## Key Achievements
+1. **All domain tests now pass** - 108/108
+2. **Proper parser implementation** - Using nom for Mermaid parsing
+3. **Test documentation** - All tests documented with user stories
+4. **Bug fixes** - Fixed GraphUpdated event handling, tag duplication
 
 ## Remaining Work
-The 14 failing tests are for unimplemented features (as per directive) and should not be fixed until those features are implemented.
+To reach 95% coverage:
+1. Fix 9 failing application/infrastructure tests
+2. Add missing application layer tests
+3. Add integration tests for cross-layer interactions
 
-To reach the 95% coverage target required by TDD rules, we would need to:
-1. Add tests for the remaining domain services
-2. Add tests for event chain functionality
-3. Add tests for command routing
-4. Add integration tests for cross-aggregate interactions
+## Test Categories
+- **Domain**: 108 tests (100% passing) ✅
+- **Application**: ~30 tests (some failing)
+- **Infrastructure**: ~15 tests (some failing)
+- **Total**: 153 tests
+
+## Next Steps
+1. Fix failing application tests (EventReader initialization)
+2. Add command handler tests
+3. Add query handler tests
+4. Add integration tests

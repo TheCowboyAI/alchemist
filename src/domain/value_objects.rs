@@ -908,7 +908,15 @@ impl GraphModel {
     /// Get the expected number of edges for this model
     pub fn expected_edges(&self) -> Option<usize> {
         match self {
-            GraphModel::CompleteGraph { order } => Some(order * (order - 1) / 2),
+            GraphModel::CompleteGraph { order } => {
+                // Complete graph has n(n-1)/2 edges
+                // Use saturating operations to prevent overflow
+                if *order == 0 {
+                    Some(0)
+                } else {
+                    Some(order.saturating_sub(1).saturating_mul(*order) / 2)
+                }
+            },
             GraphModel::CycleGraph { order } => Some(*order),
             GraphModel::PathGraph { order } => Some(order.saturating_sub(1)),
             GraphModel::BipartiteGraph { m, n } => Some(m * n),
