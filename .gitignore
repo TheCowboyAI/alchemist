@@ -34,3 +34,10 @@ example-showcase-reports/
 #/target
 result
 .logs/
+
+# Log files
+*.log
+app_*.log
+
+# Test binaries (temporary debugging tools)
+src/bin/test_*.rs
