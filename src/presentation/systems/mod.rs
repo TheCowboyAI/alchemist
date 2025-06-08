@@ -1,15 +1,22 @@
 //! Presentation systems
 
-pub mod import_system;
-pub mod graph_import_processor;
 pub mod camera_controller;
+pub mod event_consumer_example;
+pub mod graph_events;
+pub mod graph_import_processor;
+pub mod import_system;
+pub mod subgraph_spatial_map;
 pub mod subgraph_visualization;
 pub mod voronoi_tessellation;
 
-pub use import_system::{ImportPlugin, display_import_help, import_file_to_graph, ImportState};
-pub use graph_import_processor::process_graph_import_requests;
 pub use camera_controller::*;
+pub use event_consumer_example::*;
+pub use graph_events::*;
+pub use graph_import_processor::*;
+pub use import_system::{ImportPlugin, display_import_help, import_file_to_graph, ImportState};
+pub use subgraph_spatial_map::*;
 pub use subgraph_visualization::*;
+pub use voronoi_tessellation::*;
 
 use bevy::prelude::*;
 use crate::application::EventNotification;
@@ -47,5 +54,24 @@ pub fn forward_import_results(
         event_writer.write(EventNotification {
             event: import_event.event.clone(),
         });
+    }
+}
+
+pub struct SystemsPlugin;
+
+impl Plugin for SystemsPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .add_plugins((
+                ImportPlugin,
+                SubgraphSpatialMapPlugin,
+            ))
+            .add_systems(Update, (
+                process_graph_import_requests,
+                handle_node_added,
+                handle_node_removed,
+                handle_edge_added,
+                handle_edge_removed,
+            ));
     }
 }

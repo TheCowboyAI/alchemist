@@ -31,6 +31,9 @@ pub enum GraphCommand {
         name: Option<String>,
         description: Option<String>,
     },
+    ClearGraph {
+        graph_id: GraphId,
+    },
     AddNode {
         graph_id: GraphId,
         node_id: NodeId,
@@ -145,6 +148,7 @@ impl GraphCommand {
             GraphCommand::TagGraph { .. } => "TagGraph",
             GraphCommand::UntagGraph { .. } => "UntagGraph",
             GraphCommand::UpdateGraph { .. } => "UpdateGraph",
+            GraphCommand::ClearGraph { .. } => "ClearGraph",
             GraphCommand::AddNode { .. } => "AddNode",
             GraphCommand::UpdateNode { .. } => "UpdateNode",
             GraphCommand::RemoveNode { .. } => "RemoveNode",
@@ -165,7 +169,8 @@ impl GraphCommand {
             | GraphCommand::TagGraph { id, .. }
             | GraphCommand::UntagGraph { id, .. }
             | GraphCommand::UpdateGraph { id, .. } => *id,
-            GraphCommand::AddNode { graph_id, .. }
+            GraphCommand::ClearGraph { graph_id }
+            | GraphCommand::AddNode { graph_id, .. }
             | GraphCommand::UpdateNode { graph_id, .. }
             | GraphCommand::RemoveNode { graph_id, .. }
             | GraphCommand::ConnectNodes { graph_id, .. }

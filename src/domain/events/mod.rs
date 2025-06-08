@@ -1,6 +1,7 @@
 //! Domain Events
 
 use serde::{Deserialize, Serialize};
+use bevy::prelude::Event;
 
 pub mod cid_chain;
 pub mod graph;
@@ -19,7 +20,7 @@ pub use workflow::{
 };
 
 /// All domain events in the system
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Event)]
 pub enum DomainEvent {
     Graph(GraphEvent),
     Node(NodeEvent),

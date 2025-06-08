@@ -218,6 +218,18 @@ path = "examples/event_consumer_example.rs"
 name = "markdown_import_simple"
 path = "examples/markdown_import_simple.rs"
 
+[[example]]
+name = "markdown_import_nats_demo"
+path = "examples/markdown_import_nats_demo.rs"
+
+[[example]]
+name = "markdown_import_demo_simple"
+path = "examples/markdown_import_demo_simple.rs"
+
+[[example]]
+name = "subgraph_demo"
+path = "examples/subgraph_demo.rs"
+
 # Disable the problematic experimental features
 [package.metadata.bevy]
 experimental_fixed_timestep = false

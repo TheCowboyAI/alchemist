@@ -11,6 +11,7 @@ use crate::presentation::components::{
 use std::collections::{HashMap, HashSet};
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use tracing::info;
+use std::hash::{Hash, Hasher};
 
 /// Updates subgraph boundaries when nodes move or membership changes
 pub fn update_subgraph_boundaries(
@@ -333,7 +334,16 @@ pub fn create_subgraph_from_selection(
         // Add SubgraphMember component to selected nodes
         for (entity, node) in &nodes {
             node_ids.insert(node.node_id);
-            commands.entity(*entity).insert(SubgraphMember { subgraph_id });
+
+            // Convert UUID to usize using hash
+            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+            subgraph_id.0.hash(&mut hasher);
+            let subgraph_id_usize = hasher.finish() as usize;
+
+            commands.entity(*entity).insert(SubgraphMember {
+                subgraph_id: subgraph_id_usize,
+                relative_position: crate::domain::value_objects::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            });
         }
 
         // Create subgraph region

@@ -92,6 +92,10 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
                 description: description.clone(),
             }))
         }
+        GraphCommand::ClearGraph { .. } => {
+            // ClearGraph is handled by the aggregate - it generates NodeRemoved and EdgeRemoved events
+            None
+        }
         GraphCommand::ImportGraph { graph_id, source, format, options } => {
             // For now, emit the GraphImportRequested event
             // The process_graph_import_requests system will handle the actual import
@@ -102,14 +106,34 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
                 options: options.clone(),
             }))
         }
+        GraphCommand::ImportFromFile { graph_id, file_path, format } => {
+            // Convert to ImportGraph with File source
+            Some(DomainEvent::Graph(GraphEvent::GraphImportRequested {
+                graph_id: *graph_id,
+                source: crate::domain::commands::ImportSource::File {
+                    path: file_path.clone()
+                },
+                format: format.clone(),
+                options: crate::domain::commands::ImportOptions::default(),
+            }))
+        }
+        GraphCommand::ImportFromUrl { graph_id, url, format } => {
+            // Convert to ImportGraph with URL source
+            Some(DomainEvent::Graph(GraphEvent::GraphImportRequested {
+                graph_id: *graph_id,
+                source: crate::domain::commands::ImportSource::Url {
+                    url: url.clone()
+                },
+                format: format.clone(),
+                options: crate::domain::commands::ImportOptions::default(),
+            }))
+        }
         GraphCommand::AddNode { .. } |
         GraphCommand::UpdateNode { .. } |
         GraphCommand::RemoveNode { .. } |
         GraphCommand::ConnectNodes { .. } |
         GraphCommand::DisconnectNodes { .. } |
-        GraphCommand::UpdateEdge { .. } |
-        GraphCommand::ImportFromFile { .. } |
-        GraphCommand::ImportFromUrl { .. } => {
+        GraphCommand::UpdateEdge { .. } => {
             // These are handled by the aggregate
             None
         }

@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use crate::infrastructure::event_bridge::{SubjectRouter, SubjectConsumer, RoutedEvent};
 use crate::domain::events::DomainEvent;
 use crate::presentation::components::{GraphNode, GraphEdge, SubgraphRegion};
+use tracing::info;
 
 /// Example system that consumes graph-related events
 pub fn graph_event_consumer_system(
@@ -18,7 +19,7 @@ pub fn graph_event_consumer_system(
         // Process events in order
         for routed_event in events {
             match &routed_event.event {
-                DomainEvent::NodeAdded { node_id, position, .. } => {
+                DomainEvent::Node(crate::domain::events::NodeEvent::NodeAdded { graph_id, node_id, position, .. }) => {
                     info!(
                         "Received NodeAdded on subject '{}' (seq: {})",
                         routed_event.subject,
@@ -29,14 +30,14 @@ pub fn graph_event_consumer_system(
                     commands.spawn((
                         GraphNode {
                             node_id: *node_id,
-                            graph_id: routed_event.event.aggregate_id(),
+                            graph_id: *graph_id,
                         },
-                        Transform::from_translation(*position),
+                        Transform::from_translation((*position).into()),
                         // ... other components
                     ));
                 }
 
-                DomainEvent::EdgeConnected { edge_id, source, target, .. } => {
+                DomainEvent::Edge(crate::domain::events::EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
                     info!(
                         "Received EdgeConnected on subject '{}' (seq: {})",
                         routed_event.subject,

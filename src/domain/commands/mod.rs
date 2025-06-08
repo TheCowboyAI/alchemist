@@ -72,6 +72,9 @@ mod handler_existence_tests {
                 name: Some("Updated Name".to_string()),
                 description: Some("Updated Description".to_string()),
             },
+            GraphCommand::ClearGraph {
+                graph_id: GraphId::new(),
+            },
             GraphCommand::AddNode {
                 graph_id: GraphId::new(),
                 node_id: NodeId::new(),
@@ -140,6 +143,7 @@ mod handler_existence_tests {
                 GraphCommand::TagGraph { .. } => assert!(true, "TagGraph handler exists"),
                 GraphCommand::UntagGraph { .. } => assert!(true, "UntagGraph handler exists"),
                 GraphCommand::UpdateGraph { .. } => assert!(true, "UpdateGraph handler exists"),
+                GraphCommand::ClearGraph { .. } => assert!(true, "ClearGraph handler exists"),
                 GraphCommand::AddNode { .. } => assert!(true, "AddNode handler exists"),
                 GraphCommand::UpdateNode { .. } => assert!(true, "UpdateNode handler exists"),
                 GraphCommand::RemoveNode { .. } => assert!(true, "RemoveNode handler exists"),

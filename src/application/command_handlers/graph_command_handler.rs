@@ -106,6 +106,7 @@ impl GraphCommandHandler {
                     GraphCommand::UntagGraph { id, .. } => *id,
                     GraphCommand::DeleteGraph { id } => *id,
                     GraphCommand::UpdateGraph { id, .. } => *id,
+                    GraphCommand::ClearGraph { graph_id } => *graph_id,
                     GraphCommand::AddNode { graph_id, .. } => *graph_id,
                     GraphCommand::UpdateNode { graph_id, .. } => *graph_id,
                     GraphCommand::RemoveNode { graph_id, .. } => *graph_id,

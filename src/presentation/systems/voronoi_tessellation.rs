@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use std::collections::{HashMap, HashSet};
 use tracing::info;
+use std::hash::{Hash, Hasher};
 
 use crate::presentation::components::{
     ConceptualPosition, ConceptualSpacePartition, DistanceMetric, GraphNode, QualityDimension,
@@ -71,7 +72,12 @@ fn update_quality_dimensions(
         let mut count = 0;
 
         for (member, transform) in member_query.iter() {
-            if member.subgraph_id == subgraph.subgraph_id {
+            // Convert UUID to usize using hash
+            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+            subgraph.subgraph_id.0.hash(&mut hasher);
+            let subgraph_id_usize = hasher.finish() as usize;
+
+            if member.subgraph_id == subgraph_id_usize {
                 sum += transform.translation;
                 count += 1;
             }

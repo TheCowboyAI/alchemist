@@ -1,9 +1,10 @@
 //! Components for graph visualization
 
-use crate::domain::value_objects::{EdgeId, GraphId, NodeId};
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId, Position3D};
 use bevy::prelude::*;
 use std::collections::HashSet;
 use uuid::Uuid;
+use std::collections::HashMap;
 
 /// Component marking an entity as a graph node
 #[derive(Component)]
@@ -186,12 +187,6 @@ pub enum BoundaryType {
     Voronoi,
 }
 
-/// Component for nodes that belong to a subgraph
-#[derive(Component, Debug, Clone)]
-pub struct SubgraphMember {
-    pub subgraph_id: SubgraphId,
-}
-
 /// Visual boundary mesh for subgraph
 #[derive(Component)]
 pub struct SubgraphBoundary {
@@ -266,4 +261,51 @@ impl Default for VoronoiSettings {
             visualization_height: 0.1,  // Slightly above ground plane
         }
     }
+}
+
+/// Component for tracking edges that need to be created once nodes are available
+#[derive(Component, Debug, Clone)]
+pub struct PendingEdge {
+    pub edge_id: EdgeId,
+    pub graph_id: GraphId,
+    pub source_id: NodeId,
+    pub target_id: NodeId,
+    pub spawn_time: f32,
+}
+
+/// Component for text labels that follow nodes
+#[derive(Component, Debug, Clone)]
+pub struct NodeLabelEntity {
+    pub parent_node: Entity,
+    pub offset: Vec3,
+}
+
+/// Component that marks an entity as a subgraph origin point
+#[derive(Component, Debug, Clone)]
+pub struct SubgraphOrigin {
+    pub subgraph_id: usize,
+    pub subgraph_name: String,
+    pub node_count: usize,
+}
+
+/// Component that marks a node as belonging to a subgraph
+#[derive(Component, Debug, Clone)]
+pub struct SubgraphMember {
+    pub subgraph_id: usize,
+    pub relative_position: Position3D,
+}
+
+/// Resource that maps subgraph IDs to their origin entities
+#[derive(Resource, Debug, Default)]
+pub struct SubgraphOrigins {
+    pub origins: HashMap<usize, Entity>,
+    pub subgraph_info: HashMap<usize, SubgraphInfo>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SubgraphInfo {
+    pub name: String,
+    pub origin: Position3D,
+    pub node_count: usize,
+    pub member_entities: Vec<Entity>,
 }

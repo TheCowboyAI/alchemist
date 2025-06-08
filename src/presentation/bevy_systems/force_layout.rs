@@ -103,7 +103,7 @@ pub fn apply_force_directed_layout(
         transform.translation += force_node.velocity * delta;
 
         // Keep nodes on the same Y plane
-        transform.translation.y = 0.0;
+        // transform.translation.y = 0.0;  // REMOVED: Allow Y positioning for grid layouts
     }
 }
 
@@ -422,8 +422,10 @@ mod tests {
         // Run update
         app.update();
 
-        // Y should be reset to 0
+        // Y should NOT be reset to 0 anymore - it should have moved based on velocity
         let transform = app.world().get::<Transform>(node).unwrap();
-        assert_eq!(transform.translation.y, 0.0);
+        assert_ne!(transform.translation.y, 0.0, "Y position should not be constrained to 0");
+        // With initial Y=5.0 and velocity Y=10.0, after one frame it should be > 5.0
+        assert!(transform.translation.y > 5.0, "Y position should have increased due to velocity");
     }
 }

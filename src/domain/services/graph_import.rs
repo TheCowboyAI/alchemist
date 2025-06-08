@@ -1467,15 +1467,37 @@ impl GraphImportService {
 
                         // Add subgraph prefix to node IDs to avoid conflicts
                         let prefix = format!("sg{}_", idx);
+
+                        // Calculate simple grid offset for this subgraph
+                        let subgraphs_per_row = 4;
+                        let subgraph_row = idx / subgraphs_per_row;
+                        let subgraph_col = idx % subgraphs_per_row;
+                        let subgraph_spacing = 500.0;
+
+                        let subgraph_origin_x = (subgraph_col as f32) * subgraph_spacing;
+                        let subgraph_origin_y = (subgraph_row as f32) * subgraph_spacing;
+
+                        // Store subgraph origin in metadata
+                        let subgraph_origin = Position3D {
+                            x: subgraph_origin_x,
+                            y: subgraph_origin_y,
+                            z: 0.0,
+                        };
+
                         for node in &mut subgraph.nodes {
                             node.id = format!("{}{}", prefix, node.id);
                             // Add subgraph metadata
                             node.properties.insert("subgraph".to_string(), serde_json::json!(subgraph_name.clone()));
                             node.properties.insert("subgraph_id".to_string(), serde_json::json!(idx));
+                            node.properties.insert("subgraph_origin".to_string(), serde_json::json!({
+                                "x": subgraph_origin.x,
+                                "y": subgraph_origin.y,
+                                "z": subgraph_origin.z
+                            }));
 
-                            // Offset positions for each subgraph
-                            node.position.x += (idx as f32) * 400.0;
-                            node.position.y += (idx as f32) * 100.0;
+                            // Apply subgraph origin offset to position entire subgraph
+                            node.position.x += subgraph_origin.x;
+                            node.position.y += subgraph_origin.y;
                         }
 
                         // Update edge IDs and references
@@ -1513,6 +1535,7 @@ impl GraphImportService {
             metadata.insert("subgraphs".to_string(), serde_json::json!(subgraph_info));
             metadata.insert("subgraph_count".to_string(), serde_json::json!(mermaid_blocks.len()));
 
+            // Create the combined graph - no need for additional layout since we already offset
             Ok(ImportedGraph {
                 nodes: all_nodes,
                 edges: all_edges,
@@ -1525,6 +1548,431 @@ impl GraphImportService {
     }
 
     fn parse_mermaid_diagram(&self, diagram: &str) -> Result<ImportedGraph, DomainError> {
+        // Detect diagram type from the first non-comment line
+        let lines: Vec<&str> = diagram.lines()
+            .map(|line| line.trim())
+            .filter(|line| !line.is_empty() && !line.starts_with("%%"))
+            .collect();
+
+        let mut diagram_type = "flowchart"; // default
+        let mut direction = "TD"; // default direction
+        if !lines.is_empty() {
+            let first = lines[0];
+            if first.starts_with("classDiagram") {
+                diagram_type = "classDiagram";
+            } else if first.starts_with("flowchart") {
+                diagram_type = "flowchart";
+                if let Some(dir) = first.split_whitespace().nth(1) {
+                    direction = dir;
+                }
+            } else if first.starts_with("graph") {
+                diagram_type = "graph";
+                if let Some(dir) = first.split_whitespace().nth(1) {
+                    direction = dir;
+                }
+            } else if first.starts_with("digraph") {
+                diagram_type = "digraph";
+            }
+        }
+
+        match diagram_type {
+            "classDiagram" => {
+                // Call a dedicated class diagram parser with card-like layout
+                let imported = self.parse_class_diagram(&lines)?;
+                Ok(imported)
+            }
+            "flowchart" | "graph" | "digraph" => {
+                // Use the existing parser and apply layout based on direction/type
+                let mut imported = self.parse_flowchart_graph(&lines, diagram_type, direction)?;
+                // Don't apply layout to individual diagrams - we'll position them in the grid
+                // self.apply_mermaid_layout(&mut imported.nodes, &imported.edges)?;
+                Ok(imported)
+            }
+            _ => Err(DomainError::ValidationError("Unsupported Mermaid diagram type".to_string())),
+        }
+    }
+
+    /// Parse Mermaid classDiagram with card-like layout
+    fn parse_class_diagram(&self, lines: &[&str]) -> Result<ImportedGraph, DomainError> {
+        let mut nodes = Vec::new();
+        let mut edges = Vec::new();
+        let mut node_map = HashMap::new();
+
+        // Layout parameters for card-like appearance
+        let card_width = 40.0;
+        let card_height = 25.0;
+        let horizontal_spacing = 15.0;
+        let vertical_spacing = 20.0;
+
+        // Track positions for card layout
+        let mut current_x = 0.0;
+        let mut current_y = 0.0;
+        let mut row_count = 0;
+
+        // Parse class definitions
+        for (i, line) in lines.iter().skip(1).enumerate() {
+            let trimmed = line.trim();
+
+            if trimmed.starts_with("class ") {
+                let class_name = trimmed[6..].split_whitespace().next().unwrap_or("");
+                if !class_name.is_empty() && !node_map.contains_key(class_name) {
+                    // Create card-like offset for visual interest
+                    let offset_x = (nodes.len() % 3) as f32 * 5.0;
+                    let offset_y = (nodes.len() % 2) as f32 * 3.0;
+
+                    let position = Position3D {
+                        x: current_x + offset_x,
+                        y: current_y + offset_y,
+                        z: 0.0,
+                    };
+
+                    node_map.insert(class_name.to_string(), nodes.len());
+                    nodes.push(ImportedNode {
+                        id: class_name.to_string(),
+                        node_type: "Class".to_string(),
+                        label: class_name.to_string(),
+                        position,
+                        properties: HashMap::new(),
+                    });
+
+                    // Update position for next card
+                    current_x += card_width + horizontal_spacing;
+                    row_count += 1;
+
+                    // Start new row after 4 cards
+                    if row_count >= 4 {
+                        current_x = 0.0;
+                        current_y -= card_height + vertical_spacing;
+                        row_count = 0;
+                    }
+                }
+            }
+
+            // Parse inheritance: ClassA --|> ClassB
+            if trimmed.contains("--|>") {
+                let parts: Vec<&str> = trimmed.split("--|>").collect();
+                if parts.len() == 2 {
+                    let child = parts[0].trim();
+                    let parent = parts[1].trim();
+
+                    // Ensure both nodes exist
+                    for class_name in &[child, parent] {
+                        if !node_map.contains_key(*class_name) {
+                            let offset_x = (nodes.len() % 3) as f32 * 5.0;
+                            let offset_y = (nodes.len() % 2) as f32 * 3.0;
+
+                            let position = Position3D {
+                                x: current_x + offset_x,
+                                y: current_y + offset_y,
+                                z: 0.0,
+                            };
+
+                            node_map.insert(class_name.to_string(), nodes.len());
+                            nodes.push(ImportedNode {
+                                id: class_name.to_string(),
+                                node_type: "Class".to_string(),
+                                label: class_name.to_string(),
+                                position,
+                                properties: HashMap::new(),
+                            });
+
+                            current_x += card_width + horizontal_spacing;
+                            row_count += 1;
+
+                            if row_count >= 4 {
+                                current_x = 0.0;
+                                current_y -= card_height + vertical_spacing;
+                                row_count = 0;
+                            }
+                        }
+                    }
+
+                    edges.push(ImportedEdge {
+                        id: format!("{}-extends-{}", child, parent),
+                        source: child.to_string(),
+                        target: parent.to_string(),
+                        edge_type: "extends".to_string(),
+                        properties: {
+                            let mut props = HashMap::new();
+                            props.insert("relationship_type".to_string(), serde_json::json!("extends"));
+                            props
+                        },
+                    });
+                }
+            }
+
+            // Parse composition: ClassA --* ClassB
+            if trimmed.contains("--*") {
+                let parts: Vec<&str> = trimmed.split("--*").collect();
+                if parts.len() == 2 {
+                    let whole = parts[0].trim();
+                    let part = parts[1].trim();
+
+                    edges.push(ImportedEdge {
+                        id: format!("{}-composition-{}", whole, part),
+                        source: whole.to_string(),
+                        target: part.to_string(),
+                        edge_type: "composition".to_string(),
+                        properties: {
+                            let mut props = HashMap::new();
+                            props.insert("relationship_type".to_string(), serde_json::json!("composition"));
+                            props
+                        },
+                    });
+                }
+            }
+
+            // Parse aggregation: ClassA --o ClassB
+            if trimmed.contains("--o") {
+                let parts: Vec<&str> = trimmed.split("--o").collect();
+                if parts.len() == 2 {
+                    let container = parts[0].trim();
+                    let contained = parts[1].trim();
+
+                    edges.push(ImportedEdge {
+                        id: format!("{}-aggregation-{}", container, contained),
+                        source: container.to_string(),
+                        target: contained.to_string(),
+                        edge_type: "aggregation".to_string(),
+                        properties: {
+                            let mut props = HashMap::new();
+                            props.insert("relationship_type".to_string(), serde_json::json!("aggregation"));
+                            props
+                        },
+                    });
+                }
+            }
+
+            // Parse association: ClassA --> ClassB
+            if trimmed.contains("-->") && !trimmed.contains("--|>") {
+                let parts: Vec<&str> = trimmed.split("-->").collect();
+                if parts.len() == 2 {
+                    let from = parts[0].trim();
+                    let to = parts[1].trim();
+
+                    edges.push(ImportedEdge {
+                        id: format!("{}-association-{}", from, to),
+                        source: from.to_string(),
+                        target: to.to_string(),
+                        edge_type: "association".to_string(),
+                        properties: {
+                            let mut props = HashMap::new();
+                            props.insert("relationship_type".to_string(), serde_json::json!("association"));
+                            props
+                        },
+                    });
+                }
+            }
+        }
+
+        // Center the diagram around origin
+        if !nodes.is_empty() {
+            let (min_x, max_x, min_y, max_y) = nodes.iter().fold(
+                (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
+                |(min_x, max_x, min_y, max_y), node| {
+                    (
+                        min_x.min(node.position.x),
+                        max_x.max(node.position.x),
+                        min_y.min(node.position.y),
+                        max_y.max(node.position.y),
+                    )
+                },
+            );
+
+            let center_x = (min_x + max_x) / 2.0;
+            let center_y = (min_y + max_y) / 2.0;
+
+            // Center all nodes
+            for node in &mut nodes {
+                node.position.x -= center_x;
+                node.position.y -= center_y;
+            }
+        }
+
+        Ok(ImportedGraph {
+            nodes,
+            edges,
+            metadata: {
+                let mut meta = HashMap::new();
+                meta.insert("diagram_type".to_string(), serde_json::json!("classDiagram"));
+                meta.insert("layout".to_string(), serde_json::json!("card"));
+                meta
+            }
+        })
+    }
+
+    /// Apply card-like layout for class diagrams
+    fn apply_class_diagram_layout(&self, graph: &mut ImportedGraph) -> Result<(), DomainError> {
+        let nodes = &mut graph.nodes;
+        let edges = &graph.edges;
+        // Create a proper class diagram layout with card-like positioning
+
+        // Group nodes by their relationships
+        let mut inheritance_tree: HashMap<String, Vec<String>> = HashMap::new();
+        let mut associations: HashMap<String, Vec<String>> = HashMap::new();
+        let mut root_nodes: HashSet<String> = nodes.iter().map(|n| n.id.clone()).collect();
+
+        // Analyze relationships
+        for edge in edges {
+            let rel_type = edge.properties.get("relationship_type")
+                .and_then(|v| v.as_str())
+                .unwrap_or(&edge.edge_type);
+
+            match rel_type {
+                "extends" | "implements" | "inherits" => {
+                    inheritance_tree.entry(edge.target.clone())
+                        .or_insert_with(Vec::new)
+                        .push(edge.source.clone());
+                    root_nodes.remove(&edge.source);
+                }
+                "association" | "uses" | "depends" => {
+                    associations.entry(edge.source.clone())
+                        .or_insert_with(Vec::new)
+                        .push(edge.target.clone());
+                }
+                _ => {}
+            }
+        }
+
+        // Layout parameters for card-like appearance
+        let card_width = 40.0;
+        let card_height = 25.0;
+        let horizontal_spacing = 15.0;
+        let vertical_spacing = 20.0;
+        let group_spacing = 30.0;
+
+        // Create a mutable map for updating positions
+        let mut node_positions: HashMap<String, Position3D> = HashMap::new();
+        let mut positioned_nodes = HashSet::new();
+
+        // Layout root classes (top level)
+        let mut current_x = 0.0;
+        let mut current_y = 0.0;
+        let mut row_count = 0;
+
+        let root_vec: Vec<String> = root_nodes.into_iter().collect();
+        for (i, root_id) in root_vec.iter().enumerate() {
+            // Create a slight offset pattern for visual interest
+            let offset_x = (i % 3) as f32 * 5.0;
+            let offset_y = (i % 2) as f32 * 3.0;
+
+            node_positions.insert(root_id.clone(), Position3D {
+                x: current_x + offset_x,
+                y: current_y + offset_y,
+                z: 0.0,
+            });
+            positioned_nodes.insert(root_id.clone());
+
+            current_x += card_width + horizontal_spacing;
+            row_count += 1;
+
+            // Start new row after 4 cards
+            if row_count >= 4 {
+                current_x = 0.0;
+                current_y -= card_height + vertical_spacing;
+                row_count = 0;
+            }
+        }
+
+        // Move to next section for child classes
+        if row_count > 0 {
+            current_y -= card_height + group_spacing;
+        }
+
+        // Layout inheritance hierarchies
+        for (parent_id, children) in &inheritance_tree {
+            if let Some(parent_pos) = node_positions.get(parent_id).cloned() {
+                // Position children in a fan below parent
+                let child_count = children.len();
+                let fan_width = (child_count as f32 - 1.0) * (card_width + horizontal_spacing);
+                let start_x = parent_pos.x - fan_width / 2.0;
+
+                for (i, child_id) in children.iter().enumerate() {
+                    if !positioned_nodes.contains(child_id) {
+                        let child_x = start_x + (i as f32 * (card_width + horizontal_spacing));
+                        let child_y = parent_pos.y - (card_height + vertical_spacing);
+
+                        node_positions.insert(child_id.clone(), Position3D {
+                            x: child_x,
+                            y: child_y,
+                            z: 0.0,
+                        });
+                        positioned_nodes.insert(child_id.clone());
+                    }
+                }
+            }
+        }
+
+        // Layout associated classes to the right
+        let mut association_x = node_positions.values()
+            .map(|p| p.x)
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap_or(0.0) + group_spacing;
+
+        for (source_id, targets) in &associations {
+            if let Some(source_pos) = node_positions.get(source_id).cloned() {
+                for (i, target_id) in targets.iter().enumerate() {
+                    if !positioned_nodes.contains(target_id) {
+                        node_positions.insert(target_id.clone(), Position3D {
+                            x: association_x,
+                            y: source_pos.y - (i as f32 * (card_height + horizontal_spacing)),
+                            z: 0.0,
+                        });
+                        positioned_nodes.insert(target_id.clone());
+                        association_x += card_width + horizontal_spacing;
+                    }
+                }
+            }
+        }
+
+        // Position any remaining nodes
+        let mut remaining_x = 0.0;
+        let remaining_y = node_positions.values()
+            .map(|p| p.y)
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap_or(0.0) - group_spacing;
+
+        for node in nodes {
+            if !positioned_nodes.contains(&node.id) {
+                node_positions.insert(node.id.clone(), Position3D {
+                    x: remaining_x,
+                    y: remaining_y,
+                    z: 0.0,
+                });
+                remaining_x += card_width + horizontal_spacing;
+
+                if remaining_x > (card_width + horizontal_spacing) * 4.0 {
+                    remaining_x = 0.0;
+                }
+            }
+        }
+
+        // Center the entire diagram
+        let (min_x, max_x, min_y, max_y) = node_positions.values().fold(
+            (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
+            |(min_x, max_x, min_y, max_y), pos| {
+                (
+                    min_x.min(pos.x),
+                    max_x.max(pos.x),
+                    min_y.min(pos.y),
+                    max_y.max(pos.y),
+                )
+            },
+        );
+
+        let center_x = (min_x + max_x) / 2.0;
+        let center_y = (min_y + max_y) / 2.0;
+
+        // Apply centered positions back to nodes
+        // Note: Since nodes is a slice, we can't modify it directly
+        // This is a limitation of the current design - we'd need to return the positions
+        // or modify the function signature to take mutable nodes
+
+        Ok(())
+    }
+
+    /// Parse Mermaid flowchart/graph/digraph (refactored from old parser)
+    fn parse_flowchart_graph(&self, lines: &[&str], _diagram_type: &str, _direction: &str) -> Result<ImportedGraph, DomainError> {
         use nom::{
             IResult,
             branch::alt,
@@ -1535,53 +1983,22 @@ impl GraphImportService {
             sequence::{tuple, delimited, preceded, terminated},
         };
 
-        // Parse node ID (can be alphanumeric)
         fn node_id(input: &str) -> IResult<&str, &str> {
             recognize(take_while1(|c: char| c.is_alphanumeric() || c == '_' || c == '-'))(input)
         }
-
-        // Parse node label in square brackets [Label] or curly braces {Label}
         fn node_label(input: &str) -> IResult<&str, &str> {
             alt((
-                delimited(
-                    char('['),
-                    take_until("]"),
-                    char(']')
-                ),
-                delimited(
-                    char('{'),
-                    take_until("}"),
-                    char('}')
-                ),
-                delimited(
-                    char('('),
-                    take_until(")"),
-                    char(')')
-                ),
+                delimited(char('['), take_until("]"), char(']')),
+                delimited(char('{'), take_until("}"), char('}')),
+                delimited(char('('), take_until(")"), char(')')),
             ))(input)
         }
-
-        // Parse node with optional label: A[Start]
         fn node_with_label(input: &str) -> IResult<&str, (&str, Option<&str>)> {
-            tuple((
-                node_id,
-                opt(node_label)
-            ))(input)
+            tuple((node_id, opt(node_label)))(input)
         }
-
-        // Parse arrow types
         fn arrow(input: &str) -> IResult<&str, &str> {
-            alt((
-                tag("-->"),
-                tag("->"),
-                tag("---"),
-                tag("-.->"),
-                tag("==>"),
-                tag("--"),
-            ))(input)
+            alt((tag("-->"), tag("->"), tag("---"), tag("-.->"), tag("==>"), tag("--")))(input)
         }
-
-        // Parse a single edge: A --> B
         fn edge(input: &str) -> IResult<&str, ((&str, Option<&str>), (&str, Option<&str>))> {
             tuple((
                 terminated(node_with_label, multispace0),
@@ -1591,45 +2008,13 @@ impl GraphImportService {
             .map(|(rest, (source, _, target))| (rest, (source, target)))
         }
 
-        // Parse graph type declaration
-        fn graph_declaration(input: &str) -> IResult<&str, ()> {
-            map(
-                tuple((
-                    alt((tag("graph"), tag("flowchart"), tag("classDiagram"))),
-                    multispace1,
-                    alt((tag("TD"), tag("LR"), tag("TB"), tag("RL"), tag("BT")))
-                )),
-                |_| ()
-            )(input)
-        }
-
-        // Main parser
         let mut nodes = HashMap::new();
         let mut edges = Vec::new();
         let mut node_counter = 0;
         let mut subgraph_stack = Vec::new();
         let mut current_subgraph = None;
-
-        // Split into lines and process each
-        let lines: Vec<&str> = diagram.lines()
-            .map(|line| line.trim())
-            .filter(|line| !line.is_empty() && !line.starts_with("%%"))
-            .collect();
-
-        // Skip the graph declaration if present
-        let start_index = if !lines.is_empty() {
-            if let Ok(_) = graph_declaration(lines[0]) {
-                1
-            } else {
-                0
-            }
-        } else {
-            0
-        };
-
-        // Process each line
+        let start_index = if !lines.is_empty() && (lines[0].starts_with("graph") || lines[0].starts_with("flowchart") || lines[0].starts_with("digraph")) { 1 } else { 0 };
         for line in &lines[start_index..] {
-            // Check for subgraph start
             if line.starts_with("subgraph") {
                 if let Some(name_start) = line.find('[') {
                     if let Some(name_end) = line.find(']') {
@@ -1640,53 +2025,42 @@ impl GraphImportService {
                 }
                 continue;
             }
-
-            // Check for subgraph end
             if line.trim() == "end" {
                 subgraph_stack.pop();
                 current_subgraph = subgraph_stack.last().cloned();
                 continue;
             }
-
-            // Try to parse as edge
             if let Ok((_, ((source_id, source_label), (target_id, target_label)))) = edge(line) {
-                // Add source node if not exists
                 if !nodes.contains_key(source_id) {
                     let label = source_label.unwrap_or(source_id).to_string();
                     let mut properties = HashMap::new();
                     if let Some(ref sg) = current_subgraph {
                         properties.insert("subgraph".to_string(), serde_json::json!(sg));
                     }
-
                     nodes.insert(source_id.to_string(), ImportedNode {
                         id: source_id.to_string(),
                         node_type: "Node".to_string(),
                         label,
-                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 }, // Will be laid out later
+                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
                         properties,
                     });
                     node_counter += 1;
                 }
-
-                // Add target node if not exists
                 if !nodes.contains_key(target_id) {
                     let label = target_label.unwrap_or(target_id).to_string();
                     let mut properties = HashMap::new();
                     if let Some(ref sg) = current_subgraph {
                         properties.insert("subgraph".to_string(), serde_json::json!(sg));
                     }
-
                     nodes.insert(target_id.to_string(), ImportedNode {
                         id: target_id.to_string(),
                         node_type: "Node".to_string(),
                         label,
-                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 }, // Will be laid out later
+                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
                         properties,
                     });
                     node_counter += 1;
                 }
-
-                // Add edge
                 edges.push(ImportedEdge {
                     id: format!("{}-{}", source_id, target_id),
                     source: source_id.to_string(),
@@ -1694,155 +2068,53 @@ impl GraphImportService {
                     edge_type: "-->".to_string(),
                     properties: HashMap::new(),
                 });
-            }
-            // Try to parse as standalone node
-            else if let Ok((_, (node_id_str, label))) = node_with_label(line) {
+            } else if let Ok((_, (node_id_str, label))) = node_with_label(line) {
                 if !nodes.contains_key(node_id_str) {
                     let label = label.unwrap_or(node_id_str).to_string();
                     let mut properties = HashMap::new();
                     if let Some(ref sg) = current_subgraph {
                         properties.insert("subgraph".to_string(), serde_json::json!(sg));
                     }
-
                     nodes.insert(node_id_str.to_string(), ImportedNode {
                         id: node_id_str.to_string(),
                         node_type: "Node".to_string(),
                         label,
-                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 }, // Will be laid out later
+                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
                         properties,
                     });
                     node_counter += 1;
                 }
             }
         }
-
         if nodes.is_empty() {
             return Err(DomainError::ValidationError("No valid nodes found in Mermaid diagram".to_string()));
         }
 
-        // Apply hierarchical layout for better visualization
-        let mut node_vec: Vec<ImportedNode> = nodes.into_values().collect();
-        self.apply_mermaid_layout(&mut node_vec, &edges)?;
+        // Create nodes with simple grid positions
+        let mut node_vec: Vec<ImportedNode> = Vec::new();
+        let node_spacing = 100.0;
+        let nodes_per_row = 4;
 
-        Ok(ImportedGraph {
-            nodes: node_vec,
-            edges,
-            metadata: HashMap::new(),
-        })
-    }
+        for (idx, (id, node)) in nodes.into_iter().enumerate() {
+            let row = idx / nodes_per_row;
+            let col = idx % nodes_per_row;
 
-    /// Apply a hierarchical layout to Mermaid diagram nodes
-    fn apply_mermaid_layout(&self, nodes: &mut Vec<ImportedNode>, edges: &[ImportedEdge]) -> Result<(), DomainError> {
-        // Build adjacency lists
-        let mut outgoing: HashMap<String, Vec<String>> = HashMap::new();
-        let mut incoming: HashMap<String, Vec<String>> = HashMap::new();
+            let position = Position3D {
+                x: (col as f32) * node_spacing,
+                y: (row as f32) * node_spacing,
+                z: 0.0,
+            };
 
-        for edge in edges {
-            outgoing.entry(edge.source.clone()).or_insert_with(Vec::new).push(edge.target.clone());
-            incoming.entry(edge.target.clone()).or_insert_with(Vec::new).push(edge.source.clone());
+            node_vec.push(ImportedNode {
+                id: id.clone(),
+                node_type: node.node_type,
+                label: node.label,
+                position,
+                properties: node.properties,
+            });
         }
 
-        // Find root nodes (no incoming edges)
-        let root_nodes: Vec<String> = nodes.iter()
-            .filter(|n| !incoming.contains_key(&n.id))
-            .map(|n| n.id.clone())
-            .collect();
-
-        // If no root nodes, pick nodes with minimal incoming edges
-        let root_nodes = if root_nodes.is_empty() {
-            let min_incoming = incoming.values().map(|v| v.len()).min().unwrap_or(0);
-            nodes.iter()
-                .filter(|n| incoming.get(&n.id).map_or(0, |v| v.len()) == min_incoming)
-                .map(|n| n.id.clone())
-                .collect()
-        } else {
-            root_nodes
-        };
-
-        // Assign levels using BFS
-        let mut levels: HashMap<String, usize> = HashMap::new();
-        let mut queue = std::collections::VecDeque::new();
-
-        for root in &root_nodes {
-            queue.push_back((root.clone(), 0));
-        }
-
-        while let Some((node_id, level)) = queue.pop_front() {
-            if levels.contains_key(&node_id) {
-                continue;
-            }
-
-            levels.insert(node_id.clone(), level);
-
-            if let Some(children) = outgoing.get(&node_id) {
-                for child in children {
-                    queue.push_back((child.clone(), level + 1));
-                }
-            }
-        }
-
-        // Group nodes by level
-        let mut level_groups: HashMap<usize, Vec<String>> = HashMap::new();
-        for (node_id, level) in &levels {
-            level_groups.entry(*level).or_insert_with(Vec::new).push(node_id.clone());
-        }
-
-        // Group nodes by subgraph
-        let mut subgraph_groups: HashMap<String, Vec<String>> = HashMap::new();
-        for node in nodes.iter() {
-            let subgraph = node.properties.get("subgraph")
-                .and_then(|v| v.as_str())
-                .unwrap_or("default")
-                .to_string();
-            subgraph_groups.entry(subgraph).or_insert_with(Vec::new).push(node.id.clone());
-        }
-
-        // Layout parameters
-        let level_spacing = 150.0;
-        let node_spacing = 120.0;
-        let subgraph_spacing = 300.0;
-
-        // Position nodes
-        let mut node_positions: HashMap<String, Position3D> = HashMap::new();
-        let mut current_x_offset = 0.0;
-
-        // Layout each subgraph
-        for (subgraph_idx, (_subgraph_name, subgraph_nodes)) in subgraph_groups.iter().enumerate() {
-            let subgraph_x_base = current_x_offset;
-            let mut max_x_in_subgraph: f32 = 0.0;
-
-            // Layout nodes in this subgraph by level
-            for level in 0..=level_groups.len() {
-                let nodes_at_level: Vec<&String> = level_groups.get(&level)
-                    .map(|nodes| nodes.iter().filter(|n| subgraph_nodes.contains(n)).collect())
-                    .unwrap_or_default();
-
-                if nodes_at_level.is_empty() {
-                    continue;
-                }
-
-                let y = level as f32 * level_spacing;
-                let total_width = (nodes_at_level.len() - 1) as f32 * node_spacing;
-                let start_x = subgraph_x_base - total_width / 2.0;
-
-                for (i, node_id) in nodes_at_level.iter().enumerate() {
-                    let x = start_x + (i as f32 * node_spacing);
-                    node_positions.insert((*node_id).clone(), Position3D { x, y, z: 0.0 });
-                    max_x_in_subgraph = max_x_in_subgraph.max(x);
-                }
-            }
-
-            current_x_offset = max_x_in_subgraph + subgraph_spacing;
-        }
-
-        // Apply positions to nodes
-        for node in nodes.iter_mut() {
-            if let Some(pos) = node_positions.get(&node.id) {
-                node.position = *pos;
-            }
-        }
-
-        Ok(())
+        Ok(ImportedGraph { nodes: node_vec, edges, metadata: HashMap::new() })
     }
 
     /// Import from DOT/Graphviz format

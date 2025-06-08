@@ -228,6 +228,31 @@ impl Graph {
                 self.emit_event(DomainEvent::Graph(GraphEvent::GraphDeleted { id }));
                 Ok(self.get_uncommitted_events())
             }
+            GraphCommand::ClearGraph { graph_id } => {
+                if self.id != graph_id {
+                    return Err(GraphError::GraphNotFound(graph_id));
+                }
+
+                // Emit removal events for all edges first
+                let edge_ids: Vec<EdgeId> = self.edges.keys().cloned().collect();
+                for edge_id in edge_ids {
+                    self.emit_event(DomainEvent::Edge(EdgeEvent::EdgeRemoved {
+                        graph_id,
+                        edge_id,
+                    }));
+                }
+
+                // Then emit removal events for all nodes
+                let node_ids: Vec<NodeId> = self.nodes.keys().cloned().collect();
+                for node_id in node_ids {
+                    self.emit_event(DomainEvent::Node(NodeEvent::NodeRemoved {
+                        graph_id,
+                        node_id,
+                    }));
+                }
+
+                Ok(self.get_uncommitted_events())
+            }
             GraphCommand::AddNode { graph_id, node_id, node_type, position, content } => {
                 if self.id != graph_id {
                     return Err(GraphError::GraphNotFound(graph_id));

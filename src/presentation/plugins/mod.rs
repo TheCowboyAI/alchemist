@@ -1,11 +1,10 @@
 //! Bevy Plugins for the Presentation Layer
 
 use bevy::{
-    input::mouse::MouseWheel,
     prelude::*,
-    render::mesh::{Indices, PrimitiveTopology},
+    render::view::{ViewVisibility, InheritedVisibility},
 };
-use tracing::info;
+use tracing::{info, warn};
 use crate::application::command_handlers::process_commands;
 use crate::application::{CommandEvent, EventNotification};
 use crate::domain::commands::{Command, EdgeCommand, NodeCommand};
@@ -13,7 +12,8 @@ use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
 use crate::domain::value_objects::{
     EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, NodeType, Position3D, RelationshipType,
 };
-use crate::presentation::components::*;
+use std::collections::HashMap;
+// use crate::presentation::components::*; // Unused - specific imports below
 use crate::presentation::events::{ImportResultEvent, ImportRequestEvent};
 use crate::presentation::systems::{
     forward_import_requests,
@@ -24,14 +24,19 @@ use crate::presentation::systems::{
     toggle_subgraph_boundary_type,
     ImportPlugin, display_import_help, display_camera_help,
 };
-use std::time::SystemTime;
+// use std::time::SystemTime; // Unused
 use crate::presentation::components::{
     EdgeDrawAnimation, EventRecorder, EventReplayer, ForceLayoutParticipant, ForceLayoutSettings,
     ForceNode, GraphContainer, GraphEdge, GraphNode, NodeAppearanceAnimation, NodeLabel,
-    RecordedEvent, ScheduledCommand, OrbitCamera,
+    RecordedEvent, ScheduledCommand, OrbitCamera, PendingEdge, NodeLabelEntity,
+    SubgraphOrigins, SubgraphInfo, SubgraphMember, VoronoiSettings,
 };
 use crate::presentation::systems::subgraph_visualization::{SubgraphVisualizationPlugin, display_subgraph_help};
 use crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin;
+
+pub mod subgraph_plugin;
+
+pub use subgraph_plugin::SubgraphPlugin;
 
 /// Main plugin for the graph editor
 pub struct GraphEditorPlugin;
@@ -39,61 +44,26 @@ pub struct GraphEditorPlugin;
 impl Plugin for GraphEditorPlugin {
     fn build(&self, app: &mut App) {
         app
-            // Register events
+            // Resources
+            .init_resource::<ForceLayoutSettings>()
+            .init_resource::<SubgraphOrigins>()
+            .init_resource::<VoronoiSettings>()
+
+            // Events
             .add_event::<CommandEvent>()
             .add_event::<EventNotification>()
             .add_event::<ImportResultEvent>()
             .add_event::<ImportRequestEvent>()
-            // Add resources
-            .insert_resource(ForceLayoutSettings::default())
-            // Add import plugin
-            .add_plugins((
-                ImportPlugin,
-                SubgraphVisualizationPlugin,
-                VoronoiTessellationPlugin,
-            ))
-            // Add systems
-            .add_systems(Startup, (setup_camera, setup_lighting, display_import_help, display_camera_help, display_subgraph_help))
-            .add_systems(
-                Update,
-                (
-                    // Command processing chain - MUST run in order
-                    (
-                        process_commands,
-                        forward_import_requests,
-                        process_graph_import_requests,
-                        forward_import_results,
-                    ).chain(),
-                    // Other systems can run in parallel
-                    execute_scheduled_commands,
-                    handle_domain_events,
-                    record_events,
-                    replay_events,
-                    // Animation systems
-                    animate_node_appearance,
-                    animate_edge_drawing,
-                    // Force-directed layout
-                    apply_force_layout,
-                    // update_node_positions,
-                    // Visualization updates
-                    update_edge_positions,
-                    // Label rendering
-                    create_node_labels,
-                    // Debug system
-                    debug_node_visibility,
-                    // Camera controller systems
-                    update_orbit_camera,
-                    orbit_camera_mouse_rotation,
-                    orbit_camera_zoom,
-                    orbit_camera_pan,
-                    reset_camera_view,
-                    focus_camera_on_selection,
-                    // Subgraph visualization systems
-                    update_subgraph_boundaries,
-                    create_subgraph_from_selection,
-                    toggle_subgraph_boundary_type,
-                ),
-            );
+
+            // Systems
+            .add_systems(Startup, setup_graph_editor)
+            .add_systems(Update, (
+                handle_import_requests,
+                handle_import_results,
+                update_force_layout,
+                update_edge_positions,
+                update_subgraph_boundaries,
+            ).chain());
     }
 }
 
@@ -101,13 +71,21 @@ impl Plugin for GraphEditorPlugin {
 fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(100.0, 150.0, 150.0).looking_at(Vec3::new(100.0, 0.0, 0.0), Vec3::Y),
-        OrbitCamera::default(),
+        Transform::from_xyz(50.0, 100.0, 150.0).looking_at(Vec3::ZERO, Vec3::Y),
+        OrbitCamera {
+            focus: Vec3::ZERO,
+            distance: 200.0,
+            ..default()
+        },
     ));
 }
 
 /// Setup basic lighting
-fn setup_lighting(mut commands: Commands) {
+fn setup_lighting(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     // Ambient light
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
@@ -125,6 +103,48 @@ fn setup_lighting(mut commands: Commands) {
         },
         Transform::from_xyz(4.0, 8.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
+
+    // Ground plane for reference
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(200.0, 200.0))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgb(0.05, 0.05, 0.05),
+            metallic: 0.0,
+            perceptual_roughness: 1.0,
+            ..default()
+        })),
+        Transform::from_xyz(0.0, -2.0, 0.0),
+    ));
+
+    // Grid lines for better spatial reference
+    let grid_material = materials.add(StandardMaterial {
+        base_color: Color::srgb(0.2, 0.2, 0.2),
+        emissive: Color::srgb(0.1, 0.1, 0.1).into(),
+        ..default()
+    });
+
+    // Create grid lines
+    let grid_size = 100.0;
+    let grid_spacing = 10.0;
+    let line_thickness = 0.1;
+
+    for i in -10..=10 {
+        let offset = i as f32 * grid_spacing;
+
+        // X-axis lines
+        commands.spawn((
+            Mesh3d(meshes.add(Cuboid::new(grid_size * 2.0, line_thickness, line_thickness))),
+            MeshMaterial3d(grid_material.clone()),
+            Transform::from_xyz(0.0, -1.9, offset),
+        ));
+
+        // Z-axis lines
+        commands.spawn((
+            Mesh3d(meshes.add(Cuboid::new(line_thickness, line_thickness, grid_size * 2.0))),
+            MeshMaterial3d(grid_material.clone()),
+            Transform::from_xyz(offset, -1.9, 0.0),
+        ));
+    }
 }
 
 /// Handle domain events and update the world
@@ -135,6 +155,8 @@ fn handle_domain_events(
     mut materials: ResMut<Assets<StandardMaterial>>,
     time: Res<Time>,
     node_query: Query<(Entity, &GraphNode)>,
+    edge_query: Query<(Entity, &GraphEdge)>,
+    mut subgraph_origins: ResMut<SubgraphOrigins>,
 ) {
     let event_count = events.len();
     if event_count > 0 {
@@ -171,9 +193,10 @@ fn handle_domain_events(
                     &mut materials,
                     *graph_id,
                     *node_id,
-                    metadata,
-                    *position,
+                    position,
                     &time,
+                    metadata,
+                    &mut subgraph_origins,
                 );
             }
             DomainEvent::Edge(EdgeEvent::EdgeConnected {
@@ -195,6 +218,26 @@ fn handle_domain_events(
                     &time,
                     &node_query,
                 );
+            }
+            DomainEvent::Node(NodeEvent::NodeRemoved { node_id, .. }) => {
+                eprintln!("handle_domain_events: Removing node {:?}", node_id);
+                // Find and despawn the node entity
+                for (entity, node) in node_query.iter() {
+                    if node.node_id == *node_id {
+                        commands.entity(entity).despawn_recursive();
+                        break;
+                    }
+                }
+            }
+            DomainEvent::Edge(EdgeEvent::EdgeRemoved { edge_id, .. }) => {
+                eprintln!("handle_domain_events: Removing edge {:?}", edge_id);
+                // Find and despawn the edge entity
+                for (entity, edge) in edge_query.iter() {
+                    if edge.edge_id == *edge_id {
+                        commands.entity(entity).despawn_recursive();
+                        break;
+                    }
+                }
             }
             _ => {
                 eprintln!("handle_domain_events: Unhandled event type: {:?}", event.event.event_type());
@@ -322,56 +365,146 @@ fn spawn_node(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     graph_id: GraphId,
     node_id: NodeId,
-    metadata: &std::collections::HashMap<String, serde_json::Value>,
-    position: Position3D,
-    time: &Time,
+    position: &Position3D,
+    time: &Res<Time>,
+    metadata: &HashMap<String, serde_json::Value>,
+    subgraph_origins: &mut ResMut<SubgraphOrigins>,
 ) {
-    eprintln!("spawn_node: Starting to spawn node {:?}", node_id);
+    eprintln!("spawn_node: Spawning node {:?} at position {:?}", node_id, position);
 
     // Extract label from metadata
-    let label = metadata
-        .get("label")
+    let label = metadata.get("label")
         .and_then(|v| v.as_str())
-        .unwrap_or("Unnamed")
+        .unwrap_or("Node")
         .to_string();
 
-    eprintln!("spawn_node: Node label: {}", label);
+    // Check if this node belongs to a subgraph
+    let subgraph_id = metadata.get("subgraph_id")
+        .and_then(|v| v.as_u64())
+        .map(|id| id as usize);
 
-    let node_mesh = meshes.add(Sphere::new(0.5));
+    let subgraph_name = metadata.get("subgraph")
+        .and_then(|v| v.as_str())
+        .unwrap_or("default")
+        .to_string();
+
+    // Get or extract the subgraph origin
+    let (spawn_position, relative_position) = if let Some(sg_id) = subgraph_id {
+        // Extract the subgraph origin from metadata
+        let origin = metadata.get("subgraph_origin")
+            .and_then(|v| {
+                let x = v.get("x")?.as_f64()? as f32;
+                let y = v.get("y")?.as_f64()? as f32;
+                let z = v.get("z")?.as_f64()? as f32;
+                Some(Position3D { x, y, z })
+            })
+            .unwrap_or_else(|| Position3D { x: 0.0, y: 0.0, z: 0.0 });
+
+        // Calculate relative position (node position should already include origin offset)
+        let relative = Position3D {
+            x: position.x - origin.x,
+            y: position.y - origin.y,
+            z: position.z - origin.z,
+        };
+
+        // Update subgraph info
+        if !subgraph_origins.origins.contains_key(&sg_id) {
+            // Create a visual marker for the subgraph origin (optional)
+            let origin_entity = commands.spawn((
+                Transform::from_translation(Vec3::new(origin.x, origin.y, origin.z)),
+                GlobalTransform::default(),
+                Name::new(format!("SubgraphOrigin_{}", sg_id)),
+            )).id();
+
+            subgraph_origins.origins.insert(sg_id, origin_entity);
+            subgraph_origins.subgraph_info.insert(sg_id, SubgraphInfo {
+                name: subgraph_name.clone(),
+                origin,
+                node_count: 0,
+                member_entities: Vec::new(),
+            });
+        }
+
+        (*position, relative)
+    } else {
+        (*position, Position3D { x: 0.0, y: 0.0, z: 0.0 })
+    };
+
+    // Larger nodes for better visibility
+    let node_mesh = meshes.add(Sphere::new(5.0));
+
+    // Color based on metadata type if available
+    let node_type = metadata
+        .get("type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("default");
+
+    let base_color = match node_type {
+        "Actor" => Color::srgb(0.9, 0.3, 0.3),      // Red for actors
+        "System" => Color::srgb(0.3, 0.9, 0.3),     // Green for systems
+        "Command" => Color::srgb(0.3, 0.3, 0.9),    // Blue for commands
+        "Event" => Color::srgb(0.9, 0.9, 0.3),      // Yellow for events
+        "Policy" => Color::srgb(0.9, 0.3, 0.9),     // Magenta for policies
+        _ => Color::srgb(0.5, 0.7, 0.9),           // Light blue default
+    };
+
     let node_material = materials.add(StandardMaterial {
-        base_color: Color::srgb(0.3, 0.5, 0.8),
-        metallic: 0.3,
-        perceptual_roughness: 0.6,
+        base_color,
+        metallic: 0.2,
+        perceptual_roughness: 0.4,
         ..default()
     });
 
-    // Convert position but keep y at 0 for consistency with force layout
-    let mut spawn_position: Vec3 = position.into();
-    spawn_position.y = 0.0;
+    // Convert position - preserve all coordinates including Y for grid layouts
+    let spawn_position_vec: Vec3 = spawn_position.into();
 
-    let entity = commands.spawn((
-        GraphNode { node_id, graph_id },
-        NodeLabel { text: label.clone() },
+    let mut entity = commands.spawn((
+        GraphNode {
+            node_id,
+            graph_id,
+        },
         Mesh3d(node_mesh),
         MeshMaterial3d(node_material),
-        Transform::from_translation(spawn_position).with_scale(Vec3::splat(1.0)), // Start at full size
+        Transform::from_translation(spawn_position_vec),
+        GlobalTransform::default(),
+        Visibility::default(),
+        InheritedVisibility::default(),
+        ViewVisibility::default(),
         NodeAppearanceAnimation {
             start_time: time.elapsed_secs(),
             duration: 0.5,
-            start_scale: 1.0,  // Already at full size
+            start_scale: 0.0,
             target_scale: 1.0,
         },
-        // Temporarily disable force layout for imported nodes
-        // ForceNode {
-        //     velocity: Vec3::ZERO,
-        //     mass: 1.0,
-        //     charge: 1.0,
-        // },
-        // ForceLayoutParticipant,
-        Visibility::Visible,  // Explicitly set visibility
-    )).id();
+        ForceNode {
+            velocity: Vec3::ZERO,
+            mass: 1.0,
+            charge: 1.0,
+        },
+        ForceLayoutParticipant,
+        NodeLabel {
+            text: label,
+        },
+        Name::new(format!("Node_{}", node_id)),
+    ));
 
-    eprintln!("spawn_node: Spawned node {:?} as entity {:?} at position {:?}", node_id, entity, spawn_position);
+    // Add subgraph membership if applicable
+    if let Some(sg_id) = subgraph_id {
+        entity.insert(SubgraphMember {
+            subgraph_id: sg_id,
+            relative_position,
+        });
+    }
+
+    let entity_id = entity.id();
+
+    // Update subgraph info after spawning
+    if let Some(sg_id) = subgraph_id {
+        if let Some(info) = subgraph_origins.subgraph_info.get_mut(&sg_id) {
+            info.node_count += 1;
+            info.member_entities.push(entity_id);
+        }
+    }
 }
 
 /// Spawn an edge entity
@@ -391,21 +524,29 @@ fn spawn_edge(
     let mut source_entity = None;
     let mut target_entity = None;
 
+    eprintln!("spawn_edge: Looking for source {:?} and target {:?}", source_id, target_id);
+    eprintln!("spawn_edge: Total nodes in query: {}", node_query.iter().count());
+
     for (entity, node) in node_query.iter() {
+        eprintln!("spawn_edge: Checking node {:?}", node.node_id);
         if node.node_id == source_id {
             source_entity = Some(entity);
+            eprintln!("spawn_edge: Found source entity {:?}", entity);
         }
         if node.node_id == target_id {
             target_entity = Some(entity);
+            eprintln!("spawn_edge: Found target entity {:?}", entity);
         }
     }
 
     if let (Some(source), Some(target)) = (source_entity, target_entity) {
-        let edge_mesh = meshes.add(Cylinder::new(0.05, 1.0));
+        eprintln!("spawn_edge: Creating edge between {:?} and {:?}", source, target);
+        let edge_mesh = meshes.add(Cylinder::new(0.2, 1.0));
         let edge_material = materials.add(StandardMaterial {
-            base_color: Color::srgb(0.6, 0.6, 0.6),
-            metallic: 0.1,
-            perceptual_roughness: 0.8,
+            base_color: Color::srgb(0.8, 0.8, 0.8),
+            metallic: 0.3,
+            perceptual_roughness: 0.5,
+            emissive: Color::srgb(0.1, 0.1, 0.1).into(),
             ..default()
         });
 
@@ -425,6 +566,81 @@ fn spawn_edge(
                 progress: 0.0,
             },
         ));
+    } else {
+        eprintln!("spawn_edge: Failed to find source/target entities for edge {:?}", edge_id);
+        eprintln!("  Source entity: {:?}, Target entity: {:?}", source_entity, target_entity);
+        eprintln!("  Creating pending edge to retry later");
+
+        // Create a pending edge entity that will be processed later
+        commands.spawn(PendingEdge {
+            edge_id,
+            graph_id,
+            source_id,
+            target_id,
+            spawn_time: time.elapsed_secs(),
+        });
+    }
+}
+
+/// Process pending edges that couldn't be created earlier
+fn process_pending_edges(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    pending_edges: Query<(Entity, &PendingEdge)>,
+    node_query: Query<(Entity, &GraphNode)>,
+    time: Res<Time>,
+) {
+    for (pending_entity, pending) in pending_edges.iter() {
+        // Try to find source and target nodes
+        let mut source_entity = None;
+        let mut target_entity = None;
+
+        for (entity, node) in node_query.iter() {
+            if node.node_id == pending.source_id {
+                source_entity = Some(entity);
+            }
+            if node.node_id == pending.target_id {
+                target_entity = Some(entity);
+            }
+        }
+
+        if let (Some(source), Some(target)) = (source_entity, target_entity) {
+            eprintln!("process_pending_edges: Creating edge {:?} (was pending)", pending.edge_id);
+
+            let edge_mesh = meshes.add(Cylinder::new(0.2, 1.0));
+            let edge_material = materials.add(StandardMaterial {
+                base_color: Color::srgb(0.8, 0.8, 0.8),
+                metallic: 0.3,
+                perceptual_roughness: 0.5,
+                emissive: Color::srgb(0.1, 0.1, 0.1).into(),
+                ..default()
+            });
+
+            commands.spawn((
+                GraphEdge {
+                    edge_id: pending.edge_id,
+                    graph_id: pending.graph_id,
+                    source,
+                    target,
+                },
+                Mesh3d(edge_mesh),
+                MeshMaterial3d(edge_material),
+                Transform::default(),
+                EdgeDrawAnimation {
+                    start_time: time.elapsed_secs(),
+                    duration: 0.3,
+                    progress: 0.0,
+                },
+            ));
+
+            // Remove the pending edge
+            commands.entity(pending_entity).despawn();
+        } else if time.elapsed_secs() - pending.spawn_time > 5.0 {
+            // Give up after 5 seconds
+            eprintln!("process_pending_edges: Giving up on edge {:?} after 5 seconds", pending.edge_id);
+            commands.entity(pending_entity).despawn();
+        }
     }
 }
 
@@ -736,27 +952,69 @@ fn update_node_positions(
 /// System to create text labels for nodes
 fn create_node_labels(
     mut commands: Commands,
-    nodes: Query<(Entity, &GraphNode, &NodeLabel), Without<Text>>,
+    nodes: Query<(Entity, &GraphNode, &NodeLabel, &Transform), Added<NodeLabel>>,
     asset_server: Res<AssetServer>,
 ) {
-    // Use a default font (Bevy built-in or fallback)
-    let font_handle = asset_server.load("fonts/FiraSans-Bold.ttf"); // TODO: Make font configurable
+    let label_count = nodes.iter().count();
+    if label_count > 0 {
+        eprintln!("create_node_labels: Creating labels for {} nodes", label_count);
+    }
 
-    for (entity, _graph_node, label) in nodes.iter() {
-        commands.entity(entity).with_children(|parent| {
-            parent.spawn(Text3dBundle {
-                text: Text::from_section(
-                    &label.text,
-                    TextStyle {
-                        font: font_handle.clone(),
-                        font_size: 18.0,
-                        color: Color::WHITE,
-                    },
-                ),
-                transform: Transform::from_xyz(0.0, 1.0, 0.0), // Slightly above the node
+    // Load font
+    let font = asset_server.load("fonts/FiraCodeNerdFont-Regular.ttf");
+
+    for (entity, graph_node, label, node_transform) in nodes.iter() {
+        eprintln!("create_node_labels: Creating label '{}' for entity {:?}", label.text, entity);
+
+        // Create UI text that will be positioned in world space
+        let label_entity = commands.spawn((
+            Text::new(&label.text),
+            TextFont {
+                font: font.clone(),
+                font_size: 20.0,
                 ..default()
-            });
-        });
+            },
+            TextColor(Color::WHITE),
+            Node {
+                position_type: PositionType::Absolute,
+                ..default()
+            },
+            NodeLabelEntity {
+                parent_node: entity,
+                offset: Vec3::new(0.0, 30.0, 0.0), // Offset in screen pixels
+            },
+            // Store the world position for conversion
+            Transform::from_translation(node_transform.translation),
+        )).id();
+
+        eprintln!("create_node_labels: Created label entity {:?} for node {:?}", label_entity, entity);
+        eprintln!("  Label text: '{}', World position: {:?}", label.text, node_transform.translation);
+    }
+}
+
+/// Update label positions to follow their parent nodes
+fn update_label_positions(
+    node_query: Query<(Entity, &Transform), With<GraphNode>>,
+    mut label_query: Query<(&NodeLabelEntity, &mut Node, &mut Transform), Without<GraphNode>>,
+    camera_query: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
+) {
+    let Ok((camera, camera_transform)) = camera_query.get_single() else {
+        return;
+    };
+
+    for (label_entity, mut label_node, mut label_transform) in label_query.iter_mut() {
+        // Find the parent node's position
+        if let Ok((_, node_transform)) = node_query.get(label_entity.parent_node) {
+            // Update the stored world position
+            label_transform.translation = node_transform.translation;
+
+            // Convert world position to screen coordinates
+            if let Ok(viewport_pos) = camera.world_to_viewport(camera_transform, node_transform.translation) {
+                // Apply the label to the viewport position with offset
+                label_node.left = Val::Px(viewport_pos.x - 50.0); // Center the text
+                label_node.top = Val::Px(viewport_pos.y - label_entity.offset.y);
+            }
+        }
     }
 }
 
@@ -795,3 +1053,73 @@ fn debug_node_visibility(
         eprintln!("==============================\n");
     }
 }
+
+/// Setup system for the graph editor
+fn setup_graph_editor(mut commands: Commands) {
+    // Create a graph container entity
+    commands.spawn((
+        GraphContainer {
+            graph_id: GraphId::new(),
+            name: "Main Graph".to_string(),
+        },
+        Transform::default(),
+        GlobalTransform::default(),
+    ));
+}
+
+/// Handle import requests
+fn handle_import_requests(
+    mut import_requests: EventReader<ImportRequestEvent>,
+    mut import_results: EventWriter<ImportResultEvent>,
+) {
+    for request in import_requests.read() {
+        // For now, just echo back the event
+        import_results.send(ImportResultEvent {
+            event: request.event.clone(),
+        });
+    }
+}
+
+/// Handle import results
+fn handle_import_results(
+    mut import_results: EventReader<ImportResultEvent>,
+) {
+    for result in import_results.read() {
+        match &result.event {
+            DomainEvent::Graph(crate::domain::events::GraphEvent::GraphImportCompleted {
+                imported_nodes,
+                imported_edges,
+                ..
+            }) => {
+                info!("Import successful: {} nodes, {} edges", imported_nodes, imported_edges);
+            }
+            DomainEvent::Graph(crate::domain::events::GraphEvent::GraphImportFailed {
+                error,
+                ..
+            }) => {
+                warn!("Import failed: {}", error);
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Update force-directed layout
+fn update_force_layout(
+    mut nodes: Query<(&mut Transform, &ForceNode), With<GraphNode>>,
+    edges: Query<(&GraphEdge,)>,
+    settings: Res<ForceLayoutSettings>,
+    time: Res<Time>,
+) {
+    // Simple force-directed layout update
+    let dt = time.delta_secs();
+
+    for (mut transform, force_node) in nodes.iter_mut() {
+        // Apply velocity
+        transform.translation += force_node.velocity * dt;
+
+        // Apply damping
+        // Note: This is a simplified version
+    }
+}
+
