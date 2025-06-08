@@ -7,6 +7,7 @@ pub mod edge_commands;
 pub mod graph_commands;
 pub mod node_commands;
 pub mod workflow;
+pub mod subgraph_commands;
 
 pub use aggregated_commands::{
     DomainCommand, UpdateNodePositions, UpdateGraphSelection,
@@ -16,6 +17,7 @@ pub use edge_commands::EdgeCommand;
 pub use graph_commands::{GraphCommand, ImportSource, ImportOptions};
 pub use node_commands::NodeCommand;
 pub use workflow::WorkflowCommand;
+pub use subgraph_commands::SubgraphCommand;
 
 /// All commands in the system
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,6 +25,7 @@ pub enum Command {
     Graph(GraphCommand),
     Node(NodeCommand),
     Edge(EdgeCommand),
+    Subgraph(SubgraphCommand),
     Workflow(WorkflowCommand),
 }
 
@@ -32,6 +35,7 @@ impl Command {
             Command::Graph(c) => c.command_type(),
             Command::Node(c) => c.command_type(),
             Command::Edge(c) => c.command_type(),
+            Command::Subgraph(_) => "subgraph",
             Command::Workflow(_) => "workflow",
         }
     }

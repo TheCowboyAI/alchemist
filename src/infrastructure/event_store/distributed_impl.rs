@@ -156,6 +156,13 @@ impl EventStore for DistributedEventStore {
                 WorkflowEvent::WorkflowCompleted(e) => e.workflow_id.to_string(),
                 WorkflowEvent::WorkflowFailed(e) => e.workflow_id.to_string(),
             },
+            DomainEvent::Subgraph(subgraph_event) => match subgraph_event {
+                crate::domain::events::SubgraphEvent::SubgraphCreated { graph_id, .. } => graph_id.to_string(),
+                crate::domain::events::SubgraphEvent::SubgraphRemoved { graph_id, .. } => graph_id.to_string(),
+                crate::domain::events::SubgraphEvent::SubgraphMoved { graph_id, .. } => graph_id.to_string(),
+                crate::domain::events::SubgraphEvent::NodeAddedToSubgraph { graph_id, .. } => graph_id.to_string(),
+                crate::domain::events::SubgraphEvent::NodeRemovedFromSubgraph { graph_id, .. } => graph_id.to_string(),
+            },
         };
 
         self.append_events(aggregate_id, vec![event]).await

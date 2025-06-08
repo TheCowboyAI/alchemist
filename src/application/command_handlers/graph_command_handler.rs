@@ -4,7 +4,7 @@
 //! and persists events to the event store.
 
 use crate::domain::aggregates::Graph;
-use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand};
+use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand, SubgraphCommand};
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::event_store::EventStore;
 use std::sync::Arc;
@@ -77,6 +77,7 @@ impl CommandHandler for GraphCommandHandler {
             Command::Graph(graph_cmd) => self.handle_graph_command(graph_cmd).await,
             Command::Node(node_cmd) => self.handle_node_command(node_cmd).await,
             Command::Edge(edge_cmd) => self.handle_edge_command(edge_cmd).await,
+            Command::Subgraph(subgraph_cmd) => self.handle_subgraph_command(subgraph_cmd).await,
             Command::Workflow(_) => {
                 // Workflow commands should be handled by WorkflowCommandHandler
                 Err(CommandHandlerError::Other("Workflow commands should be handled by WorkflowCommandHandler".to_string()))
@@ -163,6 +164,27 @@ impl GraphCommandHandler {
 
         let mut aggregate = self.load_or_create_aggregate(graph_id).await?;
         let events = aggregate.handle_command(Command::Edge(command))?;
+
+        // Store events
+        if !events.is_empty() {
+            self.event_store.append_events(graph_id.to_string(), events.clone()).await?;
+        }
+
+        Ok(events)
+    }
+
+    async fn handle_subgraph_command(&self, command: SubgraphCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+        let graph_id = match &command {
+            SubgraphCommand::CreateSubgraph { graph_id, .. } => *graph_id,
+            SubgraphCommand::RemoveSubgraph { graph_id, .. } => *graph_id,
+            SubgraphCommand::MoveSubgraph { graph_id, .. } => *graph_id,
+            SubgraphCommand::AddNodeToSubgraph { graph_id, .. } => *graph_id,
+            SubgraphCommand::RemoveNodeFromSubgraph { graph_id, .. } => *graph_id,
+            SubgraphCommand::MoveNodeBetweenSubgraphs { graph_id, .. } => *graph_id,
+        };
+
+        let mut aggregate = self.load_or_create_aggregate(graph_id).await?;
+        let events = aggregate.handle_command(Command::Subgraph(command))?;
 
         // Store events
         if !events.is_empty() {

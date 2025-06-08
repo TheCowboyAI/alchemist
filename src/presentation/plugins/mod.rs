@@ -8,7 +8,7 @@ use tracing::{info, warn};
 use crate::application::command_handlers::process_commands;
 use crate::application::{CommandEvent, EventNotification};
 use crate::domain::commands::{Command, EdgeCommand, NodeCommand};
-use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
+use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent, SubgraphEvent};
 use crate::domain::value_objects::{
     EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, NodeType, Position3D, RelationshipType,
 };
@@ -31,6 +31,7 @@ use crate::presentation::components::{
     RecordedEvent, ScheduledCommand, OrbitCamera, PendingEdge, NodeLabelEntity,
     SubgraphOrigins, SubgraphInfo, SubgraphMember, VoronoiSettings,
 };
+use crate::presentation::bevy_systems::{SubgraphOrigin, SubgraphSpatialMap};
 use crate::presentation::systems::subgraph_visualization::{SubgraphVisualizationPlugin, display_subgraph_help};
 use crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin;
 
@@ -235,6 +236,70 @@ fn handle_domain_events(
                 for (entity, edge) in edge_query.iter() {
                     if edge.edge_id == *edge_id {
                         commands.entity(entity).despawn_recursive();
+                        break;
+                    }
+                }
+            }
+            DomainEvent::Subgraph(SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, name, base_position, metadata }) => {
+                eprintln!("handle_domain_events: Creating subgraph {:?} at position {:?}", subgraph_id, base_position);
+
+                // Create subgraph origin entity
+                let origin_entity = commands.spawn((
+                    SubgraphOrigin {
+                        graph_id: *graph_id,
+                        base_position: Vec3::new(base_position.x, base_position.y, base_position.z),
+                    },
+                    Transform::from_translation(Vec3::new(base_position.x, base_position.y, base_position.z)),
+                    GlobalTransform::default(),
+                    Visibility::Hidden,
+                    Name::new(format!("SubgraphOrigin_{}", name)),
+                )).id();
+
+                // Update spatial map will be done in a separate system
+                // For now, just spawn the origin entity
+            }
+            DomainEvent::Subgraph(SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id }) => {
+                eprintln!("handle_domain_events: Removing subgraph {:?}", subgraph_id);
+
+                // Find and remove subgraph origin - this needs to be done in a separate system
+                // that has access to the SubgraphSpatialMap resource
+            }
+            DomainEvent::Subgraph(SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, old_position, new_position }) => {
+                eprintln!("handle_domain_events: Moving subgraph {:?} from {:?} to {:?}", subgraph_id, old_position, new_position);
+
+                // Update subgraph origin position - this needs to be done in a separate system
+            }
+            DomainEvent::Subgraph(SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, node_id, relative_position }) => {
+                eprintln!("handle_domain_events: Adding node {:?} to subgraph {:?}", node_id, subgraph_id);
+
+                // Find the node entity and make it a child of the subgraph origin
+                // This needs to be done in a separate system that has access to SubgraphSpatialMap
+                for (entity, node) in node_query.iter() {
+                    if node.node_id == *node_id {
+                        // Convert SubgraphId to usize using hash
+                        let subgraph_id_hash = {
+                            use std::hash::{Hash, Hasher};
+                            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                            subgraph_id.hash(&mut hasher);
+                            hasher.finish() as usize
+                        };
+
+                        commands.entity(entity).insert(SubgraphMember {
+                            subgraph_id: subgraph_id_hash,
+                            relative_position: relative_position.clone(),
+                        });
+                        break;
+                    }
+                }
+            }
+            DomainEvent::Subgraph(SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, node_id }) => {
+                eprintln!("handle_domain_events: Removing node {:?} from subgraph {:?}", node_id, subgraph_id);
+
+                // Find the node entity and remove it from the subgraph
+                for (entity, node) in node_query.iter() {
+                    if node.node_id == *node_id {
+                        commands.entity(entity).remove::<SubgraphMember>();
+                        commands.entity(entity).remove_parent();
                         break;
                     }
                 }

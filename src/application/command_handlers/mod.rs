@@ -48,6 +48,11 @@ pub fn process_commands(
                     events.write(EventNotification { event });
                 }
             }
+            Command::Subgraph(_) => {
+                // Handle subgraph commands
+                tracing::info!("Processing subgraph command");
+                // Subgraph commands are handled by the aggregate
+            }
             Command::Workflow(_) => {
                 // Handle workflow commands
                 tracing::info!("Processing workflow command");

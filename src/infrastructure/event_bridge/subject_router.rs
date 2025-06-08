@@ -249,6 +249,18 @@ impl SubjectRouter {
                 crate::domain::events::WorkflowEvent::WorkflowFailed(evt) =>
                     format!("event.workflow.{}.failed", evt.workflow_id),
             },
+            DomainEvent::Subgraph(subgraph_event) => match subgraph_event {
+                crate::domain::events::SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, .. } =>
+                    format!("event.graph.{}.subgraph.{}.created", graph_id, subgraph_id),
+                crate::domain::events::SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id } =>
+                    format!("event.graph.{}.subgraph.{}.removed", graph_id, subgraph_id),
+                crate::domain::events::SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, .. } =>
+                    format!("event.graph.{}.subgraph.{}.moved", graph_id, subgraph_id),
+                crate::domain::events::SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, .. } =>
+                    format!("event.graph.{}.subgraph.{}.node_added", graph_id, subgraph_id),
+                crate::domain::events::SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, .. } =>
+                    format!("event.graph.{}.subgraph.{}.node_removed", graph_id, subgraph_id),
+            },
         }
     }
 

@@ -8,11 +8,13 @@ pub mod graph;
 pub mod node;
 pub mod edge;
 pub mod workflow;
+pub mod subgraph;
 
 pub use cid_chain::{ChainedEvent, EventChain};
 pub use graph::GraphEvent;
 pub use node::NodeEvent;
 pub use edge::EdgeEvent;
+pub use subgraph::SubgraphEvent;
 pub use workflow::{
     WorkflowEvent, WorkflowCreated, StepAdded, StepsConnected, WorkflowValidated,
     WorkflowStarted, StepCompleted, WorkflowPaused, WorkflowResumed,
@@ -25,6 +27,7 @@ pub enum DomainEvent {
     Graph(GraphEvent),
     Node(NodeEvent),
     Edge(EdgeEvent),
+    Subgraph(SubgraphEvent),
     Workflow(WorkflowEvent),
 }
 
@@ -55,6 +58,13 @@ impl DomainEvent {
                 EdgeEvent::EdgeRemoved { graph_id, .. } => graph_id.to_string(),
                 EdgeEvent::EdgeUpdated { graph_id, .. } => graph_id.to_string(),
                 EdgeEvent::EdgeReversed { graph_id, .. } => graph_id.to_string(),
+            },
+            DomainEvent::Subgraph(e) => match e {
+                SubgraphEvent::SubgraphCreated { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::SubgraphRemoved { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::SubgraphMoved { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::NodeAddedToSubgraph { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::NodeRemovedFromSubgraph { graph_id, .. } => graph_id.to_string(),
             },
             DomainEvent::Workflow(e) => match e {
                 WorkflowEvent::WorkflowCreated(evt) => evt.workflow_id.to_string(),
@@ -97,6 +107,13 @@ impl DomainEvent {
                 EdgeEvent::EdgeRemoved { .. } => "EdgeRemoved",
                 EdgeEvent::EdgeUpdated { .. } => "EdgeUpdated",
                 EdgeEvent::EdgeReversed { .. } => "EdgeReversed",
+            },
+            DomainEvent::Subgraph(e) => match e {
+                SubgraphEvent::SubgraphCreated { .. } => "SubgraphCreated",
+                SubgraphEvent::SubgraphRemoved { .. } => "SubgraphRemoved",
+                SubgraphEvent::SubgraphMoved { .. } => "SubgraphMoved",
+                SubgraphEvent::NodeAddedToSubgraph { .. } => "NodeAddedToSubgraph",
+                SubgraphEvent::NodeRemovedFromSubgraph { .. } => "NodeRemovedFromSubgraph",
             },
             DomainEvent::Workflow(e) => match e {
                 WorkflowEvent::WorkflowCreated(_) => "WorkflowCreated",

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
 /// Type alias for aggregate IDs (using String for flexibility)
 pub type AggregateId = String;
@@ -316,6 +317,36 @@ impl GraphMetadata {
 impl Default for GraphMetadata {
     fn default() -> Self {
         Self::new(String::from("default"))
+    }
+}
+
+/// Unique identifier for a subgraph
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SubgraphId(Uuid);
+
+impl SubgraphId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+
+    pub fn from_uuid(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+
+    pub fn as_uuid(&self) -> &Uuid {
+        &self.0
+    }
+}
+
+impl Default for SubgraphId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl fmt::Display for SubgraphId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

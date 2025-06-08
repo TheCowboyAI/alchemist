@@ -1746,26 +1746,21 @@
       "id": "subgraph-spatial-mapping",
       "label": "Subgraph Spatial Mapping System",
       "type": "milestone",
-      "position": { "x": 1300, "y": 200, "z": 0 },
+      "position": { "x": 1100, "y": 100, "z": 0 },
       "data": {
         "status": "completed",
         "date": "2025-01-08",
-        "description": "Implemented subgraph spatial mapping system with hierarchical transform support",
+        "description": "Implemented hierarchical subgraph spatial mapping system",
         "details": [
-          "Created SubgraphOrigin component for managing subgraph base positions",
-          "Implemented SubgraphMember component to mark entities belonging to subgraphs",
-          "Added SubgraphSpatialMap resource for tracking subgraph origins and positions",
-          "Created system to spawn subgraph origins as invisible transform entities",
-          "Implemented add_node_to_subgraph that creates nodes as children of origins",
-          "Added move_subgraph system that moves entire subgraphs by updating origin transform",
-          "Implemented get_node_world_position to get global positions of nodes in subgraphs",
-          "Created layout_subgraph_nodes system for applying layouts within subgraphs",
-          "Added circular_layout function as example layout algorithm",
-          "Implemented visualize_subgraph_boundaries to draw bounding boxes around subgraphs",
-          "Created SubgraphPlugin to integrate all subgraph systems",
-          "Added comprehensive integration tests (6 tests) for subgraph functionality",
-          "Created subgraph_demo example showing animated subgraphs moving as units",
-          "Leveraged Bevy's transform hierarchy for automatic child movement"
+          "Created SubgraphOrigin component for base origin points",
+          "Created SubgraphMember component for node membership",
+          "Created SubgraphSpatialMap resource for tracking origins",
+          "Implemented hierarchical transform system using Bevy's parent-child",
+          "Added functions for creating, moving, and managing subgraphs",
+          "Created comprehensive demo showing three animated subgraphs",
+          "Added boundary visualization system",
+          "Created integration tests for all functionality",
+          "Documented design and API in subgraph-spatial-mapping.md"
         ],
         "progress": 100,
         "completed_date": "2025-01-08",
@@ -1773,7 +1768,68 @@
           "/src/presentation/bevy_systems/subgraph_visualization.rs",
           "/src/presentation/plugins/subgraph_plugin.rs",
           "/examples/subgraph_demo.rs",
+          "/doc/design/current/subgraph-spatial-mapping.md",
           "/tests/integration/subgraph_visualization_tests.rs"
+        ]
+      }
+    },
+    {
+      "id": "subgraph-domain-integration",
+      "label": "Subgraph Domain Model Integration",
+      "type": "milestone",
+      "position": { "x": 1125, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-08",
+        "description": "Integrated subgraph support into domain model and main app",
+        "details": [
+          "Added SubgraphId value object to domain",
+          "Created SubgraphEvent enum with 5 event types",
+          "Created SubgraphCommand enum with 6 command types",
+          "Added Subgraph entity to Graph aggregate",
+          "Implemented subgraph command handling in Graph aggregate",
+          "Added subgraph event handling to apply_event method",
+          "Updated GraphDeleted to clear subgraph data",
+          "Updated NodeRemoved to handle subgraph membership",
+          "Added subgraph event handling to presentation layer",
+          "Integrated SubgraphOrigin and SubgraphSpatialMap into main app",
+          "Fixed all compilation errors related to subgraph integration",
+          "Added subgraph command handling to all command handlers",
+          "Added subgraph event routing to subject router",
+          "Added subgraph event handling to distributed event store"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-08",
+        "references": [
+          "/src/domain/value_objects.rs",
+          "/src/domain/events/subgraph.rs",
+          "/src/domain/commands/subgraph_commands.rs",
+          "/src/domain/aggregates/graph.rs",
+          "/src/presentation/plugins/mod.rs",
+          "/src/application/command_handlers/graph_command_handler.rs",
+          "/src/application/command_handlers/mod.rs",
+          "/src/infrastructure/event_bridge/subject_router.rs",
+          "/src/infrastructure/event_store/distributed_impl.rs"
+        ]
+      }
+    },
+    {
+      "id": "test-failures-reduced",
+      "label": "Test Failures Reduced",
+      "type": "milestone",
+      "position": { "x": 1075, "y": 100, "z": 0 },
+      "data": {
+        "status": "in_progress",
+        "date": "2025-01-08",
+        "description": "Reduced test failures from 5 to 3 by fixing Time resource usage in tests",
+        "details": [
+          "Fixed Time resource usage in tests",
+          "Improved test stability"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-08",
+        "references": [
+          "/doc/qa/test-failures-reduced-report.md"
         ]
       }
     }
