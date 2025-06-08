@@ -1832,6 +1832,33 @@
           "/doc/qa/test-failures-reduced-report.md"
         ]
       }
+    },
+    {
+      "id": "subgraph-advanced-operations-plan",
+      "label": "Subgraph Advanced Operations Planning",
+      "type": "milestone",
+      "position": { "x": 1150, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-08",
+        "description": "Created comprehensive plan for advanced subgraph operations",
+        "details": [
+          "Created 846-line detailed implementation plan",
+          "Defined 5 implementation phases over 5 weeks",
+          "Created modular implementation breakdown with dependency graph",
+          "Wrote 1139-line technical specification for Module 1",
+          "Defined all value objects, events, and commands",
+          "Specified collapse/expand, drag-drop, merge/split operations",
+          "Planned enhanced visualization with styles and connections",
+          "Designed analysis engine and composition patterns",
+          "Created comprehensive testing strategy"
+        ],
+        "documents": [
+          "doc/plan/subgraph-advanced-operations-plan.md",
+          "doc/plan/subgraph-implementation-modules.md",
+          "doc/plan/subgraph-module-1-domain-foundation.md"
+        ]
+      }
     }
   ],
   "edges": [
