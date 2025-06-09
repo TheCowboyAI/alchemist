@@ -3,7 +3,7 @@
 //! These tests verify the complete flow from Bevy commands through NATS
 //! to event store and finally to projection updates.
 
-use ia::domain::aggregates::GraphAggregate;
+use ia::domain::aggregates::Graph;
 use ia::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand};
 use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
 use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, EdgeRelationship};
@@ -12,7 +12,7 @@ use ia::infrastructure::event_bridge::{EventBridge, BridgeCommand};
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
 use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
 use ia::application::projections::{GraphSummaryProjection, Projection, ProjectionHandler};
-use crate::fixtures::*;
+use super::fixtures::*;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;

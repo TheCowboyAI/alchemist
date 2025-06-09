@@ -41,3 +41,4 @@ app_*.log
 
 # Test binaries (temporary debugging tools)
 src/bin/test_*.rs
+vendor/

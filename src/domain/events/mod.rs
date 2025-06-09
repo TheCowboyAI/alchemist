@@ -7,27 +7,36 @@ pub mod cid_chain;
 pub mod graph;
 pub mod node;
 pub mod edge;
-pub mod workflow;
 pub mod subgraph;
+pub mod context_bridge;
+pub mod metric_context;
+pub mod rule_context;
+pub mod workflow;
 
 pub use cid_chain::{ChainedEvent, EventChain};
-pub use graph::GraphEvent;
-pub use node::NodeEvent;
-pub use edge::EdgeEvent;
-pub use subgraph::SubgraphEvent;
+pub use graph::{GraphEvent};
+pub use node::{NodeEvent};
+pub use edge::{EdgeEvent};
+pub use subgraph::{SubgraphEvent};
+pub use context_bridge::ContextBridgeEvent;
+pub use metric_context::MetricContextEvent;
+pub use rule_context::{RuleContextEvent, ValidationResult};
 pub use workflow::{
     WorkflowEvent, WorkflowCreated, StepAdded, StepsConnected, WorkflowValidated,
-    WorkflowStarted, StepCompleted, WorkflowPaused, WorkflowResumed,
-    WorkflowCompleted, WorkflowFailed, ValidationResult,
+    WorkflowStarted, StepCompleted, WorkflowPaused, WorkflowResumed, WorkflowCompleted,
+    WorkflowFailed,
 };
 
 /// All domain events in the system
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Event)]
+#[derive(Debug, Clone, Serialize, Deserialize, Event)]
 pub enum DomainEvent {
     Graph(GraphEvent),
     Node(NodeEvent),
     Edge(EdgeEvent),
     Subgraph(SubgraphEvent),
+    ContextBridge(ContextBridgeEvent),
+    MetricContext(MetricContextEvent),
+    RuleContext(RuleContextEvent),
     Workflow(WorkflowEvent),
 }
 
@@ -66,17 +75,55 @@ impl DomainEvent {
                 SubgraphEvent::NodeAddedToSubgraph { graph_id, .. } => graph_id.to_string(),
                 SubgraphEvent::NodeRemovedFromSubgraph { graph_id, .. } => graph_id.to_string(),
             },
+            DomainEvent::ContextBridge(e) => match e {
+                ContextBridgeEvent::BridgeCreated { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationRuleAdded { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationRuleRemoved { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::ConceptTranslated { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationFailed { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::BridgeDeleted { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::MappingTypeUpdated { bridge_id, .. } => bridge_id.to_string(),
+            },
+            DomainEvent::MetricContext(e) => match e {
+                MetricContextEvent::MetricContextCreated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::DistanceSet { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ShortestPathCalculated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::NearestNeighborsFound { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ConceptsClustered { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ConceptsWithinRadiusFound { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::MetricPropertiesUpdated { context_id, .. } => context_id.to_string(),
+            },
+            DomainEvent::RuleContext(e) => match e {
+                RuleContextEvent::RuleContextCreated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleAdded { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleRemoved { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleEnabledChanged { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesEvaluated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::ComplianceChecked { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::FactsInferred { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::ImpactAnalyzed { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulePriorityUpdated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::FactAdded { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::FactRemoved { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleActionsExecuted { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesValidated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesExported { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesImported { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleViolated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleExecutionFailed { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::CircularDependencyDetected { context_id, .. } => context_id.to_string(),
+            },
             DomainEvent::Workflow(e) => match e {
-                WorkflowEvent::WorkflowCreated(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::StepAdded(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::StepsConnected(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::WorkflowValidated(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::WorkflowStarted(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::StepCompleted(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::WorkflowPaused(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::WorkflowResumed(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::WorkflowCompleted(evt) => evt.workflow_id.to_string(),
-                WorkflowEvent::WorkflowFailed(evt) => evt.workflow_id.to_string(),
+                WorkflowEvent::WorkflowCreated(event) => event.workflow_id.to_string(),
+                WorkflowEvent::StepAdded(event) => event.workflow_id.to_string(),
+                WorkflowEvent::StepsConnected(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowValidated(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowStarted(event) => event.workflow_id.to_string(),
+                WorkflowEvent::StepCompleted(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowPaused(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowResumed(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowCompleted(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowFailed(event) => event.workflow_id.to_string(),
             },
         }
     }
@@ -115,17 +162,55 @@ impl DomainEvent {
                 SubgraphEvent::NodeAddedToSubgraph { .. } => "NodeAddedToSubgraph",
                 SubgraphEvent::NodeRemovedFromSubgraph { .. } => "NodeRemovedFromSubgraph",
             },
+            DomainEvent::ContextBridge(e) => match e {
+                ContextBridgeEvent::BridgeCreated { .. } => "BridgeCreated",
+                ContextBridgeEvent::TranslationRuleAdded { .. } => "TranslationRuleAdded",
+                ContextBridgeEvent::TranslationRuleRemoved { .. } => "TranslationRuleRemoved",
+                ContextBridgeEvent::ConceptTranslated { .. } => "ConceptTranslated",
+                ContextBridgeEvent::TranslationFailed { .. } => "TranslationFailed",
+                ContextBridgeEvent::BridgeDeleted { .. } => "BridgeDeleted",
+                ContextBridgeEvent::MappingTypeUpdated { .. } => "MappingTypeUpdated",
+            },
+            DomainEvent::MetricContext(e) => match e {
+                MetricContextEvent::MetricContextCreated { .. } => "MetricContextCreated",
+                MetricContextEvent::DistanceSet { .. } => "DistanceSet",
+                MetricContextEvent::ShortestPathCalculated { .. } => "ShortestPathCalculated",
+                MetricContextEvent::NearestNeighborsFound { .. } => "NearestNeighborsFound",
+                MetricContextEvent::ConceptsClustered { .. } => "ConceptsClustered",
+                MetricContextEvent::ConceptsWithinRadiusFound { .. } => "ConceptsWithinRadiusFound",
+                MetricContextEvent::MetricPropertiesUpdated { .. } => "MetricPropertiesUpdated",
+            },
+            DomainEvent::RuleContext(e) => match e {
+                RuleContextEvent::RuleContextCreated { .. } => "RuleContextCreated",
+                RuleContextEvent::RuleAdded { .. } => "RuleAdded",
+                RuleContextEvent::RuleRemoved { .. } => "RuleRemoved",
+                RuleContextEvent::RuleEnabledChanged { .. } => "RuleEnabledChanged",
+                RuleContextEvent::RulesEvaluated { .. } => "RulesEvaluated",
+                RuleContextEvent::ComplianceChecked { .. } => "ComplianceChecked",
+                RuleContextEvent::FactsInferred { .. } => "FactsInferred",
+                RuleContextEvent::ImpactAnalyzed { .. } => "ImpactAnalyzed",
+                RuleContextEvent::RulePriorityUpdated { .. } => "RulePriorityUpdated",
+                RuleContextEvent::FactAdded { .. } => "FactAdded",
+                RuleContextEvent::FactRemoved { .. } => "FactRemoved",
+                RuleContextEvent::RuleActionsExecuted { .. } => "RuleActionsExecuted",
+                RuleContextEvent::RulesValidated { .. } => "RulesValidated",
+                RuleContextEvent::RulesExported { .. } => "RulesExported",
+                RuleContextEvent::RulesImported { .. } => "RulesImported",
+                RuleContextEvent::RuleViolated { .. } => "RuleViolated",
+                RuleContextEvent::RuleExecutionFailed { .. } => "RuleExecutionFailed",
+                RuleContextEvent::CircularDependencyDetected { .. } => "CircularDependencyDetected",
+            },
             DomainEvent::Workflow(e) => match e {
-                WorkflowEvent::WorkflowCreated(_) => "WorkflowCreated",
-                WorkflowEvent::StepAdded(_) => "StepAdded",
-                WorkflowEvent::StepsConnected(_) => "StepsConnected",
-                WorkflowEvent::WorkflowValidated(_) => "WorkflowValidated",
-                WorkflowEvent::WorkflowStarted(_) => "WorkflowStarted",
-                WorkflowEvent::StepCompleted(_) => "StepCompleted",
-                WorkflowEvent::WorkflowPaused(_) => "WorkflowPaused",
-                WorkflowEvent::WorkflowResumed(_) => "WorkflowResumed",
-                WorkflowEvent::WorkflowCompleted(_) => "WorkflowCompleted",
-                WorkflowEvent::WorkflowFailed(_) => "WorkflowFailed",
+                WorkflowEvent::WorkflowCreated { .. } => "WorkflowCreated",
+                WorkflowEvent::StepAdded { .. } => "StepAdded",
+                WorkflowEvent::StepsConnected { .. } => "StepsConnected",
+                WorkflowEvent::WorkflowValidated { .. } => "WorkflowValidated",
+                WorkflowEvent::WorkflowStarted { .. } => "WorkflowStarted",
+                WorkflowEvent::StepCompleted { .. } => "StepCompleted",
+                WorkflowEvent::WorkflowPaused { .. } => "WorkflowPaused",
+                WorkflowEvent::WorkflowResumed { .. } => "WorkflowResumed",
+                WorkflowEvent::WorkflowCompleted { .. } => "WorkflowCompleted",
+                WorkflowEvent::WorkflowFailed { .. } => "WorkflowFailed",
             },
         }
     }
@@ -341,7 +426,7 @@ mod event_handler_tests {
                 workflow_id: WorkflowId::new(),
                 validated_by: UserId::new(),
                 validated_at: Utc::now(),
-                validation_result: ValidationResult {
+                validation_result: workflow::ValidationResult {
                     is_valid: true,
                     errors: vec![],
                     warnings: vec![],
@@ -437,6 +522,10 @@ mod event_handler_tests {
             DomainEvent::Workflow(_) => panic!("Wrong event type"),
             DomainEvent::Node(_) => panic!("Wrong event type"),
             DomainEvent::Edge(_) => panic!("Wrong event type"),
+            DomainEvent::Subgraph(_) => panic!("Wrong event type"),
+            DomainEvent::ContextBridge(_) => panic!("Wrong event type"),
+            DomainEvent::MetricContext(_) => panic!("Wrong event type"),
+            DomainEvent::RuleContext(_) => panic!("Wrong event type"),
         }
 
         match workflow_event {
@@ -444,6 +533,10 @@ mod event_handler_tests {
             DomainEvent::Graph(_) => panic!("Wrong event type"),
             DomainEvent::Node(_) => panic!("Wrong event type"),
             DomainEvent::Edge(_) => panic!("Wrong event type"),
+            DomainEvent::Subgraph(_) => panic!("Wrong event type"),
+            DomainEvent::ContextBridge(_) => panic!("Wrong event type"),
+            DomainEvent::MetricContext(_) => panic!("Wrong event type"),
+            DomainEvent::RuleContext(_) => panic!("Wrong event type"),
         }
     }
 

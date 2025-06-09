@@ -84,6 +84,27 @@ pub enum GraphCommand {
         url: String,
         format: String,
     },
+    CreateConceptualGraph {
+        graph_id: GraphId,
+        name: String,
+        category_type: crate::domain::conceptual_graph::CategoryType,
+    },
+    AddConceptualNode {
+        graph_id: GraphId,
+        node_id: NodeId,
+        concept_type: crate::domain::conceptual_graph::ConceptType,
+        conceptual_point: crate::domain::conceptual_graph::ConceptualPoint,
+    },
+    ApplyGraphMorphism {
+        source_graph: GraphId,
+        target_graph: GraphId,
+        morphism: crate::domain::conceptual_graph::GraphMorphism,
+    },
+    ComposeConceptualGraphs {
+        graph_ids: Vec<GraphId>,
+        operation: crate::domain::conceptual_graph::CompositionOperation,
+        result_graph_id: GraphId,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -158,6 +179,10 @@ impl GraphCommand {
             GraphCommand::ImportGraph { .. } => "ImportGraph",
             GraphCommand::ImportFromFile { .. } => "ImportFromFile",
             GraphCommand::ImportFromUrl { .. } => "ImportFromUrl",
+            GraphCommand::CreateConceptualGraph { .. } => "CreateConceptualGraph",
+            GraphCommand::AddConceptualNode { .. } => "AddConceptualNode",
+            GraphCommand::ApplyGraphMorphism { .. } => "ApplyGraphMorphism",
+            GraphCommand::ComposeConceptualGraphs { .. } => "ComposeConceptualGraphs",
         }
     }
 
@@ -178,7 +203,11 @@ impl GraphCommand {
             | GraphCommand::UpdateEdge { graph_id, .. }
             | GraphCommand::ImportGraph { graph_id, .. }
             | GraphCommand::ImportFromFile { graph_id, .. }
-            | GraphCommand::ImportFromUrl { graph_id, .. } => *graph_id,
+            | GraphCommand::ImportFromUrl { graph_id, .. }
+            | GraphCommand::CreateConceptualGraph { graph_id, .. }
+            | GraphCommand::AddConceptualNode { graph_id, .. } => *graph_id,
+            GraphCommand::ApplyGraphMorphism { source_graph, .. } => *source_graph,
+            GraphCommand::ComposeConceptualGraphs { result_graph_id, .. } => *result_graph_id,
         }
     }
 }

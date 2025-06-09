@@ -8,6 +8,10 @@ pub mod import_system;
 pub mod subgraph_spatial_map;
 pub mod subgraph_visualization;
 pub mod voronoi_tessellation;
+pub mod conceptual_visualization;
+pub mod node_interaction;
+pub mod context_bridge_visualization;
+pub mod workflow_visualization;
 
 pub use camera_controller::*;
 pub use event_consumer_example::*;
@@ -17,6 +21,10 @@ pub use import_system::{ImportPlugin, display_import_help, import_file_to_graph,
 pub use subgraph_spatial_map::*;
 pub use subgraph_visualization::*;
 pub use voronoi_tessellation::*;
+pub use conceptual_visualization::*;
+pub use node_interaction::*;
+pub use context_bridge_visualization::*;
+pub use workflow_visualization::*;
 
 use bevy::prelude::*;
 use crate::application::EventNotification;
@@ -73,5 +81,109 @@ impl Plugin for SystemsPlugin {
                 handle_edge_added,
                 handle_edge_removed,
             ));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::conceptual_graph::{
+        ConceptGraph, ConceptNode, ConceptType, ConceptualPoint,
+        QualityDimension, DimensionType, NodeId,
+    };
+    use crate::presentation::components::conceptual_visualization::{
+        ConceptualNodeVisual, ConceptualSpaceVisual,
+    };
+    use bevy::prelude::*;
+
+    // Define test resource for cursor position
+    #[derive(Resource, Default)]
+    struct TestCursorPosition(Option<Vec2>);
+
+    #[test]
+    fn test_conceptual_visualization_system() {
+        // Create a test app
+        let mut app = App::new();
+
+        // Add minimal plugins
+        app.add_plugins(MinimalPlugins);
+
+        // Add our visualization system
+        app.add_systems(Update, visualize_conceptual_nodes);
+
+        // Create a test concept graph
+        let mut graph = ConceptGraph::new("TestGraph");
+
+        // Add quality dimensions
+        graph = graph
+            .with_dimension(QualityDimension::new("abstraction", DimensionType::Continuous, 0.0..1.0))
+            .with_dimension(QualityDimension::new("complexity", DimensionType::Continuous, 0.0..1.0))
+            .with_dimension(QualityDimension::new("stability", DimensionType::Continuous, 0.0..1.0));
+
+        // Add a test node
+        let node = ConceptNode::Atom {
+            id: NodeId::new(),
+            concept_type: ConceptType::Entity,
+            quality_position: ConceptualPoint::new(vec![0.5, 0.5, 0.5]),
+            properties: Default::default(),
+        };
+
+        let node_id = node.id();
+        graph.add_node(node);
+
+        // Spawn the graph with visualization component
+        app.world_mut().spawn((
+            graph,
+            ConceptualSpaceVisual {
+                bounds: Vec3::new(10.0, 10.0, 10.0),
+                grid_size: 1.0,
+                show_grid: true,
+                show_axes: true,
+            },
+        ));
+
+        // Run one update cycle
+        app.update();
+
+        // Verify node was visualized
+        let mut query = app.world_mut().query::<&ConceptualNodeVisual>();
+        let visuals: Vec<_> = query.iter(&app.world()).collect();
+
+        assert_eq!(visuals.len(), 1, "Should have created 1 visual node");
+        assert_eq!(visuals[0].node_id, node_id);
+        assert_eq!(visuals[0].quality_dimensions, vec![0.5, 0.5, 0.5]);
+    }
+
+    #[test]
+    fn test_node_visual_creation() {
+        use crate::presentation::components::conceptual_visualization::DraggableNode;
+
+        // Simple test that node visuals can be created
+        let node_visual = ConceptualNodeVisual {
+            node_id: NodeId::new(),
+            concept_type: ConceptType::Entity,
+            quality_dimensions: vec![0.5, 0.5, 0.5],
+            visual_style: Default::default(),
+        };
+
+        assert_eq!(node_visual.quality_dimensions.len(), 3);
+        assert_eq!(node_visual.concept_type, ConceptType::Entity);
+    }
+
+    #[test]
+    fn test_draggable_node_component() {
+        use crate::presentation::components::conceptual_visualization::DraggableNode;
+
+        let draggable = DraggableNode {
+            is_dragging: false,
+            drag_offset: Vec3::ZERO,
+            constraints: Default::default(),
+            snap_to_grid: true,
+            grid_size: 1.0,
+        };
+
+        assert!(!draggable.is_dragging);
+        assert!(draggable.snap_to_grid);
+        assert_eq!(draggable.grid_size, 1.0);
     }
 }

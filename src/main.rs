@@ -5,7 +5,7 @@ use tracing::info;
 use ia::application::CommandEvent;
 use ia::infrastructure::event_bridge::{EventBridge, EventBridgePlugin};
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
-use ia::presentation::plugins::GraphEditorPlugin;
+use ia::presentation::plugins::{GraphEditorPlugin, ConceptualGraphPlugin};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -30,7 +30,8 @@ fn main() {
     let mut app = App::new();
 
     app.add_plugins(DefaultPlugins)
-        .add_plugins(GraphEditorPlugin);
+        .add_plugins(GraphEditorPlugin)
+        .add_plugins(ConceptualGraphPlugin);
 
     // Only add event bridge if NATS is connected
     if let Some(client) = nats_client {

@@ -66,6 +66,10 @@ bevy = { path = "bevy-patched", default-features = false, features = [
   "sysinfo_plugin",
 ] }
 
+# Bevy plugins
+# Using git dependency to compile against our patched Bevy
+bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", branch = "main" }
+
 # Graph library
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
@@ -202,6 +206,18 @@ path = "src/bin/test_direct_spawn.rs"
 name = "test_import_direct_trigger"
 path = "src/bin/test_import_direct_trigger.rs"
 
+[[bin]]
+name = "conceptual_graph_visual_demo"
+path = "src/bin/conceptual_graph_visual_demo.rs"
+
+[[bin]]
+name = "workflow_designer_demo"
+path = "src/bin/workflow_designer_demo.rs"
+
+[[bin]]
+name = "test_workflow_designer"
+path = "src/bin/test_workflow_designer.rs"
+
 [[example]]
 name = "markdown_import_demo"
 path = "examples/markdown_import_demo.rs"
@@ -211,8 +227,8 @@ name = "import_graph"
 path = "examples/import_graph.rs"
 
 [[example]]
-name = "event_consumer_example"
-path = "examples/event_consumer_example.rs"
+name = "rule_context_demo"
+path = "examples/rule_context_demo.rs"
 
 [[example]]
 name = "markdown_import_simple"
@@ -230,6 +246,42 @@ path = "examples/markdown_import_demo_simple.rs"
 name = "subgraph_demo"
 path = "examples/subgraph_demo.rs"
 
+[[example]]
+name = "conceptual_graph_demo"
+path = "examples/conceptual_graph_demo.rs"
+
+[[example]]
+name = "conceptual_graph_visualization_demo"
+path = "examples/conceptual_graph_visualization_demo.rs"
+
+[[example]]
+name = "conceptual_visualization_demo"
+path = "examples/conceptual_visualization_demo.rs"
+
+[[example]]
+name = "context_bridge_demo"
+path = "examples/context_bridge_demo.rs"
+
 # Disable the problematic experimental features
 [package.metadata.bevy]
 experimental_fixed_timestep = false
+
+# Patch bevy_egui's dependencies to use our patched Bevy
+[patch.crates-io]
+bevy = { path = "bevy-patched" }
+bevy_app = { path = "bevy-patched/crates/bevy_app" }
+bevy_asset = { path = "bevy-patched/crates/bevy_asset" }
+bevy_core_pipeline = { path = "bevy-patched/crates/bevy_core_pipeline" }
+bevy_derive = { path = "bevy-patched/crates/bevy_derive" }
+bevy_ecs = { path = "bevy-patched/crates/bevy_ecs" }
+bevy_image = { path = "bevy-patched/crates/bevy_image" }
+bevy_input = { path = "bevy-patched/crates/bevy_input" }
+bevy_log = { path = "bevy-patched/crates/bevy_log" }
+bevy_math = { path = "bevy-patched/crates/bevy_math" }
+bevy_picking = { path = "bevy-patched/crates/bevy_picking" }
+bevy_platform = { path = "bevy-patched/crates/bevy_platform" }
+bevy_reflect = { path = "bevy-patched/crates/bevy_reflect" }
+bevy_render = { path = "bevy-patched/crates/bevy_render" }
+bevy_time = { path = "bevy-patched/crates/bevy_time" }
+bevy_window = { path = "bevy-patched/crates/bevy_window" }
+bevy_winit = { path = "bevy-patched/crates/bevy_winit" }

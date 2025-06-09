@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 
 use crate::domain::{
-    commands::{Command, EdgeCommand, GraphCommand, NodeCommand, ImportSource, ImportOptions, SubgraphCommand},
+    commands::{Command, EdgeCommand, GraphCommand, NodeCommand, ImportSource, ImportOptions, SubgraphCommand, WorkflowCommand},
     events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent, workflow::WorkflowEvent, SubgraphEvent},
     value_objects::*,
 };
@@ -64,6 +64,9 @@ pub enum GraphError {
 
     #[error("Cascade delete would remove {0} edges")]
     CascadeDeleteWarning(usize),
+
+    #[error("Subgraph not found: {0}")]
+    SubgraphNotFound(SubgraphId),
 }
 
 pub type Result<T> = std::result::Result<T, GraphError>;
@@ -192,10 +195,19 @@ impl Graph {
             Command::Graph(cmd) => self.handle_graph_command(cmd),
             Command::Node(cmd) => self.handle_node_command(cmd),
             Command::Edge(cmd) => self.handle_edge_command(cmd),
+            Command::Workflow(cmd) => self.handle_workflow_command(cmd),
             Command::Subgraph(cmd) => self.handle_subgraph_command(cmd),
-            Command::Workflow(_) => {
-                // Workflow commands are not handled by Graph aggregate
-                Err(GraphError::InvalidOperation("Workflow commands should be handled by Workflow aggregate".to_string()))
+            Command::ContextBridge(_) => {
+                // Context bridge commands are handled by a separate aggregate
+                Ok(vec![])
+            }
+            Command::MetricContext(_) => {
+                // Metric context commands are handled by a separate aggregate
+                Ok(vec![])
+            }
+            Command::RuleContext(_) => {
+                // Rule context commands are handled by a separate aggregate
+                Ok(vec![])
             }
         }
     }
@@ -478,6 +490,22 @@ impl Graph {
 
                 Ok(self.get_uncommitted_events())
             }
+            GraphCommand::CreateConceptualGraph { .. } => {
+                // Conceptual graph creation is handled by the conceptual graph plugin
+                Err(GraphError::InvalidOperation("Conceptual graph commands should be handled by ConceptualGraphPlugin".to_string()))
+            }
+            GraphCommand::AddConceptualNode { .. } => {
+                // Conceptual node addition is handled by the conceptual graph plugin
+                Err(GraphError::InvalidOperation("Conceptual graph commands should be handled by ConceptualGraphPlugin".to_string()))
+            }
+            GraphCommand::ApplyGraphMorphism { .. } => {
+                // Graph morphism is handled by the conceptual graph plugin
+                Err(GraphError::InvalidOperation("Conceptual graph commands should be handled by ConceptualGraphPlugin".to_string()))
+            }
+            GraphCommand::ComposeConceptualGraphs { .. } => {
+                // Graph composition is handled by the conceptual graph plugin
+                Err(GraphError::InvalidOperation("Conceptual graph commands should be handled by ConceptualGraphPlugin".to_string()))
+            }
             // Workflow commands are delegated to workflow aggregate
             _ => Err(GraphError::InvalidOperation("Invalid graph command".to_string())),
         }
@@ -641,8 +669,8 @@ impl Graph {
 
                 self.edges.insert(edge_id, Edge {
                     id: edge_id,
-                    source,
-                    target,
+                    source: source,
+                    target: target,
                     relationship: EdgeRelationship {
                         relationship_type: relationship.relationship_type.clone(),
                         properties: relationship.properties.clone(),
@@ -689,166 +717,150 @@ impl Graph {
     fn handle_subgraph_command(&mut self, command: SubgraphCommand) -> Result<Vec<DomainEvent>> {
         match command {
             SubgraphCommand::CreateSubgraph { graph_id, subgraph_id, name, base_position, metadata } => {
-                if self.id != graph_id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                if graph_id != self.id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
                 }
 
-                if self.subgraphs.contains_key(&subgraph_id) {
-                    return Err(GraphError::InvalidOperation("Subgraph already exists".to_string()));
-                }
-
-                self.subgraphs.insert(subgraph_id, Subgraph {
-                    id: subgraph_id,
-                    name: name.clone(),
-                    base_position,
-                    nodes: HashSet::new(),
-                    metadata: metadata.clone(),
-                });
-
-                self.emit_event(DomainEvent::Subgraph(SubgraphEvent::SubgraphCreated {
+                let event = SubgraphEvent::SubgraphCreated {
                     graph_id,
                     subgraph_id,
                     name,
                     base_position,
                     metadata,
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Subgraph(event.clone()));
+                Ok(vec![DomainEvent::Subgraph(event)])
             }
             SubgraphCommand::RemoveSubgraph { graph_id, subgraph_id } => {
-                if self.id != graph_id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                if graph_id != self.id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
                 }
 
-                let subgraph = self.subgraphs.remove(&subgraph_id)
-                    .ok_or_else(|| GraphError::InvalidOperation("Subgraph not found".to_string()))?;
-
-                // Remove all nodes from the subgraph mapping
-                for node_id in &subgraph.nodes {
-                    self.node_to_subgraph.remove(node_id);
+                if !self.subgraphs.contains_key(&subgraph_id) {
+                    return Err(GraphError::SubgraphNotFound(subgraph_id));
                 }
 
-                self.emit_event(DomainEvent::Subgraph(SubgraphEvent::SubgraphRemoved {
+                let event = SubgraphEvent::SubgraphRemoved {
                     graph_id,
                     subgraph_id,
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Subgraph(event.clone()));
+                Ok(vec![DomainEvent::Subgraph(event)])
             }
             SubgraphCommand::MoveSubgraph { graph_id, subgraph_id, new_position } => {
-                if self.id != graph_id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                if graph_id != self.id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
                 }
 
-                let subgraph = self.subgraphs.get_mut(&subgraph_id)
-                    .ok_or_else(|| GraphError::InvalidOperation("Subgraph not found".to_string()))?;
+                let subgraph = self.subgraphs.get(&subgraph_id)
+                    .ok_or_else(|| GraphError::SubgraphNotFound(subgraph_id))?;
 
                 let old_position = subgraph.base_position;
-                subgraph.base_position = new_position;
 
-                self.emit_event(DomainEvent::Subgraph(SubgraphEvent::SubgraphMoved {
+                let event = SubgraphEvent::SubgraphMoved {
                     graph_id,
                     subgraph_id,
                     old_position,
                     new_position,
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Subgraph(event.clone()));
+                Ok(vec![DomainEvent::Subgraph(event)])
             }
             SubgraphCommand::AddNodeToSubgraph { graph_id, subgraph_id, node_id, relative_position } => {
-                if self.id != graph_id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                if graph_id != self.id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
+                }
+
+                if !self.subgraphs.contains_key(&subgraph_id) {
+                    return Err(GraphError::SubgraphNotFound(subgraph_id));
                 }
 
                 if !self.nodes.contains_key(&node_id) {
                     return Err(GraphError::NodeNotFound(node_id));
                 }
 
-                if !self.subgraphs.contains_key(&subgraph_id) {
-                    return Err(GraphError::InvalidOperation("Subgraph not found".to_string()));
-                }
-
-                // Remove node from any existing subgraph
-                if let Some(old_subgraph_id) = self.node_to_subgraph.remove(&node_id) {
-                    if let Some(old_subgraph) = self.subgraphs.get_mut(&old_subgraph_id) {
-                        old_subgraph.nodes.remove(&node_id);
-                    }
-                }
-
-                // Add to new subgraph
-                if let Some(subgraph) = self.subgraphs.get_mut(&subgraph_id) {
-                    subgraph.nodes.insert(node_id);
-                }
-                self.node_to_subgraph.insert(node_id, subgraph_id);
-
-                self.emit_event(DomainEvent::Subgraph(SubgraphEvent::NodeAddedToSubgraph {
+                let event = SubgraphEvent::NodeAddedToSubgraph {
                     graph_id,
                     subgraph_id,
                     node_id,
                     relative_position,
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Subgraph(event.clone()));
+                Ok(vec![DomainEvent::Subgraph(event)])
             }
             SubgraphCommand::RemoveNodeFromSubgraph { graph_id, subgraph_id, node_id } => {
-                if self.id != graph_id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                if graph_id != self.id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
                 }
 
-                let subgraph = self.subgraphs.get_mut(&subgraph_id)
-                    .ok_or_else(|| GraphError::InvalidOperation("Subgraph not found".to_string()))?;
+                if !self.subgraphs.contains_key(&subgraph_id) {
+                    return Err(GraphError::SubgraphNotFound(subgraph_id));
+                }
 
-                if !subgraph.nodes.remove(&node_id) {
+                let subgraph = self.subgraphs.get(&subgraph_id).unwrap();
+                if !subgraph.nodes.contains(&node_id) {
                     return Err(GraphError::InvalidOperation("Node not in subgraph".to_string()));
                 }
 
-                self.node_to_subgraph.remove(&node_id);
-
-                self.emit_event(DomainEvent::Subgraph(SubgraphEvent::NodeRemovedFromSubgraph {
+                let event = SubgraphEvent::NodeRemovedFromSubgraph {
                     graph_id,
                     subgraph_id,
                     node_id,
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Subgraph(event.clone()));
+                Ok(vec![DomainEvent::Subgraph(event)])
             }
             SubgraphCommand::MoveNodeBetweenSubgraphs { graph_id, node_id, from_subgraph, to_subgraph, new_relative_position } => {
-                if self.id != graph_id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                if graph_id != self.id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
                 }
 
-                // Remove from old subgraph
-                let old_subgraph = self.subgraphs.get_mut(&from_subgraph)
-                    .ok_or_else(|| GraphError::InvalidOperation("Source subgraph not found".to_string()))?;
+                if !self.subgraphs.contains_key(&from_subgraph) {
+                    return Err(GraphError::SubgraphNotFound(from_subgraph));
+                }
 
-                if !old_subgraph.nodes.remove(&node_id) {
+                if !self.subgraphs.contains_key(&to_subgraph) {
+                    return Err(GraphError::SubgraphNotFound(to_subgraph));
+                }
+
+                let from = self.subgraphs.get(&from_subgraph).unwrap();
+                if !from.nodes.contains(&node_id) {
                     return Err(GraphError::InvalidOperation("Node not in source subgraph".to_string()));
                 }
 
-                // Add to new subgraph
-                let new_subgraph = self.subgraphs.get_mut(&to_subgraph)
-                    .ok_or_else(|| GraphError::InvalidOperation("Target subgraph not found".to_string()))?;
-
-                new_subgraph.nodes.insert(node_id);
-                self.node_to_subgraph.insert(node_id, to_subgraph);
-
-                // Emit removal and addition events
-                self.emit_event(DomainEvent::Subgraph(SubgraphEvent::NodeRemovedFromSubgraph {
+                // Generate two events: remove from old, add to new
+                let remove_event = SubgraphEvent::NodeRemovedFromSubgraph {
                     graph_id,
                     subgraph_id: from_subgraph,
                     node_id,
-                }));
+                };
 
-                self.emit_event(DomainEvent::Subgraph(SubgraphEvent::NodeAddedToSubgraph {
+                let add_event = SubgraphEvent::NodeAddedToSubgraph {
                     graph_id,
                     subgraph_id: to_subgraph,
                     node_id,
                     relative_position: new_relative_position,
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Subgraph(remove_event.clone()));
+                self.apply_event(&DomainEvent::Subgraph(add_event.clone()));
+
+                Ok(vec![
+                    DomainEvent::Subgraph(remove_event),
+                    DomainEvent::Subgraph(add_event),
+                ])
             }
         }
+    }
+
+    fn handle_workflow_command(&mut self, _command: WorkflowCommand) -> Result<Vec<DomainEvent>> {
+        // Workflow commands are not handled by Graph aggregate
+        Err(GraphError::InvalidOperation("Workflow commands should be handled by Workflow aggregate".to_string()))
     }
 
     /// Get uncommitted events
@@ -881,186 +893,203 @@ impl Graph {
     /// Apply an event to update state
     pub fn apply_event(&mut self, event: &DomainEvent) {
         match event {
-            DomainEvent::Graph(graph_event) => match graph_event {
-                GraphEvent::GraphCreated { id: _, metadata } => {
-                    self.metadata = metadata.clone();
-                }
-                GraphEvent::GraphRenamed {
-                    id: _,
-                    old_name: _,
-                    new_name,
-                } => {
+            DomainEvent::Graph(graph_event) => self.apply_graph_event(graph_event),
+            DomainEvent::Node(node_event) => self.apply_node_event(node_event),
+            DomainEvent::Edge(edge_event) => self.apply_edge_event(edge_event),
+            DomainEvent::Workflow(workflow_event) => self.apply_workflow_event(workflow_event),
+            DomainEvent::Subgraph(subgraph_event) => self.apply_subgraph_event(subgraph_event),
+            DomainEvent::ContextBridge(_) => {
+                // Context bridge events are not handled by Graph aggregate
+            }
+            DomainEvent::MetricContext(_) => {
+                // Metric context events are not handled by Graph aggregate
+            }
+            DomainEvent::RuleContext(_) => {
+                // Rule context events are not handled by Graph aggregate
+            }
+        }
+    }
+
+    fn apply_graph_event(&mut self, event: &GraphEvent) {
+        match event {
+            GraphEvent::GraphCreated { id: _, metadata } => {
+                self.metadata = metadata.clone();
+            }
+            GraphEvent::GraphRenamed {
+                id: _,
+                old_name: _,
+                new_name,
+            } => {
+                self.metadata.name = new_name.clone();
+            }
+            GraphEvent::GraphTagged { id: _, tag } => {
+                self.metadata.tags.push(tag.clone());
+            }
+            GraphEvent::GraphUntagged { id: _, tag } => {
+                self.metadata.tags.retain(|t| t != tag);
+            }
+            GraphEvent::GraphDeleted { id: _ } => {
+                // Clear all data
+                self.nodes.clear();
+                self.edges.clear();
+                self.subgraphs.clear();
+                self.node_to_subgraph.clear();
+                self.node_indices.clear();
+                self.edge_indices.clear();
+            }
+            GraphEvent::GraphUpdated { graph_id, name, description } => {
+                if let Some(new_name) = name {
                     self.metadata.name = new_name.clone();
                 }
-                GraphEvent::GraphTagged { id: _, tag } => {
-                    self.metadata.tags.push(tag.clone());
+                if let Some(desc) = description {
+                    self.metadata.tags.push(desc.clone());
                 }
-                GraphEvent::GraphUntagged { id: _, tag } => {
-                    self.metadata.tags.retain(|t| t != tag);
-                }
-                GraphEvent::GraphDeleted { id: _ } => {
-                    // Clear all data
-                    self.nodes.clear();
-                    self.edges.clear();
-                    self.subgraphs.clear();
-                    self.node_to_subgraph.clear();
-                    self.node_indices.clear();
-                    self.edge_indices.clear();
-                }
-                GraphEvent::GraphUpdated { graph_id, name, description } => {
-                    if let Some(new_name) = name {
-                        self.metadata.name = new_name.clone();
-                    }
-                    if let Some(desc) = description {
-                        self.metadata.tags.push(desc.clone());
-                    }
-                }
-                GraphEvent::GraphImportRequested { .. } => {
-                    // Import request is handled by command handler
-                }
-                GraphEvent::GraphImportCompleted { .. } => {
-                    // Import completion is informational
-                }
-                GraphEvent::GraphImportFailed { .. } => {
-                    // Import failure is informational
-                }
-            },
-            DomainEvent::Node(node_event) => match node_event {
-                NodeEvent::NodeAdded { graph_id, node_id, metadata, position } => {
-                    self.nodes.insert(*node_id, Node {
-                        id: *node_id,
-                        content: serde_json::json!(metadata),
-                        position: *position,
-                    });
-                }
-                NodeEvent::NodeRemoved { graph_id, node_id } => {
-                    self.nodes.remove(node_id);
-                    // Also remove from subgraph if it belongs to one
-                    if let Some(subgraph_id) = self.node_to_subgraph.remove(node_id) {
-                        if let Some(subgraph) = self.subgraphs.get_mut(&subgraph_id) {
-                            subgraph.nodes.remove(node_id);
-                        }
-                    }
-                    // Also remove edges connected to this node
-                    self.edges.retain(|_, edge| edge.source != *node_id && edge.target != *node_id);
-                }
-                NodeEvent::NodeUpdated { graph_id, node_id, new_position, new_content } => {
-                    if let Some(node) = self.nodes.get_mut(node_id) {
-                        if let Some(pos) = new_position {
-                            node.position = *pos;
-                        }
-                        if let Some(content) = new_content {
-                            node.content = content.clone();
-                        }
-                    }
-                }
-                NodeEvent::NodeMoved { graph_id, node_id, old_position, new_position } => {
-                    if let Some(node) = self.nodes.get_mut(node_id) {
-                        node.position = *new_position;
-                    }
-                }
-                NodeEvent::NodeContentChanged { graph_id, node_id, old_content, new_content } => {
-                    if let Some(node) = self.nodes.get_mut(node_id) {
-                        node.content = new_content.clone();
-                    }
-                }
-            },
-            DomainEvent::Edge(edge_event) => match edge_event {
-                EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, relationship } => {
-                    // Parse relationship string back into RelationshipType
-                    let relationship_type = match relationship.as_str() {
-                        "Contains" => RelationshipType::Contains,
-                        "References" => RelationshipType::References,
-                        "DependsOn" => RelationshipType::DependsOn,
-                        "Publishes" => RelationshipType::Publishes,
-                        "Subscribes" => RelationshipType::Subscribes,
-                        "Implements" => RelationshipType::Implements,
-                        "Extends" => RelationshipType::Extends,
-                        "Parent" => RelationshipType::Parent,
-                        "Merged" => RelationshipType::Merged,
-                        "Branched" => RelationshipType::Branched,
-                        "Tagged" => RelationshipType::Tagged,
-                        "Sequence" => RelationshipType::Sequence,
-                        "Hierarchy" => RelationshipType::Hierarchy,
-                        "Blocks" => RelationshipType::Blocks,
-                        custom => RelationshipType::Custom(custom.to_string()),
-                    };
+            }
+            GraphEvent::GraphImportRequested { .. } => {
+                // Import request is handled by command handler
+            }
+            GraphEvent::GraphImportCompleted { .. } => {
+                // Import completion is informational
+            }
+            GraphEvent::GraphImportFailed { .. } => {
+                // Import failure is informational
+            }
+        }
+    }
 
-                    self.edges.insert(*edge_id, Edge {
-                        id: *edge_id,
-                        source: *source,
-                        target: *target,
-                        relationship: EdgeRelationship {
-                            relationship_type,
-                            properties: HashMap::new(),
-                            bidirectional: false,
-                        },
-                    });
-                }
-                EdgeEvent::EdgeRemoved { graph_id, edge_id } => {
-                    self.edges.remove(edge_id);
-                }
-                EdgeEvent::EdgeUpdated { graph_id, edge_id, new_properties } => {
-                    if let Some(edge) = self.edges.get_mut(edge_id) {
-                        edge.relationship.properties = new_properties.clone();
-                    }
-                }
-                EdgeEvent::EdgeReversed { graph_id, edge_id, old_source, old_target, new_source, new_target } => {
-                    if let Some(edge) = self.edges.get_mut(edge_id) {
-                        edge.source = *new_source;
-                        edge.target = *new_target;
-                    }
-                }
-            },
-            DomainEvent::Subgraph(subgraph_event) => match subgraph_event {
-                SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, name, base_position, metadata } => {
-                    self.subgraphs.insert(*subgraph_id, Subgraph {
-                        id: *subgraph_id,
-                        name: name.clone(),
-                        base_position: *base_position,
-                        nodes: HashSet::new(),
-                        metadata: metadata.clone(),
-                    });
-                }
-                SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id } => {
-                    if let Some(subgraph) = self.subgraphs.remove(subgraph_id) {
-                        // Remove all nodes from the subgraph mapping
-                        for node_id in &subgraph.nodes {
-                            self.node_to_subgraph.remove(node_id);
-                        }
-                    }
-                }
-                SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, old_position, new_position } => {
-                    if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
-                        subgraph.base_position = *new_position;
-                    }
-                }
-                SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, node_id, relative_position } => {
-                    if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
-                        subgraph.nodes.insert(*node_id);
-                        self.node_to_subgraph.insert(*node_id, *subgraph_id);
-                    }
-                }
-                SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, node_id } => {
-                    if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
+    fn apply_node_event(&mut self, event: &NodeEvent) {
+        match event {
+            NodeEvent::NodeAdded { graph_id, node_id, metadata, position } => {
+                self.nodes.insert(*node_id, Node {
+                    id: *node_id,
+                    content: serde_json::json!(metadata),
+                    position: *position,
+                });
+            }
+            NodeEvent::NodeRemoved { graph_id, node_id } => {
+                self.nodes.remove(node_id);
+                // Also remove from subgraph if it belongs to one
+                if let Some(subgraph_id) = self.node_to_subgraph.remove(node_id) {
+                    if let Some(subgraph) = self.subgraphs.get_mut(&subgraph_id) {
                         subgraph.nodes.remove(node_id);
+                    }
+                }
+                // Also remove edges connected to this node
+                self.edges.retain(|_, edge| edge.source != *node_id && edge.target != *node_id);
+            }
+            NodeEvent::NodeUpdated { graph_id, node_id, new_position, new_content } => {
+                if let Some(node) = self.nodes.get_mut(node_id) {
+                    if let Some(pos) = new_position {
+                        node.position = *pos;
+                    }
+                    if let Some(content) = new_content {
+                        node.content = content.clone();
+                    }
+                }
+            }
+            NodeEvent::NodeMoved { graph_id, node_id, old_position, new_position } => {
+                if let Some(node) = self.nodes.get_mut(node_id) {
+                    node.position = *new_position;
+                }
+            }
+            NodeEvent::NodeContentChanged { graph_id, node_id, old_content, new_content } => {
+                if let Some(node) = self.nodes.get_mut(node_id) {
+                    node.content = new_content.clone();
+                }
+            }
+        }
+    }
+
+    fn apply_edge_event(&mut self, event: &EdgeEvent) {
+        match event {
+            EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, relationship } => {
+                // Parse relationship string back into RelationshipType
+                let relationship_type = match relationship.as_str() {
+                    "Contains" => RelationshipType::Contains,
+                    "References" => RelationshipType::References,
+                    "DependsOn" => RelationshipType::DependsOn,
+                    "Publishes" => RelationshipType::Publishes,
+                    "Subscribes" => RelationshipType::Subscribes,
+                    "Implements" => RelationshipType::Implements,
+                    "Extends" => RelationshipType::Extends,
+                    "Parent" => RelationshipType::Parent,
+                    "Merged" => RelationshipType::Merged,
+                    "Branched" => RelationshipType::Branched,
+                    "Tagged" => RelationshipType::Tagged,
+                    "Sequence" => RelationshipType::Sequence,
+                    "Hierarchy" => RelationshipType::Hierarchy,
+                    "Blocks" => RelationshipType::Blocks,
+                    custom => RelationshipType::Custom(custom.to_string()),
+                };
+
+                self.edges.insert(*edge_id, Edge {
+                    id: *edge_id,
+                    source: *source,
+                    target: *target,
+                    relationship: EdgeRelationship {
+                        relationship_type,
+                        properties: HashMap::new(),
+                        bidirectional: false,
+                    },
+                });
+            }
+            EdgeEvent::EdgeRemoved { graph_id, edge_id } => {
+                self.edges.remove(edge_id);
+            }
+            EdgeEvent::EdgeUpdated { graph_id, edge_id, new_properties } => {
+                if let Some(edge) = self.edges.get_mut(edge_id) {
+                    edge.relationship.properties = new_properties.clone();
+                }
+            }
+            EdgeEvent::EdgeReversed { graph_id, edge_id, old_source, old_target, new_source, new_target } => {
+                if let Some(edge) = self.edges.get_mut(edge_id) {
+                    edge.source = *new_source;
+                    edge.target = *new_target;
+                }
+            }
+        }
+    }
+
+    fn apply_workflow_event(&mut self, event: &WorkflowEvent) {
+        // Workflow events are handled by WorkflowAggregate
+        // This aggregate only tracks graph structure
+    }
+
+    fn apply_subgraph_event(&mut self, event: &SubgraphEvent) {
+        match event {
+            SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, name, base_position, metadata } => {
+                self.subgraphs.insert(*subgraph_id, Subgraph {
+                    id: *subgraph_id,
+                    name: name.clone(),
+                    base_position: *base_position,
+                    nodes: HashSet::new(),
+                    metadata: metadata.clone(),
+                });
+            }
+            SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id } => {
+                if let Some(subgraph) = self.subgraphs.remove(subgraph_id) {
+                    // Remove all nodes from the subgraph mapping
+                    for node_id in &subgraph.nodes {
                         self.node_to_subgraph.remove(node_id);
                     }
                 }
-            },
-            // Workflow events are not handled by Graph aggregate
-            DomainEvent::Workflow(WorkflowEvent::WorkflowCreated(_)) |
-            DomainEvent::Workflow(WorkflowEvent::StepAdded(_)) |
-            DomainEvent::Workflow(WorkflowEvent::StepsConnected(_)) |
-            DomainEvent::Workflow(WorkflowEvent::WorkflowValidated(_)) |
-            DomainEvent::Workflow(WorkflowEvent::WorkflowStarted(_)) |
-            DomainEvent::Workflow(WorkflowEvent::StepCompleted(_)) |
-            DomainEvent::Workflow(WorkflowEvent::WorkflowPaused(_)) |
-            DomainEvent::Workflow(WorkflowEvent::WorkflowResumed(_)) |
-            DomainEvent::Workflow(WorkflowEvent::WorkflowCompleted(_)) |
-            DomainEvent::Workflow(WorkflowEvent::WorkflowFailed(_)) => {
-                // Workflow events are handled by WorkflowAggregate
-                // This aggregate only tracks graph structure
+            }
+            SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, old_position, new_position } => {
+                if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
+                    subgraph.base_position = *new_position;
+                }
+            }
+            SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, node_id, relative_position } => {
+                if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
+                    subgraph.nodes.insert(*node_id);
+                    self.node_to_subgraph.insert(*node_id, *subgraph_id);
+                }
+            }
+            SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, node_id } => {
+                if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
+                    subgraph.nodes.remove(node_id);
+                    self.node_to_subgraph.remove(node_id);
+                }
             }
         }
     }

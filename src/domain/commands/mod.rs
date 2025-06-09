@@ -8,6 +8,9 @@ pub mod graph_commands;
 pub mod node_commands;
 pub mod workflow;
 pub mod subgraph_commands;
+pub mod context_bridge_commands;
+pub mod metric_context_commands;
+pub mod rule_context_commands;
 
 pub use aggregated_commands::{
     DomainCommand, UpdateNodePositions, UpdateGraphSelection,
@@ -18,6 +21,9 @@ pub use graph_commands::{GraphCommand, ImportSource, ImportOptions};
 pub use node_commands::NodeCommand;
 pub use workflow::WorkflowCommand;
 pub use subgraph_commands::SubgraphCommand;
+pub use context_bridge_commands::ContextBridgeCommand;
+pub use metric_context_commands::MetricContextCommand;
+pub use rule_context_commands::{RuleContextCommand, ExportFormat};
 
 /// All commands in the system
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +33,9 @@ pub enum Command {
     Edge(EdgeCommand),
     Subgraph(SubgraphCommand),
     Workflow(WorkflowCommand),
+    ContextBridge(ContextBridgeCommand),
+    MetricContext(MetricContextCommand),
+    RuleContext(RuleContextCommand),
 }
 
 impl Command {
@@ -37,6 +46,9 @@ impl Command {
             Command::Edge(c) => c.command_type(),
             Command::Subgraph(_) => "subgraph",
             Command::Workflow(_) => "workflow",
+            Command::ContextBridge(_) => "context_bridge",
+            Command::MetricContext(_) => "metric_context",
+            Command::RuleContext(_) => "rule_context",
         }
     }
 }
@@ -157,6 +169,10 @@ mod handler_existence_tests {
                 GraphCommand::ImportGraph { .. } => assert!(true, "ImportGraph handler exists"),
                 GraphCommand::ImportFromFile { .. } => assert!(true, "ImportFromFile handler exists"),
                 GraphCommand::ImportFromUrl { .. } => assert!(true, "ImportFromUrl handler exists"),
+                GraphCommand::CreateConceptualGraph { .. } => assert!(true, "CreateConceptualGraph handler exists"),
+                GraphCommand::AddConceptualNode { .. } => assert!(true, "AddConceptualNode handler exists"),
+                GraphCommand::ApplyGraphMorphism { .. } => assert!(true, "ApplyGraphMorphism handler exists"),
+                GraphCommand::ComposeConceptualGraphs { .. } => assert!(true, "ComposeConceptualGraphs handler exists"),
             }
         }
     }

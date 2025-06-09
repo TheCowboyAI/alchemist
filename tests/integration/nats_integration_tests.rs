@@ -7,7 +7,7 @@ use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent};
 use ia::domain::value_objects::{GraphId, NodeId, Position3D, GraphMetadata};
 use ia::infrastructure::event_bridge::{EventBridge, BridgeCommand, BridgeEvent};
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
-use crate::fixtures::*;
+use super::fixtures::*;
 use async_nats::jetstream;
 use std::sync::Arc;
 use std::time::Duration;

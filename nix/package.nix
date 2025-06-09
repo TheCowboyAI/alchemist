@@ -1,20 +1,15 @@
 { lib
 , pkgs
 , nonRustDeps
+, srcOverride ? null
 }:
 
 pkgs.rustPlatform.buildRustPackage rec {
   pname = "ia";
   version = "0.1.0";
 
-  # Use root directory as source
-  # For local builds with submodules, we need to use the git worktree
-  src = if (builtins.pathExists ../.git)
-    then builtins.fetchGit {
-      url = ../.;
-      submodules = true;
-    }
-    else ../.;
+  # Use provided src or the parent directory
+  src = if srcOverride != null then srcOverride else ../.;
 
   # Use the Cargo lock file
   cargoLock.lockFile = ../Cargo.lock;
@@ -33,8 +28,6 @@ pkgs.rustPlatform.buildRustPackage rec {
 
   # Production build flags - build without dynamic linking to avoid Bevy 0.16.1 issues
   cargoBuildFlags = "";
-
-
 
   # Disable tests by default - we'll run them explicitly when needed
   doCheck = false;

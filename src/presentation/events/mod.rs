@@ -14,6 +14,8 @@ pub use layout::*;
 
 use bevy::prelude::*;
 use crate::domain::events::DomainEvent;
+use crate::domain::commands::graph_commands::GraphCommand;
+use crate::domain::value_objects::{GraphId, NodeId, EdgeId, WorkflowId, StepId};
 
 /// Marker trait for presentation events
 pub trait PresentationEvent: Event + Clone + Send + Sync + 'static {
@@ -49,4 +51,50 @@ pub struct ImportResultEvent {
 #[derive(Event, Debug, Clone)]
 pub struct ImportRequestEvent {
     pub event: DomainEvent,
+}
+
+/// Wrapper for domain commands to be sent through Bevy's event system
+#[derive(Event, Debug, Clone)]
+pub struct PresentationCommand {
+    pub command: GraphCommand,
+}
+
+impl PresentationCommand {
+    pub fn new(command: GraphCommand) -> Self {
+        Self { command }
+    }
+}
+
+/// Events related to workflow execution and visualization
+#[derive(Event, Debug, Clone)]
+pub enum WorkflowEvent {
+    /// Workflow instance started
+    WorkflowStarted {
+        workflow_id: WorkflowId,
+        instance_id: uuid::Uuid,
+    },
+
+    /// Workflow step started execution
+    StepStarted {
+        step_id: StepId,
+    },
+
+    /// Workflow step completed
+    StepCompleted {
+        step_id: StepId,
+        duration: f32,
+    },
+
+    /// Workflow step failed
+    StepFailed {
+        step_id: StepId,
+        error: String,
+    },
+
+    /// Workflow instance completed
+    WorkflowCompleted {
+        workflow_id: WorkflowId,
+        instance_id: uuid::Uuid,
+        total_duration: f32,
+    },
 }

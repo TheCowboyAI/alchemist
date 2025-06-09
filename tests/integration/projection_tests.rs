@@ -5,7 +5,7 @@
 
 use ia::domain::events::DomainEvent;
 use ia::domain::value_objects::{GraphId, NodeId, GraphMetadata};
-use crate::fixtures::*;
+use super::fixtures::*;
 
 #[tokio::test]
 #[ignore = "requires projection implementation"]

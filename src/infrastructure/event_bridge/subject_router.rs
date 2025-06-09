@@ -7,7 +7,9 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use tracing::{debug, error, info, warn};
 
-use crate::domain::events::DomainEvent;
+use crate::domain::events::{
+    DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
+};
 use crate::domain::value_objects::{AggregateId, EventId};
 
 /// Subject-based event router for Bevy
@@ -141,7 +143,7 @@ impl SubjectRouter {
 
     /// Route an event to appropriate subjects
     pub fn route_event(&self, event: DomainEvent) -> Result<Vec<String>, String> {
-        let subject = self.event_to_subject(&event);
+        let subject = event_to_subject(&event);
         let mut routed_to = Vec::new();
 
         // Get sequences
@@ -180,88 +182,6 @@ impl SubjectRouter {
         }
 
         Ok(routed_to)
-    }
-
-    /// Convert event to subject
-    fn event_to_subject(&self, event: &DomainEvent) -> String {
-        match event {
-            DomainEvent::Node(node_event) => match node_event {
-                crate::domain::events::NodeEvent::NodeAdded { graph_id, .. } =>
-                    format!("event.graph.{}.node.added", graph_id),
-                crate::domain::events::NodeEvent::NodeRemoved { graph_id, .. } =>
-                    format!("event.graph.{}.node.removed", graph_id),
-                crate::domain::events::NodeEvent::NodeUpdated { graph_id, .. } =>
-                    format!("event.graph.{}.node.updated", graph_id),
-                crate::domain::events::NodeEvent::NodeMoved { graph_id, .. } =>
-                    format!("event.graph.{}.node.moved", graph_id),
-                crate::domain::events::NodeEvent::NodeContentChanged { graph_id, .. } =>
-                    format!("event.graph.{}.node.content_changed", graph_id),
-            },
-            DomainEvent::Edge(edge_event) => match edge_event {
-                crate::domain::events::EdgeEvent::EdgeConnected { graph_id, .. } =>
-                    format!("event.graph.{}.edge.connected", graph_id),
-                crate::domain::events::EdgeEvent::EdgeRemoved { graph_id, .. } =>
-                    format!("event.graph.{}.edge.removed", graph_id),
-                crate::domain::events::EdgeEvent::EdgeUpdated { graph_id, .. } =>
-                    format!("event.graph.{}.edge.updated", graph_id),
-                crate::domain::events::EdgeEvent::EdgeReversed { graph_id, .. } =>
-                    format!("event.graph.{}.edge.reversed", graph_id),
-            },
-            DomainEvent::Graph(graph_event) => match graph_event {
-                crate::domain::events::GraphEvent::GraphCreated { id, .. } =>
-                    format!("event.graph.{}.created", id),
-                crate::domain::events::GraphEvent::GraphDeleted { id } =>
-                    format!("event.graph.{}.deleted", id),
-                crate::domain::events::GraphEvent::GraphRenamed { id, .. } =>
-                    format!("event.graph.{}.renamed", id),
-                crate::domain::events::GraphEvent::GraphTagged { id, .. } =>
-                    format!("event.graph.{}.tagged", id),
-                crate::domain::events::GraphEvent::GraphUntagged { id, .. } =>
-                    format!("event.graph.{}.untagged", id),
-                crate::domain::events::GraphEvent::GraphUpdated { graph_id, .. } =>
-                    format!("event.graph.{}.updated", graph_id),
-                crate::domain::events::GraphEvent::GraphImportRequested { graph_id, .. } =>
-                    format!("event.graph.{}.import_requested", graph_id),
-                crate::domain::events::GraphEvent::GraphImportCompleted { graph_id, .. } =>
-                    format!("event.graph.{}.import_completed", graph_id),
-                crate::domain::events::GraphEvent::GraphImportFailed { graph_id, .. } =>
-                    format!("event.graph.{}.import_failed", graph_id),
-            },
-            DomainEvent::Workflow(workflow_event) => match workflow_event {
-                crate::domain::events::WorkflowEvent::WorkflowCreated(evt) =>
-                    format!("event.workflow.{}.created", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::StepAdded(evt) =>
-                    format!("event.workflow.{}.step_added", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::StepsConnected(evt) =>
-                    format!("event.workflow.{}.steps_connected", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::WorkflowValidated(evt) =>
-                    format!("event.workflow.{}.validated", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::WorkflowStarted(evt) =>
-                    format!("event.workflow.{}.started", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::StepCompleted(evt) =>
-                    format!("event.workflow.{}.step_completed", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::WorkflowPaused(evt) =>
-                    format!("event.workflow.{}.paused", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::WorkflowResumed(evt) =>
-                    format!("event.workflow.{}.resumed", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::WorkflowCompleted(evt) =>
-                    format!("event.workflow.{}.completed", evt.workflow_id),
-                crate::domain::events::WorkflowEvent::WorkflowFailed(evt) =>
-                    format!("event.workflow.{}.failed", evt.workflow_id),
-            },
-            DomainEvent::Subgraph(subgraph_event) => match subgraph_event {
-                crate::domain::events::SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, .. } =>
-                    format!("event.graph.{}.subgraph.{}.created", graph_id, subgraph_id),
-                crate::domain::events::SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id } =>
-                    format!("event.graph.{}.subgraph.{}.removed", graph_id, subgraph_id),
-                crate::domain::events::SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, .. } =>
-                    format!("event.graph.{}.subgraph.{}.moved", graph_id, subgraph_id),
-                crate::domain::events::SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, .. } =>
-                    format!("event.graph.{}.subgraph.{}.node_added", graph_id, subgraph_id),
-                crate::domain::events::SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, .. } =>
-                    format!("event.graph.{}.subgraph.{}.node_removed", graph_id, subgraph_id),
-            },
-        }
     }
 
     /// Check if subject matches pattern (supports wildcards)
@@ -405,5 +325,124 @@ mod tests {
         // No match
         assert!(!router.matches_pattern("event.graph.node", "event.graph.edge"));
         assert!(!router.matches_pattern("event.graph", "event.graph.node"));
+    }
+}
+
+fn graph_event_to_subject(event: &GraphEvent) -> String {
+    match event {
+        GraphEvent::GraphCreated { .. } => "event.graph.created".to_string(),
+        GraphEvent::GraphDeleted { .. } => "event.graph.deleted".to_string(),
+        GraphEvent::GraphRenamed { .. } => "event.graph.renamed".to_string(),
+        GraphEvent::GraphTagged { .. } => "event.graph.tagged".to_string(),
+        GraphEvent::GraphUntagged { .. } => "event.graph.untagged".to_string(),
+        GraphEvent::GraphUpdated { .. } => "event.graph.updated".to_string(),
+        GraphEvent::GraphImportRequested { .. } => "event.graph.import_requested".to_string(),
+        GraphEvent::GraphImportCompleted { .. } => "event.graph.import_completed".to_string(),
+        GraphEvent::GraphImportFailed { .. } => "event.graph.import_failed".to_string(),
+    }
+}
+
+fn node_event_to_subject(event: &NodeEvent) -> String {
+    match event {
+        NodeEvent::NodeAdded { .. } => "event.node.added".to_string(),
+        NodeEvent::NodeRemoved { .. } => "event.node.removed".to_string(),
+        NodeEvent::NodeUpdated { .. } => "event.node.updated".to_string(),
+        NodeEvent::NodeMoved { .. } => "event.node.moved".to_string(),
+        NodeEvent::NodeContentChanged { .. } => "event.node.content_changed".to_string(),
+    }
+}
+
+fn edge_event_to_subject(event: &EdgeEvent) -> String {
+    match event {
+        EdgeEvent::EdgeConnected { .. } => "event.edge.connected".to_string(),
+        EdgeEvent::EdgeRemoved { .. } => "event.edge.removed".to_string(),
+        EdgeEvent::EdgeUpdated { .. } => "event.edge.updated".to_string(),
+        EdgeEvent::EdgeReversed { .. } => "event.edge.reversed".to_string(),
+    }
+}
+
+fn subgraph_event_to_subject(event: &SubgraphEvent) -> String {
+    match event {
+        SubgraphEvent::SubgraphCreated { .. } => "event.subgraph.created".to_string(),
+        SubgraphEvent::SubgraphRemoved { .. } => "event.subgraph.removed".to_string(),
+        SubgraphEvent::SubgraphMoved { .. } => "event.subgraph.moved".to_string(),
+        SubgraphEvent::NodeAddedToSubgraph { .. } => "event.subgraph.node_added".to_string(),
+        SubgraphEvent::NodeRemovedFromSubgraph { .. } => "event.subgraph.node_removed".to_string(),
+    }
+}
+
+fn workflow_event_to_subject(event: &WorkflowEvent) -> String {
+    match event {
+        WorkflowEvent::WorkflowCreated { .. } => "event.workflow.created".to_string(),
+        WorkflowEvent::StepAdded { .. } => "event.workflow.step_added".to_string(),
+        WorkflowEvent::StepsConnected { .. } => "event.workflow.steps_connected".to_string(),
+        WorkflowEvent::WorkflowValidated { .. } => "event.workflow.validated".to_string(),
+        WorkflowEvent::WorkflowStarted { .. } => "event.workflow.started".to_string(),
+        WorkflowEvent::StepCompleted { .. } => "event.workflow.step_completed".to_string(),
+        WorkflowEvent::WorkflowPaused { .. } => "event.workflow.paused".to_string(),
+        WorkflowEvent::WorkflowResumed { .. } => "event.workflow.resumed".to_string(),
+        WorkflowEvent::WorkflowFailed { .. } => "event.workflow.failed".to_string(),
+        WorkflowEvent::WorkflowCompleted { .. } => "event.workflow.completed".to_string(),
+    }
+}
+
+fn context_bridge_event_to_subject(event: &ContextBridgeEvent) -> String {
+    match event {
+        ContextBridgeEvent::BridgeCreated { .. } => "event.context_bridge.created".to_string(),
+        ContextBridgeEvent::TranslationRuleAdded { .. } => "event.context_bridge.rule_added".to_string(),
+        ContextBridgeEvent::TranslationRuleRemoved { .. } => "event.context_bridge.rule_removed".to_string(),
+        ContextBridgeEvent::ConceptTranslated { .. } => "event.context_bridge.concept_translated".to_string(),
+        ContextBridgeEvent::BridgeDeleted { .. } => "event.context_bridge.deleted".to_string(),
+        ContextBridgeEvent::MappingTypeUpdated { .. } => "event.context_bridge.mapping_updated".to_string(),
+        ContextBridgeEvent::TranslationFailed { .. } => "event.context_bridge.translation_failed".to_string(),
+    }
+}
+
+fn metric_context_event_to_subject(event: &MetricContextEvent) -> String {
+    match event {
+        MetricContextEvent::MetricContextCreated { .. } => "event.metric_context.created".to_string(),
+        MetricContextEvent::DistanceSet { .. } => "event.metric_context.distance_set".to_string(),
+        MetricContextEvent::ShortestPathCalculated { .. } => "event.metric_context.path_calculated".to_string(),
+        MetricContextEvent::NearestNeighborsFound { .. } => "event.metric_context.neighbors_found".to_string(),
+        MetricContextEvent::ConceptsClustered { .. } => "event.metric_context.concepts_clustered".to_string(),
+        MetricContextEvent::ConceptsWithinRadiusFound { .. } => "event.metric_context.radius_search".to_string(),
+        MetricContextEvent::MetricPropertiesUpdated { .. } => "event.metric_context.properties_updated".to_string(),
+    }
+}
+
+fn rule_context_event_to_subject(event: &RuleContextEvent) -> String {
+    match event {
+        RuleContextEvent::RuleContextCreated { .. } => "event.rule_context.created".to_string(),
+        RuleContextEvent::RuleAdded { .. } => "event.rule_context.rule_added".to_string(),
+        RuleContextEvent::RuleRemoved { .. } => "event.rule_context.rule_removed".to_string(),
+        RuleContextEvent::RuleEnabledChanged { .. } => "event.rule_context.rule_enabled_changed".to_string(),
+        RuleContextEvent::RulesEvaluated { .. } => "event.rule_context.rules_evaluated".to_string(),
+        RuleContextEvent::ComplianceChecked { .. } => "event.rule_context.compliance_checked".to_string(),
+        RuleContextEvent::FactsInferred { .. } => "event.rule_context.facts_inferred".to_string(),
+        RuleContextEvent::ImpactAnalyzed { .. } => "event.rule_context.impact_analyzed".to_string(),
+        RuleContextEvent::RulePriorityUpdated { .. } => "event.rule_context.priority_updated".to_string(),
+        RuleContextEvent::FactAdded { .. } => "event.rule_context.fact_added".to_string(),
+        RuleContextEvent::FactRemoved { .. } => "event.rule_context.fact_removed".to_string(),
+        RuleContextEvent::RuleActionsExecuted { .. } => "event.rule_context.actions_executed".to_string(),
+        RuleContextEvent::RulesValidated { .. } => "event.rule_context.rules_validated".to_string(),
+        RuleContextEvent::RulesExported { .. } => "event.rule_context.rules_exported".to_string(),
+        RuleContextEvent::RulesImported { .. } => "event.rule_context.rules_imported".to_string(),
+        RuleContextEvent::RuleViolated { .. } => "event.rule_context.rule_violated".to_string(),
+        RuleContextEvent::RuleExecutionFailed { .. } => "event.rule_context.execution_failed".to_string(),
+        RuleContextEvent::CircularDependencyDetected { .. } => "event.rule_context.circular_dependency".to_string(),
+    }
+}
+
+/// Maps domain events to NATS subjects
+pub fn event_to_subject(event: &DomainEvent) -> String {
+    match event {
+        DomainEvent::Graph(e) => graph_event_to_subject(e),
+        DomainEvent::Node(e) => node_event_to_subject(e),
+        DomainEvent::Edge(e) => edge_event_to_subject(e),
+        DomainEvent::Subgraph(e) => subgraph_event_to_subject(e),
+        DomainEvent::Workflow(e) => workflow_event_to_subject(e),
+        DomainEvent::ContextBridge(e) => context_bridge_event_to_subject(e),
+        DomainEvent::MetricContext(e) => metric_context_event_to_subject(e),
+        DomainEvent::RuleContext(e) => rule_context_event_to_subject(e),
     }
 }

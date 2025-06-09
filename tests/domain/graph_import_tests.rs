@@ -3,7 +3,7 @@
 
 use ia::domain::{
     aggregates::Graph,
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, MergeBehavior},
+    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
     events::{DomainEvent, GraphEvent},
     services::{GraphImportService, ImportResult},
     value_objects::{GraphId, NodeId, Position3D},

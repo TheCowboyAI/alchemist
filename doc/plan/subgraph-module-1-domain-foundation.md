@@ -68,6 +68,10 @@ pub enum LayoutStrategy {
         columns: u32,
         spacing: f32,
     },
+    // Equiangular Polygon Representation based on number of nodes
+    Geometric {
+        spacing: f32
+    },
     /// Restore to previous positions
     RestorePrevious,
 }

@@ -4,10 +4,11 @@
 //! and persists events to the event store.
 
 use crate::domain::aggregates::Graph;
-use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand, SubgraphCommand};
+use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand, SubgraphCommand, WorkflowCommand};
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::event_store::EventStore;
 use std::sync::Arc;
+use tracing::warn;
 
 
 /// Command handler error type
@@ -78,9 +79,18 @@ impl CommandHandler for GraphCommandHandler {
             Command::Node(node_cmd) => self.handle_node_command(node_cmd).await,
             Command::Edge(edge_cmd) => self.handle_edge_command(edge_cmd).await,
             Command::Subgraph(subgraph_cmd) => self.handle_subgraph_command(subgraph_cmd).await,
-            Command::Workflow(_) => {
-                // Workflow commands should be handled by WorkflowCommandHandler
-                Err(CommandHandlerError::Other("Workflow commands should be handled by WorkflowCommandHandler".to_string()))
+            Command::Workflow(workflow_cmd) => self.handle_workflow_command(workflow_cmd).await,
+            Command::ContextBridge(_) => {
+                tracing::warn!("ContextBridge commands not yet implemented");
+                Ok(vec![])
+            }
+            Command::MetricContext(_) => {
+                tracing::warn!("MetricContext commands not yet implemented");
+                Ok(vec![])
+            }
+            Command::RuleContext(_) => {
+                tracing::warn!("RuleContext commands not yet implemented");
+                Ok(vec![])
             }
         }
     }
@@ -117,6 +127,10 @@ impl GraphCommandHandler {
                     GraphCommand::ImportGraph { graph_id, .. } => *graph_id,
                     GraphCommand::ImportFromFile { graph_id, .. } => *graph_id,
                     GraphCommand::ImportFromUrl { graph_id, .. } => *graph_id,
+                    GraphCommand::CreateConceptualGraph { graph_id, .. } => *graph_id,
+                    GraphCommand::AddConceptualNode { graph_id, .. } => *graph_id,
+                    GraphCommand::ApplyGraphMorphism { source_graph, .. } => *source_graph,
+                    GraphCommand::ComposeConceptualGraphs { result_graph_id, .. } => *result_graph_id,
                     GraphCommand::CreateGraph { .. } => unreachable!(),
                 };
 
@@ -192,5 +206,10 @@ impl GraphCommandHandler {
         }
 
         Ok(events)
+    }
+
+    async fn handle_workflow_command(&self, _command: WorkflowCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+        // Workflow commands should be handled by WorkflowCommandHandler
+        Err(CommandHandlerError::Other("Workflow commands should be handled by WorkflowCommandHandler".to_string()))
     }
 }

@@ -309,3 +309,15 @@ pub struct SubgraphInfo {
     pub node_count: usize,
     pub member_entities: Vec<Entity>,
 }
+
+pub mod conceptual_visualization;
+pub mod workflow_visualization;
+
+pub use conceptual_visualization::*;
+pub use workflow_visualization::*;
+
+/// Component wrapper for domain ContextBridge
+#[derive(Component)]
+pub struct ContextBridgeComponent {
+    pub bridge: crate::domain::conceptual_graph::ContextBridge,
+}

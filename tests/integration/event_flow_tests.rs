@@ -3,14 +3,14 @@
 //! These tests verify the complete flow from command submission
 //! through event storage to projection updates.
 
-use ia::domain::aggregates::GraphAggregate;
+use ia::domain::aggregates::Graph;
 use ia::domain::commands::{GraphCommand, NodeCommand, EdgeCommand};
 use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
 use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata};
 use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
 use ia::infrastructure::event_bridge::EventBridge;
 use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
-use crate::fixtures::*;
+use super::fixtures::*;
 use std::sync::Arc;
 use std::time::Duration;
 use std::collections::HashMap;
@@ -252,7 +252,7 @@ async fn test_complex_graph_operations_flow() -> Result<(), Box<dyn std::error::
     let all_events = event_store.get_events(graph_id.to_string()).await?;
 
     // Replay events to reconstruct aggregate
-    let mut aggregate = GraphAggregate::new(graph_id);
+    let mut aggregate = Graph::new(graph_id);
     for event in &all_events {
         aggregate.apply_event(event)?;
     }

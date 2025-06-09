@@ -1,9 +1,16 @@
 //! Implementation of EventStore trait for DistributedEventStore
 
 use super::{EventStore, EventStoreError};
-use crate::domain::events::{DomainEvent, NodeEvent, EdgeEvent, workflow::WorkflowEvent};
+use crate::domain::events::{
+    DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
+};
+use crate::domain::value_objects::{AggregateId, EventId};
 use async_nats::jetstream::{self, stream::Config as StreamConfig};
 use async_trait::async_trait;
+use crate::infrastructure::event_bridge::subject_router::event_to_subject;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use tracing::{error, info};
 
 use uuid::Uuid;
 use futures::StreamExt;
@@ -145,23 +152,61 @@ impl EventStore for DistributedEventStore {
                 EdgeEvent::EdgeReversed { graph_id, .. } => graph_id.to_string(),
             },
             DomainEvent::Workflow(workflow_event) => match workflow_event {
-                WorkflowEvent::WorkflowCreated(e) => e.workflow_id.to_string(),
-                WorkflowEvent::StepAdded(e) => e.workflow_id.to_string(),
-                WorkflowEvent::StepsConnected(e) => e.workflow_id.to_string(),
-                WorkflowEvent::WorkflowValidated(e) => e.workflow_id.to_string(),
-                WorkflowEvent::WorkflowStarted(e) => e.workflow_id.to_string(),
-                WorkflowEvent::StepCompleted(e) => e.workflow_id.to_string(),
-                WorkflowEvent::WorkflowPaused(e) => e.workflow_id.to_string(),
-                WorkflowEvent::WorkflowResumed(e) => e.workflow_id.to_string(),
-                WorkflowEvent::WorkflowCompleted(e) => e.workflow_id.to_string(),
-                WorkflowEvent::WorkflowFailed(e) => e.workflow_id.to_string(),
+                WorkflowEvent::WorkflowCreated(event) => event.workflow_id.to_string(),
+                WorkflowEvent::StepAdded(event) => event.workflow_id.to_string(),
+                WorkflowEvent::StepsConnected(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowValidated(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowStarted(event) => event.workflow_id.to_string(),
+                WorkflowEvent::StepCompleted(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowPaused(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowResumed(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowCompleted(event) => event.workflow_id.to_string(),
+                WorkflowEvent::WorkflowFailed(event) => event.workflow_id.to_string(),
             },
             DomainEvent::Subgraph(subgraph_event) => match subgraph_event {
-                crate::domain::events::SubgraphEvent::SubgraphCreated { graph_id, .. } => graph_id.to_string(),
-                crate::domain::events::SubgraphEvent::SubgraphRemoved { graph_id, .. } => graph_id.to_string(),
-                crate::domain::events::SubgraphEvent::SubgraphMoved { graph_id, .. } => graph_id.to_string(),
-                crate::domain::events::SubgraphEvent::NodeAddedToSubgraph { graph_id, .. } => graph_id.to_string(),
-                crate::domain::events::SubgraphEvent::NodeRemovedFromSubgraph { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::SubgraphCreated { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::SubgraphRemoved { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::SubgraphMoved { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::NodeAddedToSubgraph { graph_id, .. } => graph_id.to_string(),
+                SubgraphEvent::NodeRemovedFromSubgraph { graph_id, .. } => graph_id.to_string(),
+            },
+            DomainEvent::ContextBridge(context_bridge_event) => match context_bridge_event {
+                ContextBridgeEvent::BridgeCreated { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationRuleAdded { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationRuleRemoved { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::ConceptTranslated { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationFailed { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::BridgeDeleted { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::MappingTypeUpdated { bridge_id, .. } => bridge_id.to_string(),
+            },
+            DomainEvent::MetricContext(metric_context_event) => match metric_context_event {
+                MetricContextEvent::MetricContextCreated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::DistanceSet { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ShortestPathCalculated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::NearestNeighborsFound { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ConceptsClustered { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ConceptsWithinRadiusFound { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::MetricPropertiesUpdated { context_id, .. } => context_id.to_string(),
+            },
+            DomainEvent::RuleContext(rule_event) => match rule_event {
+                RuleContextEvent::RuleContextCreated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleAdded { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleRemoved { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleEnabledChanged { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesEvaluated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::ComplianceChecked { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::FactsInferred { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::ImpactAnalyzed { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulePriorityUpdated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::FactAdded { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::FactRemoved { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleActionsExecuted { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesValidated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesExported { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RulesImported { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleViolated { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::RuleExecutionFailed { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::CircularDependencyDetected { context_id, .. } => context_id.to_string(),
             },
         };
 

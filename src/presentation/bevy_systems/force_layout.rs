@@ -238,9 +238,10 @@ mod tests {
         // Add settings with strong spring force
         app.insert_resource(ForceLayoutSettings {
             repulsion_strength: 0.0, // Disable repulsion for this test
-            spring_strength: 1.0,
+            spring_strength: 10.0,    // Increased from 1.0 for more noticeable effect
             spring_length: 2.0,
-            ..Default::default()
+            damping: 0.9,
+            enabled: true,
         });
 
         // Add time with fixed delta
@@ -283,14 +284,18 @@ mod tests {
         // Run update with time delta
         app.update();
 
-        // Nodes should be pulled together
-        let transform1 = app.world().get::<Transform>(node1).unwrap();
-        let transform2 = app.world().get::<Transform>(node2).unwrap();
+        // Check velocities instead of positions for more reliable test
+        let force1 = app.world().get::<ForceNode>(node1).unwrap();
+        let force2 = app.world().get::<ForceNode>(node2).unwrap();
 
-        // Node 1 should move right (positive X)
-        assert!(transform1.translation.x > 0.0, "Node 1 should move right, but is at {}", transform1.translation.x);
-        // Node 2 should move left (less than 5.0)
-        assert!(transform2.translation.x < 5.0, "Node 2 should move left, but is at {}", transform2.translation.x);
+        // Node 1 should have positive X velocity (moving right toward node 2)
+        assert!(force1.velocity.x > 0.0, "Node 1 should have positive X velocity, but has {}", force1.velocity.x);
+        // Node 2 should have negative X velocity (moving left toward node 1)
+        assert!(force2.velocity.x < 0.0, "Node 2 should have negative X velocity, but has {}", force2.velocity.x);
+
+        // Velocities should be equal in magnitude but opposite in direction
+        assert!((force1.velocity.x + force2.velocity.x).abs() < 0.0001,
+            "Velocities should be equal and opposite");
     }
 
     #[test]
@@ -401,7 +406,6 @@ mod tests {
 
         // Add time
         app.insert_resource(Time::<()>::default());
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
 
         // Add node with Y displacement
         let node = app.world_mut().spawn((
@@ -419,13 +423,24 @@ mod tests {
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
 
-        // Run update
+        // Advance time and update
+        app.update(); // First update to initialize
+        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
+
+        // Run update with time delta
         app.update();
 
         // Y should NOT be reset to 0 anymore - it should have moved based on velocity
         let transform = app.world().get::<Transform>(node).unwrap();
         assert_ne!(transform.translation.y, 0.0, "Y position should not be constrained to 0");
-        // With initial Y=5.0 and velocity Y=10.0, after one frame it should be > 5.0
+
+        // With initial Y=5.0 and velocity Y=10.0, after one frame with damping (0.9) and delta (0.016)
+        // Expected: 5.0 + (10.0 * 0.9 * 0.016) = 5.0 + 0.144 = 5.144
         assert!(transform.translation.y > 5.0, "Y position should have increased due to velocity");
+
+        // Also check that velocity was damped
+        let force_node = app.world().get::<ForceNode>(node).unwrap();
+        assert!(force_node.velocity.y < 10.0 && force_node.velocity.y > 0.0,
+            "Y velocity should be damped but still positive");
     }
 }

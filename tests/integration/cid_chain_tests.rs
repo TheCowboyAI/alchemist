@@ -3,11 +3,10 @@
 //! These tests verify the cryptographic integrity of event chains
 //! using content-addressed identifiers.
 
-use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent};
+use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent, cid_chain::{ChainedEvent, EventChain}};
 use ia::domain::value_objects::{GraphId, NodeId, Position3D, GraphMetadata};
 use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
-use cim_ipld::chain::{ChainedEvent, EventChain};
-use crate::fixtures::*;
+use super::fixtures::*;
 use std::time::SystemTime;
 
 #[tokio::test]

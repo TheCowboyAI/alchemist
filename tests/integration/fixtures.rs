@@ -1,7 +1,7 @@
 //! Test fixtures and helpers for integration tests
 
 use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata};
-use ia::domain::commands::{GraphCommand, NodeCommand, EdgeCommand};
+use ia::domain::commands::{GraphCommand, NodeCommand, EdgeCommand, Command};
 use ia::domain::events::{GraphEvent, NodeEvent, EdgeEvent};
 use ia::domain::content_types::{GraphContent, NodeIPLDContent, EdgeIPLDContent};
 use ia::infrastructure::nats::NatsConfig;
@@ -10,6 +10,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use std::collections::HashMap;
+use futures::StreamExt;
 
 /// Test NATS configuration
 pub fn test_nats_config() -> NatsConfig {
@@ -240,7 +241,7 @@ impl TestAssertions {
     }
 
     /// Assert CID chain integrity
-    pub fn assert_cid_chain_valid(events: &[cim_ipld::chain::ChainedEvent]) -> Result<(), String> {
+    pub fn assert_cid_chain_valid(events: &[ia::domain::events::cid_chain::ChainedEvent]) -> Result<(), String> {
         for (i, event) in events.iter().enumerate() {
             if i > 0 {
                 let expected_previous = &events[i - 1].event_cid;

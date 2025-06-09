@@ -58,16 +58,18 @@
             inherit pkgs rust-toolchain nonRustDeps;
           };
 
-          # Main package definition
+          # Main package definition with submodules support
           ia-package = import ./nix/package.nix {
             inherit (pkgs) lib;
             inherit pkgs nonRustDeps;
+            srcOverride = inputs.self;
           };
 
           # Package with tests enabled
           ia-package-with-tests = import ./nix/package-with-tests.nix {
             inherit (pkgs) lib;
             inherit pkgs nonRustDeps;
+            srcOverride = inputs.self;
           };
 
           # App configuration

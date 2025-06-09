@@ -21,6 +21,7 @@ pub mod bevy_system_conflict_test;
 pub mod import_functionality_test;
 pub mod distributed_event_store_tests;
 pub mod simple_import_test;
+pub mod visualization_test;
 
 // Re-export common test utilities
 pub use fixtures::*;

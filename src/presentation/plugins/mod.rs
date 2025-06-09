@@ -36,8 +36,17 @@ use crate::presentation::systems::subgraph_visualization::{SubgraphVisualization
 use crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin;
 
 pub mod subgraph_plugin;
+pub mod graph_editor;
+pub mod graph_editor_plugin;
+pub mod conceptual_graph_plugin;
+pub mod graph_plugin;
+pub mod workflow_designer_plugin;
 
 pub use subgraph_plugin::SubgraphPlugin;
+pub use conceptual_graph_plugin::ConceptualGraphPlugin;
+pub use graph_plugin::GraphPlugin;
+pub use graph_editor_plugin::GraphEditorPlugin as ConceptualGraphEditorPlugin;
+pub use workflow_designer_plugin::WorkflowDesignerPlugin;
 
 /// Main plugin for the graph editor
 pub struct GraphEditorPlugin;

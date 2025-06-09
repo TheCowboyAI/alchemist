@@ -1,12 +1,13 @@
 { lib
 , pkgs
 , nonRustDeps
+, srcOverride ? null
 }:
 
 # Import the base package
 let
   basePackage = import ./package.nix {
-    inherit lib pkgs nonRustDeps;
+    inherit lib pkgs nonRustDeps srcOverride;
   };
 in
 # Override to enable tests

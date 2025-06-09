@@ -1,77 +1,91 @@
 //! Domain-level test that would have caught the missing import functionality
 
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportFormat, ImportOptions, MergeBehavior},
+    aggregates::Graph,
+    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
     events::{DomainEvent, GraphEvent},
+    services::{GraphImportService, ImportFormat},
     value_objects::GraphId,
 };
-use ia::application::command_handlers::{handle_graph_command, process_commands};
 
 #[test]
 fn test_import_graph_command_generates_event() {
     // This test would have caught that ImportGraph commands were returning None
-    let import_cmd = GraphCommand::ImportGraph {
-        graph_id: GraphId::new(),
+    let graph_id = GraphId::new();
+    let mut graph = Graph::new(graph_id);
+
+    let import_cmd = Command::Graph(GraphCommand::ImportGraph {
+        graph_id,
         source: ImportSource::File {
             path: "test.json".to_string(),
         },
-        format: ImportFormat::ArrowsApp,
+        format: "arrows".to_string(),
         options: ImportOptions {
+            merge_behavior: MergeBehavior::AlwaysCreate,
+            id_prefix: None,
+            position_offset: None,
             mapping: None,
             validate: true,
             max_nodes: None,
         },
-    };
+    });
 
-    // The original implementation returned None here
-    let result = handle_graph_command(&import_cmd);
+    // The domain aggregate should handle the command
+    let result = graph.handle_command(import_cmd);
 
-    assert!(result.is_some(), "ImportGraph command should generate an event, not return None");
+    assert!(result.is_ok(), "ImportGraph command should be handled successfully");
 
-    if let Some(event) = result {
-        match event {
-            DomainEvent::Graph(GraphEvent::GraphImportRequested { .. }) => {
-                // Success - the command generated the expected event
-            }
-            _ => panic!("ImportGraph command should generate GraphImportRequested event"),
-        }
+    if let Ok(events) = result {
+        assert!(!events.is_empty(), "ImportGraph command should generate events");
+
+        let has_import_event = events.iter().any(|event| {
+            matches!(event, DomainEvent::Graph(GraphEvent::GraphImportRequested { .. }))
+        });
+
+        assert!(has_import_event, "ImportGraph command should generate GraphImportRequested event");
     }
 }
 
 #[test]
 fn test_all_graph_commands_are_handled() {
-    // This test ensures no command returns None unexpectedly
+    // This test ensures no command returns error unexpectedly
+    let graph_id = GraphId::new();
+    let mut graph = Graph::new(graph_id);
+
     let test_cases = vec![
-        GraphCommand::CreateGraph {
-            id: GraphId::new(),
+        Command::Graph(GraphCommand::CreateGraph {
+            id: graph_id,
             name: "Test".to_string(),
             metadata: Default::default(),
-        },
-        GraphCommand::ImportGraph {
-            graph_id: GraphId::new(),
+        }),
+        Command::Graph(GraphCommand::ImportGraph {
+            graph_id,
             source: ImportSource::File {
                 path: "test.json".to_string(),
             },
-            format: ImportFormat::ArrowsApp,
+            format: "arrows".to_string(),
             options: ImportOptions {
+                merge_behavior: MergeBehavior::AlwaysCreate,
+                id_prefix: None,
+                position_offset: None,
                 mapping: None,
                 validate: true,
                 max_nodes: None,
             },
-        },
+        }),
     ];
 
     for cmd in test_cases {
         let cmd_name = match &cmd {
-            GraphCommand::CreateGraph { .. } => "CreateGraph",
-            GraphCommand::ImportGraph { .. } => "ImportGraph",
+            Command::Graph(GraphCommand::CreateGraph { .. }) => "CreateGraph",
+            Command::Graph(GraphCommand::ImportGraph { .. }) => "ImportGraph",
             _ => "Other",
         };
 
-        let result = handle_graph_command(&cmd);
+        let result = graph.handle_command(cmd);
         assert!(
-            result.is_some(),
-            "{} command should be handled and generate an event, not return None",
+            result.is_ok(),
+            "{} command should be handled successfully",
             cmd_name
         );
     }

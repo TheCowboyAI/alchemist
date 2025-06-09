@@ -4,6 +4,7 @@ use thiserror::Error;
 
 pub mod aggregates;
 pub mod commands;
+pub mod conceptual_graph;
 pub mod content_types;
 pub mod events;
 pub mod services;

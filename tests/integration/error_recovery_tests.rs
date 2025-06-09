@@ -7,7 +7,7 @@ use ia::domain::value_objects::{GraphId, NodeId, Position3D, GraphMetadata};
 use ia::domain::commands::GraphCommand;
 use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
 use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
-use crate::fixtures::*;
+use super::fixtures::*;
 use std::sync::Arc;
 use std::time::Duration;
 use std::collections::HashMap;
