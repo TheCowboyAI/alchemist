@@ -87,14 +87,15 @@ impl Plugin for SystemsPlugin {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::prelude::*;
     use crate::domain::conceptual_graph::{
         ConceptGraph, ConceptNode, ConceptType, ConceptualPoint,
         QualityDimension, DimensionType, NodeId,
     };
     use crate::presentation::components::conceptual_visualization::{
-        ConceptualNodeVisual, ConceptualSpaceVisual,
+        ConceptualNodeVisual, ConceptualSpaceVisual, SpaceId, SpaceBounds, GridSettings,
+        DraggableNode, ConceptNodeType,
     };
-    use bevy::prelude::*;
 
     // Define test resource for cursor position
     #[derive(Resource, Default)]
@@ -135,10 +136,11 @@ mod tests {
         app.world_mut().spawn((
             graph,
             ConceptualSpaceVisual {
-                bounds: Vec3::new(10.0, 10.0, 10.0),
-                grid_size: 1.0,
-                show_grid: true,
-                show_axes: true,
+                space_id: SpaceId::new(),
+                dimensions: vec![],
+                origin: Vec3::ZERO,
+                bounds: SpaceBounds::default(),
+                grid_settings: GridSettings::default(),
             },
         ));
 
@@ -150,24 +152,32 @@ mod tests {
         let visuals: Vec<_> = query.iter(&app.world()).collect();
 
         assert_eq!(visuals.len(), 1, "Should have created 1 visual node");
-        assert_eq!(visuals[0].node_id, node_id);
-        assert_eq!(visuals[0].quality_dimensions, vec![0.5, 0.5, 0.5]);
+        assert_eq!(visuals[0].concept_id, node_id);
+        assert_eq!(visuals[0].quality_position.coordinates(), &vec![0.5, 0.5, 0.5]);
     }
 
     #[test]
     fn test_node_visual_creation() {
-        use crate::presentation::components::conceptual_visualization::DraggableNode;
+        use crate::presentation::components::conceptual_visualization::{DraggableNode, ConceptNodeType};
 
         // Simple test that node visuals can be created
         let node_visual = ConceptualNodeVisual {
-            node_id: NodeId::new(),
-            concept_type: ConceptType::Entity,
-            quality_dimensions: vec![0.5, 0.5, 0.5],
+            concept_id: NodeId::new(),
+            node_type: ConceptNodeType::Atom {
+                category: "Entity".to_string(),
+                properties: Default::default(),
+            },
+            quality_position: ConceptualPoint::new(vec![0.5, 0.5, 0.5]),
             visual_style: Default::default(),
+            selected: false,
+            hovered: false,
         };
 
-        assert_eq!(node_visual.quality_dimensions.len(), 3);
-        assert_eq!(node_visual.concept_type, ConceptType::Entity);
+        assert_eq!(node_visual.quality_position.coordinates(), &vec![0.5, 0.5, 0.5]);
+        match &node_visual.node_type {
+            ConceptNodeType::Atom { category, .. } => assert_eq!(category, "Entity"),
+            _ => panic!("Wrong node type"),
+        }
     }
 
     #[test]

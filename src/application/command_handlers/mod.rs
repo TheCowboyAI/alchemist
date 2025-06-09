@@ -3,14 +3,13 @@
 use crate::application::{CommandEvent, EventNotification};
 use crate::domain::commands::{Command, EdgeCommand, GraphCommand, NodeCommand};
 use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
-use crate::domain::value_objects::*;
+use crate::domain::value_objects::{GraphId, NodeId, EdgeId, SubgraphId, Position3D, GraphMetadata};
+use crate::domain::aggregates::graph::Graph;
+use crate::infrastructure::event_bridge::{EventBridge, BridgeCommand};
 use bevy::prelude::*;
 use serde_json;
-use crate::infrastructure::event_bridge::EventBridge;
-use crate::infrastructure::event_store::EventStore;
-use std::sync::Arc;
-use tracing::{error, warn};
-use crate::infrastructure::event_bridge::BridgeCommand;
+use tracing::{error, warn, info};
+use std::collections::HashMap;
 
 // Async command handlers for integration with event store
 pub mod graph_command_handler;
@@ -38,167 +37,13 @@ pub fn process_commands(
             Command::Graph(graph_cmd) => {
                 tracing::info!("Processing graph command: {:?}", graph_cmd.command_type());
 
-                match graph_cmd {
-                    GraphCommand::CreateGraph { id, name, metadata: _ } => {
-                        let graph_id = GraphId::new();
-                        let event = GraphEvent::GraphCreated {
-                            id: graph_id,
-                            metadata: GraphMetadata::new(name.clone()),
-                        };
-
-                        // Send to event bridge for async processing
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        // Notify locally
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
+                // Use the handle_graph_command function
+                if let Some(event) = handle_graph_command(graph_cmd) {
+                    if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(event.clone())) {
+                        error!("Failed to send event: {}", e);
                     }
-                    GraphCommand::RenameGraph { id, new_name } => {
-                        let event = GraphEvent::GraphRenamed {
-                            id: *id,
-                            old_name: String::new(), // TODO: Get from aggregate
-                            new_name: new_name.clone(),
-                        };
 
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::TagGraph { id, tag } => {
-                        let event = GraphEvent::GraphTagged {
-                            id: *id,
-                            tag: tag.clone(),
-                        };
-
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::UntagGraph { id, tag } => {
-                        let event = GraphEvent::GraphUntagged {
-                            id: *id,
-                            tag: tag.clone(),
-                        };
-
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::DeleteGraph { id } => {
-                        let event = GraphEvent::GraphDeleted { id: *id };
-
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::UpdateGraph { id, name, description } => {
-                        let event = GraphEvent::GraphUpdated {
-                            graph_id: *id,
-                            name: name.clone(),
-                            description: description.clone(),
-                        };
-
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::ClearGraph { .. } => {
-                        // ClearGraph is handled by the aggregate - it generates NodeRemoved and EdgeRemoved events
-                    }
-                    GraphCommand::ImportGraph { graph_id, source, format, options } => {
-                        // For now, emit the GraphImportRequested event
-                        // The process_graph_import_requests system will handle the actual import
-                        let event = GraphEvent::GraphImportRequested {
-                            graph_id: *graph_id,
-                            source: source.clone(),
-                            format: format.clone(), // Use the actual format from the command
-                            options: options.clone(),
-                        };
-
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::ImportFromFile { graph_id, file_path, format } => {
-                        // Convert to ImportGraph with File source
-                        let event = GraphEvent::GraphImportRequested {
-                            graph_id: *graph_id,
-                            source: crate::domain::commands::ImportSource::File {
-                                path: file_path.clone()
-                            },
-                            format: format.clone(),
-                            options: crate::domain::commands::ImportOptions::default(),
-                        };
-
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::ImportFromUrl { graph_id, url, format } => {
-                        // Convert to ImportGraph with URL source
-                        let event = GraphEvent::GraphImportRequested {
-                            graph_id: *graph_id,
-                            source: crate::domain::commands::ImportSource::Url {
-                                url: url.clone()
-                            },
-                            format: format.clone(),
-                            options: crate::domain::commands::ImportOptions::default(),
-                        };
-
-                        if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(DomainEvent::Graph(event.clone()))) {
-                            error!("Failed to send event: {}", e);
-                        }
-
-                        events.send(EventNotification {
-                            event: DomainEvent::Graph(event),
-                        });
-                    }
-                    GraphCommand::AddNode { .. } |
-                    GraphCommand::UpdateNode { .. } |
-                    GraphCommand::RemoveNode { .. } |
-                    GraphCommand::ConnectNodes { .. } |
-                    GraphCommand::DisconnectNodes { .. } |
-                    GraphCommand::UpdateEdge { .. } => {
-                        // These are handled by the aggregate
-                    }
-                    // Conceptual graph commands - handled by the aggregate
-                    GraphCommand::CreateConceptualGraph { .. } |
-                    GraphCommand::AddConceptualNode { .. } |
-                    GraphCommand::ApplyGraphMorphism { .. } |
-                    GraphCommand::ComposeConceptualGraphs { .. } => {
-                        // These are handled by the conceptual graph aggregate
-                    }
+                    events.write(EventNotification { event });
                 }
             }
             Command::Node(node_cmd) => {
@@ -207,7 +52,7 @@ pub fn process_commands(
                     if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(event.clone())) {
                         error!("Failed to send event: {}", e);
                     }
-                    events.send(EventNotification { event });
+                    events.write(EventNotification { event });
                 }
             }
             Command::Edge(edge_cmd) => {
@@ -216,7 +61,7 @@ pub fn process_commands(
                     if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(event.clone())) {
                         error!("Failed to send event: {}", e);
                     }
-                    events.send(EventNotification { event });
+                    events.write(EventNotification { event });
                 }
             }
             Command::Subgraph(_) => {

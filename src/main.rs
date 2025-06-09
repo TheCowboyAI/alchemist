@@ -5,7 +5,7 @@ use tracing::info;
 use ia::application::CommandEvent;
 use ia::infrastructure::event_bridge::{EventBridge, EventBridgePlugin};
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
-use ia::presentation::plugins::{GraphEditorPlugin, ConceptualGraphPlugin, WorkflowDesignerPlugin};
+use ia::presentation::plugins::{GraphEditorPlugin, ConceptualGraphPlugin, WorkflowDesignerPlugin, GraphPlugin};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -30,6 +30,7 @@ fn main() {
     let mut app = App::new();
 
     app.add_plugins(DefaultPlugins)
+        .add_plugins(GraphPlugin)
         .add_plugins(GraphEditorPlugin)
         .add_plugins(ConceptualGraphPlugin)
         .add_plugins(WorkflowDesignerPlugin);
@@ -47,11 +48,38 @@ fn main() {
 }
 
 /// Create an initial graph to demonstrate the system
-fn setup(commands: EventWriter<CommandEvent>) {
+fn setup(mut commands: EventWriter<CommandEvent>) {
     info!("Starting Information Alchemist");
 
-    // Don't create a graph automatically - let the import system handle it
-    info!("Keyboard shortcuts are ready - check the console for instructions");
-    info!("Press 'I' to import a graph or use mouse buttons as shown");
-    info!("Press 'W' to open the Workflow Designer");
+    // Create a graph and import sample data after a short delay
+    info!("Creating initial graph and importing sample data...");
+
+    // Create a new graph
+    let graph_id = ia::domain::value_objects::GraphId::new();
+    commands.write(CommandEvent {
+        command: ia::domain::commands::Command::Graph(
+            ia::domain::commands::GraphCommand::CreateGraph {
+                id: graph_id,
+                name: "Demo Graph".to_string(),
+                metadata: std::collections::HashMap::new(),
+            }
+        ),
+    });
+
+    // Import sample data
+    commands.write(CommandEvent {
+        command: ia::domain::commands::Command::Graph(
+            ia::domain::commands::GraphCommand::ImportFromFile {
+                graph_id,
+                file_path: "examples/data/sample_graph.json".to_string(),
+                format: "ArrowsApp".to_string(),
+            }
+        ),
+    });
+
+    info!("Keyboard shortcuts are ready:");
+    info!("  Press 'I' to import more data");
+    info!("  Press 'W' to open the Workflow Designer");
+    info!("  Press 'V' for select tool, 'M' for move tool");
+    info!("  Press 'N' to create nodes, 'E' to create edges");
 }

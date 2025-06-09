@@ -4,24 +4,22 @@
 //! editor experience for conceptual graphs.
 
 use bevy::prelude::*;
-use bevy::input::keyboard::KeyboardInput;
-use bevy::input::ButtonState;
-use bevy::window::PrimaryWindow;
-use std::collections::VecDeque;
+use tracing::info;
+use std::collections::HashMap;
 
 use crate::presentation::systems::{
     ConceptualVisualizationPlugin, NodeInteractionPlugin, ContextBridgeVisualizationPlugin,
 };
 use crate::presentation::components::{
-    ConceptualNodeVisual, ConceptualEdgeVisual, ConceptualSpaceVisual,
-    QualityDimensionAxis, DraggableNode, ConnectableNode, SelectableGraph,
-    SelectionMode, TransitionAnimation, EasingFunction,
+    ConceptualSpaceVisual,
+    QualityDimensionAxis, SelectableGraph,
+    SelectionMode,
     SpaceId, SpaceBounds, GridSettings,
 };
 use crate::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D};
 use crate::domain::commands::graph_commands::GraphCommand;
-use crate::domain::conceptual_graph::{ConceptType, ConceptualPoint, QualityDimension};
-use crate::presentation::events::{DragStart, DragEnd, PresentationCommand};
+use crate::domain::conceptual_graph::QualityDimension;
+use crate::presentation::events::PresentationCommand;
 
 /// Main graph editor plugin that integrates all visualization features
 pub struct GraphEditorPlugin;
@@ -333,6 +331,39 @@ fn handle_editor_shortcuts(
     mut editor_state: ResMut<GraphEditorState>,
     mut graph_commands: EventWriter<PresentationCommand>,
 ) {
+    // Import shortcut
+    if keyboard.just_pressed(KeyCode::KeyI) {
+        info!("Import shortcut triggered (I)");
+        // Import sample graph
+        if let Some(graph_id) = editor_state.active_graph {
+            graph_commands.write(PresentationCommand::new(
+                GraphCommand::ImportFromFile {
+                    graph_id,
+                    file_path: "examples/data/sample_graph.json".to_string(),
+                    format: "arrows_app".to_string(),
+                }
+            ));
+        } else {
+            // Create a new graph and import
+            let new_graph_id = GraphId::new();
+            graph_commands.write(PresentationCommand::new(
+                GraphCommand::CreateGraph {
+                    id: new_graph_id,
+                    name: "Imported Graph".to_string(),
+                    metadata: std::collections::HashMap::new(),
+                }
+            ));
+            graph_commands.write(PresentationCommand::new(
+                GraphCommand::ImportFromFile {
+                    graph_id: new_graph_id,
+                    file_path: "examples/data/sample_graph.json".to_string(),
+                    format: "arrows_app".to_string(),
+                }
+            ));
+            editor_state.active_graph = Some(new_graph_id);
+        }
+    }
+
     // Tool selection shortcuts
     if keyboard.just_pressed(KeyCode::KeyV) {
         editor_state.tool = EditorTool::Select;
@@ -413,7 +444,7 @@ fn handle_tool_selection(
                                 // Create node at intersection with Y=0 plane
                                 if let Ok(position) = ray_plane_intersection(&ray, Vec3::Y, 0.0) {
                                     if let Some(graph_id) = editor_state.active_graph {
-                                        graph_commands.send(PresentationCommand::new(
+                                        graph_commands.write(PresentationCommand::new(
                                             GraphCommand::AddNode {
                                                 graph_id,
                                                 node_id: NodeId::new(),
@@ -467,7 +498,7 @@ fn apply_editor_action(
             // Re-create the node
             // This would need to store more data to properly recreate
         }
-        EditorAction::MoveNode { node_id, new_position, .. } => {
+        EditorAction::MoveNode {   .. } => {
             // Note: This assumes we have the graph_id stored somewhere
             // In a real implementation, EditorAction would include graph_id
             // For now, we'll skip this as it requires more context
@@ -490,7 +521,7 @@ fn apply_reverse_action(
             //     GraphCommand::RemoveNode { graph_id, node_id }
             // ));
         }
-        EditorAction::MoveNode { node_id, old_position, .. } => {
+        EditorAction::MoveNode {   .. } => {
             // Note: This assumes we have the graph_id stored somewhere
             // graph_commands.send(PresentationCommand::new(
             //     GraphCommand::UpdateNode {

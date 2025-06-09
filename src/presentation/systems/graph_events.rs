@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::domain::value_objects::{NodeId, EdgeId, Position3D, NodeContent, NodeType, GraphId};
+use crate::domain::value_objects::{NodeId, Position3D, GraphId};
 use crate::domain::events::{DomainEvent, NodeEvent, EdgeEvent};
 use crate::presentation::components::{GraphNode, GraphEdge, SubgraphMember};
 use std::collections::HashMap;

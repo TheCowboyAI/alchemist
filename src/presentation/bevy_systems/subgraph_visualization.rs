@@ -5,7 +5,7 @@
 
 use bevy::prelude::*;
 use std::collections::HashMap;
-use crate::presentation::components::{GraphNode, GraphEdge, NodeLabel};
+use crate::presentation::components::{GraphNode, NodeLabel};
 use crate::domain::value_objects::{NodeId, GraphId};
 
 /// Represents a subgraph with its own spatial origin

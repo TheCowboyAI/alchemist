@@ -9,14 +9,11 @@ use crate::domain::{
     value_objects::{NodeId, EdgeId, NodeContent, NodeType, EdgeRelationship, RelationshipType},
 };
 use crate::presentation::events::{ImportRequestEvent, ImportResultEvent};
-use crate::domain::services::{
-    GraphImportService,
-    graph_import::ImportMapping,
-};
+use crate::domain::services::GraphImportService;
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 use tracing::{info, error};
-use crate::presentation::components::{SubgraphRegion, SubgraphId, BoundaryType, SubgraphMember};
+use crate::presentation::components::{SubgraphRegion, SubgraphId, BoundaryType};
 
 /// System that processes GraphImportRequested events
 pub fn process_graph_import_requests(
@@ -65,7 +62,7 @@ pub fn process_graph_import_requests(
                         "rss_atom" => crate::domain::services::ImportFormat::RssAtom,
                         _ => {
                             error!("Unknown import format: {}", format);
-                            import_results.send(ImportResultEvent {
+                            import_results.write(ImportResultEvent {
                                 event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                                     graph_id: *graph_id,
                                     imported_nodes: 0,
@@ -200,19 +197,16 @@ pub fn process_graph_import_requests(
                                     content: NodeContent {
                                         label: node.label.clone(),
                                         node_type: match node.node_type.as_str() {
-                                            "Entity" => NodeType::Entity,
-                                            "ValueObject" => NodeType::ValueObject,
-                                            "Aggregate" => NodeType::Aggregate,
-                                            "Service" => NodeType::Service,
-                                            "Repository" => NodeType::Repository,
-                                            "Factory" => NodeType::Factory,
+                                            "Entity" => NodeType::Basic,
+                                            "ValueObject" => NodeType::Basic,
+                                            "Aggregate" => NodeType::Basic,
+                                            "Service" => NodeType::Process,
+                                            "Repository" => NodeType::Basic,
+                                            "Factory" => NodeType::Process,
                                             "Event" => NodeType::Event,
-                                            "Command" => NodeType::Command,
-                                            "Query" => NodeType::Query,
-                                            "Policy" => NodeType::Policy,
-                                            "Milestone" => NodeType::Milestone,
-                                            "Phase" => NodeType::Phase,
-                                            "Task" => NodeType::Task,
+                                            "Command" => NodeType::Basic,
+                                            "Query" => NodeType::Basic,
+                                            "Policy" => NodeType::Constraint,
                                             _ => NodeType::Custom(node.node_type.clone()),
                                         },
                                         properties: node.properties.clone(),
@@ -220,7 +214,7 @@ pub fn process_graph_import_requests(
                                     position: node.position.clone(),
                                 });
 
-                                command_events.send(CommandEvent {
+                                command_events.write(CommandEvent {
                                     command: node_command,
                                 });
                             }
@@ -262,7 +256,7 @@ pub fn process_graph_import_requests(
                                         },
                                     });
 
-                                    command_events.send(CommandEvent {
+                                    command_events.write(CommandEvent {
                                         command: edge_command,
                                     });
                                 } else {
@@ -271,7 +265,7 @@ pub fn process_graph_import_requests(
                             }
 
                             // Send success result
-                            import_results.send(ImportResultEvent {
+                            import_results.write(ImportResultEvent {
                                 event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                                     graph_id: *graph_id,
                                     imported_nodes: nodes.len(),
@@ -283,7 +277,7 @@ pub fn process_graph_import_requests(
                         Err(e) => {
                             eprintln!("process_graph_import_requests: Import failed: {}", e);
                             error!("Import failed: {}", e);
-                            import_results.send(ImportResultEvent {
+                            import_results.write(ImportResultEvent {
                                 event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                                     graph_id: *graph_id,
                                     imported_nodes: 0,
@@ -296,7 +290,7 @@ pub fn process_graph_import_requests(
                 }
                 Err(e) => {
                     error!("Failed to load content: {}", e);
-                    import_results.send(ImportResultEvent {
+                    import_results.write(ImportResultEvent {
                         event: DomainEvent::Graph(GraphEvent::GraphImportCompleted {
                             graph_id: *graph_id,
                             imported_nodes: 0,
@@ -363,7 +357,7 @@ mod tests {
         app.add_systems(Update, (
             // Mock system that writes EventNotification
             |mut writer: EventWriter<crate::application::EventNotification>| {
-                writer.send(crate::application::EventNotification {
+                writer.write(crate::application::EventNotification {
                     event: DomainEvent::Graph(GraphEvent::GraphImportRequested {
                         graph_id: GraphId::new(),
                         source: ImportSource::InlineContent {

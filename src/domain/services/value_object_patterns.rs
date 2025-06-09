@@ -94,7 +94,7 @@ impl ValueObjectChangePatterns {
                 node_id,
                 content: NodeContent {
                     label: String::new(), // Would be retrieved from aggregate
-                    node_type: NodeType::Entity, // Would be retrieved from aggregate
+                    node_type: NodeType::Basic, // Would be retrieved from aggregate
                     properties: std::collections::HashMap::new(), // Would be retrieved from aggregate
                 },
                 position: new_position,

@@ -139,7 +139,7 @@ pub fn handle_node_dragging(
                     transform.translation = new_position;
 
                     // Emit drag event
-                    drag_events.send(NodeDragEvent {
+                    drag_events.write(NodeDragEvent {
                         entity,
                         node_id: node_visual.concept_id,
                         start_position: old_position,
@@ -148,7 +148,7 @@ pub fn handle_node_dragging(
                     });
 
                     // Send command to update domain model
-                    graph_commands.send(PresentationCommand::new(
+                    graph_commands.write(PresentationCommand::new(
                         GraphCommand::UpdateNode {
                             graph_id,
                             node_id: node_visual.concept_id,
@@ -227,7 +227,7 @@ pub fn handle_node_connections(
             ) {
                 // Create edge in domain model
                 let edge_id = EdgeId::new();
-                graph_commands.send(PresentationCommand::new(
+                graph_commands.write(PresentationCommand::new(
                     GraphCommand::ConnectNodes {
                         graph_id,
                         edge_id,
@@ -340,7 +340,7 @@ pub fn handle_node_selection(
                 }
 
                 // Emit selection event
-                selection_events.send(SelectionChangedEvent {
+                selection_events.write(SelectionChangedEvent {
                     graph_id: graph.graph_id,
                     selected_entities: graph.selected_entities.clone(),
                     selection_mode: graph.selection_mode,

@@ -165,6 +165,11 @@ impl ConceptualPoint {
         Self { coordinates }
     }
 
+    /// Get the coordinates
+    pub fn coordinates(&self) -> &Vec<f64> {
+        &self.coordinates
+    }
+
     /// Calculate distance to another point given quality dimensions
     pub fn distance_to(&self, other: &ConceptualPoint, dimensions: &[QualityDimension]) -> f64 {
         if self.coordinates.len() != other.coordinates.len()

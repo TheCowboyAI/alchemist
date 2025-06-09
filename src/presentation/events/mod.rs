@@ -15,7 +15,7 @@ pub use layout::*;
 use bevy::prelude::*;
 use crate::domain::events::DomainEvent;
 use crate::domain::commands::graph_commands::GraphCommand;
-use crate::domain::value_objects::{GraphId, NodeId, EdgeId, WorkflowId, StepId};
+use crate::domain::value_objects::{WorkflowId, StepId};
 
 /// Marker trait for presentation events
 pub trait PresentationEvent: Event + Clone + Send + Sync + 'static {

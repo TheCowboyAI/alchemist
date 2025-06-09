@@ -243,24 +243,16 @@ name = "markdown_import_demo_simple"
 path = "examples/markdown_import_demo_simple.rs"
 
 [[example]]
+name = "test_subgraph_basic"
+path = "examples/test_subgraph_basic.rs"
+
+[[example]]
 name = "subgraph_demo"
 path = "examples/subgraph_demo.rs"
 
 [[example]]
-name = "conceptual_graph_demo"
-path = "examples/conceptual_graph_demo.rs"
-
-[[example]]
-name = "conceptual_graph_visualization_demo"
-path = "examples/conceptual_graph_visualization_demo.rs"
-
-[[example]]
-name = "conceptual_visualization_demo"
-path = "examples/conceptual_visualization_demo.rs"
-
-[[example]]
-name = "context_bridge_demo"
-path = "examples/context_bridge_demo.rs"
+name = "test_subgraph_operations"
+path = "examples/test_subgraph_operations.rs"
 
 # Disable the problematic experimental features
 [package.metadata.bevy]

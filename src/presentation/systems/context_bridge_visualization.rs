@@ -5,10 +5,9 @@
 
 use bevy::prelude::*;
 use crate::presentation::components::{
-    ConceptualSpaceVisual, ConceptRelationship, EdgeVisualStyle, ContextBridgeComponent,
+    ConceptualSpaceVisual, ContextBridgeComponent,
 };
-use crate::domain::conceptual_graph::{ContextBridge, ContextMappingType};
-use crate::domain::value_objects::{NodeId, EdgeId};
+use crate::domain::conceptual_graph::ContextMappingType;
 
 /// Visual representation of a context bridge
 #[derive(Component, Debug, Clone)]

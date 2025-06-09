@@ -1583,7 +1583,7 @@ impl GraphImportService {
             }
             "flowchart" | "graph" | "digraph" => {
                 // Use the existing parser and apply layout based on direction/type
-                let mut imported = self.parse_flowchart_graph(&lines, diagram_type, direction)?;
+                let imported = self.parse_flowchart_graph(&lines, diagram_type, direction)?;
                 // Don't apply layout to individual diagrams - we'll position them in the grid
                 // self.apply_mermaid_layout(&mut imported.nodes, &imported.edges)?;
                 Ok(imported)
@@ -1976,11 +1976,10 @@ impl GraphImportService {
         use nom::{
             IResult,
             branch::alt,
-            bytes::complete::{tag, take_until, take_while1, is_not},
-            character::complete::{char, multispace0, multispace1, alphanumeric1},
-            combinator::{opt, map, recognize},
-            multi::{many0, separated_list0},
-            sequence::{tuple, delimited, preceded, terminated},
+            bytes::complete::{tag, take_until, take_while1},
+            character::complete::{char, multispace0},
+            combinator::{opt, recognize},
+            sequence::{tuple, delimited, terminated},
         };
 
         fn node_id(input: &str) -> IResult<&str, &str> {

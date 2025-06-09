@@ -5,9 +5,8 @@
 
 use bevy::prelude::*;
 use crate::presentation::components::{
-    ConceptualNodeVisual, ConceptualEdgeVisual, QualityDimensionAxis,
-    ConceptualSpaceVisual, NodeVisualStyle, EdgeVisualStyle, NodeShape,
-    ConceptRelationship, SpaceId, TransitionAnimation, EasingFunction,
+    ConceptualNodeVisual, QualityDimensionAxis,
+    ConceptualSpaceVisual, NodeVisualStyle, NodeShape, TransitionAnimation, EasingFunction,
     ConceptualVisualizationSettings, Highlighted, DraggableNode,
 };
 use crate::domain::conceptual_graph::{ConceptNode as DomainConceptNode, ConceptualPoint};
@@ -392,11 +391,19 @@ pub fn highlight_hovered_nodes(
     let mut closest_distance = f32::MAX;
 
     for (entity, node, _, _) in node_query.iter() {
+        // Calculate distance from ray to node position
         // This is a simplified check - in production, use proper raycasting
-        let node_distance = ray.origin.distance(ray.origin); // Placeholder
+        let node_position = Vec3::new(
+            node.quality_position.coordinates[0] as f32,
+            node.quality_position.coordinates.get(1).copied().unwrap_or(0.0) as f32,
+            node.quality_position.coordinates.get(2).copied().unwrap_or(0.0) as f32,
+        );
 
-        if node_distance < closest_distance && node_distance < 5.0 {
-            closest_distance = node_distance;
+        // Simple distance check from ray origin
+        let distance = ray.origin.distance(node_position);
+
+        if distance < closest_distance && distance < 5.0 {
+            closest_distance = distance;
             closest_entity = Some(entity);
         }
     }

@@ -1,4 +1,4 @@
-use crate::domain::conceptual_graph::{ConceptId, MetricContext, MetricContextId, MetricType};
+use crate::domain::conceptual_graph::{ConceptId, MetricContextId, MetricType};
 use serde::{Deserialize, Serialize};
 
 /// Commands for metric context operations

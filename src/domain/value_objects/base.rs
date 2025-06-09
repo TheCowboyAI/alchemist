@@ -3,8 +3,8 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use uuid::Uuid;
 use std::collections::HashMap;
+use uuid::Uuid;
 use std::hash::{Hash, Hasher};
 
 /// Type alias for aggregate IDs (using String for flexibility)
@@ -207,30 +207,14 @@ pub struct NodeContent {
 /// Types of nodes in the graph
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NodeType {
-    // DDD types
-    Entity,
-    ValueObject,
-    Aggregate,
-    Service,
-    Repository,
-    Factory,
+    Basic,  // Default node type
+    Concept,
+    Category,
+    Instance,
+    Relationship,
+    Process,
     Event,
-    Command,
-    Query,
-    Policy,
-
-    // Progress tracking types
-    Milestone,
-    Phase,
-    Task,
-
-    // Git types
-    GitCommit,
-    GitBranch,
-    GitTag,
-    GitMerge,
-
-    // Generic
+    Constraint,
     Custom(String),
 }
 
@@ -432,20 +416,20 @@ mod tests {
 
         let content = NodeContent {
             label: "Test Node".to_string(),
-            node_type: NodeType::Entity,
+            node_type: NodeType::Basic,
             properties: properties.clone(),
         };
 
         assert_eq!(content.label, "Test Node");
-        assert_eq!(content.node_type, NodeType::Entity);
+        assert_eq!(content.node_type, NodeType::Basic);
         assert_eq!(content.properties, properties);
     }
 
     #[test]
     fn test_node_type_variants() {
         // Test equality
-        assert_eq!(NodeType::Entity, NodeType::Entity);
-        assert_ne!(NodeType::Entity, NodeType::ValueObject);
+        assert_eq!(NodeType::Basic, NodeType::Basic);
+        assert_ne!(NodeType::Basic, NodeType::Concept);
 
         // Test custom type
         let custom = NodeType::Custom("MyType".to_string());
@@ -764,16 +748,14 @@ mod tests {
     fn test_all_node_types() {
         // Test all DDD node types
         let types = vec![
-            NodeType::Entity,
-            NodeType::ValueObject,
-            NodeType::Aggregate,
-            NodeType::Service,
-            NodeType::Repository,
-            NodeType::Factory,
+            NodeType::Basic,
+            NodeType::Concept,
+            NodeType::Category,
+            NodeType::Instance,
+            NodeType::Relationship,
+            NodeType::Process,
             NodeType::Event,
-            NodeType::Command,
-            NodeType::Query,
-            NodeType::Policy,
+            NodeType::Constraint,
         ];
 
         for node_type in types {

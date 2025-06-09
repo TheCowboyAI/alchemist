@@ -8,8 +8,7 @@ use crate::presentation::components::{
     GraphNode, SubgraphRegion, SubgraphBoundary, SubgraphMember,
     SubgraphId, BoundaryType,
 };
-use std::collections::{HashMap, HashSet};
-use bevy::input::mouse::{MouseMotion, MouseWheel};
+use std::collections::HashSet;
 use tracing::info;
 use std::hash::{Hash, Hasher};
 

@@ -13,6 +13,9 @@ pub struct WorkflowVisualizationPlugin;
 
 impl Plugin for WorkflowVisualizationPlugin {
     fn build(&self, app: &mut App) {
+        // Initialize the WorkflowEvent
+        app.add_event::<WorkflowEvent>();
+
         app.add_systems(Update, (
             visualize_workflow_steps,
             visualize_workflow_transitions,

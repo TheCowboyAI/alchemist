@@ -1,4 +1,4 @@
-use crate::domain::conceptual_graph::{ConceptId, ConceptNode, ConceptGraph};
+use crate::domain::conceptual_graph::ConceptId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;

@@ -1,4 +1,4 @@
-use crate::domain::conceptual_graph::{ConceptId, ConceptGraph};
+use crate::domain::conceptual_graph::ConceptId;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
@@ -559,8 +559,8 @@ impl InferenceEngine {
         rules: &HashMap<RuleId, BusinessRule>,
         facts: &FactSet,
     ) -> Result<InferredFacts, String> {
-        let mut inferred = InferredFacts::new();
-        let mut working_facts = facts.clone();
+        let inferred = InferredFacts::new();
+        let working_facts = facts.clone();
         let mut iteration = 0;
 
         loop {
@@ -569,7 +569,7 @@ impl InferenceEngine {
                 return Err("Maximum inference iterations exceeded".to_string());
             }
 
-            let mut new_facts_added = false;
+            let new_facts_added = false;
 
             for (rule_id, rule) in rules {
                 if rule.rule_type != RuleType::Derivation {

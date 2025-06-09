@@ -10,8 +10,8 @@ use crate::domain::conceptual_graph::concept::{ConceptGraph, ConceptNode, Concep
 use crate::domain::conceptual_graph::morphism::{GraphMorphism, ProductType, InjectionMap};
 
 use crate::domain::conceptual_graph::{
-    concept::{ConceptRelationship, ConceptId, ConceptType},
-    quality_dimension::{QualityDimension, ConceptualPoint},
+    concept::ConceptId,
+    quality_dimension::ConceptualPoint,
 };
 
 /// Types of composition operations

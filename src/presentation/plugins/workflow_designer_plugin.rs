@@ -3,14 +3,13 @@
 //! Provides drag-and-drop workflow creation and editing capabilities
 
 use bevy::prelude::*;
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use bevy_egui::{egui, EguiContexts};
 use std::collections::HashMap;
 use uuid::Uuid;
 use tracing::info;
 
 use crate::domain::value_objects::{WorkflowId, StepId};
 use crate::presentation::components::workflow_visualization::*;
-use crate::presentation::events::WorkflowEvent;
 use crate::presentation::systems::workflow_visualization::WorkflowVisualizationPlugin;
 
 /// Plugin for visual workflow design
@@ -557,7 +556,7 @@ pub fn drag_drop_workflow_steps(
 /// System to connect workflow steps
 pub fn connect_workflow_steps(
     mut state: ResMut<WorkflowDesignerState>,
-    mut events: EventWriter<DesignerEvent>,
+    events: EventWriter<DesignerEvent>,
     mouse: Res<ButtonInput<MouseButton>>,
     step_query: Query<(&WorkflowStepVisual, &Transform)>,
 ) {
@@ -582,7 +581,7 @@ pub fn connect_workflow_steps(
 /// System to validate workflow connections
 pub fn validate_workflow_connections(
     state: Res<WorkflowDesignerState>,
-    mut gizmos: Gizmos,
+    gizmos: Gizmos,
 ) {
     if let Some(workflow) = &state.editing_workflow {
         // Highlight invalid connections

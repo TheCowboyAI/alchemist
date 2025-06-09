@@ -2,15 +2,10 @@
 
 use super::{EventStore, EventStoreError};
 use crate::domain::events::{
-    DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
+    DomainEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
 };
-use crate::domain::value_objects::{AggregateId, EventId};
 use async_nats::jetstream::{self, stream::Config as StreamConfig};
 use async_trait::async_trait;
-use crate::infrastructure::event_bridge::subject_router::event_to_subject;
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tracing::{error, info};
 
 use uuid::Uuid;
 use futures::StreamExt;

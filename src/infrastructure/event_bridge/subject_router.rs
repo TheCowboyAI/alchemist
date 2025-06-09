@@ -10,7 +10,7 @@ use tracing::{debug, error, info, warn};
 use crate::domain::events::{
     DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
 };
-use crate::domain::value_objects::{AggregateId, EventId};
+use crate::domain::value_objects::AggregateId;
 
 /// Subject-based event router for Bevy
 #[derive(Resource)]

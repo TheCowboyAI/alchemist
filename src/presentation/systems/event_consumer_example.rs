@@ -1,9 +1,9 @@
 //! Example of consuming subject-based events in Bevy systems
 
 use bevy::prelude::*;
-use crate::infrastructure::event_bridge::{SubjectRouter, SubjectConsumer, RoutedEvent};
+use crate::infrastructure::event_bridge::{SubjectRouter, SubjectConsumer};
 use crate::domain::events::DomainEvent;
-use crate::presentation::components::{GraphNode, GraphEdge, SubgraphRegion};
+use crate::presentation::components::GraphNode;
 use tracing::info;
 
 /// Example system that consumes graph-related events

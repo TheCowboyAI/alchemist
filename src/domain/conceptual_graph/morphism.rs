@@ -5,10 +5,8 @@
 
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::domain::conceptual_graph::concept::{ConceptId, NodeId, EdgeId, ConceptNode};
-use crate::domain::conceptual_graph::category::CategoryType;
+use crate::domain::conceptual_graph::concept::{ConceptId, NodeId, EdgeId};
 
 /// Types of graph morphisms
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

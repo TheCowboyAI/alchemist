@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use tracing::info;
 use crate::domain::conceptual_graph::*;
 use crate::domain::value_objects::{GraphId, NodeId, EdgeId};
-use crate::presentation::components::{GraphNode, GraphEdge};
+use crate::presentation::components::GraphNode;
 use crate::application::CommandEvent;
 use crate::domain::commands::{Command, GraphCommand};
 use std::collections::HashMap;

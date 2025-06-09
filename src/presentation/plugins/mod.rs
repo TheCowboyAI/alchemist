@@ -5,7 +5,6 @@ use bevy::{
     render::view::{ViewVisibility, InheritedVisibility},
 };
 use tracing::{info, warn};
-use crate::application::command_handlers::process_commands;
 use crate::application::{CommandEvent, EventNotification};
 use crate::domain::commands::{Command, EdgeCommand, NodeCommand};
 use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent, SubgraphEvent};
@@ -16,13 +15,7 @@ use std::collections::HashMap;
 // use crate::presentation::components::*; // Unused - specific imports below
 use crate::presentation::events::{ImportResultEvent, ImportRequestEvent};
 use crate::presentation::systems::{
-    forward_import_requests,
-    process_graph_import_requests, forward_import_results,
-    update_orbit_camera, orbit_camera_mouse_rotation, orbit_camera_zoom,
-    orbit_camera_pan, reset_camera_view, focus_camera_on_selection,
-    update_subgraph_boundaries, create_subgraph_from_selection,
-    toggle_subgraph_boundary_type,
-    ImportPlugin, display_import_help, display_camera_help,
+    ImportPlugin, update_subgraph_boundaries,
 };
 // use std::time::SystemTime; // Unused
 use crate::presentation::components::{
@@ -31,9 +24,8 @@ use crate::presentation::components::{
     RecordedEvent, ScheduledCommand, OrbitCamera, PendingEdge, NodeLabelEntity,
     SubgraphOrigins, SubgraphInfo, SubgraphMember, VoronoiSettings,
 };
-use crate::presentation::bevy_systems::{SubgraphOrigin, SubgraphSpatialMap};
-use crate::presentation::systems::subgraph_visualization::{SubgraphVisualizationPlugin, display_subgraph_help};
-use crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin;
+use crate::presentation::bevy_systems::SubgraphOrigin;
+use crate::presentation::systems::subgraph_spatial_map::SubgraphSpatialMap;
 
 pub mod subgraph_plugin;
 pub mod graph_editor;
@@ -58,21 +50,29 @@ impl Plugin for GraphEditorPlugin {
             .init_resource::<ForceLayoutSettings>()
             .init_resource::<SubgraphOrigins>()
             .init_resource::<VoronoiSettings>()
+            .init_resource::<SubgraphSpatialMap>()
 
             // Events
             .add_event::<CommandEvent>()
             .add_event::<EventNotification>()
             .add_event::<ImportResultEvent>()
             .add_event::<ImportRequestEvent>()
+            .add_event::<DomainEvent>()
 
             // Systems
-            .add_systems(Startup, setup_graph_editor)
+            .add_systems(Startup, (setup_graph_editor, setup_camera, setup_lighting))
             .add_systems(Update, (
+                handle_domain_events,
                 handle_import_requests,
                 handle_import_results,
                 update_force_layout,
                 update_edge_positions,
                 update_subgraph_boundaries,
+                process_pending_edges,
+                animate_node_appearance,
+                animate_edge_drawing,
+                create_node_labels,
+                update_label_positions,
             ).chain());
     }
 }

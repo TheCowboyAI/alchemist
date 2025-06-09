@@ -8,7 +8,6 @@ use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand, S
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::event_store::EventStore;
 use std::sync::Arc;
-use tracing::warn;
 
 
 /// Command handler error type

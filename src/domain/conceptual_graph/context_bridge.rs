@@ -490,21 +490,21 @@ impl ConceptTransformation {
             }
 
             Self::AttributeMapping { mappings } => {
-                let mut result = concept.clone();
+                let result = concept.clone();
                 // Apply attribute mappings
                 // This would map attributes based on the mappings HashMap
                 Ok(result)
             }
 
             Self::FilterAttributes { keep } => {
-                let mut result = concept.clone();
+                let result = concept.clone();
                 // Keep only specified attributes
                 // This would filter the concept's attributes
                 Ok(result)
             }
 
             Self::AddAttributes { attributes } => {
-                let mut result = concept.clone();
+                let result = concept.clone();
                 // Add new attributes with default values
                 // This would add the specified attributes to the concept
                 Ok(result)

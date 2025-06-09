@@ -81,36 +81,28 @@ const MAX_EDGES: usize = 100_000;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Graph {
     pub id: GraphId,
+    pub name: String,
     pub metadata: GraphMetadata,
+    pub nodes: HashMap<NodeId, Node>,
+    pub edges: HashMap<EdgeId, Edge>,
+    pub subgraphs: HashMap<SubgraphId, Subgraph>,
+    pub node_to_subgraph: HashMap<NodeId, SubgraphId>,
     pub version: u64,
+    pub uncommitted_events: Vec<DomainEvent>,
 
-    // Petgraph for efficient graph operations
-    #[serde(skip)]
+    // Graph structure using petgraph
     graph: StableGraph<NodeId, EdgeId>,
-
-    // Component storage
-    nodes: HashMap<NodeId, Node>,
-    edges: HashMap<EdgeId, Edge>,
-
-    // Subgraph storage
-    subgraphs: HashMap<SubgraphId, Subgraph>,
-    node_to_subgraph: HashMap<NodeId, SubgraphId>,
-
-    // Indices for fast lookups
     node_indices: HashMap<NodeId, petgraph::graph::NodeIndex>,
     edge_indices: HashMap<EdgeId, petgraph::graph::EdgeIndex>,
-
-    // Event sourcing
-    #[serde(skip)]
-    uncommitted_events: Vec<DomainEvent>,
 }
 
 /// Node entity
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Node {
     pub id: NodeId,
-    pub content: serde_json::Value,
+    pub node_type: NodeType,
     pub position: Position3D,
+    pub content: Option<serde_json::Value>,
 }
 
 /// Edge entity
@@ -135,15 +127,17 @@ pub struct Subgraph {
 impl Graph {
     /// Create a new graph
     pub fn new(id: GraphId, name: String, description: Option<String>) -> Self {
-        let mut metadata = GraphMetadata::new(name);
+        let mut metadata = GraphMetadata::new(name.clone());
         if let Some(desc) = description {
             metadata.tags.push(desc);
         }
 
         let mut graph = Self {
             id,
+            name,
             metadata: metadata.clone(),
             version: 0,
+            uncommitted_events: Vec::new(),
             graph: StableGraph::new(),
             nodes: HashMap::new(),
             edges: HashMap::new(),
@@ -151,7 +145,6 @@ impl Graph {
             node_to_subgraph: HashMap::new(),
             node_indices: HashMap::new(),
             edge_indices: HashMap::new(),
-            uncommitted_events: Vec::new(),
         };
 
         // Emit creation event
@@ -160,9 +153,6 @@ impl Graph {
             metadata,
         }));
 
-        // Reset version to 0 after creation
-        graph.version = 0;
-
         graph
     }
 
@@ -170,6 +160,7 @@ impl Graph {
     pub fn from_events(id: GraphId, events: Vec<DomainEvent>) -> Self {
         let mut graph = Self {
             id,
+            name: String::new(),
             metadata: GraphMetadata::new(String::new()),
             version: 0,
             graph: StableGraph::new(),
@@ -216,19 +207,36 @@ impl Graph {
     fn handle_graph_command(&mut self, command: GraphCommand) -> Result<Vec<DomainEvent>> {
         match command {
             GraphCommand::CreateGraph { id, name, metadata } => {
-                if self.id != GraphId::default() {
-                    return Err(GraphError::InvalidOperation("Graph already exists".to_string()));
-                }
-
                 self.id = id;
-                self.metadata = GraphMetadata::new(name.clone());
+                self.name = name.clone();
 
-                self.emit_event(DomainEvent::Graph(GraphEvent::GraphCreated {
-                    id,
-                    metadata: self.metadata.clone(),
-                }));
+                // Store metadata if provided
+                if !metadata.is_empty() {
+                    // Convert HashMap to GraphMetadata
+                    let mut graph_metadata = GraphMetadata::new(name.clone());
+                    for (key, value) in metadata {
+                        if let Some(s) = value.as_str() {
+                            graph_metadata.tags.push(format!("{}: {}", key, s));
+                        }
+                    }
+                    self.metadata = graph_metadata.clone();
 
-                Ok(self.get_uncommitted_events())
+                    let event = GraphEvent::GraphCreated {
+                        id,
+                        metadata: graph_metadata,
+                    };
+
+                    self.apply_event(&DomainEvent::Graph(event.clone()));
+                    Ok(vec![DomainEvent::Graph(event)])
+                } else {
+                    let event = GraphEvent::GraphCreated {
+                        id,
+                        metadata: GraphMetadata::new(name.clone()),
+                    };
+
+                    self.apply_event(&DomainEvent::Graph(event.clone()));
+                    Ok(vec![DomainEvent::Graph(event)])
+                }
             }
             GraphCommand::UpdateGraph { id, name, description } => {
                 if self.id != id {
@@ -286,36 +294,60 @@ impl Graph {
             }
             GraphCommand::AddNode { graph_id, node_id, node_type, position, content } => {
                 if self.id != graph_id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
                 }
 
                 if self.nodes.contains_key(&node_id) {
                     return Err(GraphError::NodeAlreadyExists(node_id));
                 }
 
-                self.nodes.insert(node_id, Node {
-                    id: node_id,
-                    content: content.clone(),
-                    position: position,
-                });
+                // Create metadata that includes the node type
+                let mut metadata = HashMap::new();
+                metadata.insert("node_type".to_string(), serde_json::Value::String(node_type.clone()));
 
-                self.emit_event(DomainEvent::Node(NodeEvent::NodeAdded {
+                // Merge content into metadata
+                if let Some(obj) = content.as_object() {
+                    for (k, v) in obj {
+                        metadata.insert(k.clone(), v.clone());
+                    }
+                } else {
+                    metadata.insert("content".to_string(), content);
+                }
+
+                let event = NodeEvent::NodeAdded {
                     graph_id,
                     node_id,
-                    metadata: content.to_metadata_map(),
+                    metadata,
                     position,
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Node(event.clone()));
+                Ok(vec![DomainEvent::Node(event)])
             }
-            GraphCommand::UpdateNode { .. } => {
-                // Node updates are deprecated - use RemoveNode + AddNode instead
-                Err(GraphError::InvalidOperation(
-                    "Node updates are deprecated. Remove and re-add the node instead.".to_string()
-                ))
+            GraphCommand::UpdateNode { graph_id, node_id, new_position, new_content } => {
+                if self.id != graph_id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
+                }
+
+                if !self.nodes.contains_key(&node_id) {
+                    return Err(GraphError::NodeNotFound(node_id));
+                }
+
+                // Convert NodeContent to JSON value
+                let new_content_value = serde_json::to_value(new_content).unwrap();
+
+                let event = NodeEvent::NodeContentChanged {
+                    graph_id: self.id,
+                    node_id,
+                    old_content: serde_json::Value::Null, // TODO: Get from current node
+                    new_content: new_content_value,
+                };
+
+                self.apply_event(&DomainEvent::Node(event.clone()));
+                Ok(vec![DomainEvent::Node(event)])
             }
             GraphCommand::RemoveNode { graph_id, node_id } => {
-                if self.id != graph_id {
+                if graph_id != self.id {
                     return Err(GraphError::GraphNotFound(graph_id));
                 }
 
@@ -361,6 +393,13 @@ impl Graph {
 
                 if self.edges.contains_key(&edge_id) {
                     return Err(GraphError::EdgeAlreadyExists(edge_id));
+                }
+
+                // Check edge limit
+                if self.edges.len() >= MAX_EDGES {
+                    return Err(GraphError::InvalidOperation(
+                        format!("Graph has reached maximum edge limit of {}", MAX_EDGES)
+                    ));
                 }
 
                 // Parse edge_type string into RelationshipType
@@ -533,20 +572,22 @@ impl Graph {
                 }
 
                 // Convert NodeContent to metadata HashMap
-                let mut metadata = std::collections::HashMap::new();
-                metadata.insert("label".to_string(), serde_json::json!(content.label));
+                let mut metadata = HashMap::new();
+                metadata.insert("label".to_string(), serde_json::Value::String(content.label.clone()));
                 metadata.insert("node_type".to_string(), serde_json::to_value(&content.node_type).unwrap());
-                for (k, v) in content.properties {
-                    metadata.insert(k, v);
+                for (k, v) in &content.properties {
+                    metadata.insert(k.clone(), v.clone());
                 }
 
-                self.emit_event(DomainEvent::Node(NodeEvent::NodeAdded {
+                let event = NodeEvent::NodeAdded {
                     graph_id,
                     node_id,
                     metadata,
                     position,
-                }));
-                Ok(self.get_uncommitted_events())
+                };
+
+                self.apply_event(&DomainEvent::Node(event.clone()));
+                Ok(vec![DomainEvent::Node(event)])
             }
             NodeCommand::RemoveNode { graph_id, node_id } => {
                 if graph_id != self.id {
@@ -608,7 +649,11 @@ impl Graph {
                 }));
 
                 // Convert serde_json::Value content to metadata HashMap
-                let metadata = content.to_metadata_map();
+                let metadata = if let Some(content_value) = content {
+                    content_value.to_metadata_map()
+                } else {
+                    HashMap::new()
+                };
 
                 self.emit_event(DomainEvent::Node(NodeEvent::NodeAdded {
                     graph_id,
@@ -632,13 +677,19 @@ impl Graph {
     fn handle_edge_command(&mut self, command: EdgeCommand) -> Result<Vec<DomainEvent>> {
         match command {
             EdgeCommand::ConnectEdge { graph_id, edge_id, source, target, relationship } => {
-                if graph_id != self.id {
-                    return Err(GraphError::GraphNotFound(graph_id));
+                if self.id != graph_id {
+                    return Err(GraphError::InvalidOperation("Graph ID mismatch".to_string()));
                 }
 
-                // Validate business rules
                 if self.edges.contains_key(&edge_id) {
                     return Err(GraphError::EdgeAlreadyExists(edge_id));
+                }
+
+                // Check edge limit
+                if self.edges.len() >= MAX_EDGES {
+                    return Err(GraphError::InvalidOperation(
+                        format!("Graph has reached maximum edge limit of {}", MAX_EDGES)
+                    ));
                 }
 
                 if !self.nodes.contains_key(&source) {
@@ -649,44 +700,16 @@ impl Graph {
                     return Err(GraphError::NodeNotFound(target));
                 }
 
-                if source == target {
-                    return Err(GraphError::SelfLoopNotAllowed(source));
-                }
-
-                // Check for duplicate edges
-                let duplicate_exists = self.edges.values().any(|edge| {
-                    (edge.source == source && edge.target == target) ||
-                    (edge.source == target && edge.target == source)
-                });
-
-                if duplicate_exists {
-                    return Err(GraphError::DuplicateEdge(source, target));
-                }
-
-                if self.edges.len() >= MAX_EDGES {
-                    return Err(GraphError::GraphAtCapacity(MAX_EDGES));
-                }
-
-                self.edges.insert(edge_id, Edge {
-                    id: edge_id,
-                    source: source,
-                    target: target,
-                    relationship: EdgeRelationship {
-                        relationship_type: relationship.relationship_type.clone(),
-                        properties: relationship.properties.clone(),
-                        bidirectional: relationship.bidirectional,
-                    },
-                });
-
-                self.emit_event(DomainEvent::Edge(EdgeEvent::EdgeConnected {
+                let event = EdgeEvent::EdgeConnected {
                     graph_id,
                     edge_id,
                     source,
                     target,
                     relationship: relationship.relationship_type.to_string(),
-                }));
+                };
 
-                Ok(self.get_uncommitted_events())
+                self.apply_event(&DomainEvent::Edge(event.clone()));
+                Ok(vec![DomainEvent::Edge(event)])
             }
             EdgeCommand::DisconnectEdge { graph_id, edge_id } => {
                 if graph_id != self.id {
@@ -912,21 +935,20 @@ impl Graph {
 
     fn apply_graph_event(&mut self, event: &GraphEvent) {
         match event {
-            GraphEvent::GraphCreated { id: _, metadata } => {
+            GraphEvent::GraphCreated { id, metadata } => {
+                self.id = *id;
+                self.name = metadata.name.clone();
                 self.metadata = metadata.clone();
             }
-            GraphEvent::GraphRenamed {
-                id: _,
-                old_name: _,
-                new_name,
-            } => {
-                self.metadata.name = new_name.clone();
-            }
-            GraphEvent::GraphTagged { id: _, tag } => {
-                self.metadata.tags.push(tag.clone());
-            }
-            GraphEvent::GraphUntagged { id: _, tag } => {
-                self.metadata.tags.retain(|t| t != tag);
+            GraphEvent::GraphUpdated { graph_id, name, description } => {
+                if *graph_id == self.id {
+                    if let Some(new_name) = name {
+                        self.name = new_name.clone();
+                    }
+                    if let Some(desc) = description {
+                        self.metadata.tags.push(desc.clone());
+                    }
+                }
             }
             GraphEvent::GraphDeleted { id: _ } => {
                 // Clear all data
@@ -937,14 +959,6 @@ impl Graph {
                 self.node_indices.clear();
                 self.edge_indices.clear();
             }
-            GraphEvent::GraphUpdated { graph_id, name, description } => {
-                if let Some(new_name) = name {
-                    self.metadata.name = new_name.clone();
-                }
-                if let Some(desc) = description {
-                    self.metadata.tags.push(desc.clone());
-                }
-            }
             GraphEvent::GraphImportRequested { .. } => {
                 // Import request is handled by command handler
             }
@@ -954,47 +968,84 @@ impl Graph {
             GraphEvent::GraphImportFailed { .. } => {
                 // Import failure is informational
             }
+            GraphEvent::GraphRenamed { id, old_name, new_name } => {
+                if *id == self.id {
+                    self.name = new_name.clone();
+                    self.metadata.name = new_name.clone();
+                }
+            }
+            GraphEvent::GraphTagged { id, tag } => {
+                if *id == self.id {
+                    if !self.metadata.tags.contains(tag) {
+                        self.metadata.tags.push(tag.clone());
+                    }
+                }
+            }
+            GraphEvent::GraphUntagged { id, tag } => {
+                if *id == self.id {
+                    self.metadata.tags.retain(|t| t != tag);
+                }
+            }
         }
     }
 
     fn apply_node_event(&mut self, event: &NodeEvent) {
         match event {
             NodeEvent::NodeAdded { graph_id, node_id, metadata, position } => {
-                self.nodes.insert(*node_id, Node {
-                    id: *node_id,
-                    content: serde_json::json!(metadata),
-                    position: *position,
-                });
+                if *graph_id == self.id {
+                    // Extract node type from metadata if present
+                    let node_type = metadata.get("node_type")
+                        .and_then(|v| serde_json::from_value(v.clone()).ok())
+                        .unwrap_or(NodeType::Basic);
+
+                    let content = metadata.get("content").cloned();
+
+                    self.nodes.insert(*node_id, Node {
+                        id: *node_id,
+                        node_type,
+                        position: *position,
+                        content,
+                    });
+
+                    // Add node to graph structure
+                    let idx = self.graph.add_node(*node_id);
+                    self.node_indices.insert(*node_id, idx);
+                }
             }
             NodeEvent::NodeRemoved { graph_id, node_id } => {
-                self.nodes.remove(node_id);
-                // Also remove from subgraph if it belongs to one
-                if let Some(subgraph_id) = self.node_to_subgraph.remove(node_id) {
-                    if let Some(subgraph) = self.subgraphs.get_mut(&subgraph_id) {
-                        subgraph.nodes.remove(node_id);
+                if *graph_id == self.id {
+                    self.nodes.remove(node_id);
+                    if let Some(idx) = self.node_indices.remove(node_id) {
+                        self.graph.remove_node(idx);
                     }
                 }
-                // Also remove edges connected to this node
-                self.edges.retain(|_, edge| edge.source != *node_id && edge.target != *node_id);
             }
             NodeEvent::NodeUpdated { graph_id, node_id, new_position, new_content } => {
-                if let Some(node) = self.nodes.get_mut(node_id) {
-                    if let Some(pos) = new_position {
-                        node.position = *pos;
-                    }
-                    if let Some(content) = new_content {
-                        node.content = content.clone();
+                if *graph_id == self.id {
+                    if let Some(node) = self.nodes.get_mut(node_id) {
+                        if let Some(pos) = new_position {
+                            node.position = *pos;
+                        }
+                        if let Some(content) = new_content {
+                            node.content = Some(content.clone());
+                        }
                     }
                 }
             }
             NodeEvent::NodeMoved { graph_id, node_id, old_position, new_position } => {
-                if let Some(node) = self.nodes.get_mut(node_id) {
-                    node.position = *new_position;
+                if *graph_id == self.id {
+                    if let Some(node) = self.nodes.get_mut(node_id) {
+                        // We could store old_position for undo functionality
+                        node.position = *new_position;
+                    }
                 }
             }
             NodeEvent::NodeContentChanged { graph_id, node_id, old_content, new_content } => {
-                if let Some(node) = self.nodes.get_mut(node_id) {
-                    node.content = new_content.clone();
+                if *graph_id == self.id {
+                    if let Some(node) = self.nodes.get_mut(node_id) {
+                        // We could store old_content for undo functionality
+                        node.content = Some(new_content.clone());
+                    }
                 }
             }
         }
@@ -1003,48 +1054,82 @@ impl Graph {
     fn apply_edge_event(&mut self, event: &EdgeEvent) {
         match event {
             EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, relationship } => {
-                // Parse relationship string back into RelationshipType
-                let relationship_type = match relationship.as_str() {
-                    "Contains" => RelationshipType::Contains,
-                    "References" => RelationshipType::References,
-                    "DependsOn" => RelationshipType::DependsOn,
-                    "Publishes" => RelationshipType::Publishes,
-                    "Subscribes" => RelationshipType::Subscribes,
-                    "Implements" => RelationshipType::Implements,
-                    "Extends" => RelationshipType::Extends,
-                    "Parent" => RelationshipType::Parent,
-                    "Merged" => RelationshipType::Merged,
-                    "Branched" => RelationshipType::Branched,
-                    "Tagged" => RelationshipType::Tagged,
-                    "Sequence" => RelationshipType::Sequence,
-                    "Hierarchy" => RelationshipType::Hierarchy,
-                    "Blocks" => RelationshipType::Blocks,
-                    custom => RelationshipType::Custom(custom.to_string()),
-                };
-
-                self.edges.insert(*edge_id, Edge {
-                    id: *edge_id,
-                    source: *source,
-                    target: *target,
-                    relationship: EdgeRelationship {
-                        relationship_type,
+                if *graph_id == self.id {
+                    // Parse the relationship string into EdgeRelationship
+                    let edge_relationship = EdgeRelationship {
+                        relationship_type: match relationship.as_str() {
+                            "Contains" => RelationshipType::Contains,
+                            "References" => RelationshipType::References,
+                            "DependsOn" => RelationshipType::DependsOn,
+                            "Publishes" => RelationshipType::Publishes,
+                            "Subscribes" => RelationshipType::Subscribes,
+                            "Implements" => RelationshipType::Implements,
+                            "Extends" => RelationshipType::Extends,
+                            "Parent" => RelationshipType::Parent,
+                            "Merged" => RelationshipType::Merged,
+                            "Branched" => RelationshipType::Branched,
+                            "Tagged" => RelationshipType::Tagged,
+                            "Sequence" => RelationshipType::Sequence,
+                            "Hierarchy" => RelationshipType::Hierarchy,
+                            "Blocks" => RelationshipType::Blocks,
+                            custom => RelationshipType::Custom(custom.to_string()),
+                        },
                         properties: HashMap::new(),
                         bidirectional: false,
-                    },
-                });
+                    };
+
+                    self.edges.insert(*edge_id, Edge {
+                        id: *edge_id,
+                        source: *source,
+                        target: *target,
+                        relationship: edge_relationship,
+                    });
+
+                    // Add edge to graph structure
+                    if let (Some(&source_idx), Some(&target_idx)) =
+                        (self.node_indices.get(source), self.node_indices.get(target)) {
+                        let graph_edge_idx = self.graph.add_edge(source_idx, target_idx, *edge_id);
+                        self.edge_indices.insert(*edge_id, graph_edge_idx);
+                    }
+                }
             }
             EdgeEvent::EdgeRemoved { graph_id, edge_id } => {
-                self.edges.remove(edge_id);
+                if *graph_id == self.id {
+                    self.edges.remove(edge_id);
+                    if let Some(idx) = self.edge_indices.remove(edge_id) {
+                        self.graph.remove_edge(idx);
+                    }
+                }
             }
             EdgeEvent::EdgeUpdated { graph_id, edge_id, new_properties } => {
-                if let Some(edge) = self.edges.get_mut(edge_id) {
-                    edge.relationship.properties = new_properties.clone();
+                if *graph_id == self.id {
+                    if let Some(edge) = self.edges.get_mut(edge_id) {
+                        // Update edge properties from the HashMap
+                        edge.relationship.properties = new_properties.clone();
+                    }
                 }
             }
             EdgeEvent::EdgeReversed { graph_id, edge_id, old_source, old_target, new_source, new_target } => {
-                if let Some(edge) = self.edges.get_mut(edge_id) {
-                    edge.source = *new_source;
-                    edge.target = *new_target;
+                if *graph_id == self.id {
+                    if let Some(edge) = self.edges.get_mut(edge_id) {
+                        // Verify the old values match (for safety)
+                        if edge.source == *old_source && edge.target == *old_target {
+                            edge.source = *new_source;
+                            edge.target = *new_target;
+
+                            // Update graph structure
+                            if let Some(edge_idx) = self.edge_indices.get(edge_id) {
+                                // Remove old edge and add new one
+                                self.graph.remove_edge(*edge_idx);
+
+                                if let (Some(&source_idx), Some(&target_idx)) =
+                                    (self.node_indices.get(new_source), self.node_indices.get(new_target)) {
+                                    let new_edge_idx = self.graph.add_edge(source_idx, target_idx, *edge_id);
+                                    self.edge_indices.insert(*edge_id, new_edge_idx);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1058,37 +1143,57 @@ impl Graph {
     fn apply_subgraph_event(&mut self, event: &SubgraphEvent) {
         match event {
             SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, name, base_position, metadata } => {
-                self.subgraphs.insert(*subgraph_id, Subgraph {
-                    id: *subgraph_id,
-                    name: name.clone(),
-                    base_position: *base_position,
-                    nodes: HashSet::new(),
-                    metadata: metadata.clone(),
-                });
+                if *graph_id == self.id {
+                    self.subgraphs.insert(*subgraph_id, Subgraph {
+                        id: *subgraph_id,
+                        name: name.clone(),
+                        base_position: *base_position,
+                        nodes: HashSet::new(),
+                        metadata: metadata.clone(),
+                    });
+                }
             }
             SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id } => {
-                if let Some(subgraph) = self.subgraphs.remove(subgraph_id) {
-                    // Remove all nodes from the subgraph mapping
-                    for node_id in &subgraph.nodes {
-                        self.node_to_subgraph.remove(node_id);
+                if *graph_id == self.id {
+                    if let Some(subgraph) = self.subgraphs.remove(subgraph_id) {
+                        // Remove node associations
+                        for node_id in &subgraph.nodes {
+                            self.node_to_subgraph.remove(node_id);
+                        }
                     }
                 }
             }
             SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, old_position, new_position } => {
-                if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
-                    subgraph.base_position = *new_position;
+                if *graph_id == self.id {
+                    if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
+                        // We could store old_position for undo functionality
+                        subgraph.base_position = *new_position;
+                    }
                 }
             }
             SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, node_id, relative_position } => {
-                if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
-                    subgraph.nodes.insert(*node_id);
-                    self.node_to_subgraph.insert(*node_id, *subgraph_id);
+                if *graph_id == self.id {
+                    if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
+                        subgraph.nodes.insert(*node_id);
+                        self.node_to_subgraph.insert(*node_id, *subgraph_id);
+
+                        // Update node position to be relative to subgraph
+                        if let Some(node) = self.nodes.get_mut(node_id) {
+                            node.position = Position3D {
+                                x: subgraph.base_position.x + relative_position.x,
+                                y: subgraph.base_position.y + relative_position.y,
+                                z: subgraph.base_position.z + relative_position.z,
+                            };
+                        }
+                    }
                 }
             }
             SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, node_id } => {
-                if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
-                    subgraph.nodes.remove(node_id);
-                    self.node_to_subgraph.remove(node_id);
+                if *graph_id == self.id {
+                    if let Some(subgraph) = self.subgraphs.get_mut(subgraph_id) {
+                        subgraph.nodes.remove(node_id);
+                        self.node_to_subgraph.remove(node_id);
+                    }
                 }
             }
         }
@@ -1118,7 +1223,7 @@ mod tests {
 
         // Then
         assert_eq!(graph.id, id);
-        assert_eq!(graph.metadata.name, name);
+        assert_eq!(graph.name, name);
         assert_eq!(graph.version, 0);
         assert_eq!(graph.nodes.len(), 0);
         assert_eq!(graph.edges.len(), 0);

@@ -4,7 +4,7 @@
 
 use crate::domain::conceptual_graph::{
     ConceptGraph, ConceptNode, ConceptEdge, ConceptType, ConceptRelationship,
-    ConceptualPoint, QualityDimension, DimensionType, NodeId, ConceptId, DistanceMetric,
+    ConceptualPoint, QualityDimension, DimensionType, NodeId, DistanceMetric,
     EdgeId,
 };
 use crate::domain::services::graph_import::{ImportedGraph, ImportedNode, ImportedEdge};

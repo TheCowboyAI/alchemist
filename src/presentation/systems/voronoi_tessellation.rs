@@ -1,7 +1,6 @@
 //! Voronoi tessellation for conceptual space partitioning
 
 use bevy::prelude::*;
-use bevy::render::mesh::{Indices, PrimitiveTopology};
 use std::collections::{HashMap, HashSet};
 use tracing::info;
 use std::hash::{Hash, Hasher};
@@ -63,7 +62,7 @@ fn toggle_voronoi_visualization(
 fn update_quality_dimensions(
     mut commands: Commands,
     subgraph_query: Query<(Entity, &SubgraphRegion), Changed<SubgraphRegion>>,
-    node_query: Query<&Transform, With<GraphNode>>,
+    _node_query: Query<&Transform, With<GraphNode>>,
     member_query: Query<(&SubgraphMember, &Transform)>,
 ) {
     for (entity, subgraph) in subgraph_query.iter() {
@@ -165,22 +164,27 @@ fn calculate_voronoi_cells_2d(
     for (i, (id, proto)) in prototypes.iter().enumerate() {
         let mut vertices = Vec::new();
         let mut neighbors = HashSet::new();
+        let mut bisectors = Vec::new();
 
         // Calculate perpendicular bisectors with all other prototypes
         for (j, (other_id, other_proto)) in prototypes.iter().enumerate() {
             if i != j {
-                // Calculate midpoint between prototypes
                 let midpoint = (*proto + *other_proto) * 0.5;
 
                 // Calculate perpendicular direction
                 let direction = (*other_proto - *proto).normalize();
-                let perpendicular = Vec3::new(-direction.z, 0.0, direction.x);
+                let perpendicular = Vec3::new(-direction.z, 0.0, direction.x).normalize();
 
-                // Find intersection points with other bisectors or bounds
-                let distance = proto.distance(*other_proto);
-                if distance < settings.min_cell_size * 4.0 {
-                    neighbors.insert(*other_id);
-                }
+                // Create bisector plane vertices
+                let cell_size = settings.min_cell_size;
+                let bisector_vertices = vec![
+                    midpoint + perpendicular * cell_size,
+                    midpoint - perpendicular * cell_size,
+                ];
+
+                // Store bisector for intersection calculations
+                bisectors.push((bisector_vertices[0], bisector_vertices[1]));
+                neighbors.insert(*other_id);
             }
         }
 
@@ -200,16 +204,25 @@ fn calculate_voronoi_cells_2d(
                     let to_vertex = vertex - *proto;
                     let distance_to_other = proto.distance(*other_proto);
 
-                    // If vertex is closer to other prototype, pull it back
-                    let midpoint = (*proto + *other_proto) * 0.5;
-                    let vertex_to_mid = midpoint - vertex;
+                    // Skip adjustment if prototypes are too far apart
+                    if distance_to_other > settings.min_cell_size * 4.0 {
+                        continue;
+                    }
 
-                    if vertex.distance(*other_proto) < vertex.distance(*proto) {
-                        // Project vertex onto the perpendicular bisector
-                        let bisector_normal = (*other_proto - *proto).normalize();
+                    // Check if vertex violates Voronoi property
+                    let vertex_distance_to_proto = to_vertex.length();
+                    let vertex_distance_to_other = (vertex - *other_proto).length();
+
+                    // If vertex is closer to other prototype, project it onto bisector
+                    if vertex_distance_to_other < vertex_distance_to_proto {
+                        // Calculate projection onto perpendicular bisector
+                        let midpoint = (*proto + *other_proto) * 0.5;
+                        let bisector_normal = to_other.normalize();
+
+                        // Project vertex onto the plane perpendicular to bisector_normal at midpoint
                         let to_midpoint = midpoint - vertex;
-                        let projection = to_midpoint.dot(bisector_normal) * bisector_normal;
-                        vertex = midpoint - projection;
+                        let projection_length = to_midpoint.dot(bisector_normal);
+                        vertex = vertex + bisector_normal * projection_length;
                     }
                 }
             }

@@ -2303,6 +2303,36 @@
           "/Cargo.toml"
         ]
       }
+    },
+    {
+      "id": "subgraph-module-2-domain-services",
+      "label": "Module 2: Domain Services for Subgraph Operations",
+      "type": "milestone",
+      "position": { "x": 1700, "y": 100, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-09",
+        "description": "Implemented domain services for subgraph analysis and layout calculation",
+        "details": [
+          "Created SubgraphAnalyzer service with comprehensive analysis capabilities",
+          "Implemented cohesion and coupling analysis for subgraphs",
+          "Added complexity scoring and pattern detection",
+          "Created split point detection and merge cost calculation",
+          "Implemented SubgraphLayoutCalculator with multiple layout strategies",
+          "Added ForceDirectedLayout, HierarchicalLayout, CircularLayout, GridLayout, and GeometricLayout",
+          "Implemented collapsed position calculation with multiple strategies",
+          "Added edge crossing optimization and constraint application",
+          "Created comprehensive tests for both services",
+          "All code compiles successfully with only warnings"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-09",
+        "references": [
+          "/src/domain/services/subgraph_analyzer.rs",
+          "/src/domain/services/layout_calculator.rs",
+          "/src/domain/services/mod.rs"
+        ]
+      }
     }
   ],
   "edges": [
@@ -2505,7 +2535,7 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Phase 3: Visualization and UI Integration - Workflow designer with egui successfully integrated",
-  "next_task": "Continue Phase 3: Enhance workflow designer with more features and test thoroughly",
+  "current_focus": "Subgraph Advanced Operations - Module 2: Domain Services completed",
+  "next_task": "Module 3: Interaction Systems - Implement collapse/expand, drag-drop, and merge/split systems",
   "last_updated": "2025-01-09"
 }
