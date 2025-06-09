@@ -358,6 +358,7 @@ pub fn highlight_hovered_nodes(
         &mut ConceptualNodeVisual,
         &MeshMaterial3d<StandardMaterial>,
         Option<&Highlighted>,
+        &Transform,
     )>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
@@ -390,26 +391,29 @@ pub fn highlight_hovered_nodes(
     let mut closest_entity = None;
     let mut closest_distance = f32::MAX;
 
-    for (entity, node, _, _) in node_query.iter() {
+    for (entity, node, _, _, transform) in node_query.iter() {
+        // Use the node's quality position and transform to calculate distance
+        let node_position = transform.translation;
+
         // Calculate distance from ray to node position
         // This is a simplified check - in production, use proper raycasting
-        let node_position = Vec3::new(
-            node.quality_position.coordinates[0] as f32,
-            node.quality_position.coordinates.get(1).copied().unwrap_or(0.0) as f32,
-            node.quality_position.coordinates.get(2).copied().unwrap_or(0.0) as f32,
-        );
+        let ray_to_node = node_position - ray.origin;
+        let ray_direction_normalized = ray.direction.normalize();
+        let projection_length = ray_to_node.dot(ray_direction_normalized);
 
-        // Simple distance check from ray origin
-        let distance = ray.origin.distance(node_position);
+        if projection_length > 0.0 {
+            let closest_point_on_ray = ray.origin + ray_direction_normalized * projection_length;
+            let distance = (node_position - closest_point_on_ray).length();
 
-        if distance < closest_distance && distance < 5.0 {
-            closest_distance = distance;
-            closest_entity = Some(entity);
+            if distance < closest_distance && distance < 2.0 {
+                closest_distance = distance;
+                closest_entity = Some(entity);
+            }
         }
     }
 
     // Update hover states
-    for (entity, mut node, material_handle, highlighted) in node_query.iter_mut() {
+    for (entity, mut node, material_handle, highlighted, _) in node_query.iter_mut() {
         let should_hover = Some(entity) == closest_entity;
 
         if should_hover != node.hovered {

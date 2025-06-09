@@ -4,13 +4,35 @@
 
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
+use bevy::render::render_asset::RenderAssetUsages;
 use crate::presentation::components::{
     GraphNode, SubgraphRegion, SubgraphBoundary, SubgraphMember,
     SubgraphId, BoundaryType,
+    SubgraphOrigin, SubgraphBoundaryStyle,
 };
+use crate::domain::value_objects::{Position3D};
 use std::collections::HashSet;
 use tracing::info;
 use std::hash::{Hash, Hasher};
+use std::collections::HashMap;
+
+/// Settings for subgraph boundary visualization
+#[derive(Resource)]
+pub struct SubgraphBoundarySettings {
+    pub enabled: bool,
+    pub default_style: SubgraphBoundaryStyle,
+    pub update_interval: f32,
+}
+
+impl Default for SubgraphBoundarySettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            default_style: SubgraphBoundaryStyle::ConvexHull,
+            update_interval: 0.5,
+        }
+    }
+}
 
 /// Updates subgraph boundaries when nodes move or membership changes
 pub fn update_subgraph_boundaries(
@@ -63,6 +85,7 @@ pub fn update_subgraph_boundaries(
                         subgraph_entity,
                         region,
                         mesh,
+                        &node_positions,
                     );
                 }
             }
@@ -81,6 +104,7 @@ pub fn update_subgraph_boundaries(
                         subgraph_entity,
                         region,
                         mesh,
+                        &node_positions,
                     );
                 }
             }
@@ -99,6 +123,7 @@ pub fn update_subgraph_boundaries(
                         subgraph_entity,
                         region,
                         mesh,
+                        &node_positions,
                     );
                 }
             }
@@ -118,6 +143,7 @@ fn spawn_boundary_entity(
     parent: Entity,
     region: &SubgraphRegion,
     mesh: Mesh,
+    node_positions: &[Vec3],
 ) {
     let material = materials.add(StandardMaterial {
         base_color: region.color.with_alpha(0.2),
@@ -127,13 +153,23 @@ fn spawn_boundary_entity(
         ..default()
     });
 
+    let center = if node_positions.is_empty() {
+        Vec3::ZERO
+    } else {
+        node_positions.iter().sum::<Vec3>() / node_positions.len() as f32
+    };
+
+    let mesh_handle = meshes.add(mesh);
+
     let boundary_entity = commands.spawn((
-        Mesh3d(meshes.add(mesh)),
+        Mesh3d(mesh_handle.clone()),
         MeshMaterial3d(material),
         Transform::default(),
         SubgraphBoundary {
             subgraph_id: region.subgraph_id,
             mesh_needs_update: false,
+            center,
+            mesh: Some(mesh_handle),
         },
     )).id();
 
@@ -142,67 +178,58 @@ fn spawn_boundary_entity(
 
 /// Create a convex hull mesh from node positions
 fn create_convex_hull_mesh(positions: &[Vec3], color: Color) -> Mesh {
-    // For now, create a simple polygon at y=0
-    // In a real implementation, you'd use a proper convex hull algorithm
-    let mut vertices = Vec::new();
-    let mut indices = Vec::new();
-
-    // Find the center
-    let center = positions.iter().sum::<Vec3>() / positions.len() as f32;
-
-    // Sort positions by angle from center
-    let mut sorted_positions = positions.to_vec();
-    sorted_positions.sort_by(|a, b| {
-        let angle_a = (a.x - center.x).atan2(a.z - center.z);
-        let angle_b = (b.x - center.x).atan2(b.z - center.z);
-        angle_a.partial_cmp(&angle_b).unwrap()
-    });
-
-    // Create vertices with some padding
-    let padding = 2.0;
-    for pos in &sorted_positions {
-        let dir = (*pos - center).normalize();
-        let padded_pos = *pos + dir * padding;
-        vertices.push([padded_pos.x, -0.5, padded_pos.z]); // Bottom
-        vertices.push([padded_pos.x, 0.5, padded_pos.z]);  // Top
+    if positions.len() < 3 {
+        return Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
     }
 
-    // Create triangles for the sides
-    let vertex_count = sorted_positions.len();
-    for i in 0..vertex_count {
-        let next = (i + 1) % vertex_count;
-        let bottom_current = (i * 2) as u32;
-        let top_current = (i * 2 + 1) as u32;
-        let bottom_next = (next * 2) as u32;
-        let top_next = (next * 2 + 1) as u32;
+    // Project to 2D for convex hull calculation
+    let points_2d: Vec<(f32, f32)> = positions
+        .iter()
+        .map(|p| (p.x, p.z))
+        .collect();
 
-        // Two triangles for each quad
-        indices.extend_from_slice(&[bottom_current, bottom_next, top_next]);
-        indices.extend_from_slice(&[bottom_current, top_next, top_current]);
-    }
+    // Calculate convex hull
+    let hull_indices = convex_hull_2d(&points_2d);
 
-    // Create top and bottom faces
-    for i in 0..vertex_count {
-        let next = (i + 1) % vertex_count;
-        // Bottom face
-        indices.extend_from_slice(&[0, (next * 2) as u32, (i * 2) as u32]);
-        // Top face
-        indices.extend_from_slice(&[1, (i * 2 + 1) as u32, (next * 2 + 1) as u32]);
-    }
+    // Create mesh vertices with color
+    let vertices: Vec<[f32; 3]> = hull_indices
+        .iter()
+        .map(|&i| [positions[i].x, positions[i].y, positions[i].z])
+        .collect();
 
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, default());
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
+    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices.clone());
+
+    // Add vertex colors based on the provided color
+    let vertex_colors: Vec<[f32; 4]> = vertices
+        .iter()
+        .map(|_| {
+            let rgba = color.to_linear();
+            [rgba.red, rgba.green, rgba.blue, rgba.alpha]
+        })
+        .collect();
+    mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, vertex_colors);
+
+    // Generate normals (pointing up)
+    let normals: Vec<[f32; 3]> = vertices.iter().map(|_| [0.0, 1.0, 0.0]).collect();
+    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+
+    // Generate indices for triangulation
+    let indices = triangulate_convex_polygon_indices(vertices.len());
     mesh.insert_indices(Indices::U32(indices));
-    mesh.compute_normals();
 
     mesh
 }
 
 /// Create a bounding box mesh from node positions
 fn create_bounding_box_mesh(positions: &[Vec3], color: Color) -> Mesh {
+    if positions.is_empty() {
+        return Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+    }
+
     // Find min and max bounds
-    let mut min = Vec3::splat(f32::MAX);
-    let mut max = Vec3::splat(f32::MIN);
+    let mut min = positions[0];
+    let mut max = positions[0];
 
     for pos in positions {
         min = min.min(*pos);
@@ -210,45 +237,50 @@ fn create_bounding_box_mesh(positions: &[Vec3], color: Color) -> Mesh {
     }
 
     // Add padding
-    let padding = 2.0;
-    min -= Vec3::splat(padding);
-    max += Vec3::splat(padding);
-
-    // Set y bounds for a thin box
-    min.y = -0.5;
-    max.y = 0.5;
+    let padding = Vec3::splat(2.0);
+    min -= padding;
+    max += padding;
 
     // Create box vertices
     let vertices = vec![
-        // Bottom face
-        [min.x, min.y, min.z],
-        [max.x, min.y, min.z],
-        [max.x, min.y, max.z],
-        [min.x, min.y, max.z],
-        // Top face
-        [min.x, max.y, min.z],
-        [max.x, max.y, min.z],
-        [max.x, max.y, max.z],
-        [min.x, max.y, max.z],
+        [min.x, min.y, min.z], // 0
+        [max.x, min.y, min.z], // 1
+        [max.x, max.y, min.z], // 2
+        [min.x, max.y, min.z], // 3
+        [min.x, min.y, max.z], // 4
+        [max.x, min.y, max.z], // 5
+        [max.x, max.y, max.z], // 6
+        [min.x, max.y, max.z], // 7
     ];
 
+    // Create vertex colors
+    let vertex_colors: Vec<[f32; 4]> = vertices
+        .iter()
+        .map(|_| {
+            let rgba = color.to_linear();
+            [rgba.red, rgba.green, rgba.blue, rgba.alpha]
+        })
+        .collect();
+
+    // Box indices (12 triangles, 2 per face)
     let indices = vec![
-        // Bottom
-        0, 1, 2, 0, 2, 3,
-        // Top
-        4, 6, 5, 4, 7, 6,
         // Front
-        0, 4, 5, 0, 5, 1,
+        0, 1, 2, 0, 2, 3,
         // Back
-        2, 6, 7, 2, 7, 3,
+        5, 4, 7, 5, 7, 6,
         // Left
-        0, 3, 7, 0, 7, 4,
+        4, 0, 3, 4, 3, 7,
         // Right
         1, 5, 6, 1, 6, 2,
+        // Top
+        3, 2, 6, 3, 6, 7,
+        // Bottom
+        4, 5, 1, 4, 1, 0,
     ];
 
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, default());
+    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, vertex_colors);
     mesh.insert_indices(Indices::U32(indices));
     mesh.compute_normals();
 
@@ -257,55 +289,54 @@ fn create_bounding_box_mesh(positions: &[Vec3], color: Color) -> Mesh {
 
 /// Create a circular boundary mesh from node positions
 fn create_circle_boundary_mesh(positions: &[Vec3], color: Color) -> Mesh {
-    // Find center and radius
-    let centroid = positions.iter().fold(Vec3::ZERO, |acc, p| acc + *p) / positions.len() as f32;
-
-    // Find maximum radius
-    let mut max_radius = 0.0f32;
-    for pos in positions {
-        let dist = (*pos - centroid).length();
-        max_radius = max_radius.max(dist);
+    if positions.is_empty() {
+        return Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
     }
 
-    // Add padding
-    max_radius += 2.0;
+    // Find center and radius
+    let center = positions.iter().sum::<Vec3>() / positions.len() as f32;
+    let radius = positions
+        .iter()
+        .map(|p| (*p - center).length())
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap_or(10.0) + 2.0; // Add padding
 
-    // Create circle mesh
+    // Create circle vertices
     let segments = 32;
     let mut vertices = Vec::new();
     let mut indices = Vec::new();
 
-    // Center vertices
-    vertices.push([centroid.x, -0.5, centroid.z]); // Bottom center
-    vertices.push([centroid.x, 0.5, centroid.z]);  // Top center
+    // Center vertex
+    vertices.push([center.x, center.y, center.z]);
 
     // Circle vertices
-    for i in 0..=segments {
+    for i in 0..segments {
         let angle = (i as f32 / segments as f32) * std::f32::consts::TAU;
-        let x = centroid.x + angle.cos() * max_radius;
-        let z = centroid.z + angle.sin() * max_radius;
-        vertices.push([x, -0.5, z]); // Bottom
-        vertices.push([x, 0.5, z]);  // Top
+        let x = center.x + radius * angle.cos();
+        let z = center.z + radius * angle.sin();
+        vertices.push([x, center.y, z]);
     }
+
+    // Create vertex colors
+    let vertex_colors: Vec<[f32; 4]> = vertices
+        .iter()
+        .map(|_| {
+            let rgba = color.to_linear();
+            [rgba.red, rgba.green, rgba.blue, rgba.alpha * 0.5] // Semi-transparent
+        })
+        .collect();
 
     // Create triangles
     for i in 0..segments {
-        let bottom_current = (i * 2 + 2) as u32;
-        let top_current = (i * 2 + 3) as u32;
-        let bottom_next = ((i + 1) * 2 + 2) as u32;
-        let top_next = ((i + 1) * 2 + 3) as u32;
-
-        // Bottom face
-        indices.extend_from_slice(&[0, bottom_next, bottom_current]);
-        // Top face
-        indices.extend_from_slice(&[1, top_current, top_next]);
-        // Side faces
-        indices.extend_from_slice(&[bottom_current, bottom_next, top_next]);
-        indices.extend_from_slice(&[bottom_current, top_next, top_current]);
+        let next = (i + 1) % segments;
+        indices.push(0);
+        indices.push((i + 1) as u32);
+        indices.push((next + 1) as u32);
     }
 
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, default());
+    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, vertex_colors);
     mesh.insert_indices(Indices::U32(indices));
     mesh.compute_normals();
 
@@ -400,7 +431,135 @@ pub struct SubgraphVisualizationPlugin;
 
 impl Plugin for SubgraphVisualizationPlugin {
     fn build(&self, app: &mut App) {
-        // The systems are already added in the main GraphEditorPlugin
-        // This plugin exists for consistency and potential future expansion
+        app
+            .init_resource::<SubgraphBoundarySettings>()
+            .add_systems(
+                Update,
+                (
+                    update_subgraph_boundaries,
+                    visualize_subgraph_boundaries,
+                )
+                    .chain(),
+            );
+    }
+}
+
+// Helper function to calculate 2D convex hull
+fn convex_hull_2d(points: &[(f32, f32)]) -> Vec<usize> {
+    if points.len() < 3 {
+        return (0..points.len()).collect();
+    }
+
+    // Simple Graham scan algorithm
+    let mut indices: Vec<usize> = (0..points.len()).collect();
+
+    // Find the bottom-most point (or left-most if tied)
+    let start = indices.iter()
+        .min_by(|&&a, &&b| {
+            let pa = points[a];
+            let pb = points[b];
+            pa.1.partial_cmp(&pb.1).unwrap()
+                .then(pa.0.partial_cmp(&pb.0).unwrap())
+        })
+        .copied()
+        .unwrap();
+
+    // Sort points by polar angle with respect to start point
+    let start_point = points[start];
+    indices.sort_by(|&a, &b| {
+        if a == start { return std::cmp::Ordering::Less; }
+        if b == start { return std::cmp::Ordering::Greater; }
+
+        let pa = points[a];
+        let pb = points[b];
+
+        let angle_a = (pa.1 - start_point.1).atan2(pa.0 - start_point.0);
+        let angle_b = (pb.1 - start_point.1).atan2(pb.0 - start_point.0);
+
+        angle_a.partial_cmp(&angle_b).unwrap()
+    });
+
+    // Build convex hull
+    let mut hull = vec![indices[0], indices[1]];
+
+    for &idx in &indices[2..] {
+        while hull.len() > 1 {
+            let p1 = points[hull[hull.len() - 2]];
+            let p2 = points[hull[hull.len() - 1]];
+            let p3 = points[idx];
+
+            // Check if we make a left turn
+            let cross = (p2.0 - p1.0) * (p3.1 - p1.1) - (p2.1 - p1.1) * (p3.0 - p1.0);
+            if cross > 0.0 {
+                break;
+            }
+            hull.pop();
+        }
+        hull.push(idx);
+    }
+
+    hull
+}
+
+// Helper function to triangulate a convex polygon
+fn triangulate_convex_polygon_indices(vertex_count: usize) -> Vec<u32> {
+    let mut indices = Vec::new();
+
+    // Simple fan triangulation from first vertex
+    for i in 1..vertex_count - 1 {
+        indices.push(0);
+        indices.push(i as u32);
+        indices.push((i + 1) as u32);
+    }
+
+    indices
+}
+
+/// Visualizes subgraph boundaries using gizmos
+pub fn visualize_subgraph_boundaries(
+    mut gizmos: Gizmos,
+    boundaries: Query<(&SubgraphBoundary, &SubgraphBoundaryStyle)>,
+    settings: Res<SubgraphBoundarySettings>,
+) {
+    if !settings.enabled {
+        return;
+    }
+
+    for (boundary, style) in boundaries.iter() {
+        let base_color = style.color();
+        let alpha = style.alpha();
+        let color = base_color.with_alpha(alpha);
+
+        match style {
+            SubgraphBoundaryStyle::ConvexHull => {
+                // Draw convex hull outline
+                if let Some(_mesh) = &boundary.mesh {
+                    // For now, draw a simple outline
+                    // In a real implementation, extract vertices from mesh
+                    gizmos.circle(
+                        Isometry3d::from_translation(boundary.center),
+                        10.0,
+                        color,
+                    );
+                }
+            }
+            SubgraphBoundaryStyle::BoundingBox => {
+                // Draw bounding box
+                let half_size = Vec3::new(10.0, 1.0, 10.0);
+                gizmos.cuboid(
+                    Transform::from_translation(boundary.center)
+                        .with_scale(half_size * 2.0),
+                    color,
+                );
+            }
+            SubgraphBoundaryStyle::Circle => {
+                // Draw circle
+                gizmos.circle(
+                    Isometry3d::from_translation(boundary.center),
+                    15.0,
+                    color,
+                );
+            }
+        }
     }
 }

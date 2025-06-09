@@ -73,6 +73,12 @@ impl Plugin for GraphEditorPlugin {
                 animate_edge_drawing,
                 create_node_labels,
                 update_label_positions,
+                apply_force_layout,
+                update_node_positions,
+                debug_node_visibility,
+                record_events,
+                replay_events,
+                execute_scheduled_commands,
             ).chain());
     }
 }

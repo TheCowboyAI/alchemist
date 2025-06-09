@@ -72,7 +72,7 @@ fn setup(mut commands: EventWriter<CommandEvent>) {
             ia::domain::commands::GraphCommand::ImportFromFile {
                 graph_id,
                 file_path: "examples/data/sample_graph.json".to_string(),
-                format: "ArrowsApp".to_string(),
+                format: "arrows_app".to_string(),
             }
         ),
     });

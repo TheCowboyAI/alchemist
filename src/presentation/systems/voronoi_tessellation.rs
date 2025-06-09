@@ -1,14 +1,21 @@
 //! Voronoi tessellation for conceptual space partitioning
 
 use bevy::prelude::*;
-use std::collections::{HashMap, HashSet};
+use bevy::render::mesh::{Indices, PrimitiveTopology, VertexAttributeValues};
+use bevy::render::render_asset::RenderAssetUsages;
+use bevy::render::mesh::MeshVertexAttribute;
+use bevy::render::render_resource::VertexFormat;
 use tracing::info;
 use std::hash::{Hash, Hasher};
 
 use crate::presentation::components::{
     ConceptualPosition, ConceptualSpacePartition, DistanceMetric, GraphNode, QualityDimension,
     SubgraphId, SubgraphMember, SubgraphRegion, VoronoiCell, VoronoiSettings,
+    SubgraphOrigin, SubgraphOrigins,
 };
+use crate::domain::value_objects::Position3D;
+use std::collections::{HashMap, HashSet};
+use std::f32::consts::PI;
 
 /// Plugin for Voronoi tessellation
 pub struct VoronoiTessellationPlugin;
@@ -105,7 +112,15 @@ fn calculate_voronoi_tessellation(
     time: Res<Time>,
     dimensions: Query<&QualityDimension>,
     mut partition_query: Query<&mut ConceptualSpacePartition>,
+    node_query: Query<&Transform, With<GraphNode>>,
+    mut gizmos: Gizmos,
+    origins: Res<SubgraphOrigins>,
 ) {
+    let settings = settings.into_inner();
+    if !settings.enabled {
+        return;
+    }
+
     // Update timer
     timer.0.tick(time.delta());
     if !timer.0.finished() {
@@ -137,7 +152,7 @@ fn calculate_voronoi_tessellation(
     max_bound += Vec3::splat(settings.boundary_padding);
 
     // Simple 2D Voronoi on XZ plane (Y is fixed for visualization)
-    let cells = calculate_voronoi_cells_2d(&prototypes, min_bound, max_bound, settings.as_ref());
+    let cells = calculate_voronoi_cells_2d(&prototypes, min_bound, max_bound, &*settings);
 
     // Update or create partition entity
     if let Ok(mut partition) = partition_query.get_single_mut() {
@@ -148,6 +163,47 @@ fn calculate_voronoi_tessellation(
             cells,
             bounds: (min_bound, max_bound),
         });
+    }
+
+    // Get actual node positions from the query
+    let node_positions: Vec<Vec3> = node_query
+        .iter()
+        .map(|transform| transform.translation)
+        .collect();
+
+    if node_positions.is_empty() {
+        return;
+    }
+
+    // Use node positions to influence Voronoi cell generation
+    for (subgraph_id, subgraph_info) in origins.subgraph_info.iter() {
+        // Find nodes near this subgraph origin
+        let origin_pos = Vec3::new(
+            subgraph_info.origin.x,
+            subgraph_info.origin.y,
+            subgraph_info.origin.z,
+        );
+
+        let nearby_nodes: Vec<Vec3> = node_positions
+            .iter()
+            .filter(|pos| pos.distance(origin_pos) < settings.cell_size * 2.0)
+            .cloned()
+            .collect();
+
+        // Use nearby nodes to adjust cell boundaries
+        let adjusted_origin = if !nearby_nodes.is_empty() {
+            let centroid = nearby_nodes.iter().sum::<Vec3>() / nearby_nodes.len() as f32;
+            origin_pos.lerp(centroid, 0.3) // Blend with node centroid
+        } else {
+            origin_pos
+        };
+
+        // Draw cell with adjusted origin
+        gizmos.circle(
+            Isometry3d::from_translation(adjusted_origin),
+            settings.cell_size * 0.8,
+            Color::srgb(0.5, 0.5, 1.0).with_alpha(0.3),
+        );
     }
 }
 
@@ -185,6 +241,9 @@ fn calculate_voronoi_cells_2d(
                 // Store bisector for intersection calculations
                 bisectors.push((bisector_vertices[0], bisector_vertices[1]));
                 neighbors.insert(*other_id);
+
+                // Add bisector midpoint to influence vertex positions
+                vertices.push(midpoint);
             }
         }
 
@@ -204,11 +263,6 @@ fn calculate_voronoi_cells_2d(
                     let to_vertex = vertex - *proto;
                     let distance_to_other = proto.distance(*other_proto);
 
-                    // Skip adjustment if prototypes are too far apart
-                    if distance_to_other > settings.min_cell_size * 4.0 {
-                        continue;
-                    }
-
                     // Check if vertex violates Voronoi property
                     let vertex_distance_to_proto = to_vertex.length();
                     let vertex_distance_to_other = (vertex - *other_proto).length();
@@ -219,10 +273,16 @@ fn calculate_voronoi_cells_2d(
                         let midpoint = (*proto + *other_proto) * 0.5;
                         let bisector_normal = to_other.normalize();
 
-                        // Project vertex onto the plane perpendicular to bisector_normal at midpoint
-                        let to_midpoint = midpoint - vertex;
-                        let projection_length = to_midpoint.dot(bisector_normal);
-                        vertex = vertex + bisector_normal * projection_length;
+                        // Project vertex onto the bisector plane
+                        let vertex_to_mid = midpoint - vertex;
+                        let projection_distance = vertex_to_mid.dot(bisector_normal);
+                        vertex = vertex + bisector_normal * projection_distance;
+
+                        // Ensure vertex stays within reasonable bounds
+                        let max_distance = distance_to_other * 0.45;
+                        if vertex.distance(*proto) > max_distance {
+                            vertex = *proto + (vertex - *proto).normalize() * max_distance;
+                        }
                     }
                 }
             }
@@ -374,6 +434,9 @@ fn visualize_voronoi_cells(
             Transform::from_translation(Vec3::Y * settings.visualization_height),
             VoronoiCellMesh {
                 subgraph_id: cell.subgraph_id,
+                vertices: cell.vertices.clone(),
+                indices: triangulate_convex_polygon(&cell.vertices),
+                color,
             },
         ));
     }
@@ -383,6 +446,55 @@ fn visualize_voronoi_cells(
 #[derive(Component)]
 struct VoronoiCellMesh {
     subgraph_id: SubgraphId,
+    vertices: Vec<Vec3>,
+    indices: Vec<u32>,
+    color: Color,
+}
+
+impl VoronoiCellMesh {
+    fn new(subgraph_id: SubgraphId, vertices: Vec<Vec3>, color: Color) -> Self {
+        // Generate indices for triangulation
+        let indices = triangulate_convex_polygon(&vertices);
+
+        Self {
+            subgraph_id,
+            vertices,
+            indices,
+            color,
+        }
+    }
+
+    fn to_mesh(&self) -> Mesh {
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+
+        // Add vertices
+        mesh.insert_attribute(
+            Mesh::ATTRIBUTE_POSITION,
+            self.vertices.clone(),
+        );
+
+        // Add normals (all pointing up for floor mesh)
+        let normals = vec![Vec3::Y; self.vertices.len()];
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+
+        // Add UVs
+        let uvs: Vec<[f32; 2]> = self.vertices
+            .iter()
+            .map(|v| [(v.x + 50.0) / 100.0, (v.z + 50.0) / 100.0])
+            .collect();
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+
+        // Add indices
+        mesh.insert_indices(Indices::U32(self.indices.clone()));
+
+        // Add a custom attribute to identify the subgraph
+        mesh.insert_attribute(
+            MeshVertexAttribute::new("subgraph_id", 0, VertexFormat::Uint32),
+            vec![self.subgraph_id.0.as_u128() as u32; self.vertices.len()],
+        );
+
+        mesh
+    }
 }
 
 /// Create a mesh for a Voronoi cell from its vertices
@@ -430,4 +542,22 @@ fn create_voronoi_cell_mesh(vertices: &[Vec3], height: f32) -> Mesh {
     mesh.insert_indices(bevy::render::mesh::Indices::U32(indices));
 
     mesh
+}
+
+/// Triangulate a convex polygon into triangles
+fn triangulate_convex_polygon(vertices: &[Vec3]) -> Vec<u32> {
+    let mut indices = Vec::new();
+
+    if vertices.len() < 3 {
+        return indices;
+    }
+
+    // Simple fan triangulation from first vertex
+    for i in 1..vertices.len() - 1 {
+        indices.push(0);
+        indices.push(i as u32);
+        indices.push((i + 1) as u32);
+    }
+
+    indices
 }

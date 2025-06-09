@@ -187,11 +187,35 @@ pub enum BoundaryType {
     Voronoi,
 }
 
+/// Style for subgraph boundaries
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+pub enum SubgraphBoundaryStyle {
+    ConvexHull,
+    BoundingBox,
+    Circle,
+}
+
+impl SubgraphBoundaryStyle {
+    pub fn color(&self) -> Color {
+        match self {
+            Self::ConvexHull => Color::srgb(0.5, 0.7, 1.0),
+            Self::BoundingBox => Color::srgb(0.7, 0.5, 1.0),
+            Self::Circle => Color::srgb(1.0, 0.5, 0.7),
+        }
+    }
+
+    pub fn alpha(&self) -> f32 {
+        0.3
+    }
+}
+
 /// Visual boundary mesh for subgraph
 #[derive(Component)]
 pub struct SubgraphBoundary {
     pub subgraph_id: SubgraphId,
     pub mesh_needs_update: bool,
+    pub center: Vec3,
+    pub mesh: Option<Handle<Mesh>>,
 }
 
 /// Component marking an entity as selected
@@ -244,9 +268,11 @@ pub struct ConceptualPosition {
 /// Resource for Voronoi tessellation settings
 #[derive(Resource, Debug)]
 pub struct VoronoiSettings {
+    pub enabled: bool,  // Whether Voronoi visualization is enabled
     pub update_frequency: f32,  // How often to recalculate (seconds)
     pub smoothing_factor: f32,  // For Lloyd's relaxation
     pub min_cell_size: f32,  // Minimum size for a cell
+    pub cell_size: f32,  // Default cell size
     pub boundary_padding: f32,  // Padding around the space
     pub visualization_height: f32,  // Y-offset for 2D visualization
 }
@@ -254,9 +280,11 @@ pub struct VoronoiSettings {
 impl Default for VoronoiSettings {
     fn default() -> Self {
         Self {
+            enabled: true,
             update_frequency: 0.5,
             smoothing_factor: 0.3,
             min_cell_size: 10.0,
+            cell_size: 20.0,
             boundary_padding: 20.0,
             visualization_height: 0.1,  // Slightly above ground plane
         }
