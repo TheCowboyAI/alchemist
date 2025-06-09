@@ -5,7 +5,7 @@ use tracing::info;
 use ia::application::CommandEvent;
 use ia::infrastructure::event_bridge::{EventBridge, EventBridgePlugin};
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
-use ia::presentation::plugins::{GraphEditorPlugin, ConceptualGraphPlugin};
+use ia::presentation::plugins::{GraphEditorPlugin, ConceptualGraphPlugin, WorkflowDesignerPlugin};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -31,7 +31,8 @@ fn main() {
 
     app.add_plugins(DefaultPlugins)
         .add_plugins(GraphEditorPlugin)
-        .add_plugins(ConceptualGraphPlugin);
+        .add_plugins(ConceptualGraphPlugin)
+        .add_plugins(WorkflowDesignerPlugin);
 
     // Only add event bridge if NATS is connected
     if let Some(client) = nats_client {
@@ -52,4 +53,5 @@ fn setup(commands: EventWriter<CommandEvent>) {
     // Don't create a graph automatically - let the import system handle it
     info!("Keyboard shortcuts are ready - check the console for instructions");
     info!("Press 'I' to import a graph or use mouse buttons as shown");
+    info!("Press 'W' to open the Workflow Designer");
 }

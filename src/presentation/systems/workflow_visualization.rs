@@ -99,7 +99,7 @@ fn create_step_mesh_and_material(
 
 /// System to visualize workflow transitions
 pub fn visualize_workflow_transitions(
-    mut commands: Commands,
+    _commands: Commands,
     mut gizmos: Gizmos,
     step_query: Query<(&WorkflowStepVisual, &Transform)>,
     transition_query: Query<&WorkflowTransitionVisual>,
@@ -304,7 +304,7 @@ pub fn update_step_states(
 /// System to apply workflow layout algorithms
 pub fn apply_workflow_layout(
     mut step_query: Query<(Entity, &WorkflowStepVisual, &mut Transform), Changed<WorkflowStepVisual>>,
-    workflow_query: Query<(Entity, &WorkflowVisual)>,
+    _workflow_query: Query<(Entity, &WorkflowVisual)>,
 ) {
     // For now, apply a simple layout to all steps
     // TODO: Implement proper workflow-step relationships

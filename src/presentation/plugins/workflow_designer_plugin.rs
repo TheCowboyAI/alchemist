@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use std::collections::HashMap;
 use uuid::Uuid;
+use tracing::info;
 
 use crate::domain::value_objects::{WorkflowId, StepId};
 use crate::presentation::components::workflow_visualization::*;
@@ -41,7 +42,8 @@ impl Plugin for WorkflowDesignerPlugin {
                 connect_workflow_steps,
                 validate_workflow_connections,
                 update_workflow_preview,
-            ));
+                toggle_workflow_designer,
+            ).chain());
     }
 }
 
@@ -71,6 +73,9 @@ pub struct WorkflowDesignerState {
 
     /// Validation errors
     pub validation_errors: Vec<String>,
+
+    /// Visibility of the workflow designer
+    pub visible: bool,
 }
 
 /// Designer modes
@@ -295,6 +300,22 @@ pub enum DesignerEvent {
     },
 }
 
+/// System to toggle workflow designer visibility with keyboard shortcut
+fn toggle_workflow_designer(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut state: ResMut<WorkflowDesignerState>,
+) {
+    // Press 'W' to toggle workflow designer
+    if keyboard.just_pressed(KeyCode::KeyW) {
+        state.visible = !state.visible;
+        if state.visible {
+            info!("Workflow Designer opened - Press 'W' to close");
+        } else {
+            info!("Workflow Designer closed - Press 'W' to open");
+        }
+    }
+}
+
 /// Main UI system for the workflow designer
 fn workflow_designer_ui(
     mut contexts: EguiContexts,
@@ -303,6 +324,11 @@ fn workflow_designer_ui(
     templates: Res<WorkflowTemplates>,
     mut events: EventWriter<DesignerEvent>,
 ) {
+    // Only show UI if visible
+    if !state.visible {
+        return;
+    }
+
     let ctx = contexts.ctx_mut();
 
     // Top toolbar

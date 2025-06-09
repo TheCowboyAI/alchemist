@@ -42,7 +42,7 @@ pub struct SelectionChangedEvent {
 
 /// Handles node dragging with mouse
 pub fn handle_node_dragging(
-    mut commands: Commands,
+    _commands: Commands,
     mouse_button: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
@@ -90,7 +90,7 @@ pub fn handle_node_dragging(
             let mut closest_entity = None;
             let mut closest_distance = f32::MAX;
 
-            for (entity, transform, _, _, global_transform) in draggable_nodes.iter() {
+            for (entity, _transform, _, _, global_transform) in draggable_nodes.iter() {
                 let node_position = global_transform.translation();
                 let distance_to_ray = (node_position - ray.origin).length(); // Simplified
 
