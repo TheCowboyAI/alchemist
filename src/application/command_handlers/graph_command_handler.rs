@@ -79,6 +79,14 @@ impl CommandHandler for GraphCommandHandler {
             Command::Edge(edge_cmd) => self.handle_edge_command(edge_cmd).await,
             Command::Subgraph(subgraph_cmd) => self.handle_subgraph_command(subgraph_cmd).await,
             Command::Workflow(workflow_cmd) => self.handle_workflow_command(workflow_cmd).await,
+            Command::Subgraph(_) => {
+                tracing::warn!("Subgraph commands not yet implemented");
+                Ok(vec![])
+            }
+            Command::SubgraphOperation(_) => {
+                tracing::warn!("SubgraphOperation commands not yet implemented");
+                Ok(vec![])
+            }
             Command::ContextBridge(_) => {
                 tracing::warn!("ContextBridge commands not yet implemented");
                 Ok(vec![])

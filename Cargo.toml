@@ -16,6 +16,7 @@ all = { level = "warn", priority = -1 }
 
 [workspace]
 exclude = ["examples/", "bevy-patched"]
+members = ["graph-composition", "cim-ipld"]
 resolver = "2"
 
 [features]
@@ -71,6 +72,7 @@ bevy = { path = "bevy-patched", default-features = false, features = [
 bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", branch = "main" }
 
 # Graph library
+graph-composition = { path = "graph-composition" }
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
 
@@ -92,6 +94,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Content addressing
 cim-ipld = { path = "cim-ipld" }
+cim-contextgraph = { path = "cim-contextgraph" }
 cid = { version = "0.11", features = ["serde"] }
 multihash = { version = "0.19", features = ["std"] }
 blake3 = "1.5"
@@ -120,6 +123,7 @@ pulldown-cmark = "0.13"
 criterion = { version = "0.5", features = ["html_reports"] }
 tempfile = "3.8"
 uuid = { version = "1.10", features = ["v4"] }
+colored = "2.1"
 
 [profile.dev]
 opt-level = 3
@@ -130,7 +134,6 @@ opt-level = 3
 [profile.release]
 lto = true
 codegen-units = 1
-opt-level = 3
 
 [profile.wasm-release]
 inherits = "release"
@@ -146,77 +149,17 @@ path = "src/lib.rs"
 name = "ia"
 path = "src/main.rs"
 
-[[bin]]
-name = "test_nats"
-path = "src/bin/test_nats.rs"
+
+
+# Demos - Only keeping the essential ones
 
 [[bin]]
-name = "import_graph"
-path = "src/bin/import_graph.rs"
+name = "demo_nats_connection"
+path = "src/bin/demo_nats_connection.rs"
 
 [[bin]]
-name = "test_import_flow"
-path = "src/bin/test_import_flow.rs"
-
-[[bin]]
-name = "test_import"
-path = "src/bin/test_import.rs"
-
-[[bin]]
-name = "test_import_debug"
-path = "src/bin/test_import_debug.rs"
-
-[[bin]]
-name = "test_minimal_import"
-path = "src/bin/test_minimal_import.rs"
-
-[[bin]]
-name = "test_keyboard"
-path = "src/bin/test_keyboard.rs"
-
-[[bin]]
-name = "test_import_key"
-path = "src/bin/test_import_key.rs"
-
-[[bin]]
-name = "test_import_direct"
-path = "src/bin/test_import_direct.rs"
-
-[[bin]]
-name = "test_import_simple"
-path = "src/bin/test_import_simple.rs"
-
-[[bin]]
-name = "test_import_existing"
-path = "src/bin/test_import_existing.rs"
-
-[[bin]]
-name = "test_import_visibility"
-path = "src/bin/test_import_visibility.rs"
-
-[[bin]]
-name = "test_import_final"
-path = "src/bin/test_import_final.rs"
-
-[[bin]]
-name = "test_direct_spawn"
-path = "src/bin/test_direct_spawn.rs"
-
-[[bin]]
-name = "test_import_direct_trigger"
-path = "src/bin/test_import_direct_trigger.rs"
-
-[[bin]]
-name = "conceptual_graph_visual_demo"
-path = "src/bin/conceptual_graph_visual_demo.rs"
-
-[[bin]]
-name = "workflow_designer_demo"
-path = "src/bin/workflow_designer_demo.rs"
-
-[[bin]]
-name = "test_workflow_designer"
-path = "src/bin/test_workflow_designer.rs"
+name = "demo_graph_composition"
+path = "src/bin/demo_graph_composition.rs"
 
 [[example]]
 name = "markdown_import_demo"
@@ -253,6 +196,22 @@ path = "examples/subgraph_demo.rs"
 [[example]]
 name = "test_subgraph_operations"
 path = "examples/test_subgraph_operations.rs"
+
+[[example]]
+name = "document_context_demo"
+path = "examples/document_context_demo.rs"
+
+[[example]]
+name = "document_context_export"
+path = "examples/document_context_export.rs"
+
+[[example]]
+name = "event_replay_demo"
+path = "examples/event_replay_demo.rs"
+
+[[example]]
+name = "json_import_demo"
+path = "examples/json_import_demo.rs"
 
 # Disable the problematic experimental features
 [package.metadata.bevy]

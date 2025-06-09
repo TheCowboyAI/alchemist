@@ -165,6 +165,7 @@ impl EventStore for DistributedEventStore {
                 SubgraphEvent::NodeAddedToSubgraph { graph_id, .. } => graph_id.to_string(),
                 SubgraphEvent::NodeRemovedFromSubgraph { graph_id, .. } => graph_id.to_string(),
             },
+            DomainEvent::SubgraphOperation(op_event) => op_event.graph_id().to_string(),
             DomainEvent::ContextBridge(context_bridge_event) => match context_bridge_event {
                 ContextBridgeEvent::BridgeCreated { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::TranslationRuleAdded { bridge_id, .. } => bridge_id.to_string(),

@@ -188,17 +188,21 @@ impl Graph {
             Command::Edge(cmd) => self.handle_edge_command(cmd),
             Command::Workflow(cmd) => self.handle_workflow_command(cmd),
             Command::Subgraph(cmd) => self.handle_subgraph_command(cmd),
+            Command::SubgraphOperation(_) => {
+                // SubgraphOperation commands are handled by SubgraphAggregate
+                Err(GraphError::InvalidOperation("SubgraphOperation commands should be handled by SubgraphAggregate".to_string()))
+            }
             Command::ContextBridge(_) => {
-                // Context bridge commands are handled by a separate aggregate
-                Ok(vec![])
+                // ContextBridge commands are handled by ContextBridgeAggregate
+                Err(GraphError::InvalidOperation("ContextBridge commands should be handled by ContextBridgeAggregate".to_string()))
             }
             Command::MetricContext(_) => {
-                // Metric context commands are handled by a separate aggregate
-                Ok(vec![])
+                // MetricContext commands are handled by MetricContextAggregate
+                Err(GraphError::InvalidOperation("MetricContext commands should be handled by MetricContextAggregate".to_string()))
             }
             Command::RuleContext(_) => {
-                // Rule context commands are handled by a separate aggregate
-                Ok(vec![])
+                // RuleContext commands are handled by RuleContextAggregate
+                Err(GraphError::InvalidOperation("RuleContext commands should be handled by RuleContextAggregate".to_string()))
             }
         }
     }
@@ -921,8 +925,11 @@ impl Graph {
             DomainEvent::Edge(edge_event) => self.apply_edge_event(edge_event),
             DomainEvent::Workflow(workflow_event) => self.apply_workflow_event(workflow_event),
             DomainEvent::Subgraph(subgraph_event) => self.apply_subgraph_event(subgraph_event),
+            DomainEvent::SubgraphOperation(_) => {
+                // SubgraphOperation events are handled by SubgraphAggregate
+            }
             DomainEvent::ContextBridge(_) => {
-                // Context bridge events are not handled by Graph aggregate
+                // Context bridge events don't affect graph aggregate
             }
             DomainEvent::MetricContext(_) => {
                 // Metric context events are not handled by Graph aggregate

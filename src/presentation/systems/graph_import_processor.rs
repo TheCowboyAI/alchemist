@@ -13,7 +13,8 @@ use crate::domain::services::GraphImportService;
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 use tracing::{info, error};
-use crate::presentation::components::{SubgraphRegion, SubgraphId, BoundaryType};
+use crate::presentation::components::{SubgraphRegion, BoundaryType};
+use crate::domain::value_objects::SubgraphId;
 
 /// System that processes GraphImportRequested events
 pub fn process_graph_import_requests(

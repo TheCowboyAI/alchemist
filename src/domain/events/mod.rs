@@ -36,6 +36,7 @@ pub enum DomainEvent {
     Node(NodeEvent),
     Edge(EdgeEvent),
     Subgraph(SubgraphEvent),
+    SubgraphOperation(SubgraphOperationEvent),
     ContextBridge(ContextBridgeEvent),
     MetricContext(MetricContextEvent),
     RuleContext(RuleContextEvent),
@@ -77,6 +78,7 @@ impl DomainEvent {
                 SubgraphEvent::NodeAddedToSubgraph { graph_id, .. } => graph_id.to_string(),
                 SubgraphEvent::NodeRemovedFromSubgraph { graph_id, .. } => graph_id.to_string(),
             },
+            DomainEvent::SubgraphOperation(e) => e.graph_id().to_string(),
             DomainEvent::ContextBridge(e) => match e {
                 ContextBridgeEvent::BridgeCreated { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::TranslationRuleAdded { bridge_id, .. } => bridge_id.to_string(),
@@ -164,6 +166,7 @@ impl DomainEvent {
                 SubgraphEvent::NodeAddedToSubgraph { .. } => "NodeAddedToSubgraph",
                 SubgraphEvent::NodeRemovedFromSubgraph { .. } => "NodeRemovedFromSubgraph",
             },
+            DomainEvent::SubgraphOperation(e) => e.event_type(),
             DomainEvent::ContextBridge(e) => match e {
                 ContextBridgeEvent::BridgeCreated { .. } => "BridgeCreated",
                 ContextBridgeEvent::TranslationRuleAdded { .. } => "TranslationRuleAdded",

@@ -12,6 +12,9 @@ pub mod conceptual_visualization;
 pub mod node_interaction;
 pub mod context_bridge_visualization;
 pub mod workflow_visualization;
+pub mod subgraph_collapse_expand;
+pub mod subgraph_drag_drop;
+pub mod subgraph_merge_split;
 
 pub use camera_controller::*;
 pub use event_consumer_example::*;

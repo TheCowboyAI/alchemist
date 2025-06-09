@@ -7,10 +7,10 @@ use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
 use crate::presentation::components::{
     GraphNode, SubgraphRegion, SubgraphBoundary, SubgraphMember,
-    SubgraphId, BoundaryType,
+    BoundaryType,
     SubgraphOrigin, SubgraphBoundaryStyle,
 };
-use crate::domain::value_objects::{Position3D};
+use crate::domain::value_objects::{Position3D, SubgraphId};
 use std::collections::HashSet;
 use tracing::info;
 use std::hash::{Hash, Hasher};
@@ -365,13 +365,12 @@ pub fn create_subgraph_from_selection(
         for (entity, node) in &nodes {
             node_ids.insert(node.node_id);
 
-            // Convert UUID to usize using hash
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            subgraph_id.0.hash(&mut hasher);
-            let subgraph_id_usize = hasher.finish() as usize;
-
             commands.entity(*entity).insert(SubgraphMember {
-                subgraph_id: subgraph_id_usize,
+                subgraph_ids: {
+                    let mut set = HashSet::new();
+                    set.insert(subgraph_id);
+                    set
+                },
                 relative_position: crate::domain::value_objects::Position3D { x: 0.0, y: 0.0, z: 0.0 },
             });
         }

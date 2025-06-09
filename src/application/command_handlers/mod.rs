@@ -65,17 +65,17 @@ pub fn process_commands(
                 }
             }
             Command::Subgraph(_) => {
-                // Handle subgraph commands
-                tracing::info!("Processing subgraph command");
-                // Subgraph commands are handled by the aggregate
+                warn!("Subgraph commands not yet implemented");
+                Ok(vec![])
             }
-            Command::Workflow(_) => {
-                // Handle workflow commands
-                tracing::info!("Processing workflow command");
+            Command::SubgraphOperation(_) => {
+                warn!("SubgraphOperation commands not yet implemented");
+                Ok(vec![])
             }
             Command::ContextBridge(_) => {
-                warn!("ContextBridge commands not yet implemented");
-                // TODO: Implement context bridge command handling
+                warn!("ContextBridge commands should be handled by async handler");
+                // ContextBridge commands are handled by the async ContextBridgeHandler
+                Ok(vec![])
             }
             Command::MetricContext(_) => {
                 warn!("MetricContext commands should be handled by async handler");

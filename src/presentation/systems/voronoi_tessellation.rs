@@ -10,10 +10,10 @@ use std::hash::{Hash, Hasher};
 
 use crate::presentation::components::{
     ConceptualPosition, ConceptualSpacePartition, DistanceMetric, GraphNode, QualityDimension,
-    SubgraphId, SubgraphMember, SubgraphRegion, VoronoiCell, VoronoiSettings,
+    SubgraphMember, SubgraphRegion, VoronoiCell, VoronoiSettings,
     SubgraphOrigin, SubgraphOrigins,
 };
-use crate::domain::value_objects::Position3D;
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId, Position3D, SubgraphId};
 use std::collections::{HashMap, HashSet};
 use std::f32::consts::PI;
 
@@ -78,12 +78,8 @@ fn update_quality_dimensions(
         let mut count = 0;
 
         for (member, transform) in member_query.iter() {
-            // Convert UUID to usize using hash
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            subgraph.subgraph_id.0.hash(&mut hasher);
-            let subgraph_id_usize = hasher.finish() as usize;
-
-            if member.subgraph_id == subgraph_id_usize {
+            // Check if this member belongs to the current subgraph
+            if member.subgraph_ids.contains(&subgraph.subgraph_id) {
                 sum += transform.translation;
                 count += 1;
             }
@@ -490,7 +486,7 @@ impl VoronoiCellMesh {
         // Add a custom attribute to identify the subgraph
         mesh.insert_attribute(
             MeshVertexAttribute::new("subgraph_id", 0, VertexFormat::Uint32),
-            vec![self.subgraph_id.0.as_u128() as u32; self.vertices.len()],
+            vec![self.subgraph_id.as_uuid().as_u128() as u32; self.vertices.len()],
         );
 
         mesh

@@ -1,6 +1,6 @@
 //! Components for graph visualization
 
-use crate::domain::value_objects::{EdgeId, GraphId, NodeId, Position3D};
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId, Position3D, SubgraphId};
 use bevy::prelude::*;
 use std::collections::HashSet;
 use uuid::Uuid;
@@ -168,16 +168,6 @@ pub struct SubgraphRegion {
     pub boundary_type: BoundaryType,
 }
 
-/// Unique identifier for subgraphs
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
-pub struct SubgraphId(pub Uuid);
-
-impl SubgraphId {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4())
-    }
-}
-
 /// Types of visual boundaries for subgraphs
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BoundaryType {
@@ -311,7 +301,7 @@ pub struct NodeLabelEntity {
 /// Component that marks an entity as a subgraph origin point
 #[derive(Component, Debug, Clone)]
 pub struct SubgraphOrigin {
-    pub subgraph_id: usize,
+    pub subgraph_id: SubgraphId,
     pub subgraph_name: String,
     pub node_count: usize,
 }
@@ -319,15 +309,15 @@ pub struct SubgraphOrigin {
 /// Component that marks a node as belonging to a subgraph
 #[derive(Component, Debug, Clone)]
 pub struct SubgraphMember {
-    pub subgraph_id: usize,
+    pub subgraph_ids: HashSet<SubgraphId>,
     pub relative_position: Position3D,
 }
 
 /// Resource that maps subgraph IDs to their origin entities
 #[derive(Resource, Debug, Default)]
 pub struct SubgraphOrigins {
-    pub origins: HashMap<usize, Entity>,
-    pub subgraph_info: HashMap<usize, SubgraphInfo>,
+    pub origins: HashMap<SubgraphId, Entity>,
+    pub subgraph_info: HashMap<SubgraphId, SubgraphInfo>,
 }
 
 #[derive(Debug, Clone)]

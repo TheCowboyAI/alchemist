@@ -4,4 +4,7 @@
 
 [submodule "bevy-patched"]
 	path = bevy-patched
-	url = https://github.com/bevyengine/bevy.git
+	url = https://github.com/TheCowboyAI/bevy.git
+[submodule "cim-contextgraph"]
+	path = cim-contextgraph
+	url = git@github.com:TheCowboyAI/cim-contextgraph.git

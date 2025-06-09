@@ -8,7 +8,7 @@ use std::sync::{Arc, RwLock};
 use tracing::{debug, error, info, warn};
 
 use crate::domain::events::{
-    DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
+    DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, SubgraphOperationEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
 };
 use crate::domain::value_objects::AggregateId;
 
@@ -371,6 +371,27 @@ fn subgraph_event_to_subject(event: &SubgraphEvent) -> String {
     }
 }
 
+fn subgraph_operation_event_to_subject(event: &SubgraphOperationEvent) -> String {
+    match event {
+        SubgraphOperationEvent::SubgraphCollapsed { .. } => "event.subgraph_op.collapsed".to_string(),
+        SubgraphOperationEvent::SubgraphExpanded { .. } => "event.subgraph_op.expanded".to_string(),
+        SubgraphOperationEvent::SubgraphsMerged { .. } => "event.subgraph_op.merged".to_string(),
+        SubgraphOperationEvent::SubgraphSplit { .. } => "event.subgraph_op.split".to_string(),
+        SubgraphOperationEvent::SubgraphTransitionStarted { .. } => "event.subgraph_op.transition_started".to_string(),
+        SubgraphOperationEvent::SubgraphTransitionCompleted { .. } => "event.subgraph_op.transition_completed".to_string(),
+        SubgraphOperationEvent::SubgraphMetadataUpdated { .. } => "event.subgraph_op.metadata_updated".to_string(),
+        SubgraphOperationEvent::SubgraphStyleChanged { .. } => "event.subgraph_op.style_changed".to_string(),
+        SubgraphOperationEvent::SubgraphTypeChanged { .. } => "event.subgraph_op.type_changed".to_string(),
+        SubgraphOperationEvent::SubgraphAnalyzed { .. } => "event.subgraph_op.analyzed".to_string(),
+        SubgraphOperationEvent::NodesGroupedIntoSubgraph { .. } => "event.subgraph_op.nodes_grouped".to_string(),
+        SubgraphOperationEvent::SubgraphUngrouped { .. } => "event.subgraph_op.ungrouped".to_string(),
+        SubgraphOperationEvent::SubgraphHierarchyEstablished { .. } => "event.subgraph_op.hierarchy_established".to_string(),
+        SubgraphOperationEvent::SubgraphHierarchyRemoved { .. } => "event.subgraph_op.hierarchy_removed".to_string(),
+        SubgraphOperationEvent::SubgraphLayoutRecalculated { .. } => "event.subgraph_op.layout_recalculated".to_string(),
+        SubgraphOperationEvent::SubgraphBoundaryUpdated { .. } => "event.subgraph_op.boundary_updated".to_string(),
+    }
+}
+
 fn workflow_event_to_subject(event: &WorkflowEvent) -> String {
     match event {
         WorkflowEvent::WorkflowCreated { .. } => "event.workflow.created".to_string(),
@@ -440,6 +461,7 @@ pub fn event_to_subject(event: &DomainEvent) -> String {
         DomainEvent::Node(e) => node_event_to_subject(e),
         DomainEvent::Edge(e) => edge_event_to_subject(e),
         DomainEvent::Subgraph(e) => subgraph_event_to_subject(e),
+        DomainEvent::SubgraphOperation(e) => subgraph_operation_event_to_subject(e),
         DomainEvent::Workflow(e) => workflow_event_to_subject(e),
         DomainEvent::ContextBridge(e) => context_bridge_event_to_subject(e),
         DomainEvent::MetricContext(e) => metric_context_event_to_subject(e),

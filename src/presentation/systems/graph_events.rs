@@ -1,8 +1,9 @@
 use bevy::prelude::*;
-use crate::domain::value_objects::{NodeId, Position3D, GraphId};
+use crate::domain::value_objects::{NodeId, Position3D, GraphId, SubgraphId};
 use crate::domain::events::{DomainEvent, NodeEvent, EdgeEvent};
 use crate::presentation::components::{GraphNode, GraphEdge, SubgraphMember};
 use std::collections::HashMap;
+use uuid;
 
 /// Handle NodeAdded events from the domain
 pub fn handle_node_added(
@@ -121,6 +122,7 @@ fn spawn_node(
             node_id,
             graph_id,
         },
+        crate::presentation::systems::subgraph_drag_drop::Draggable::default(),
         Mesh3d(meshes.add(Sphere::new(5.0))),
         MeshMaterial3d(materials.add(StandardMaterial {
             base_color: color,
@@ -136,38 +138,46 @@ fn spawn_node(
 
     // Check if this node belongs to a subgraph
     if let Some(subgraph_id_value) = metadata.get("subgraph_id") {
-        if let Some(subgraph_id) = subgraph_id_value.as_u64() {
-            // Get the subgraph origin
-            let subgraph_origin = metadata.get("subgraph_origin")
-                .and_then(|origin_value| {
-                    if let Some(origin_str) = origin_value.as_str() {
-                        let parts: Vec<&str> = origin_str.split(',').collect();
-                        if parts.len() == 3 {
-                            Some(Position3D {
-                                x: parts[0].parse().unwrap_or(0.0),
-                                y: parts[1].parse().unwrap_or(0.0),
-                                z: parts[2].parse().unwrap_or(0.0),
-                            })
+        if let Some(subgraph_id_str) = subgraph_id_value.as_str() {
+            if let Ok(uuid) = uuid::Uuid::parse_str(subgraph_id_str) {
+                let subgraph_id = SubgraphId::from_uuid(uuid);
+
+                // Get the subgraph origin
+                let subgraph_origin = metadata.get("subgraph_origin")
+                    .and_then(|origin_value| {
+                        if let Some(origin_str) = origin_value.as_str() {
+                            let parts: Vec<&str> = origin_str.split(',').collect();
+                            if parts.len() == 3 {
+                                Some(Position3D {
+                                    x: parts[0].parse().unwrap_or(0.0),
+                                    y: parts[1].parse().unwrap_or(0.0),
+                                    z: parts[2].parse().unwrap_or(0.0),
+                                })
+                            } else {
+                                None
+                            }
                         } else {
                             None
                         }
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or(Position3D { x: 0.0, y: 0.0, z: 0.0 });
+                    })
+                    .unwrap_or(Position3D { x: 0.0, y: 0.0, z: 0.0 });
 
-            // Calculate relative position
-            let relative_position = Position3D {
-                x: position.x - subgraph_origin.x,
-                y: position.y - subgraph_origin.y,
-                z: position.z - subgraph_origin.z,
-            };
+                // Calculate relative position
+                let relative_position = Position3D {
+                    x: position.x - subgraph_origin.x,
+                    y: position.y - subgraph_origin.y,
+                    z: position.z - subgraph_origin.z,
+                };
 
-            entity_commands.insert(SubgraphMember {
-                subgraph_id: subgraph_id as usize,
-                relative_position,
-            });
+                entity_commands.insert(SubgraphMember {
+                    subgraph_ids: {
+                        let mut set = std::collections::HashSet::new();
+                        set.insert(subgraph_id);
+                        set
+                    },
+                    relative_position,
+                });
+            }
         }
     }
 }

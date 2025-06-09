@@ -232,6 +232,28 @@ impl SubgraphOperationEvent {
             Self::SubgraphBoundaryUpdated { subgraph_id, .. } => Some(*subgraph_id),
         }
     }
+
+    /// Get the event type as a string
+    pub fn event_type(&self) -> &'static str {
+        match self {
+            Self::SubgraphCollapsed { .. } => "SubgraphCollapsed",
+            Self::SubgraphExpanded { .. } => "SubgraphExpanded",
+            Self::SubgraphsMerged { .. } => "SubgraphsMerged",
+            Self::SubgraphSplit { .. } => "SubgraphSplit",
+            Self::SubgraphTransitionStarted { .. } => "SubgraphTransitionStarted",
+            Self::SubgraphTransitionCompleted { .. } => "SubgraphTransitionCompleted",
+            Self::SubgraphMetadataUpdated { .. } => "SubgraphMetadataUpdated",
+            Self::SubgraphStyleChanged { .. } => "SubgraphStyleChanged",
+            Self::SubgraphTypeChanged { .. } => "SubgraphTypeChanged",
+            Self::SubgraphAnalyzed { .. } => "SubgraphAnalyzed",
+            Self::NodesGroupedIntoSubgraph { .. } => "NodesGroupedIntoSubgraph",
+            Self::SubgraphUngrouped { .. } => "SubgraphUngrouped",
+            Self::SubgraphHierarchyEstablished { .. } => "SubgraphHierarchyEstablished",
+            Self::SubgraphHierarchyRemoved { .. } => "SubgraphHierarchyRemoved",
+            Self::SubgraphLayoutRecalculated { .. } => "SubgraphLayoutRecalculated",
+            Self::SubgraphBoundaryUpdated { .. } => "SubgraphBoundaryUpdated",
+        }
+    }
 }
 
 #[cfg(test)]

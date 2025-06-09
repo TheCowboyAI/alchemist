@@ -12,7 +12,12 @@ pkgs.rustPlatform.buildRustPackage rec {
   src = if srcOverride != null then srcOverride else ../.;
 
   # Use the Cargo lock file
-  cargoLock.lockFile = ../Cargo.lock;
+  cargoLock = {
+    lockFile = ../Cargo.lock;
+    outputHashes = {
+      "bevy_egui-0.34.1" = "sha256-c31dDcMX4Wnktlz7/1UFf9neWJLhhnlYfpI2jipB1Dk=";
+    };
+  };
 
   # Build inputs for compilation
   buildInputs = nonRustDeps;

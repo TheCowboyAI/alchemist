@@ -6,10 +6,11 @@ use bevy::{
 };
 use tracing::{info, warn};
 use crate::application::{CommandEvent, EventNotification};
-use crate::domain::commands::{Command, EdgeCommand, NodeCommand};
+use crate::domain::commands::{Command, EdgeCommand, GraphCommand, NodeCommand};
 use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent, SubgraphEvent};
 use crate::domain::value_objects::{
     EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, NodeType, Position3D, RelationshipType,
+    SubgraphId,
 };
 use std::collections::HashMap;
 // use crate::presentation::components::*; // Unused - specific imports below
@@ -22,10 +23,17 @@ use crate::presentation::components::{
     EdgeDrawAnimation, EventRecorder, EventReplayer, ForceLayoutParticipant, ForceLayoutSettings,
     ForceNode, GraphContainer, GraphEdge, GraphNode, NodeAppearanceAnimation, NodeLabel,
     RecordedEvent, ScheduledCommand, OrbitCamera, PendingEdge, NodeLabelEntity,
-    SubgraphOrigins, SubgraphInfo, SubgraphMember, VoronoiSettings,
+    SubgraphOrigins, SubgraphInfo, SubgraphMember, VoronoiSettings, SubgraphOrigin,
 };
-use crate::presentation::bevy_systems::SubgraphOrigin;
 use crate::presentation::systems::subgraph_spatial_map::SubgraphSpatialMap;
+use std::collections::HashSet;
+use uuid;
+use crate::presentation::systems::{
+    conceptual_visualization::ConceptualVisualizationPlugin,
+    subgraph_visualization::SubgraphVisualizationPlugin,
+    voronoi_tessellation::VoronoiTessellationPlugin,
+    workflow_visualization::WorkflowVisualizationPlugin,
+};
 
 pub mod subgraph_plugin;
 pub mod graph_editor;
@@ -79,7 +87,19 @@ impl Plugin for GraphEditorPlugin {
                 record_events,
                 replay_events,
                 execute_scheduled_commands,
-            ).chain());
+            ).chain())
+
+            // Plugins
+            .add_plugins((
+                ImportPlugin,
+                ConceptualVisualizationPlugin,
+                SubgraphVisualizationPlugin,
+                VoronoiTessellationPlugin,
+                WorkflowVisualizationPlugin,
+                crate::presentation::systems::subgraph_collapse_expand::SubgraphCollapseExpandPlugin,
+                crate::presentation::systems::subgraph_drag_drop::SubgraphDragDropPlugin,
+                crate::presentation::systems::subgraph_merge_split::SubgraphMergeSplitPlugin,
+            ));
     }
 }
 
@@ -261,8 +281,14 @@ fn handle_domain_events(
                 // Create subgraph origin entity
                 let origin_entity = commands.spawn((
                     SubgraphOrigin {
-                        graph_id: *graph_id,
-                        base_position: Vec3::new(base_position.x, base_position.y, base_position.z),
+                        subgraph_id: *subgraph_id,
+                        subgraph_name: name.clone(),
+                        node_count: 0,
+                    },
+                    crate::presentation::systems::subgraph_drag_drop::DropZone {
+                        subgraph_id: *subgraph_id,
+                        accepts: crate::presentation::systems::subgraph_drag_drop::DropAcceptance::All,
+                        highlight_on_hover: true,
                     },
                     Transform::from_translation(Vec3::new(base_position.x, base_position.y, base_position.z)),
                     GlobalTransform::default(),
@@ -300,7 +326,11 @@ fn handle_domain_events(
                         };
 
                         commands.entity(entity).insert(SubgraphMember {
-                            subgraph_id: subgraph_id_hash,
+                            subgraph_ids: {
+                                let mut set = HashSet::new();
+                                set.insert(*subgraph_id);
+                                set
+                            },
                             relative_position: relative_position.clone(),
                         });
                         break;
@@ -460,8 +490,9 @@ fn spawn_node(
 
     // Check if this node belongs to a subgraph
     let subgraph_id = metadata.get("subgraph_id")
-        .and_then(|v| v.as_u64())
-        .map(|id| id as usize);
+        .and_then(|v| v.as_str())
+        .and_then(|s| uuid::Uuid::parse_str(s).ok())
+        .map(SubgraphId::from_uuid);
 
     let subgraph_name = metadata.get("subgraph")
         .and_then(|v| v.as_str())
@@ -571,7 +602,11 @@ fn spawn_node(
     // Add subgraph membership if applicable
     if let Some(sg_id) = subgraph_id {
         entity.insert(SubgraphMember {
-            subgraph_id: sg_id,
+            subgraph_ids: {
+                let mut set = HashSet::new();
+                set.insert(sg_id);
+                set
+            },
             relative_position,
         });
     }

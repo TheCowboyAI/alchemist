@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 use crate::presentation::components::{GraphNode, SubgraphMember};
-use crate::domain::value_objects::Position3D;
+use crate::domain::value_objects::{Position3D, SubgraphId};
 
 /// Component for subgraph root entities that act as transform parents
 #[derive(Component)]
 pub struct SubgraphRoot {
-    pub subgraph_id: usize,
+    pub subgraph_id: SubgraphId,
     pub name: String,
 }
 
@@ -14,9 +14,9 @@ pub struct SubgraphRoot {
 #[derive(Resource, Default)]
 pub struct SubgraphSpatialMap {
     /// Maps subgraph ID to its root entity
-    pub roots: HashMap<usize, Entity>,
+    pub roots: HashMap<SubgraphId, Entity>,
     /// Spatial index for efficient queries
-    pub spatial_index: HashMap<usize, Transform>,
+    pub spatial_index: HashMap<SubgraphId, Transform>,
 }
 
 /// System to create subgraph hierarchy from imported nodes
@@ -28,19 +28,22 @@ pub fn build_subgraph_hierarchy(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Group nodes by subgraph
-    let mut subgraph_nodes: HashMap<usize, Vec<(Entity, Position3D)>> = HashMap::new();
+    let mut subgraph_nodes: HashMap<SubgraphId, Vec<(Entity, Position3D)>> = HashMap::new();
 
     for (entity, _node, member, transform) in nodes.iter() {
-        let relative_pos = Position3D {
-            x: member.relative_position.x,
-            y: member.relative_position.y,
-            z: member.relative_position.z,
-        };
+        // Get the first subgraph ID from the set (nodes can belong to multiple subgraphs)
+        if let Some(&subgraph_id) = member.subgraph_ids.iter().next() {
+            let relative_pos = Position3D {
+                x: member.relative_position.x,
+                y: member.relative_position.y,
+                z: member.relative_position.z,
+            };
 
-        subgraph_nodes
-            .entry(member.subgraph_id)
-            .or_insert_with(Vec::new)
-            .push((entity, relative_pos));
+            subgraph_nodes
+                .entry(subgraph_id)
+                .or_insert_with(Vec::new)
+                .push((entity, relative_pos));
+        }
     }
 
     // Create or update subgraph roots
@@ -99,23 +102,22 @@ pub fn move_subgraph_system(
     mut roots: Query<(&SubgraphRoot, &mut Transform)>,
     time: Res<Time>,
 ) {
-    // Example: Move subgraph 0 with arrow keys
+    // Example: Move the first subgraph with arrow keys
     let speed = 100.0 * time.delta_secs();
 
-    for (root, mut transform) in roots.iter_mut() {
-        if root.subgraph_id == 0 {
-            if keyboard.pressed(KeyCode::ArrowLeft) {
-                transform.translation.x -= speed;
-            }
-            if keyboard.pressed(KeyCode::ArrowRight) {
-                transform.translation.x += speed;
-            }
-            if keyboard.pressed(KeyCode::ArrowUp) {
-                transform.translation.y += speed;
-            }
-            if keyboard.pressed(KeyCode::ArrowDown) {
-                transform.translation.y -= speed;
-            }
+    // Just move the first subgraph found
+    if let Some((_, mut transform)) = roots.iter_mut().next() {
+        if keyboard.pressed(KeyCode::ArrowLeft) {
+            transform.translation.x -= speed;
+        }
+        if keyboard.pressed(KeyCode::ArrowRight) {
+            transform.translation.x += speed;
+        }
+        if keyboard.pressed(KeyCode::ArrowUp) {
+            transform.translation.y += speed;
+        }
+        if keyboard.pressed(KeyCode::ArrowDown) {
+            transform.translation.y -= speed;
         }
     }
 }
