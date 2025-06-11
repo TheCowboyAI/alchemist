@@ -1,10 +1,10 @@
-//! # Information Alchemist
+//! Information Alchemist Library
 //!
-//! A high-performance graph editor built with Event Sourcing, CQRS, and Bevy ECS.
+//! Building up from cim-contextgraph and cim-domain
 
-pub mod application;
-pub mod domain;
-pub mod infrastructure;
-pub mod presentation;
+// Re-export the core cim modules
+pub use cim_contextgraph;
+pub use cim_domain;
+pub use cim_subject;
 
-pub use domain::prelude::*;
+// TODO: Add new modules as we build them up incrementally

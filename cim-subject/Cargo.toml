@@ -1,0 +1,33 @@
+[package]
+name = "cim-subject"
+version = "0.1.0"
+edition = "2024"
+authors = ["The CowboyAI Team"]
+description = "Subject Algebra for NATS-based domain routing and message translation"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/thecowboyai/alchemist"
+keywords = ["subject", "nats", "routing", "domain", "algebra"]
+categories = ["network-programming", "data-structures"]
+
+[dependencies]
+# Error handling
+thiserror = "2.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime
+tokio = { version = "1.43", features = ["sync"] }
+
+# Logging
+tracing = "0.1"
+
+# Collections
+dashmap = "6.1"
+
+[dev-dependencies]
+# Testing
+tokio = { version = "1.43", features = ["full", "test-util"] }
+proptest = "1.6"
+criterion = "0.5"

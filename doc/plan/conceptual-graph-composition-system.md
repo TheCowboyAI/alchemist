@@ -60,18 +60,45 @@ Based on "Seven Sketches in Compositionality":
 
 ## Core Components
 
-### 1. Concept Graph (Root)
+### 1. Context Graph (Foundation) - IMPLEMENTED
 
 ```rust
-/// A concept is a graph with quality dimensions
-pub struct ConceptGraph {
-    pub id: ConceptId,
-    pub name: String,
-    pub category: CategoryType, // From ACT
+/// The fundamental graph abstraction - can represent ANY graph
+pub struct ContextGraph<N, E> {
+    pub id: ContextGraphId,
+    pub nodes: HashMap<NodeId, NodeEntry<N>>,
+    pub edges: HashMap<EdgeId, EdgeEntry<E>>,
+    pub metadata: Metadata,
+    pub invariants: Vec<Box<dyn GraphInvariant<N, E>>>,
+}
+
+/// Nodes and edges can be any type with components attached
+pub struct NodeEntry<N> {
+    pub id: NodeId,
+    pub value: N,  // Can be String, i32, bool, or any type
+    pub components: ComponentStorage,
+}
+```
+
+### 2. Concept Graph (Pattern) - PLANNED
+
+A ConceptGraph is not a new type - it's a ContextGraph with conceptual components:
+
+```rust
+/// Components that make a ContextGraph into a ConceptGraph
+pub struct ConceptualSpace {
     pub quality_dimensions: Vec<QualityDimension>,
-    pub structure: Graph<ConceptNode, ConceptEdge>,
+    pub position: ConceptualPoint,
+    pub category: CategoryType, // From ACT
+}
+
+pub struct Morphisms {
     pub morphisms: Vec<GraphMorphism>,
 }
+
+// Usage: Any ContextGraph + these components = ConceptGraph
+let mut graph = ContextGraph::<String, String>::new("MyConcept");
+// Add ConceptualSpace and Morphisms components to make it conceptual
 
 /// Quality dimensions define the conceptual space
 pub struct QualityDimension {

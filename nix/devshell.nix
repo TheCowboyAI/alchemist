@@ -5,7 +5,17 @@
 }:
 
 pkgs.mkShell {
-  packages = [ rust-toolchain ];
+  packages = [
+    rust-toolchain
+    cargo-watch
+    cargo-metadata
+    cargo-platform
+    cargo-depgraph
+    cargo-generate
+    cargo-nextest
+    cargo-modules
+    cargo-llvm-cov
+];
   buildInputs = with pkgs; [
     # Build tools
     pkg-config
@@ -32,7 +42,12 @@ pkgs.mkShell {
     # Development tools
     rust-analyzer
     cargo-watch
+    cargo-metadata
+    cargo-platform
+    cargo-depgraph
+    cargo-generate
     cargo-nextest
+    cargo-modules
     cargo-llvm-cov
     bacon
 

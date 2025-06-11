@@ -1,7 +1,3 @@
-//! Test suite for Information Alchemist
+//! Integration tests for IA
 
-// Domain tests - pure domain logic without infrastructure dependencies
-pub mod domain;
-
-// Integration tests
-pub mod integration;
+pub mod contexts;

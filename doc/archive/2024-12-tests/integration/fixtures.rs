@@ -3,7 +3,7 @@
 use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata};
 use ia::domain::commands::{GraphCommand, NodeCommand, EdgeCommand, Command};
 use ia::domain::events::{GraphEvent, NodeEvent, EdgeEvent};
-use ia::domain::content_types::{GraphContent, NodeIPLDContent, EdgeIPLDContent};
+use ia::domain::content_types::GraphContent;
 use ia::infrastructure::nats::NatsConfig;
 use async_nats::jetstream;
 use std::sync::Arc;
@@ -45,31 +45,13 @@ impl TestData {
         let node_ids: Vec<NodeId> = (0..num_nodes).map(|_| NodeId::new()).collect();
 
         // Create nodes
-        for (i, node_id) in node_ids.iter().enumerate() {
-            let node = NodeIPLDContent::new(
-                *node_id,
-                format!("node-{}", i),
-                Position3D {
-                    x: (i as f32) * 2.0,
-                    y: 0.0,
-                    z: 0.0,
-                },
-            );
-            nodes.push(node);
-        }
+        // Note: NodeIPLDContent has been removed from the codebase
+        // This test fixture needs to be updated to use the new content model
 
         // Create edges (connect nodes in a pattern)
-        let mut edges = std::collections::HashMap::new();
-        for i in 0..num_edges.min(node_ids.len() - 1) {
-            let edge_id = EdgeId::new();
-            let edge = EdgeIPLDContent::new(
-                edge_id,
-                node_ids[i],
-                node_ids[(i + 1) % node_ids.len()],
-                format!("edge-{}", i),
-            );
-            edges.insert(edge_id, edge);
-        }
+        let edges = std::collections::HashMap::new();
+        // Note: EdgeIPLDContent has been removed from the codebase
+        // This test fixture needs to be updated to use the new content model
 
         GraphContent {
             id: graph_id,

@@ -18,6 +18,8 @@ ALL Events should be ABLE to be handled, in other words a handler exists, but ma
 We issue Commands and Command Handlers.
 ALL Commands should be ABLE to be handled, in other words a handler exists, but may not always get called. It should still have tests.
 
+ALL TESTS REQUIRE A MERMAID GRAPH IN THE RUSTDOCS DETAILING WHAT IS BEING TESTED AND HOW
+
 You DO NOT need to test actual rendering, but you DO need to test everything the rendering expects to be there IS.
 
 ## Bevy ECS Testing Directives

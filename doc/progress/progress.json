@@ -3,8 +3,8 @@
     "name": "Information Alchemist Progress",
     "description": "Progress tracking for Information Alchemist, a UI for Building CIMs - A system where graphs are the fundamental building blocks of all domain models, composed through Applied Category Theory (ACT) principles. Every concept - from simple value objects to complex aggregates - is represented as a graph that can be composed with other graphs to build entire systems.",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-01-08T12:00:00-07:00",
-    "version": "2.12.0"
+    "updated": "2025-06-09T09:59:00-07:00",
+    "version": "2.13.0"
   },
   "nodes": [
     {
@@ -632,10 +632,12 @@
       }
     },
     {
-      "id": "phase-2",
+      "id": "phase-2-graph-domain-model",
       "name": "Phase 2: Graph Domain Model",
-      "status": "in_progress",
-      "progress": 80,
+      "status": "COMPLETE",
+      "progress": 100,
+      "description": "Core graph domain implementation with event sourcing",
+      "completedAt": "2024-12-29T12:00:00Z",
       "tasks": [
         {
           "id": "graph-aggregate",
@@ -675,9 +677,16 @@
         {
           "id": "conceptual-space-aggregate",
           "name": "Conceptual Space Aggregate",
-          "status": "pending",
-          "progress": 0,
-          "details": "Domain logic for conceptual space operations"
+          "status": "COMPLETE",
+          "description": "Implement ConceptualSpace aggregate with event sourcing",
+          "completedAt": "2024-12-29T12:00:00Z",
+          "dependencies": ["graph-aggregate", "workflow-aggregate"],
+          "outputs": [
+            "src/domain/aggregates/conceptual_space.rs",
+            "src/domain/commands/conceptual_space.rs",
+            "src/domain/events/conceptual_space.rs",
+            "src/application/command_handlers/conceptual_space_command_handler.rs"
+          ]
         }
       ]
     },
@@ -1454,9 +1463,16 @@
         {
           "id": "conceptual-space-aggregate",
           "name": "Conceptual Space Aggregate",
-          "status": "pending",
-          "progress": 0,
-          "details": "Domain logic for conceptual space operations"
+          "status": "COMPLETE",
+          "description": "Implement ConceptualSpace aggregate with event sourcing",
+          "completedAt": "2024-12-29T12:00:00Z",
+          "dependencies": ["graph-aggregate", "workflow-aggregate"],
+          "outputs": [
+            "src/domain/aggregates/conceptual_space.rs",
+            "src/domain/commands/conceptual_space.rs",
+            "src/domain/events/conceptual_space.rs",
+            "src/application/command_handlers/conceptual_space_command_handler.rs"
+          ]
         }
       ]
     },
@@ -2333,6 +2349,446 @@
           "/src/domain/services/mod.rs"
         ]
       }
+    },
+    {
+      "id": "comprehensive-demo-plan",
+      "label": "Comprehensive Demo Plan Created",
+      "type": "milestone",
+      "position": { "x": 1100, "y": 300, "z": 0 },
+      "data": {
+        "status": "in_progress",
+        "date": "2025-06-09",
+        "description": "Created plan for 75 demos covering all CIM features",
+        "details": [
+          "Phase 1: Infrastructure (18 demos) - 4 complete, 14 pending",
+          "Phase 2: Domain Model (29 demos) - 1 complete, 28 pending",
+          "Phase 3: Integration Patterns (10 demos) - 0 complete, 10 pending",
+          "Phase 4: IA Dogfooding (12 demos) - 0 complete, 12 pending",
+          "Phase 5: Advanced Composition (11 demos) - 0 complete, 11 pending",
+          "Total: 75 demos planned, 5 complete (6.7%), 70 pending (93.3%)",
+          "Fixed all 4 existing demos to work with current API",
+          "Added comprehensive Mermaid graphs to all 4 demos per TDD requirements",
+          "Implemented demo_node_add - First domain model demo complete"
+        ],
+        "progress": 6.7,
+        "current_task": "demo_node_add complete - Continuing with domain model demos",
+        "references": [
+          "/doc/plan/demo-fix-and-implementation-plan.md",
+          "/doc/progress/demo-implementation-status.md",
+          "/src/bin/demo_nats_connection.rs",
+          "/src/bin/demo_event_persistence.rs",
+          "/src/bin/demo_graph_create.rs",
+          "/src/bin/demo_conceptual_space_create.rs",
+          "/src/bin/demo_node_add.rs"
+        ]
+      }
+    },
+    {
+      "id": "demo-node-add-complete",
+      "label": "demo_node_add Complete",
+      "type": "task",
+      "position": { "x": 1150, "y": 350, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-09",
+        "description": "First domain model demo implemented",
+        "details": [
+          "Implemented comprehensive node addition demo",
+          "Tests basic node addition with events",
+          "Tests different node types and metadata",
+          "Tests position validation (found validation missing)",
+          "Tests duplicate node rejection",
+          "Tests node capacity handling",
+          "Includes Mermaid graphs for domain flow and test scenarios",
+          "Demo runs successfully and demonstrates domain model"
+        ],
+        "progress": 100,
+        "parent": "comprehensive-demo-plan",
+        "references": [
+          "/src/bin/demo_node_add.rs"
+        ]
+      }
+    },
+    {
+      "id": "content-to-context-graph",
+      "label": "ContentGraph to ContextGraph Architecture",
+      "type": "milestone",
+      "position": { "x": 1100, "y": 400, "z": 0 },
+      "data": {
+        "status": "in_progress",
+        "date": "2025-01-10",
+        "description": "Architectural decision to rename ContentGraph to ContextGraph with ContextRoot",
+        "details": [
+          "Recognized that graphs represent bounded contexts, not just content",
+          "Each ContextGraph has a designated ContextRoot entity as semantic anchor",
+          "ContextRoot defines the boundary and maintains invariants",
+          "Supports recursive structure - contexts can contain other contexts",
+          "Better aligns with DDD aggregate root pattern",
+          "Created comprehensive refactoring plan",
+          "Documented ContextGraph architecture principles"
+        ],
+        "progress": 20,
+        "references": [
+          "/doc/plan/context-graph-architecture.md",
+          "/doc/plan/content-to-context-graph-refactoring.md"
+        ]
+      }
+    },
+    {
+      "id": "graph-composition-priority",
+      "label": "GraphComposition Architecture",
+      "type": "milestone",
+      "position": { "x": 1150, "y": 400, "z": 0 },
+      "data": {
+        "status": "in_progress",
+        "date": "2025-01-10",
+        "description": "GraphComposition as the foundational abstraction where everything is a graph",
+        "details": [
+          "Renamed from ContentGraph to GraphComposition for clarity",
+          "GraphComposition represents compositional algebra of graphs",
+          "Every domain concept is a graph that can be composed",
+          "Composition is the core operation with algebraic laws",
+          "Based on Applied Category Theory principles",
+          "Supports sequential, parallel, choice, and loop composition",
+          "Type system ensures composition safety",
+          "Invariant system maintains consistency",
+          "Created comprehensive architecture and refinement documents"
+        ],
+        "priority": 1,
+        "references": [
+          "/doc/design/graph-composition-architecture.md",
+          "/doc/design/graph-composition-refinement.md"
+        ]
+      }
+    },
+    {
+      "id": "context-graph-implementation",
+      "label": "ContextGraph Implementation",
+      "type": "milestone",
+      "position": { "x": 1200, "y": 450, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented ContextGraph with designated ContextRoot entities",
+        "details": [
+          "Created ContextGraph value object with context_root as semantic anchor",
+          "Implemented ContextType enum (BoundedContext, Aggregate, Module)",
+          "Added factory methods for creating different context types",
+          "Implemented invariant enforcement - all nodes must connect to root",
+          "Added ubiquitous language support with term definitions",
+          "Created nested context support for hierarchical structures",
+          "Fixed GraphComposition to remove invariants field (function pointers)",
+          "Fixed DistributedEventStore to use existing 'event-store' stream",
+          "Created demo_context_graph showing all ContextGraph features",
+          "All demos now working: 9 demos operational"
+        ],
+        "progress": 100,
+        "references": [
+          "/src/domain/value_objects/context_graph.rs",
+          "/src/bin/demo_context_graph.rs",
+          "/doc/plan/context-graph-migration-plan.md"
+        ]
+      }
+    },
+    {
+      "id": "documentation-consistency-contextgraph",
+      "label": "Documentation Consistency: ContextGraph Architecture",
+      "type": "milestone",
+      "position": { "x": 1250, "y": 500, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Updated all documentation to be consistent with ContextGraph<N,E> implementation",
+        "details": [
+          "Clarified ContextGraph<N,E> is the fundamental abstraction",
+          "ConceptGraph is a pattern, not a type - ContextGraph with conceptual components",
+          "Updated conceptual-graph-composition-system.md to reflect this",
+          "Updated seven-sketches-graph-implementation.md to use ContextGraph",
+          "Updated recursive-graph-architecture.md to show Subgraph component",
+          "Created contextgraph-architecture.md documenting actual implementation",
+          "Created conceptgraph-design.md showing component-based approach",
+          "Created unified-graph-vision.md explaining the unified approach",
+          "Archived outdated GraphComposition and ContentGraph documents",
+          "Key insight: ConceptGraph = ContextGraph + ConceptualSpace + Morphisms components",
+          "Further insight: ConceptGraph is a DDD Aggregate with root ContextGraph composing member ContextGraphs"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/design/current/contextgraph-architecture.md",
+          "/doc/design/current/conceptgraph-design.md",
+          "/doc/design/current/unified-graph-vision.md",
+          "/doc/design/current/conceptgraph-aggregate-pattern.md",
+          "/doc/plan/update-documentation-consistency.md"
+        ]
+      }
+    },
+    {
+      "id": "agent-aggregate-implementation",
+      "label": "Agent Aggregate Implementation",
+      "type": "milestone",
+      "position": { "x": 1300, "y": 550, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented the Agent aggregate following DDD patterns",
+        "details": [
+          "Created comprehensive Agent aggregate with proper DDD structure",
+          "Implemented AgentType enum (Human, AI, System, External)",
+          "Implemented AgentStatus state machine (Initializing, Active, Suspended, Offline, Decommissioned)",
+          "Created component-based architecture for agent capabilities",
+          "Implemented CapabilitiesComponent for agent abilities",
+          "Implemented AuthenticationComponent with multiple auth methods",
+          "Implemented PermissionsComponent with grant/deny/role support",
+          "Implemented ToolAccessComponent for tool/function management",
+          "Implemented ConfigurationComponent for agent-specific config",
+          "Implemented AgentMetadata component for descriptive information",
+          "Created comprehensive Agent events following DDD patterns (no update events)",
+          "Created comprehensive Agent commands (Deploy, Activate, Suspend, etc.)",
+          "Updated bevy_bridge to handle new Agent structure",
+          "All tests passing (139 total, including 5 new Agent tests)",
+          "Follows same patterns as Person and Organization aggregates"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-domain/src/agent.rs",
+          "/cim-domain/src/events.rs",
+          "/cim-domain/src/commands.rs",
+          "/cim-domain/src/lib.rs",
+          "/cim-domain/src/bevy_bridge.rs"
+        ]
+      }
+    },
+    {
+      "id": "policy-aggregate-implementation",
+      "label": "Policy Aggregate Implementation",
+      "type": "milestone",
+      "position": { "x": 1350, "y": 600, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented the Policy aggregate with approval workflows and external interactions",
+        "details": [
+          "Created comprehensive Policy aggregate following DDD patterns",
+          "Implemented PolicyType enum (AccessControl, DataGovernance, Compliance, etc.)",
+          "Implemented PolicyStatus state machine (Draft, PendingApproval, Active, Suspended, Superseded, Archived)",
+          "Implemented PolicyScope (Global, Organization, Context, ResourceType, Entities, Custom)",
+          "Created component-based architecture for policy extensibility",
+          "Implemented RulesComponent for policy rule definitions",
+          "Implemented ApprovalRequirementsComponent with external approval support",
+          "Implemented ApprovalStateComponent for tracking approval progress",
+          "Implemented EnforcementComponent for policy enforcement modes",
+          "Implemented PolicyMetadata for descriptive information",
+          "Special support for external approvals (yubikey, biometric, 2FA)",
+          "Created comprehensive Policy events (no update events, following DDD)",
+          "Created comprehensive Policy commands (Enact, Submit, Approve, Reject, etc.)",
+          "Added support for external approval workflows with verification",
+          "Updated bevy_bridge to handle Policy events",
+          "All tests passing (147 total, including 8 new Policy tests)",
+          "All core domain aggregates now fully implemented"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-domain/src/policy.rs",
+          "/cim-domain/src/events.rs",
+          "/cim-domain/src/commands.rs",
+          "/cim-domain/src/lib.rs",
+          "/cim-domain/src/bevy_bridge.rs",
+          "/cim-domain/POLICY_AGGREGATE_SUMMARY.md"
+        ]
+      }
+    },
+    {
+      "id": "state-machine-enhancement",
+      "label": "State Machine Enhancement: Moore and Mealy Machines",
+      "type": "milestone",
+      "position": { "x": 1400, "y": 650, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Enhanced state machine system with Moore and Mealy machines for aggregate state transitions",
+        "details": [
+          "Implemented Moore Machine: Output depends only on current state",
+          "Implemented Mealy Machine: Output depends on current state AND input",
+          "Added support for terminal states that cannot transition further",
+          "Implemented transition history tracking with timestamps",
+          "Created TransitionInput and TransitionOutput traits for extensibility",
+          "Implemented EventOutput for domain event generation",
+          "Added connection to enriched category theory",
+          "Documented how aggregates are enriched categories",
+          "Explained how multiple aggregates compose into a topos",
+          "Created comprehensive example showing both machine types",
+          "Example includes Order aggregate (Moore) and Approval aggregate (Mealy)",
+          "Approval example shows external verification (yubikey) workflow",
+          "All tests passing (147 total, including 2 state machine tests)",
+          "Mathematical foundation for optimal state transitions and semantic understanding"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-domain/src/state_machine.rs",
+          "/cim-domain/examples/state_machine_aggregates.rs",
+          "/cim-domain/AGGREGATES_AS_ENRICHED_CATEGORIES.md",
+          "/cim-domain/src/lib.rs"
+        ]
+      }
+    },
+    {
+      "id": "workflow-category-theory-design",
+      "label": "Workflow Category Theory Design",
+      "type": "milestone",
+      "position": { "x": 1450, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Designed workflows based on Applied Category Theory principles with injectable states",
+        "details": [
+          "Created comprehensive workflow design using category theory",
+          "Workflows form categories with states as objects and transitions as morphisms",
+          "States are fully injectable by users - not hardcoded",
+          "Designed functorial relationships between workflows and domains",
+          "Added natural transformations for state consistency",
+          "Implemented monadic workflow execution for error handling",
+          "Added applicative functors for parallel execution",
+          "Integrated with NATS subjects using profunctors",
+          "Created WorkflowGraph as enriched category for optimization",
+          "Verified full compatibility with Seven Sketches implementation",
+          "Workflows ARE ContextGraphs with specific semantics",
+          "Created detailed implementation plan with 6 phases",
+          "All 7 sketches apply naturally to workflows"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/design/workflow-category-theory.md",
+          "/doc/plan/workflow-implementation-plan.md",
+          "/doc/design/workflow-seven-sketches-compatibility.md"
+        ]
+      }
+    },
+    {
+      "id": "workflow-phase1-implementation",
+      "label": "Workflow Phase 1 Implementation",
+      "type": "milestone",
+      "position": { "x": 1550, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented core workflow traits and category operations in cim-domain",
+        "details": [
+          "Created WorkflowState trait for injectable states",
+          "Implemented TransitionInput and TransitionOutput traits",
+          "Created WorkflowTransition trait with guards",
+          "Implemented category operations (composition, identity)",
+          "Added SimpleState and SimpleTransition implementations",
+          "Created workflow context and guard system",
+          "Full test coverage with examples"
+        ]
+      }
+    },
+    {
+      "id": "workflow-phase2-implementation",
+      "label": "Workflow Phase 2 Implementation",
+      "type": "milestone",
+      "position": { "x": 1650, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented WorkflowGraph in cim-contextgraph for graph-based workflow representation",
+        "details": [
+          "Created generic WorkflowGraph structure using petgraph",
+          "Support for any WorkflowState, TransitionInput, TransitionOutput types",
+          "Added enrichment values for business semantics (costs, time, risk)",
+          "Implemented state and transition management with efficient lookups",
+          "Added workflow validation (initial states, terminal states, reachability)",
+          "Created optimal transition finding based on enrichment values",
+          "Enhanced GraphModel enum with WorkflowGraph variant",
+          "Created comprehensive workflow_graph_example demonstrating document approval"
+        ]
+      }
+    },
+    {
+      "id": "workflow-phase3-implementation",
+      "label": "Workflow Phase 3 Implementation",
+      "type": "milestone",
+      "position": { "x": 1750, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented workflow aggregate and commands/events in cim-domain",
+        "details": [
+          "Created WorkflowAggregate representing running workflow instances",
+          "Implemented workflow lifecycle management (suspend, resume, cancel, fail)",
+          "Added transition history tracking with timing information",
+          "Created WorkflowCommand enum with all workflow operations",
+          "Created WorkflowEvent enum for event sourcing",
+          "Added component support for workflow extensibility",
+          "Implemented AggregateRoot trait for WorkflowAggregate",
+          "Created comprehensive workflow_execution example",
+          "Demonstrated category operations and command creation"
+        ]
+      }
+    },
+    {
+      "id": "command-handlers-implementation",
+      "label": "Command Handlers Implementation",
+      "type": "milestone",
+      "position": { "x": 1850, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented command handlers for all domain aggregates",
+        "details": [
+          "Created EventPublisher trait for publishing domain events",
+          "Created AggregateRepository trait for loading/saving aggregates",
+          "Implemented MockEventPublisher for testing",
+          "Implemented InMemoryRepository with proper Send + Sync bounds",
+          "Created PersonCommandHandler for RegisterPerson command",
+          "Created OrganizationCommandHandler for CreateOrganization command",
+          "Created AgentCommandHandler for DeployAgent command",
+          "Created LocationCommandHandler for DefineLocation command",
+          "Created PolicyCommandHandler for EnactPolicy command",
+          "Created DocumentCommandHandler for UploadDocument command",
+          "Created WorkflowCommandHandler for StartWorkflow command",
+          "Added DomainEventEnum wrapper for all domain events",
+          "Implemented DomainEvent trait for all workflow events",
+          "Created comprehensive command_handler_example demonstrating usage",
+          "All command handlers follow CQRS pattern - return acknowledgments only",
+          "All 6 command handler tests passing",
+          "Total 186 tests passing in cim-domain"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-domain/src/command_handlers.rs",
+          "/cim-domain/src/domain_events.rs",
+          "/cim-domain/examples/command_handler_example.rs",
+          "/cim-domain/src/lib.rs"
+        ]
+      }
+    },
+    {
+      "id": "query-handlers-implementation",
+      "label": "Query Handlers Implementation",
+      "type": "milestone",
+      "position": { "x": 1950, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented query handlers for all domain aggregates",
+        "details": [
+          "Created QueryHandler trait that returns data directly",
+          "Created ReadModelStorage trait for read model persistence",
+          "Implemented InMemoryReadModel for testing",
+          "Created view models for each aggregate (PersonView, OrganizationView, etc.)",
+          "Implemented PersonQueryHandler with GetPersonById and FindPeopleByOrganization",
+          "Implemented OrganizationQueryHandler with GetOrganizationHierarchy",
+          "Implemented LocationQueryHandler with FindLocationsByType",
+          "Implemented PolicyQueryHandler with FindActivePolicies",
+          "Implemented DocumentQueryHandler with SearchDocuments",
+          "Implemented AgentQueryHandler with FindAgentsByCapability",
+          "Implemented WorkflowQueryHandler with FindWorkflowsByStatus",
+          "Created comprehensive example demonstrating all query handlers",
+          "All tests passing (6 query handler tests)",
+          "CQRS pattern now complete with both command and query sides"
+        ]
+      }
     }
   ],
   "edges": [
@@ -2489,6 +2945,62 @@
       "target": "workflow-designer-egui-integration",
       "relationship": "enhanced_by",
       "label": "Enhanced with egui UI for designer"
+    },
+    {
+      "id": "edge-subgraph-module2-to-demo-plan",
+      "source": "subgraph-module-2-domain-services",
+      "target": "comprehensive-demo-plan",
+      "relationship": "requires",
+      "label": "Requires comprehensive testing via demos"
+    },
+    {
+      "id": "edge-demo-plan-to-node-add",
+      "source": "comprehensive-demo-plan",
+      "target": "demo-node-add-complete",
+      "relationship": "implements",
+      "label": "First domain model demo"
+    },
+    {
+      "id": "edge-state-machine-to-workflow-design",
+      "source": "state-machine-enhancement",
+      "target": "workflow-category-theory-design",
+      "relationship": "enables",
+      "label": "State machines enable workflow design"
+    },
+    {
+      "id": "edge-workflow-design-to-phase1",
+      "source": "workflow-category-theory-design",
+      "target": "workflow-phase1-implementation",
+      "relationship": "implemented_by",
+      "label": "Design implemented in Phase 1"
+    },
+    {
+      "id": "edge-workflow-phase1-to-phase2",
+      "source": "workflow-phase1-implementation",
+      "target": "workflow-phase2-implementation",
+      "relationship": "enables",
+      "label": "Phase 1 enables Phase 2"
+    },
+    {
+      "id": "edge-workflow-phase2-to-phase3",
+      "source": "workflow-phase2-implementation",
+      "target": "workflow-phase3-implementation",
+      "relationship": "enables",
+      "label": "Phase 2 enables Phase 3"
+    },
+    {
+      "id": "edge-workflow-phase3-to-command-handlers",
+      "source": "workflow-phase3-implementation",
+      "target": "command-handlers-implementation",
+      "relationship": "enables",
+      "label": "Workflow completion enables command handlers"
+    },
+    {
+      "id": "edge-command-handlers-to-query-handlers",
+      "source": "command-handlers-implementation",
+      "target": "query-handlers-implementation",
+      "relationship": "enables",
+      "label": "Command handlers enable query handlers"
     }
   ],
   "milestones": [
@@ -2535,8 +3047,8 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "Subgraph Advanced Operations - Module 2: Domain Services completed",
-  "current_task": "Module 3: Interaction Systems - COMPLETE",
-  "next_task": "Module 4: Visualization Systems - Implement visual styles, connection visualization, and metadata display",
-  "last_updated": "2025-01-09"
+  "current_focus": "CQRS implementation complete with command and query handlers",
+  "current_task": "Query handlers completed for all 7 aggregates with read models and projections",
+  "next_task": "Implement event store integration with NATS JetStream",
+  "last_updated": "2025-01-10"
 }

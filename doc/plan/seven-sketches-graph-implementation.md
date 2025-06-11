@@ -16,9 +16,9 @@ Orders represent hierarchical relationships and dependencies. In our system, the
 ### Implementation
 
 ```rust
-/// Order as a directed acyclic graph
+/// Order as a directed acyclic graph using ContextGraph
 pub struct OrderGraph {
-    pub elements: Graph<ConceptId, OrderRelation>,
+    pub elements: ContextGraph<ConceptId, OrderRelation>,
     pub order_type: OrderType,
 }
 
@@ -98,10 +98,10 @@ Monoidal categories model parallel composition and resource combination. They re
 ```rust
 /// Monoidal category for parallel composition
 pub struct MonoidalCategory {
-    pub objects: Vec<ConceptGraph>,
+    pub objects: Vec<ContextGraph<Box<dyn Any>, Box<dyn Any>>>,
     pub morphisms: Vec<Morphism>,
     pub tensor: TensorProduct,
-    pub unit: ConceptGraph,
+    pub unit: ContextGraph<Box<dyn Any>, Box<dyn Any>>,
 }
 
 /// Tensor product combines objects in parallel
