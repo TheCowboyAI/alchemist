@@ -2789,6 +2789,39 @@
           "CQRS pattern now complete with both command and query sides"
         ]
       }
+    },
+    {
+      "id": "event-store-integration-started",
+      "label": "Event Store Integration Started",
+      "type": "milestone",
+      "position": { "x": 2050, "y": 700, "z": 0 },
+      "data": {
+        "status": "in-progress",
+        "date": "2025-01-10",
+        "description": "Started implementing event store integration with NATS JetStream using cim-ipld",
+        "details": [
+          "Created infrastructure module in cim-domain",
+          "Implemented NatsClient with connection management and JetStream context",
+          "Created EventStore trait for event persistence abstraction",
+          "Integrated cim-ipld for CID chain functionality instead of reimplementing",
+          "Created EventWrapper to make DomainEventEnum compatible with TypedContent",
+          "Implemented JetStreamEventStore with CID chain verification",
+          "Using cim-ipld's ChainedContent and ContentChain for integrity",
+          "Added event caching with LRU cache for performance",
+          "Implemented optimistic concurrency control with version checking",
+          "Created placeholder modules for event replay and snapshot store",
+          "All code compiles successfully with cim-ipld integration"
+        ],
+        "progress": 30,
+        "references": [
+          "/cim-domain/src/infrastructure/mod.rs",
+          "/cim-domain/src/infrastructure/nats_client.rs",
+          "/cim-domain/src/infrastructure/event_store.rs",
+          "/cim-domain/src/infrastructure/cid_chain.rs",
+          "/cim-domain/src/infrastructure/jetstream_event_store.rs",
+          "/doc/plan/event-store-nats-integration-plan.md"
+        ]
+      }
     }
   ],
   "edges": [
@@ -3001,6 +3034,13 @@
       "target": "query-handlers-implementation",
       "relationship": "enables",
       "label": "Command handlers enable query handlers"
+    },
+    {
+      "id": "edge-query-handlers-to-event-store",
+      "source": "query-handlers-implementation",
+      "target": "event-store-integration-started",
+      "relationship": "requires",
+      "label": "CQRS requires event store for persistence"
     }
   ],
   "milestones": [
@@ -3047,8 +3087,8 @@
       "target_date": "2025-01-01"
     }
   ],
-  "current_focus": "CQRS implementation complete with command and query handlers",
-  "current_task": "Query handlers completed for all 7 aggregates with read models and projections",
-  "next_task": "Implement event store integration with NATS JetStream",
+  "current_focus": "Demo applications created",
+  "current_task": "Three comprehensive demos created showcasing event sourcing, state machines, and CQRS patterns",
+  "next_task": "Update demos to match current API and ensure they compile",
   "last_updated": "2025-01-10"
 }

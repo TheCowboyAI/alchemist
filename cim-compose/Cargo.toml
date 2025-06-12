@@ -1,5 +1,5 @@
 [package]
-name = "graph-composition"
+name = "cim-compose"
 version = "0.1.0"
 edition = "2021"
 authors = ["The Cowboy AI"]

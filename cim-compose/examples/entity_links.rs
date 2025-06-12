@@ -1,7 +1,7 @@
 //! Example demonstrating how entity links are represented through graph composition
 
-use graph_composition::base_types::*;
-use graph_composition::composition::*;
+use cim_compose::base_types::*;
+use cim_compose::composition::*;
 
 fn main() {
     println!("=== Entity Links through Graph Composition ===\n");

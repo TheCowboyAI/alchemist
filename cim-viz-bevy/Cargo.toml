@@ -1,0 +1,53 @@
+[package]
+name = "cim-viz-bevy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core dependencies
+cim-contextgraph = { path = "../cim-contextgraph" }
+cim-domain = { path = "../cim-domain" }
+
+# Bevy for visualization - use workspace patched version
+bevy = { version = "0.16", features = ["dynamic_linking"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Math and utilities
+uuid = { version = "1.11", features = ["v4", "serde"] }
+petgraph = "0.6"
+
+# Async for event handling
+tokio = { version = "1.42", features = ["sync"] }
+crossbeam-channel = "0.5"
+
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.6"
+rand = "0.8"
+
+[[example]]
+name = "visual_demo"
+path = "examples/visual_demo.rs"
+
+[[example]]
+name = "simple_demo"
+path = "examples/simple_demo.rs"
+
+[[example]]
+name = "workflow_demo"
+path = "examples/workflow_demo.rs"
+
+[[example]]
+name = "usage_example"
+path = "examples/usage_example.rs"

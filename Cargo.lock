@@ -337,6 +337,39 @@ dependencies = [
 
 [[package]]
 name = "async-nats"
+version = "0.35.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab8df97cb8fc4a884af29ab383e9292ea0939cfcdd7d2a17179086dc6c427e7f"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "futures",
+ "memchr",
+ "nkeys",
+ "nuid",
+ "once_cell",
+ "portable-atomic",
+ "rand 0.8.5",
+ "regex",
+ "ring",
+ "rustls-native-certs",
+ "rustls-pemfile",
+ "rustls-webpki 0.102.8",
+ "serde",
+ "serde_json",
+ "serde_nanos",
+ "serde_repr",
+ "thiserror 1.0.69",
+ "time",
+ "tokio",
+ "tokio-rustls",
+ "tracing",
+ "tryhard",
+ "url",
+]
+
+[[package]]
+name = "async-nats"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2cf0ae68ffe9ef362127a2223b42f57104edb20a50429f8c6e058912212884f7"
@@ -1738,6 +1771,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cim-compose"
+version = "0.1.0"
+dependencies = [
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "uuid",
+]
+
+[[package]]
 name = "cim-contextgraph"
 version = "0.1.0"
 dependencies = [
@@ -1762,9 +1806,14 @@ dependencies = [
 name = "cim-domain"
 version = "0.1.0"
 dependencies = [
+ "async-nats 0.35.1",
+ "async-trait",
  "chrono",
  "cid",
+ "cim-ipld",
  "cim-subject",
+ "futures",
+ "lru",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -1776,7 +1825,7 @@ dependencies = [
 name = "cim-ipld"
 version = "0.1.0"
 dependencies = [
- "async-nats",
+ "async-nats 0.41.0",
  "blake3",
  "bytes",
  "cid",
@@ -1805,6 +1854,28 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "cim-viz-bevy"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "cim-contextgraph",
+ "cim-domain",
+ "criterion",
+ "crossbeam-channel",
+ "petgraph 0.6.5",
+ "proptest",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
@@ -3084,17 +3155,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "graph-composition"
-version = "0.1.0"
-dependencies = [
- "pretty_assertions",
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "uuid",
-]
-
-[[package]]
 name = "grid"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3218,7 +3278,7 @@ name = "ia"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-nats",
+ "async-nats 0.41.0",
  "async-trait",
  "bevy",
  "bevy_egui",
@@ -3226,6 +3286,7 @@ dependencies = [
  "bytes",
  "chrono",
  "cid",
+ "cim-compose",
  "cim-contextgraph",
  "cim-domain",
  "cim-ipld",
@@ -3235,7 +3296,6 @@ dependencies = [
  "crossbeam-channel",
  "daggy 0.9.0",
  "futures",
- "graph-composition",
  "lru",
  "multihash",
  "nom",
@@ -5262,6 +5322,7 @@ version = "0.102.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "64ca1bc8749bd4cf37b5ce386cc146580777b4e8572c7b97baf22c83f444bee9"
 dependencies = [
+ "ring",
  "rustls-pki-types",
  "untrusted",
 ]
