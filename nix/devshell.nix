@@ -7,14 +7,8 @@
 pkgs.mkShell {
   packages = [
     rust-toolchain
-    cargo-watch
-    cargo-metadata
-    cargo-platform
-    cargo-depgraph
-    cargo-generate
-    cargo-nextest
-    cargo-modules
-    cargo-llvm-cov
+    pkgs.cargo-watch
+    pkgs.cargo-nextest
 ];
   buildInputs = with pkgs; [
     # Build tools
@@ -41,14 +35,6 @@ pkgs.mkShell {
 
     # Development tools
     rust-analyzer
-    cargo-watch
-    cargo-metadata
-    cargo-platform
-    cargo-depgraph
-    cargo-generate
-    cargo-nextest
-    cargo-modules
-    cargo-llvm-cov
     bacon
 
     # NATS for testing

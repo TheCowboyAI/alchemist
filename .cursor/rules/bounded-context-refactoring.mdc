@@ -1,0 +1,695 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Bounded Context Refactoring Rules
+
+## Overview
+
+These rules enforce the systematic refactoring of the CIM codebase to achieve proper Domain-Driven Design (DDD) bounded context separation, following hexagonal architecture principles as outlined in `/doc/plan/bounded-context-refactoring-plan.md`.
+
+## Core Principles
+
+### 1. Module Independence
+- **NEVER** create circular dependencies between modules
+- Each bounded context MUST compile independently
+- Dependencies flow inward: Infrastructure → Application → Domain
+- Cross-context communication ONLY through events
+
+### 2. Hexagonal Architecture
+```
+┌─────────────────────────────────────┐
+│         Presentation Layer          │
+├─────────────────────────────────────┤
+│    Inbound Ports (Commands/Queries) │
+├─────────────────────────────────────┤
+│      Application Services           │
+├─────────────────────────────────────┤
+│         Domain Model               │
+├─────────────────────────────────────┤
+│    Outbound Ports (Repositories)   │
+├─────────────────────────────────────┤
+│      Infrastructure Adapters        │
+└─────────────────────────────────────┘
+```
+
+## Module Structure Rules
+
+### Foundation Modules
+
+#### cim-component
+```toml
+# ONLY these dependencies allowed
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "1.11", features = ["v4", "serde"] }
+# NO OTHER DEPENDENCIES
+```
+
+**MUST contain**:
+- `Component` trait
+- `ComponentStorage` implementation
+- NO domain logic
+- NO infrastructure dependencies
+
+#### cim-core-domain
+```toml
+# ONLY these dependencies allowed
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "1.11", features = ["v4", "serde"] }
+thiserror = "2.0"
+chrono = { version = "0.4", features = ["serde"] }
+cim-component = { path = "../cim-component" }
+# NO INFRASTRUCTURE DEPENDENCIES
+```
+
+**MUST contain**:
+- Base traits ONLY (Entity, AggregateRoot, ValueObject)
+- Core domain interfaces
+- Shared identifier types
+- NO implementations
+- NO infrastructure code
+
+#### cim-infrastructure
+**MUST contain**:
+- ALL infrastructure implementations
+- EventStore implementations
+- NATS client code (with security integration)
+- Repository implementations
+- Security client for JWT validation
+- Secure messaging patterns
+- NO domain logic
+
+**Security Infrastructure Components**:
+```rust
+// Security client that all contexts use
+pub trait SecurityClient: Send + Sync {
+    async fn validate_jwt(&self, token: &str) -> Result<UserClaims>;
+    async fn refresh_token(&self, token: &str) -> Result<String>;
+    async fn get_account_limits(&self, account_id: AccountId) -> Result<AccountLimits>;
+}
+
+// Secure NATS wrapper used by all contexts
+pub struct SecureNatsConnection {
+    client: async_nats::Client,
+    security_client: Arc<dyn SecurityClient>,
+    current_jwt: RwLock<String>,
+}
+```
+
+### Bounded Context Rules
+
+Each bounded context MUST follow this structure:
+```
+cim-{context}-context/
+├── src/
+│   ├── lib.rs              # Public API exports
+│   ├── domain/             # Pure domain logic
+│   │   ├── mod.rs
+│   │   └── {aggregate}/
+│   │       ├── aggregate.rs    # Aggregate root
+│   │       ├── commands.rs     # Command types
+│   │       ├── events.rs       # Domain events
+│   │       └── value_objects.rs # Value objects
+│   ├── application/        # Use cases
+│   │   ├── command_handlers.rs
+│   │   ├── query_handlers.rs
+│   │   └── services.rs
+│   ├── infrastructure/     # Adapter implementations
+│   │   └── repositories.rs
+│   └── ports/             # Port interfaces
+│       ├── inbound.rs     # Command/Query interfaces
+│       └── outbound.rs    # Repository interfaces
+```
+
+## Implementation Rules
+
+### 1. Aggregate Design
+```rust
+// CORRECT: Aggregate with clear boundaries
+pub struct PersonAggregate {
+    id: PersonId,
+    // ... other fields
+}
+
+impl PersonAggregate {
+    // Commands return Result<Vec<DomainEvent>>
+    pub fn handle_command(&mut self, cmd: PersonCommand) -> Result<Vec<PersonEvent>> {
+        match cmd {
+            PersonCommand::Create { .. } => {
+                // Validate invariants
+                // Generate events
+                // Apply events to self
+            }
+        }
+    }
+}
+
+// WRONG: Aggregate accessing other contexts
+impl PersonAggregate {
+    pub fn create_agent(&mut self) -> Agent { // ❌ Cross-context reference
+        // ...
+    }
+}
+```
+
+### 2. Event Design
+```rust
+// CORRECT: Context-specific events
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PersonEvent {
+    Created { person_id: PersonId, email: Email },
+    Updated { person_id: PersonId, changes: PersonChanges },
+}
+
+// CORRECT: Integration events for cross-context communication
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum IdentityIntegrationEvent {
+    PersonCreated { person_id: PersonId, email: Email },
+}
+
+// WRONG: Shared events between contexts
+pub enum SharedEvent { // ❌ Never share event types
+    PersonCreated,
+    AgentCreated,
+}
+```
+
+### 3. Port Interfaces
+```rust
+// CORRECT: Port interface in domain
+#[async_trait]
+pub trait PersonRepository {
+    async fn find_by_id(&self, id: PersonId) -> Result<Option<PersonAggregate>>;
+    async fn save(&self, person: &PersonAggregate) -> Result<()>;
+}
+
+// CORRECT: Implementation in infrastructure
+pub struct NatsPersonRepository {
+    event_store: Arc<dyn EventStore>,
+}
+
+#[async_trait]
+impl PersonRepository for NatsPersonRepository {
+    // Implementation details
+}
+```
+
+### 4. Cross-Context Communication
+```rust
+// CORRECT: Event translator
+pub struct SecurityEventTranslator;
+
+impl SecurityEventTranslator {
+    pub fn translate(&self, event: IdentityIntegrationEvent) -> Option<SecurityCommand> {
+        match event {
+            IdentityIntegrationEvent::PersonCreated { person_id, .. } => {
+                Some(SecurityCommand::CreateAgentForPerson { person_id })
+            }
+            _ => None,
+        }
+    }
+}
+
+// WRONG: Direct context coupling
+impl PersonService {
+    pub fn create_person(&self, cmd: CreatePerson) -> Result<()> {
+        // ...
+        self.agent_service.create_agent(...); // ❌ Direct coupling
+    }
+}
+```
+
+## Migration Rules
+
+### 1. Incremental Migration
+- ALWAYS keep old code working during migration
+- Use feature flags to switch implementations
+- Test both old and new code paths
+
+### 2. Dependency Direction
+```
+✅ ALLOWED:
+- identity-context → cim-core-domain
+- identity-context → cim-component
+- identity-context → cim-infrastructure (via ports)
+
+❌ FORBIDDEN:
+- identity-context → security-context
+- cim-core-domain → ANY context
+- cim-component → ANY other module
+```
+
+### 3. Testing Requirements
+Each context MUST have:
+- Unit tests for domain logic (no infrastructure)
+- Integration tests for application services
+- Contract tests for port implementations
+
+```rust
+// Domain test (no infrastructure)
+#[test]
+fn test_person_creation() {
+    let mut person = PersonAggregate::new();
+    let events = person.handle_command(PersonCommand::Create { .. }).unwrap();
+    assert_eq!(events.len(), 1);
+}
+
+// Integration test (with infrastructure)
+#[tokio::test]
+async fn test_person_repository() {
+    let repo = InMemoryPersonRepository::new();
+    let person = PersonAggregate::new();
+    repo.save(&person).await.unwrap();
+}
+```
+
+## Anti-Patterns to Avoid
+
+### ❌ Shared Domain Models
+```rust
+// WRONG: Shared model between contexts
+pub struct SharedPerson { // Used by both Identity and Security
+    // ...
+}
+```
+
+### ❌ Direct Database Access
+```rust
+// WRONG: SQL in domain layer
+impl PersonAggregate {
+    pub fn load_from_db() { // Domain shouldn't know about DB
+        sqlx::query!("SELECT * FROM persons")
+    }
+}
+```
+
+### ❌ Cross-Context Imports
+```rust
+// WRONG: Importing from another context
+use cim_security_context::domain::Agent; // Never import across contexts
+```
+
+### ❌ Anemic Domain Models
+```rust
+// WRONG: Logic in service instead of aggregate
+impl PersonService {
+    pub fn validate_email(&self, person: &Person) { // Should be in Person
+        // validation logic
+    }
+}
+```
+
+## Verification Checklist
+
+Before considering a context complete:
+
+- [ ] Context compiles independently: `cd cim-{context}-context && cargo build`
+- [ ] No circular dependencies: `cargo depgraph | grep -E "circular|cycle"`
+- [ ] All tests pass in isolation: `cd cim-{context}-context && cargo test`
+- [ ] Port interfaces defined for all external dependencies
+- [ ] Integration events defined for cross-context communication
+- [ ] No direct imports from other contexts
+- [ ] Documentation updated with context boundaries
+- [ ] Example usage provided
+
+## Security Context (NATS-Aligned Model)
+
+The Security context follows NATS's security model for internal CIM security management. All bounded contexts integrate with this security infrastructure through NATS-compatible messages, ensuring consistent authentication and authorization across the system.
+
+**Key Principle**: Security is not just another bounded context - it's the infrastructure that all contexts use for authentication and authorization.
+
+### Operator Aggregate
+- Root of trust for the entire system
+- Issues and manages Account JWTs
+- Defines system-wide security policies
+
+### Account Aggregate
+- Isolation boundary for resources
+- Contains Users and their permissions
+- Defines account-level limits and policies
+
+### User Aggregate
+- Authentication entity within an Account
+- Has specific permissions via Policies
+- Can be issued JWTs for authentication
+
+### Policy Aggregate
+- Defines permissions and limits
+- Can be applied at Account or User level
+- Controls access to subjects and resources
+
+### Security Context Structure
+```
+cim-security-context/
+├── src/
+│   ├── domain/
+│   │   ├── operator/
+│   │   │   ├── aggregate.rs      # Operator root of trust
+│   │   │   ├── commands.rs       # CreateOperator, UpdateOperatorKey
+│   │   │   ├── events.rs         # OperatorCreated, OperatorKeyRotated
+│   │   │   └── value_objects.rs  # OperatorKey, SigningKey
+│   │   ├── account/
+│   │   │   ├── aggregate.rs      # Account isolation boundary
+│   │   │   ├── commands.rs       # CreateAccount, UpdateAccountLimits
+│   │   │   ├── events.rs         # AccountCreated, AccountLimitsUpdated
+│   │   │   └── value_objects.rs  # AccountLimits, JwtClaims
+│   │   ├── user/
+│   │   │   ├── aggregate.rs      # User authentication entity
+│   │   │   ├── commands.rs       # CreateUser, AssignPolicy
+│   │   │   ├── events.rs         # UserCreated, PolicyAssigned
+│   │   │   └── value_objects.rs  # Credentials, Permissions
+│   │   └── policy/
+│   │       ├── aggregate.rs      # Policy permissions
+│   │       ├── commands.rs       # CreatePolicy, UpdatePermissions
+│   │       ├── events.rs         # PolicyCreated, PermissionsUpdated
+│   │       └── value_objects.rs  # SubjectPermissions, ResourceLimits
+│   └── ...
+```
+
+### Security Event Examples
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SecurityEvent {
+    // Operator events
+    OperatorCreated { operator_id: OperatorId, public_key: PublicKey },
+    OperatorKeyRotated { operator_id: OperatorId, new_key: PublicKey },
+
+    // Account events
+    AccountCreated { account_id: AccountId, operator_id: OperatorId },
+    AccountLimitsUpdated { account_id: AccountId, limits: AccountLimits },
+
+    // User events
+    UserCreated { user_id: UserId, account_id: AccountId },
+    UserPolicyAssigned { user_id: UserId, policy_id: PolicyId },
+
+    // Policy events
+    PolicyCreated { policy_id: PolicyId, permissions: Permissions },
+    PolicyUpdated { policy_id: PolicyId, changes: PermissionChanges },
+}
+```
+
+### Security Integration for All Contexts
+
+Every bounded context must integrate with the Security infrastructure:
+
+```rust
+// Example: How any context checks permissions
+pub struct SecureCommandHandler<T> {
+    inner: T,
+    security_client: SecurityClient,
+}
+
+impl<T: CommandHandler> SecureCommandHandler<T> {
+    pub async fn handle(&self, cmd: Command, jwt: &str) -> Result<()> {
+        // 1. Validate JWT with Security context
+        let user_claims = self.security_client
+            .validate_jwt(jwt)
+            .await?;
+
+        // 2. Check permissions for this command
+        let subject = cmd.to_nats_subject(); // e.g., "workflow.commands.create"
+        if !user_claims.can_publish(&subject) {
+            return Err(SecurityError::Unauthorized);
+        }
+
+        // 3. Execute the actual command
+        self.inner.handle(cmd).await
+    }
+}
+```
+
+### NATS Message Security
+
+All NATS messages between contexts include security headers:
+
+```rust
+// Every context uses this pattern for secure messaging
+pub struct SecureNatsClient {
+    client: async_nats::Client,
+    jwt_token: String,
+}
+
+impl SecureNatsClient {
+    pub async fn publish(&self, subject: &str, payload: &[u8]) -> Result<()> {
+        let headers = HeaderMap::new()
+            .insert("Authorization", format!("Bearer {}", self.jwt_token))
+            .insert("X-Account-ID", self.account_id.to_string());
+
+        self.client
+            .publish_with_headers(subject, headers, payload)
+            .await
+    }
+}
+```
+
+### Integration with Identity Context
+```rust
+// Security context reacts to Identity events
+impl SecurityEventTranslator {
+    pub fn translate(&self, event: IdentityIntegrationEvent) -> Option<SecurityCommand> {
+        match event {
+            IdentityIntegrationEvent::PersonCreated { person_id, email } => {
+                // Create a User in the default Account for this Person
+                Some(SecurityCommand::CreateUser {
+                    person_id,
+                    account_id: self.default_account_id(),
+                    credentials: Credentials::from_email(email),
+                })
+            }
+            IdentityIntegrationEvent::OrganizationCreated { org_id, name } => {
+                // Create an Account for this Organization
+                Some(SecurityCommand::CreateAccount {
+                    organization_id: org_id,
+                    account_name: name,
+                    operator_id: self.operator_id(),
+                })
+            }
+            _ => None,
+        }
+    }
+}
+```
+
+## Conceptual Space Integration
+
+### Every Context is a Concept Producer
+
+Each bounded context MUST implement concept production:
+
+```rust
+// REQUIRED: Every context implements ConceptProducer
+impl ConceptProducer for IdentityContext {
+    type Concept = IdentityConcept;
+
+    fn produce_concepts(&self, event: DomainEvent) -> Vec<Self::Concept> {
+        // Convert domain events to concepts
+    }
+
+    fn quality_dimensions(&self) -> Vec<QualityDimension> {
+        // Define dimensions this context contributes
+    }
+}
+```
+
+### ConceptMap Structure
+
+All concepts are stored as ConceptMaps in the Object Store:
+
+```rust
+// CORRECT: ConceptMap with all required fields
+pub struct ConceptMap {
+    pub id: ConceptMapId,
+    pub context: ContextId,
+    pub cid: Cid, // Content-addressed
+    pub graph: ContextGraph<ConceptNode, ConceptEdge>,
+    pub position: ConceptualPoint, // Position in n-dimensional space
+    pub qualities: HashMap<DimensionId, f64>,
+    pub event_history: Vec<EventCid>, // Events that created this
+}
+
+// WRONG: Incomplete concept representation
+pub struct BadConcept {
+    pub data: Value, // ❌ No position in conceptual space
+    pub id: String,  // ❌ No CID for content addressing
+}
+```
+
+### Event Projection Rules
+
+Every domain event MUST project into conceptual space (persistence is optional):
+
+```rust
+// CORRECT: Event with conceptual projection
+impl ConceptualProjection for PersonCreated {
+    fn project(&self) -> ConceptualChange {
+        ConceptualChange::CreateConcept {
+            concept_type: ConceptType::Entity("Person"),
+            initial_position: self.calculate_position(),
+            qualities: self.initial_qualities(),
+        }
+    }
+}
+
+// WRONG: Event without projection
+impl PersonCreated {
+    // ❌ No conceptual projection defined
+}
+```
+
+### Event Persistence
+
+Persistence is just a trait - implement it where needed:
+
+```rust
+// CORRECT: Trait-based persistence
+pub trait Persistable {
+    fn persist(&self, store: &dyn EventStore) -> Result<Cid>;
+}
+
+// Business events implement Persistable
+impl Persistable for OrderPlaced {
+    fn persist(&self, store: &dyn EventStore) -> Result<Cid> {
+        store.append(self)
+    }
+}
+
+// UI events don't implement Persistable
+struct ButtonClicked { /* ... */ } // No Persistable impl
+
+// Processing is simple
+async fn process_event<E: ConceptualProjection>(event: E) -> Result<()> {
+    // Always project to conceptual space
+    let changes = event.project();
+    apply_changes(changes).await?;
+
+    // Persist if it implements the trait
+    if let Some(persistable) = event.as_persistable() {
+        persistable.persist(&event_store).await?;
+    }
+
+    Ok(())
+}
+```
+
+### Cross-Context Morphisms
+
+Concepts from different contexts are related through morphisms:
+
+```rust
+// CORRECT: Morphism preserves meaning
+pub struct CrossContextMorphism {
+    pub source: (ContextId, ConceptId),
+    pub target: (ContextId, ConceptId),
+    pub morphism_type: MorphismType,
+    pub strength: f64, // How strongly related
+}
+
+// Applied Category Theory patterns
+pub enum MorphismType {
+    Functor,      // Structure-preserving map
+    Profunctor,   // Relates two categories
+    NaturalTransformation, // Consistent transformation
+}
+```
+
+### Object Store Integration
+
+```rust
+// CORRECT: Store concepts with CIDs
+async fn store_concept(concept: ConceptMap) -> Result<Cid> {
+    let cid = object_store.put(&concept).await?;
+    spatial_index.insert(cid, concept.position);
+    Ok(cid)
+}
+
+// WRONG: Store without content addressing
+async fn bad_store(concept: Concept) {
+    database.insert(concept); // ❌ No CID, no spatial indexing
+}
+```
+
+### Quality Dimensions
+
+Each context defines quality dimensions:
+
+```rust
+// CORRECT: Well-defined dimensions
+pub fn identity_dimensions() -> Vec<QualityDimension> {
+    vec![
+        QualityDimension {
+            name: "trust",
+            range: 0.0..1.0,
+            metric: DistanceMetric::Euclidean,
+        },
+        QualityDimension {
+            name: "activity",
+            range: 0.0..100.0,
+            metric: DistanceMetric::Manhattan,
+        },
+    ]
+}
+```
+
+### Verification
+
+Before marking a context complete:
+- [ ] ConceptProducer implemented
+- [ ] All events have projections
+- [ ] Quality dimensions defined
+- [ ] ConceptMaps stored with CIDs
+- [ ] Morphisms discoverable
+- [ ] Spatial queries functional
+
+## NATS Subject Naming for Contexts
+
+Each context MUST use its own subject hierarchy:
+```
+identity.events.person.created
+identity.events.organization.updated
+security.events.operator.created
+security.events.account.created
+security.events.user.created
+security.events.policy.applied
+content.events.document.published
+workflow.events.state.transitioned
+knowledge.events.concept.linked
+```
+
+## Component Trait Usage
+
+When using the Component trait from `cim-component`:
+```rust
+// CORRECT: Component for domain state
+#[derive(Component)]
+pub struct PersonComponent {
+    pub person_id: PersonId,
+    pub email: Email,
+}
+
+// WRONG: Component with behavior
+#[derive(Component)]
+pub struct PersonComponent {
+    pub fn validate(&self) { } // ❌ Components are data only
+}
+```
+
+## Success Metrics
+
+A successful refactoring will achieve:
+1. Zero circular dependencies
+2. Each context builds in < 30 seconds
+3. Integration tests run in < 2 minutes
+4. Clear context boundaries visible in imports
+5. No `use` statements crossing context boundaries
+
+## Enforcement
+
+These rules are MANDATORY for the bounded context refactoring. Any deviation requires:
+1. Documented justification
+2. Team review and approval
+3. Update to these rules if pattern is approved
+
+Remember: The goal is sustainable, maintainable architecture that enables independent development and deployment of business capabilities.

@@ -5,6 +5,23 @@ alwaysApply: true
 ---
 # Event Sourcing in CIM
 
+## Event Persistence
+
+Persistence is optional - just implement the `Persistable` trait where needed:
+
+```rust
+pub trait Persistable {
+    fn persist(&self, store: &dyn EventStore) -> Result<Cid>;
+}
+
+// Only business-critical events implement Persistable
+impl Persistable for OrderPlaced { /* ... */ }
+impl Persistable for PaymentProcessed { /* ... */ }
+
+// UI/technical events don't implement it
+struct CacheInvalidated { /* ... */ } // No persistence
+```
+
 ## Event Design Principles
 
 ### 1. Event Structure with CID Chains

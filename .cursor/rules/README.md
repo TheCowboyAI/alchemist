@@ -15,6 +15,7 @@ These rules help Cursor agents understand and work effectively with the Composab
 - **ddd.mdc** - Domain-Driven Design principles
 - **graphs.mdc** - Graph implementation with petgraph and Bevy
 - **bevy_ecs.mdc** - Bevy ECS patterns and refactoring
+- **bounded-context-refactoring.mdc** - Bounded context separation and hexagonal architecture
 
 ### Technical Rules
 - **rust.mdc** - Rust and NixOS environment setup
@@ -75,6 +76,14 @@ When working on a feature, identify which rules apply:
 2. Ensure event sourcing patterns (event-sourcing-cim.mdc)
 3. Validate domain model (ddd.mdc)
 4. Update tests (tdd.mdc)
+
+#### Bounded Context Refactoring
+
+1. Follow module structure (bounded-context-refactoring.mdc)
+2. Extract foundation modules first (bounded-context-refactoring.mdc)
+3. Create contexts with hexagonal architecture (bounded-context-refactoring.mdc)
+4. Implement event translators for integration (bounded-context-refactoring.mdc)
+5. Verify no circular dependencies (bounded-context-refactoring.mdc)
 
 ## Best Practices for Rule Usage
 

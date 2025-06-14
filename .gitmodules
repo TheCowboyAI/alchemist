@@ -8,3 +8,51 @@
 [submodule "cim-contextgraph"]
 	path = cim-contextgraph
 	url = git@github.com:TheCowboyAI/cim-contextgraph.git
+[submodule "cim-component"]
+	path = cim-component
+	url = https://github.com/TheCowboyAI/cim-component.git
+[submodule "cim-domain"]
+	path = cim-domain
+	url = https://github.com/TheCowboyAI/cim-domain.git
+[submodule "cim-compose"]
+	path = cim-compose
+	url = https://github.com/TheCowboyAI/cim-compose.git
+[submodule "cim-domain-conceptualspaces"]
+	path = cim-domain-conceptualspaces
+	url = https://github.com/TheCowboyAI/cim-domain-conceptualspaces.git
+[submodule "cim-domain-identity"]
+	path = cim-domain-identity
+	url = https://github.com/TheCowboyAI/cim-domain-identity.git
+[submodule "cim-infrastructure"]
+	path = cim-infrastructure
+	url = https://github.com/TheCowboyAI/cim-infrastructure.git
+[submodule "cim-subject"]
+	path = cim-subject
+	url = https://github.com/TheCowboyAI/cim-subject.git
+[submodule "cim-domain-bevy"]
+	path = cim-domain-bevy
+	url = https://github.com/TheCowboyAI/cim-domain-bevy.git
+[submodule "cim-domain-person"]
+	path = cim-domain-person
+	url = https://github.com/TheCowboyAI/cim-domain-person.git
+[submodule "cim-domain-organization"]
+	path = cim-domain-organization
+	url = https://github.com/TheCowboyAI/cim-domain-organization.git
+[submodule "cim-domain-agent"]
+	path = cim-domain-agent
+	url = https://github.com/TheCowboyAI/cim-domain-agent.git
+[submodule "cim-domain-policy"]
+	path = cim-domain-policy
+	url = https://github.com/TheCowboyAI/cim-domain-policy.git
+[submodule "cim-domain-document"]
+	path = cim-domain-document
+	url = https://github.com/TheCowboyAI/cim-domain-document.git
+[submodule "cim-domain-workflow"]
+	path = cim-domain-workflow
+	url = https://github.com/thecowboyai/cim-domain-workflow
+[submodule "cim-domain-location"]
+	path = cim-domain-location
+	url = https://github.com/thecowboyai/cim-domain-location
+[submodule "cim-domain-graph"]
+	path = cim-domain-graph
+	url = https://github.com/thecowboyai/cim-domain-graph

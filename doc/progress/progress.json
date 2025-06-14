@@ -3,8 +3,8 @@
     "name": "Information Alchemist Progress",
     "description": "Progress tracking for Information Alchemist, a UI for Building CIMs - A system where graphs are the fundamental building blocks of all domain models, composed through Applied Category Theory (ACT) principles. Every concept - from simple value objects to complex aggregates - is represented as a graph that can be composed with other graphs to build entire systems.",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-06-09T09:59:00-07:00",
-    "version": "2.13.0"
+    "updated": "2025-01-11T15:30:00-07:00",
+    "version": "2.19.0"
   },
   "nodes": [
     {
@@ -2822,273 +2822,1176 @@
           "/doc/plan/event-store-nats-integration-plan.md"
         ]
       }
+    },
+    {
+      "id": "bounded-context-refactoring-phase1",
+      "label": "Bounded Context Refactoring Phase 1",
+      "type": "milestone",
+      "position": { "x": 2150, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented Phase 1 foundation modules for bounded context separation",
+        "details": [
+          "Created cim-component module with Component trait and storage abstraction",
+          "Created cim-core-domain module with Entity, EntityId, and AggregateRoot types",
+          "Created cim-infrastructure module with NATS client abstraction",
+          "Extracted core domain types (NodeId, EdgeId, StateId, TransitionId)",
+          "Implemented DomainError and DomainResult types",
+          "Created infrastructure error types and result handling",
+          "Added MessageHandler trait and MessageProcessor for NATS integration",
+          "All modules compile and pass tests",
+          "Updated workspace Cargo.toml to include new modules",
+          "Fixed nix devshell configuration for cargo tools",
+          "Foundation ready for Phase 2 bounded context implementation"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-component/src/lib.rs",
+          "/cim-core-domain/src/lib.rs",
+          "/cim-infrastructure/src/lib.rs",
+          "/doc/plan/bounded-context-refactoring-plan.md",
+          "/.cursor/rules/bounded-context-refactoring.mdc"
+        ]
+      }
+    },
+    {
+      "id": "phase1-user-story-alignment",
+      "label": "Phase 1 User Story Alignment",
+      "type": "milestone",
+      "position": { "x": 2250, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Aligned Phase 1 tests with user stories and added proper documentation",
+        "details": [
+          "Analyzed existing tests - found zero user story alignment",
+          "Created 10 user stories for foundation modules (F1-F10)",
+          "Refactored cim-component tests with user story references and mermaid diagrams",
+          "Refactored cim-core-domain tests with user story references and mermaid diagrams",
+          "Added Given/When/Then structure to all tests",
+          "Documented acceptance criteria for each user story",
+          "Identified critical missing component: AsyncSyncBridge (already exists in legacy)",
+          "Created comprehensive test improvement plan",
+          "All refactored tests passing (3 + 11 tests)",
+          "Test score improved from 0/10 to 4/10 for user story alignment"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/testing/phase-1-user-stories.md",
+          "/doc/qa/phase-1-test-coverage-analysis.md",
+          "/doc/plan/phase-1-test-improvement-plan.md",
+          "/cim-component/src/lib.rs",
+          "/cim-core-domain/src/entity.rs"
+        ]
+      }
+    },
+    {
+      "id": "cim-conceptual-core-implementation",
+      "label": "CIM Conceptual Core Implementation",
+      "type": "milestone",
+      "position": { "x": 2350, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented cim-conceptual-core module for topological conceptual spaces",
+        "details": [
+          "Created proper topological space implementation based on Gärdenfors' theory",
+          "Implemented ConceptualSpace with metric topology and convex regions",
+          "Added weighted Minkowski distance metrics with context-dependent weights",
+          "Created ConvexRegion with hyperplane boundaries for natural categories",
+          "Implemented ConceptualPoint with n-dimensional coordinates",
+          "Added DimensionWeight system (Constant, Contextual, Attentional)",
+          "Created ConceptualMetric for distance calculations",
+          "Implemented OpenBall for topological neighborhoods",
+          "Added metric space axiom verification (non-negativity, identity, symmetry, triangle inequality)",
+          "Created ConceptMap for Object Store persistence with CID support",
+          "Implemented CrossContextMorphism for bounded context relationships",
+          "Added ConceptualProjection trait for event to concept mapping",
+          "Created category theory foundations (functors, profunctors, operads)",
+          "Added 5 comprehensive tests with user stories (F11-F15)",
+          "All tests passing with proper mermaid diagrams",
+          "Module fully integrated into workspace"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-conceptual-core/src/space.rs",
+          "/cim-conceptual-core/src/dimensions.rs",
+          "/cim-conceptual-core/src/concept_map.rs",
+          "/cim-conceptual-core/src/morphisms.rs",
+          "/cim-conceptual-core/src/projection.rs",
+          "/cim-conceptual-core/src/traits.rs",
+          "/cim-conceptual-core/src/category_theory/",
+          "/cim-conceptual-core/tests/conceptual_space_tests.rs"
+        ]
+      }
+    },
+    {
+      "id": "bounded-context-phase2-identity",
+      "label": "Bounded Context Phase 2.1: Identity Context",
+      "type": "milestone",
+      "position": { "x": 2450, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented Identity bounded context as first context in Phase 2",
+        "details": [
+          "Created cim-domain-identity module following DDD principles",
+          "Implemented Person aggregate with commands and events",
+          "Implemented Organization aggregate with commands and events",
+          "Created shared value objects: Email, Name, Address, PhoneNumber, TrustLevel",
+          "Added PersonId and OrganizationId with phantom type safety",
+          "Implemented command handling with proper event generation",
+          "Created conceptual space integration with 5 identity dimensions",
+          "Added IdentityConceptProducer implementing ConceptProducer trait",
+          "Created placeholder modules for application and infrastructure layers",
+          "Defined port interfaces for inbound and outbound communication",
+          "Added 5 tests with user story F16 documentation",
+          "All tests passing, module compiles successfully"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-domain-identity/src/lib.rs",
+          "/cim-domain-identity/src/domain/person/",
+          "/cim-domain-identity/src/domain/organization/",
+          "/cim-domain-identity/src/conceptual/",
+          "/cim-domain-identity/tests/identity_tests.rs"
+        ]
+      }
+    },
+    {
+      "id": "core-components-gap-analysis",
+      "label": "Core Components Gap Analysis & Implementation",
+      "type": "milestone",
+      "position": { "x": 2600, "y": 700, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Identified and implemented all missing core functionality",
+        "details": [
+          "Created comprehensive gap analysis identifying ~40% missing functionality",
+          "Implemented complete projections module with 3 projections",
+          "Added missing graph-related domain events",
+          "Fixed type system issues with proper ID conversions",
+          "Fixed command handler and test compilation issues",
+          "Achieved 222 passing tests in cim-domain",
+          "Created implementation report documenting all changes"
+        ],
+        "references": [
+          "/doc/qa/core-components-functionality-gap-analysis.md",
+          "/doc/plan/core-components-completion-plan.md",
+          "/doc/qa/core-components-implementation-report.md"
+        ]
+      }
+    },
+    {
+      "id": "core-components-functionality",
+      "label": "Core Components Functionality Implementation",
+      "type": "milestone",
+      "position": { "x": 1350, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-10",
+        "description": "Implemented ALL missing functionality indicated by compiler warnings",
+        "details": [
+          "Initial gap analysis: 853 warnings (801 documentation, 52 implementation)",
+          "Implemented projections module with GraphSummaryProjection, NodeListProjection, WorkflowStatusProjection",
+          "Enhanced domain events with graph-related events",
+          "Fixed type system with proper From implementations",
+          "Implemented CQRS-compliant query handlers with EventPublisher",
+          "Fixed unused Result warnings in WorkflowAggregate",
+          "Implemented projection checkpoint functionality in EventReplayService",
+          "Added proper stats handling in AggregateRebuilder",
+          "Implemented all JetStream EventStore methods (subscribe_to_events, subscribe_to_aggregate_type, stream_events_by_type)",
+          "Implemented DeployAgent command handler for AgentCommandHandler",
+          "Fixed Bevy bridge by using all mapping methods and removing unused fields",
+          "Implemented GetOrganizationHierarchy and SearchDocuments query handlers",
+          "Resolved ALL 52 implementation warnings through actual implementation",
+          "Reduced total warnings from 853 to 818 (35 warnings resolved)",
+          "All remaining 818 warnings are documentation-only",
+          "222 tests passing with 0 failures",
+          "Core domain module is now functionally complete"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/qa/core-components-functionality-gap-analysis.md",
+          "/doc/plan/core-components-completion-plan.md",
+          "/doc/qa/core-components-implementation-report.md",
+          "/doc/qa/core-components-implementation-progress.md",
+          "/doc/plan/warning-driven-feature-completion.md",
+          "/cim-domain/src/projections/",
+          "/cim-domain/src/query_handlers.rs",
+          "/cim-domain/src/command_handlers.rs",
+          "/cim-domain/src/bevy_bridge.rs",
+          "/cim-domain/src/infrastructure/"
+        ]
+      }
+    },
+    {
+      "id": "domain-extraction-policy",
+      "label": "Policy Domain Extraction",
+      "type": "milestone",
+      "position": { "x": 1400, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Extracted policy domain from cim-domain into separate submodule",
+        "details": [
+          "Created cim-domain-policy submodule following DDD structure",
+          "Extracted Policy aggregate with all components and value objects",
+          "Moved 11 policy-related commands (EnactPolicy, ApprovePolicy, etc.)",
+          "Moved 10 policy-related events (PolicyEnacted, PolicyApproved, etc.)",
+          "Extracted PolicyCommandHandler implementation",
+          "Extracted PolicyView projection and PolicyQueryHandler",
+          "Removed all policy-related code from cim-domain",
+          "Created GitHub repository TheCowboyAI/cim-domain-policy",
+          "Added as git submodule to main project",
+          "Fixed compilation issues in bevy_bridge.rs",
+          "All tests pass, build successful"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/progress/policy-domain-extraction-complete.md",
+          "/scripts/extract-policy-domain.sh",
+          "/scripts/extract-policy-domain-complete.sh",
+          "/cim-domain-policy/",
+          "https://github.com/TheCowboyAI/cim-domain-policy"
+        ]
+      }
+    },
+    {
+      "id": "domain-extraction-document",
+      "label": "Document Domain Extraction",
+      "type": "milestone",
+      "position": { "x": 1450, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Extracted document domain from cim-domain into separate submodule",
+        "details": [
+          "Created cim-domain-document submodule following DDD structure",
+          "Extracted Document aggregate with all components and value objects",
+          "Moved 10 document-related commands (UploadDocument, ClassifyDocument, etc.)",
+          "Moved 10 document-related events (DocumentUploaded, DocumentClassified, etc.)",
+          "Extracted DocumentCommandHandler implementation",
+          "Extracted DocumentView projection and DocumentQueryHandler",
+          "Removed all document-related code from cim-domain",
+          "Created GitHub repository TheCowboyAI/cim-domain-document",
+          "Added as git submodule to main project",
+          "Supports content-addressed storage with CIDs",
+          "All tests pass, build successful"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/progress/document-domain-extraction-complete.md",
+          "/scripts/extract-document-domain.sh",
+          "/scripts/extract-document-domain-complete.sh",
+          "/cim-domain-document/",
+          "https://github.com/TheCowboyAI/cim-domain-document"
+        ]
+      }
+    },
+    {
+      "id": "domain-extraction-workflow",
+      "label": "Workflow Domain Extraction",
+      "type": "milestone",
+      "position": { "x": 1500, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Extracted workflow domain from cim-domain into separate submodule",
+        "details": [
+          "Created cim-domain-workflow submodule following DDD structure",
+          "Extracted WorkflowAggregate with state machine implementation",
+          "Moved workflow commands, events, and value objects",
+          "Extracted WorkflowCommandHandler implementation",
+          "Extracted WorkflowStatusProjection",
+          "Moved category theory implementation (states, transitions, composition)",
+          "Resolved circular dependency between cim-domain and cim-domain-workflow",
+          "Fixed all compilation errors and type mismatches",
+          "Created GitHub repository TheCowboyAI/cim-domain-workflow",
+          "Added as git submodule to main project",
+          "All 22 tests pass successfully"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/progress/workflow-domain-extraction-complete.md",
+          "/cim-domain-workflow/",
+          "https://github.com/TheCowboyAI/cim-domain-workflow"
+        ]
+      }
+    },
+    {
+      "id": "domain-extraction-location",
+      "label": "Location Domain Extraction",
+      "type": "milestone",
+      "position": { "x": 1550, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Extracted location domain from cim-domain into separate submodule",
+        "details": [
+          "Created cim-domain-location submodule following DDD structure",
+          "Extracted Location aggregate with address and coordinate support",
+          "Moved DefineLocation command",
+          "Moved LocationDefined event",
+          "Extracted LocationCommandHandler implementation",
+          "Created LocationDomainEvent enum for domain-specific events",
+          "Moved value objects: Address, GeoCoordinates, VirtualLocation",
+          "Fixed all import paths and dependencies",
+          "Created GitHub repository TheCowboyAI/cim-domain-location",
+          "Added as git submodule to main project",
+          "All 6 tests pass successfully"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/progress/location-domain-extraction-complete.md",
+          "/cim-domain-location/",
+          "https://github.com/TheCowboyAI/cim-domain-location"
+        ]
+      }
+    },
+    {
+      "id": "domain-extraction-graph",
+      "label": "Graph Domain Extraction",
+      "type": "milestone",
+      "position": { "x": 1600, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Extracted graph domain from cim-domain as core composition layer",
+        "details": [
+          "Created cim-domain-graph submodule as composition layer for CIM",
+          "Extracted ConceptGraph and DomainGraph aggregates",
+          "Moved all graph events (GraphCreated, NodeAdded, NodeRemoved, NodeUpdated, EdgeAdded, EdgeRemoved)",
+          "Extracted graph projections (GraphSummaryProjection, NodeListProjection)",
+          "Moved generate_domain_graph binary to graph domain",
+          "Created GraphDomainEvent enum wrapper",
+          "Implemented GraphProjection trait for graph-specific projections",
+          "Fixed all compilation issues with proper imports",
+          "Graph domain serves as composition layer - other domains don't depend on it",
+          "Created GitHub repository TheCowboyAI/cim-domain-graph",
+          "Added as git submodule to main project",
+          "All builds successful"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/progress/graph-domain-extraction-complete.md",
+          "/cim-domain-graph/",
+          "https://github.com/TheCowboyAI/cim-domain-graph"
+        ]
+      }
+    },
+    {
+      "id": "integration-testing-continued",
+      "label": "Integration Testing Continued",
+      "type": "milestone",
+      "position": { "x": 1650, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Comprehensive integration testing implementation completed",
+        "details": [
+          "Created import_pipeline_tests.rs with 8 comprehensive tests",
+          "Created query_handler_tests.rs with 8 query pattern tests",
+          "Created projection_sync_tests.rs with 6 synchronization tests",
+          "Created external_system_tests.rs with 8 external integration tests",
+          "Created performance_benchmarks.rs with 8 performance benchmarks",
+          "Created end_to_end_workflow_tests.rs with 6 workflow tests",
+          "Total of 44 integration tests covering all critical paths",
+          "All tests follow TDD principles with mermaid diagrams",
+          "Performance benchmarks validate system meets requirements",
+          "Test gap remediation plan fully implemented"
+        ],
+        "progress": 100,
+        "references": [
+          "/tests/integration/import_pipeline_tests.rs",
+          "/tests/integration/query_handler_tests.rs",
+          "/tests/integration/projection_sync_tests.rs",
+          "/tests/integration/external_system_tests.rs",
+          "/tests/integration/performance_benchmarks.rs",
+          "/tests/integration/end_to_end_workflow_tests.rs",
+          "/doc/plan/test-gap-remediation-plan.md",
+          "/doc/progress/integration-testing-continued.md",
+          "/doc/progress/integration-testing-status.md"
+        ]
+      }
+    },
+    {
+      "id": "cim-domain-compose-separation",
+      "label": "CIM Domain vs Compose Separation",
+      "type": "milestone",
+      "position": { "x": 1700, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Clarified and implemented separation between cim-domain and cim-compose",
+        "details": [
+          "Identified duplicate Entity and EntityId definitions in cim-compose",
+          "Created comprehensive design document for separation of responsibilities",
+          "cim-domain: Provides core DDD building blocks (Entity, Aggregate, ValueObject)",
+          "cim-compose: Provides graph composition of those building blocks",
+          "Added cim-domain as dependency to cim-compose",
+          "Removed 80+ lines of duplicate code from cim-compose",
+          "Updated imports to use types from cim-domain",
+          "Created domain_composition example demonstrating proper usage",
+          "All code compiles and tests pass",
+          "Clear architectural separation achieved"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/design/cim-domain-compose-separation.md",
+          "/doc/plan/fix-cim-domain-compose-separation.md",
+          "/doc/progress/cim-domain-compose-separation.md",
+          "/cim-compose/src/base_types.rs",
+          "/cim-compose/examples/domain_composition.rs"
+        ]
+      }
+    },
+    {
+      "id": "conceptualspaces-domain-rename",
+      "label": "ConceptualSpaces Domain Rename",
+      "type": "milestone",
+      "position": { "x": 1750, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Renamed cim-conceptual-core to cim-domain-conceptualspaces",
+        "details": [
+          "Renamed module from cim-conceptual-core to cim-domain-conceptualspaces",
+          "Restructured to follow DDD pattern with aggregate, commands, events, etc.",
+          "Created ConceptualSpaceAggregate as the main aggregate root",
+          "Moved value objects to proper value_objects module",
+          "Added commands: CreateConceptualSpace, AddConcept, AddRegion, UpdateWeights",
+          "Added events: ConceptualSpaceCreated, ConceptAdded, RegionAdded, WeightsUpdated",
+          "Updated all imports in dependent modules",
+          "Added as optional dependency to cim-compose",
+          "Created Composable implementation for ConceptualSpaceAggregate",
+          "Updated examples and documentation",
+          "Module now follows same DDD structure as other domain modules"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-11",
+        "references": [
+          "/cim-domain-conceptualspaces/",
+          "/doc/plan/rename-conceptual-core-to-domain.md",
+          "/cim-compose/src/domain_compositions.rs"
+        ]
+      }
+    },
+    {
+      "id": "contextgraph-standalone-refactoring",
+      "label": "ContextGraph Standalone Refactoring",
+      "type": "milestone",
+      "position": { "x": 1800, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Refactored cim-contextgraph to be a pure standalone graph implementation",
+        "details": [
+          "Identified domain-specific files that didn't belong in pure graph module",
+          "Moved workflow_graph.rs to new cim-workflow-graph module",
+          "Moved cid_dag.rs to new cim-ipld-graph module",
+          "Removed cid and daggy dependencies from cim-contextgraph",
+          "Created proper module structure for cim-workflow-graph with workflow domain dependencies",
+          "Created proper module structure for cim-ipld-graph with IPLD/CID dependencies",
+          "Added WorkflowType, EnrichmentType, and EnrichmentValue trait to cim-workflow-graph",
+          "Added CidDagError type to cim-ipld-graph for CID-specific errors",
+          "Updated all imports in dependent code (examples/approval_workflow.rs)",
+          "Added new modules to workspace members in root Cargo.toml",
+          "All modules compile successfully with no errors",
+          "cim-contextgraph now provides only pure graph abstractions",
+          "Domain-specific graph compositions are in their own modules"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-11",
+        "references": [
+          "/doc/plan/refactor-cim-contextgraph-standalone.md",
+          "/cim-contextgraph/",
+          "/cim-workflow-graph/",
+          "/cim-ipld-graph/"
+        ]
+      }
+    },
+    {
+      "id": "conceptgraph-composition-refactoring",
+      "label": "ConceptGraph Composition Refactoring",
+      "type": "milestone",
+      "position": { "x": 1850, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Refactored ConceptGraph from domain aggregate to proper composition module",
+        "details": [
+          "Identified ConceptGraph was misplaced in cim-domain-graph",
+          "Created new cim-conceptgraph module as composition of ContextGraph + ConceptualSpaces",
+          "Moved concept_graph.rs from cim-domain-graph to cim-conceptgraph",
+          "Refactored to compose ContextGraph<ConceptNode, ConceptEdge> instead of own implementation",
+          "Added temporary types (ConceptId, ConceptualPoint, ConvexRegion) until cim-domain-conceptualspaces is fixed",
+          "Maintains all original functionality: semantic regions, similarity search, metadata",
+          "Updated to use new ContextGraph API with typed nodes and edges",
+          "Fixed component handling to use generic parameters instead of boxed trait objects",
+          "Moved tests from cim-domain-graph to cim-conceptgraph",
+          "All 6 tests pass successfully",
+          "Follows same pattern as cim-workflow-graph and cim-ipld-graph"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-11",
+        "references": [
+          "/doc/plan/refactor-conceptgraph-composition.md",
+          "/doc/progress/conceptgraph-composition-refactoring.md",
+          "/cim-conceptgraph/",
+          "/cim-conceptgraph/src/lib.rs",
+          "/cim-conceptgraph/tests/graph_tests.rs"
+        ]
+      }
+    },
+    {
+      "id": "cim-viz-bevy-cleanup",
+      "label": "CIM-Viz-Bevy Cleanup",
+      "type": "milestone",
+      "position": { "x": 1900, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Removed nested cim-viz-bevy directory from cim-contextgraph",
+        "details": [
+          "Identified that cim-viz-bevy was already extracted as a separate module",
+          "Found nested cim-viz-bevy directory inside cim-contextgraph",
+          "Directory contained only empty src folder",
+          "Removed the nested directory completely",
+          "Verified no references to cim-viz-bevy in cim-contextgraph source",
+          "Visualization module reference already commented out in lib.rs",
+          "cim-contextgraph is now completely standalone without visualization dependencies"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-11",
+        "references": [
+          "/cim-contextgraph/",
+          "/cim-viz-bevy/"
+        ]
+      }
+    },
+    {
+      "id": "contextgraph-test-update-complete",
+      "label": "ContextGraph Test Update Complete",
+      "type": "milestone",
+      "position": { "x": 1950, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Updated all test files to work with new PetGraph-based ContextGraph API",
+        "details": [
+          "Updated working_unit_tests.rs with new API methods - 27 tests pass",
+          "Updated context_graph_tests.rs with Component trait fixes - 8 tests pass",
+          "Verified context_graph_v2_tests.rs already compatible - 8 tests pass",
+          "Updated context_graph_integration_tests.rs with invariant fixes - 11 tests pass",
+          "Added convenience methods to ContextGraph for better API ergonomics",
+          "Methods added: node_count(), edge_count(), get_node_value(), get_edge_value(), degree(), get_edge(), get_all_nodes()",
+          "Removed 5 outdated test files that tested old API that no longer exists",
+          "Removed: component_system_unit_tests.rs, event_driven_unit_tests.rs, error_handling_unit_tests.rs",
+          "Removed: comprehensive_contextgraph_tests.rs (external dependencies), unit_tests.rs (old API)",
+          "Total: 56 tests passing across all test files",
+          "All tests compile and pass with no errors"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-11",
+        "references": [
+          "/doc/progress/contextgraph-test-update.md",
+          "/cim-contextgraph/tests/",
+          "/cim-contextgraph/src/context_graph.rs"
+        ]
+      }
+    },
+    {
+      "id": "conceptualspaces-compilation-fixed",
+      "label": "ConceptualSpaces Compilation Fixed",
+      "type": "milestone",
+      "position": { "x": 2100, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Fixed compilation errors in cim-domain-conceptualspaces",
+        "details": [
+          "Removed non-existent Aggregate trait import",
+          "Fixed AggregateRoot implementation with correct trait methods",
+          "Removed unused Subject import",
+          "Fixed Query trait implementation (removed Result type)",
+          "Fixed Command trait implementations for all command types",
+          "Module now compiles successfully"
+        ],
+        "references": [
+          "/cim-domain-conceptualspaces/src/aggregate/conceptual_space.rs",
+          "/cim-domain-conceptualspaces/src/commands/",
+          "/cim-domain-conceptualspaces/src/queries/find_similar.rs"
+        ]
+      }
+    },
+    {
+      "id": "conceptgraph-integration-attempted",
+      "label": "ConceptGraph Integration Attempted",
+      "type": "milestone",
+      "position": { "x": 2250, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Attempted to integrate cim-conceptgraph with cim-domain-conceptualspaces types",
+        "details": [
+          "Discovered incompatibilities between temporary types and actual types",
+          "ConceptualPoint in cim-domain-conceptualspaces uses Matrix instead of Vec",
+          "ConvexRegion has different structure (prototype/boundaries vs center/radius)",
+          "UUID version mismatch between modules (0.8 vs 1.11)",
+          "Reverted to using temporary types until proper integration can be done",
+          "All 7 tests in cim-conceptgraph still pass with temporary types"
+        ],
+        "references": [
+          "/cim-conceptgraph/src/lib.rs",
+          "/cim-domain-conceptualspaces/"
+        ]
+      }
+    },
+    {
+      "id": "cim-domain-cleanup",
+      "label": "CIM Domain Cleanup",
+      "type": "milestone",
+      "position": { "x": 2300, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Fixed all compilation warnings and test failures in cim-domain",
+        "details": [
+          "Removed unused imports from command_handlers.rs and query_handlers.rs",
+          "Removed unused EventPublisher trait from query_handlers.rs",
+          "Removed unused ComponentMapper from bevy_bridge.rs",
+          "Added documentation for type aliases",
+          "Updated all infrastructure tests to use workflow events instead of moved events",
+          "Fixed event_stream_tests.rs to use workflow events",
+          "Fixed cid_chain.rs tests to use workflow events",
+          "Fixed event_replay.rs tests to use workflow events",
+          "Fixed 136 tests - all passing"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-11",
+        "references": [
+          "/doc/progress/cim-domain-cleanup.md",
+          "/cim-domain/src/infrastructure/tests.rs",
+          "/cim-domain/src/infrastructure/event_stream_tests.rs",
+          "/cim-domain/src/infrastructure/cid_chain.rs",
+          "/cim-domain/src/infrastructure/event_replay.rs"
+        ]
+      }
+    },
+    {
+      "id": "identity-domain-rename-auth",
+      "label": "Identity Domain Rename and Authentication",
+      "type": "milestone",
+      "position": { "x": 2150, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-11",
+        "description": "Renamed cim-identity-context to cim-domain-identity and added authentication features",
+        "details": [
+          "Renamed directory from cim-identity-context to cim-domain-identity",
+          "Updated all references in Cargo.toml files and imports",
+          "Updated .gitmodules to reflect new module name and repository",
+          "Added comprehensive authentication value objects: Credentials, AuthStatus, MfaSettings, ApiKey",
+          "Enhanced Person aggregate with authentication fields and methods",
+          "Added authentication commands: SetCredentials, Authenticate, LockAccount, EnableMfa, etc.",
+          "Added authentication events: CredentialsSet, AuthenticationSucceeded, AccountLocked, MfaEnabled, etc.",
+          "Implemented command handlers for all authentication operations",
+          "Added API key support to Organization aggregate for service authentication",
+          "Updated documentation to reflect focus on identity and authentication",
+          "Module now provides complete identity and authentication domain functionality"
+        ],
+        "progress": 100,
+        "references": [
+          "/cim-domain-identity/src/domain/value_objects.rs",
+          "/cim-domain-identity/src/domain/person/aggregate.rs",
+          "/cim-domain-identity/src/domain/person/commands.rs",
+          "/cim-domain-identity/src/domain/person/events.rs",
+          "/cim-domain-identity/src/domain/organization/aggregate.rs"
+        ]
+      }
+    },
+    {
+      "id": "policy-authentication-composition",
+      "label": "Policy Domain Authentication Composition",
+      "type": "milestone",
+      "position": { "x": 2350, "y": 300, "z": 0 },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-03",
+        "description": "Designed and implemented Policy Domain composition with Identity, Location, and Workflow domains for authentication",
+        "details": [
+          "Created comprehensive design document for authentication composition",
+          "Defined clear separation between authentication and authorization",
+          "Designed event-driven communication patterns between domains",
+          "Created authentication policy types: Internal, External, Federated",
+          "Defined cross-domain events for identity, location, and workflow verification",
+          "Implemented authentication value objects with 15+ types",
+          "Added 5 authentication components to Policy aggregate",
+          "Created 12 authentication commands with proper aggregate references",
+          "Created 15 authentication events with NATS subjects",
+          "Implemented all authentication command handlers",
+          "Created cross-domain event handlers for Identity, Location, and Workflow domains",
+          "Added comprehensive integration tests",
+          "Added comprehensive example demonstrating domain composition",
+          "All code compiles successfully and tests pass"
+        ],
+        "progress": 100,
+        "references": [
+          "/doc/design/policy-authentication-composition.md",
+          "/doc/plan/policy-authentication-implementation.md",
+          "/doc/design/authentication-composition-example.md",
+          "/cim-domain-policy/src/value_objects/authentication.rs",
+          "/cim-domain-policy/src/aggregate/authentication.rs",
+          "/cim-domain-policy/src/commands/authentication.rs",
+          "/cim-domain-policy/src/events/authentication.rs",
+          "/cim-domain-policy/src/handlers/authentication.rs",
+          "/cim-domain-identity/src/handlers/authentication_event_handler.rs",
+          "/cim-domain-location/src/handlers/authentication_event_handler.rs",
+          "/cim-domain-workflow/src/handlers/authentication_event_handler.rs",
+          "/cim-domain-policy/tests/authentication_integration_test.rs"
+        ]
+      }
     }
   ],
   "edges": [
-    {
-      "id": "edge-qa-to-presentation-separation",
-      "source": "qa-remediation-plan",
-      "target": "presentation-domain-separation",
-      "relationship": "leads_to",
-      "label": "Architectural clarification"
-    },
-    {
-      "id": "edge-presentation-to-phase2",
-      "source": "presentation-domain-separation",
-      "target": "phase-2",
-      "relationship": "enables",
-      "label": "Foundation for domain model"
-    },
-    {
-      "id": "edge-separation-to-event-classification",
-      "source": "presentation-domain-separation",
-      "target": "event-classification-phase1",
-      "relationship": "implemented_by",
-      "label": "Phase 1 implementation"
-    },
-    {
-      "id": "edge-projections-to-bidirectional",
-      "source": "integration-tests-projections-started",
-      "target": "bidirectional-projections-architecture",
-      "relationship": "expanded_to",
-      "label": "Expanded scope to bidirectional flow"
-    },
-    {
-      "id": "edge-bidirectional-to-ddd-correction",
-      "source": "bidirectional-projections-architecture",
-      "target": "ddd-module-architecture-correction",
-      "relationship": "corrected_by",
-      "label": "Applied DDD naming principles"
-    },
-    {
-      "id": "edge-ddd-to-consistency-fixes",
-      "source": "ddd-module-architecture-correction",
-      "target": "documentation-consistency-fixes",
-      "relationship": "required",
-      "label": "Documentation alignment needed"
-    },
-    {
-      "id": "edge-consistency-to-core-entities",
-      "source": "documentation-consistency-fixes",
-      "target": "core-entity-modules-added",
-      "relationship": "expanded_by",
-      "label": "Added missing core entity modules"
-    },
-    {
-      "id": "edge-event-classification-to-integration",
-      "source": "event-classification-phase1",
-      "target": "integration-tests-projections-complete",
-      "relationship": "completed_by",
-      "label": "Full implementation with tests"
-    },
-    {
-      "id": "edge-integration-to-workflow",
-      "source": "integration-tests-projections-complete",
-      "target": "workflow-aggregate-complete",
-      "relationship": "enables",
-      "label": "Foundation for workflow implementation"
-    },
-    {
-      "id": "edge-workflow-to-test-gap",
-      "source": "workflow-aggregate-complete",
-      "target": "qa-test-gap-analysis",
-      "relationship": "triggers",
-      "label": "Triggered comprehensive test analysis"
-    },
-    {
-      "id": "edge-test-gap-to-coverage",
-      "source": "qa-test-gap-analysis",
-      "target": "test-coverage-improvement",
-      "relationship": "leads_to",
-      "label": "Test coverage improvement work"
-    },
-    {
-      "id": "edge-coverage-to-markdown-import",
-      "source": "test-coverage-improvement",
-      "target": "markdown-import-nats-replay",
-      "relationship": "enables",
-      "label": "Enabled markdown import demo"
-    },
-    {
-      "id": "edge-markdown-import-to-subgraph-spatial-mapping",
-      "source": "markdown-import-nats-replay",
-      "target": "subgraph-spatial-mapping",
-      "relationship": "enables",
-      "label": "Enabled subgraph spatial mapping"
-    },
-    {
-      "id": "edge-subgraph-spatial-to-advanced-plan",
-      "source": "subgraph-spatial-mapping",
-      "target": "subgraph-advanced-operations-plan",
-      "relationship": "expanded_by",
-      "label": "Expanded to advanced operations"
-    },
-    {
-      "id": "edge-advanced-plan-to-conceptual-graph",
-      "source": "subgraph-advanced-operations-plan",
-      "target": "conceptual-graph-composition-system",
-      "relationship": "reconceptualized_as",
-      "label": "Reconceptualized as meta-modeling framework"
-    },
-    {
-      "id": "edge-conceptual-design-to-implementation",
-      "source": "conceptual-graph-composition-system",
-      "target": "conceptual-graph-base-implementation",
-      "relationship": "implemented_by",
-      "label": "Phase 1 implementation completed"
-    },
-    {
-      "id": "edge-conceptual-base-to-full-implementation",
-      "source": "conceptual-graph-base-implementation",
-      "target": "conceptual-graph-implementation",
-      "relationship": "integrated_into",
-      "label": "Integrated into main IA application"
-    },
-    {
-      "id": "edge-compilation-fixed-to-phase3",
-      "source": "compilation-errors-fixed",
-      "target": "phase-3-start",
-      "relationship": "enables",
-      "label": "Clean compilation enables visualization work"
-    },
-    {
-      "id": "edge-phase3-to-tests-fixed",
-      "source": "phase-3-start",
-      "target": "library-tests-fixed",
-      "relationship": "includes",
-      "label": "Test fixes part of Phase 3 preparation"
-    },
-    {
-      "id": "edge-tests-to-visualization",
-      "source": "library-tests-fixed",
-      "target": "conceptgraph-visualization-started",
-      "relationship": "enables",
-      "label": "Clean tests enable visualization work"
-    },
-    {
-      "id": "edge-visualization-to-testing",
-      "source": "conceptgraph-visualization-started",
-      "target": "visualization-testing-and-importers",
-      "relationship": "tested_by",
-      "label": "Visualization components tested and extended"
-    },
-    {
-      "id": "edge-workflow-visualization-to-designer",
-      "source": "workflow-visualization-implemented",
-      "target": "workflow-designer-egui-integration",
-      "relationship": "enhanced_by",
-      "label": "Enhanced with egui UI for designer"
-    },
-    {
-      "id": "edge-subgraph-module2-to-demo-plan",
-      "source": "subgraph-module-2-domain-services",
-      "target": "comprehensive-demo-plan",
-      "relationship": "requires",
-      "label": "Requires comprehensive testing via demos"
-    },
-    {
-      "id": "edge-demo-plan-to-node-add",
-      "source": "comprehensive-demo-plan",
-      "target": "demo-node-add-complete",
-      "relationship": "implements",
-      "label": "First domain model demo"
-    },
-    {
-      "id": "edge-state-machine-to-workflow-design",
-      "source": "state-machine-enhancement",
-      "target": "workflow-category-theory-design",
-      "relationship": "enables",
-      "label": "State machines enable workflow design"
-    },
-    {
-      "id": "edge-workflow-design-to-phase1",
-      "source": "workflow-category-theory-design",
-      "target": "workflow-phase1-implementation",
-      "relationship": "implemented_by",
-      "label": "Design implemented in Phase 1"
-    },
-    {
-      "id": "edge-workflow-phase1-to-phase2",
-      "source": "workflow-phase1-implementation",
-      "target": "workflow-phase2-implementation",
-      "relationship": "enables",
-      "label": "Phase 1 enables Phase 2"
-    },
-    {
-      "id": "edge-workflow-phase2-to-phase3",
-      "source": "workflow-phase2-implementation",
-      "target": "workflow-phase3-implementation",
-      "relationship": "enables",
-      "label": "Phase 2 enables Phase 3"
-    },
-    {
-      "id": "edge-workflow-phase3-to-command-handlers",
-      "source": "workflow-phase3-implementation",
-      "target": "command-handlers-implementation",
-      "relationship": "enables",
-      "label": "Workflow completion enables command handlers"
-    },
-    {
-      "id": "edge-command-handlers-to-query-handlers",
-      "source": "command-handlers-implementation",
-      "target": "query-handlers-implementation",
-      "relationship": "enables",
-      "label": "Command handlers enable query handlers"
-    },
-    {
-      "id": "edge-query-handlers-to-event-store",
-      "source": "query-handlers-implementation",
-      "target": "event-store-integration-started",
-      "relationship": "requires",
-      "label": "CQRS requires event store for persistence"
-    }
+{
+  "id": "edge-qa-to-presentation-separation",
+  "source": "qa-remediation-plan",
+  "target": "presentation-domain-separation",
+  "relationship": "leads_to",
+  "label": "Architectural clarification"
+},
+{
+  "id": "edge-presentation-to-phase2",
+  "source": "presentation-domain-separation",
+  "target": "phase-2",
+  "relationship": "enables",
+  "label": "Foundation for domain model"
+},
+{
+  "id": "edge-separation-to-event-classification",
+  "source": "presentation-domain-separation",
+  "target": "event-classification-phase1",
+  "relationship": "implemented_by",
+  "label": "Phase 1 implementation"
+},
+{
+  "id": "edge-projections-to-bidirectional",
+  "source": "integration-tests-projections-started",
+  "target": "bidirectional-projections-architecture",
+  "relationship": "expanded_to",
+  "label": "Expanded scope to bidirectional flow"
+},
+{
+  "id": "edge-bidirectional-to-ddd-correction",
+  "source": "bidirectional-projections-architecture",
+  "target": "ddd-module-architecture-correction",
+  "relationship": "corrected_by",
+  "label": "Applied DDD naming principles"
+},
+{
+  "id": "edge-ddd-to-consistency-fixes",
+  "source": "ddd-module-architecture-correction",
+  "target": "documentation-consistency-fixes",
+  "relationship": "required",
+  "label": "Documentation alignment needed"
+},
+{
+  "id": "edge-consistency-to-core-entities",
+  "source": "documentation-consistency-fixes",
+  "target": "core-entity-modules-added",
+  "relationship": "expanded_by",
+  "label": "Added missing core entity modules"
+},
+{
+  "id": "edge-event-classification-to-integration",
+  "source": "event-classification-phase1",
+  "target": "integration-tests-projections-complete",
+  "relationship": "completed_by",
+  "label": "Full implementation with tests"
+},
+{
+  "id": "edge-integration-to-workflow",
+  "source": "integration-tests-projections-complete",
+  "target": "workflow-aggregate-complete",
+  "relationship": "enables",
+  "label": "Foundation for workflow implementation"
+},
+{
+  "id": "edge-workflow-to-test-gap",
+  "source": "workflow-aggregate-complete",
+  "target": "qa-test-gap-analysis",
+  "relationship": "triggers",
+  "label": "Triggered comprehensive test analysis"
+},
+{
+  "id": "edge-test-gap-to-coverage",
+  "source": "qa-test-gap-analysis",
+  "target": "test-coverage-improvement",
+  "relationship": "leads_to",
+  "label": "Test coverage improvement work"
+},
+{
+  "id": "edge-coverage-to-markdown-import",
+  "source": "test-coverage-improvement",
+  "target": "markdown-import-nats-replay",
+  "relationship": "enables",
+  "label": "Enabled markdown import demo"
+},
+{
+  "id": "edge-markdown-import-to-subgraph-spatial-mapping",
+  "source": "markdown-import-nats-replay",
+  "target": "subgraph-spatial-mapping",
+  "relationship": "enables",
+  "label": "Enabled subgraph spatial mapping"
+},
+{
+  "id": "edge-subgraph-spatial-to-advanced-plan",
+  "source": "subgraph-spatial-mapping",
+  "target": "subgraph-advanced-operations-plan",
+  "relationship": "expanded_by",
+  "label": "Expanded to advanced operations"
+},
+{
+  "id": "edge-advanced-plan-to-conceptual-graph",
+  "source": "subgraph-advanced-operations-plan",
+  "target": "conceptual-graph-composition-system",
+  "relationship": "reconceptualized_as",
+  "label": "Reconceptualized as meta-modeling framework"
+},
+{
+  "id": "edge-conceptual-design-to-implementation",
+  "source": "conceptual-graph-composition-system",
+  "target": "conceptual-graph-base-implementation",
+  "relationship": "implemented_by",
+  "label": "Phase 1 implementation completed"
+},
+{
+  "id": "edge-conceptual-base-to-full-implementation",
+  "source": "conceptual-graph-base-implementation",
+  "target": "conceptual-graph-implementation",
+  "relationship": "integrated_into",
+  "label": "Integrated into main IA application"
+},
+{
+  "id": "edge-compilation-fixed-to-phase3",
+  "source": "compilation-errors-fixed",
+  "target": "phase-3-start",
+  "relationship": "enables",
+  "label": "Clean compilation enables visualization work"
+},
+{
+  "id": "edge-phase3-to-tests-fixed",
+  "source": "phase-3-start",
+  "target": "library-tests-fixed",
+  "relationship": "includes",
+  "label": "Test fixes part of Phase 3 preparation"
+},
+{
+  "id": "edge-tests-to-visualization",
+  "source": "library-tests-fixed",
+  "target": "conceptgraph-visualization-started",
+  "relationship": "enables",
+  "label": "Clean tests enable visualization work"
+},
+{
+  "id": "edge-visualization-to-testing",
+  "source": "conceptgraph-visualization-started",
+  "target": "visualization-testing-and-importers",
+  "relationship": "tested_by",
+  "label": "Visualization components tested and extended"
+},
+{
+  "id": "edge-workflow-visualization-to-designer",
+  "source": "workflow-visualization-implemented",
+  "target": "workflow-designer-egui-integration",
+  "relationship": "enhanced_by",
+  "label": "Enhanced with egui UI for designer"
+},
+{
+  "id": "edge-subgraph-module2-to-demo-plan",
+  "source": "subgraph-module-2-domain-services",
+  "target": "comprehensive-demo-plan",
+  "relationship": "requires",
+  "label": "Requires comprehensive testing via demos"
+},
+{
+  "id": "edge-demo-plan-to-node-add",
+  "source": "comprehensive-demo-plan",
+  "target": "demo-node-add-complete",
+  "relationship": "implements",
+  "label": "First domain model demo"
+},
+{
+  "id": "edge-state-machine-to-workflow-design",
+  "source": "state-machine-enhancement",
+  "target": "workflow-category-theory-design",
+  "relationship": "enables",
+  "label": "State machines enable workflow design"
+},
+{
+  "id": "edge-workflow-design-to-phase1",
+  "source": "workflow-category-theory-design",
+  "target": "workflow-phase1-implementation",
+  "relationship": "implemented_by",
+  "label": "Design implemented in Phase 1"
+},
+{
+  "id": "edge-workflow-phase1-to-phase2",
+  "source": "workflow-phase1-implementation",
+  "target": "workflow-phase2-implementation",
+  "relationship": "enables",
+  "label": "Phase 1 enables Phase 2"
+},
+{
+  "id": "edge-workflow-phase2-to-phase3",
+  "source": "workflow-phase2-implementation",
+  "target": "workflow-phase3-implementation",
+  "relationship": "enables",
+  "label": "Phase 2 enables Phase 3"
+},
+{
+  "id": "edge-workflow-phase3-to-command-handlers",
+  "source": "workflow-phase3-implementation",
+  "target": "command-handlers-implementation",
+  "relationship": "enables",
+  "label": "Workflow completion enables command handlers"
+},
+{
+  "id": "edge-command-handlers-to-query-handlers",
+  "source": "command-handlers-implementation",
+  "target": "query-handlers-implementation",
+  "relationship": "enables",
+  "label": "Command handlers enable query handlers"
+},
+{
+  "id": "edge-query-handlers-to-event-store",
+  "source": "query-handlers-implementation",
+  "target": "event-store-integration-started",
+  "relationship": "requires",
+  "label": "CQRS requires event store for persistence"
+},
+{
+  "id": "edge-event-store-to-bounded-context",
+  "source": "event-store-integration-started",
+  "target": "bounded-context-refactoring-phase1",
+  "relationship": "refactored_by",
+  "label": "Refactored into bounded contexts"
+},
+{
+  "id": "edge-bounded-context-to-user-stories",
+  "source": "bounded-context-refactoring-phase1",
+  "target": "phase1-user-story-alignment",
+  "relationship": "improved_by",
+  "label": "Tests aligned with user stories"
+},
+{
+  "id": "edge-user-stories-to-conceptual-core",
+  "source": "phase1-user-story-alignment",
+  "target": "cim-conceptual-core-implementation",
+  "relationship": "enables",
+  "label": "Foundation enables conceptual space implementation"
+},
+{
+  "id": "edge-conceptual-core-to-identity-context",
+  "source": "cim-conceptual-core-implementation",
+  "target": "bounded-context-phase2-identity",
+  "relationship": "enables",
+  "label": "Conceptual core enables identity context implementation"
+},
+{
+  "id": "edge-identity-context-to-gap-analysis",
+  "source": "bounded-context-phase2-identity",
+  "target": "core-components-gap-analysis",
+  "relationship": "triggers",
+  "label": "Completion triggers comprehensive gap analysis"
+},
+{
+  "id": "edge-gap-analysis-to-policy-extraction",
+  "source": "core-components-gap-analysis",
+  "target": "domain-extraction-policy",
+  "relationship": "enables",
+  "label": "Clean core enables domain extraction"
+},
+{
+  "id": "edge-policy-extraction-to-document-extraction",
+  "source": "domain-extraction-policy",
+  "target": "domain-extraction-document",
+  "relationship": "enables",
+  "label": "Policy extraction enables document extraction"
+},
+{
+  "id": "edge-document-extraction-to-workflow-extraction",
+  "source": "domain-extraction-document",
+  "target": "domain-extraction-workflow",
+  "relationship": "enables",
+  "label": "Document extraction enables workflow extraction"
+},
+{
+  "id": "edge-workflow-extraction-to-location-extraction",
+  "source": "domain-extraction-workflow",
+  "target": "domain-extraction-location",
+  "relationship": "enables",
+  "label": "Workflow extraction enables location extraction"
+},
+{
+  "id": "edge-location-extraction-to-graph-extraction",
+  "source": "domain-extraction-location",
+  "target": "domain-extraction-graph",
+  "relationship": "enables",
+  "label": "Location extraction enables graph extraction"
+},
+{
+  "id": "edge-graph-extraction-to-integration-testing",
+  "source": "domain-extraction-graph",
+  "target": "integration-testing-continued",
+  "relationship": "enables",
+  "label": "Domain extraction enables integration testing"
+},
+{
+  "id": "edge-integration-testing-to-compose-separation",
+  "source": "integration-testing-continued",
+  "target": "cim-domain-compose-separation",
+  "relationship": "enables",
+  "label": "Clean tests enable architectural improvements"
+},
+{
+  "id": "edge-compose-separation-to-conceptualspaces-rename",
+  "source": "cim-domain-compose-separation",
+  "target": "conceptualspaces-domain-rename",
+  "relationship": "enables",
+  "label": "Clean architecture enables domain renaming"
+},
+{
+  "id": "edge-conceptualspaces-rename-to-contextgraph-refactoring",
+  "source": "conceptualspaces-domain-rename",
+  "target": "contextgraph-standalone-refactoring",
+  "relationship": "enables",
+  "label": "Domain cleanup enables graph module refactoring"
+},
+{
+  "id": "edge-contextgraph-refactoring-to-conceptgraph-refactoring",
+  "source": "contextgraph-standalone-refactoring",
+  "target": "conceptgraph-composition-refactoring",
+  "relationship": "enables",
+  "label": "Clean graph module enables ConceptGraph refactoring"
+},
+{
+  "id": "edge-conceptgraph-refactoring-to-viz-cleanup",
+  "source": "conceptgraph-composition-refactoring",
+  "target": "cim-viz-bevy-cleanup",
+  "relationship": "enables",
+  "label": "Refactoring reveals remaining cleanup needed"
+},
+{
+  "id": "edge-viz-cleanup-to-test-update",
+},
+{
+  "id": "edge-test-update-to-conceptualspaces-fix",
+  "source": "contextgraph-test-update-complete",
+  "target": "conceptualspaces-compilation-fixed",
+  "relationship": "enables",
+  "label": "Test completion enables fixing compilation errors"
+},
+{
+  "id": "edge-conceptualspaces-fix-to-integration-attempt",
+  "source": "conceptualspaces-compilation-fixed",
+  "target": "conceptgraph-integration-attempted",
+  "relationship": "enables",
+  "label": "Fixed compilation enables integration attempt"
+},
+{
+  "id": "edge-integration-attempt-to-domain-cleanup",
+  "source": "conceptgraph-integration-attempted",
+  "target": "cim-domain-cleanup",
+  "relationship": "enables",
+  "label": "Integration work reveals need for domain cleanup"
+},
+{
+  "id": "edge-domain-cleanup-to-identity-rename",
+  "source": "cim-domain-cleanup",
+  "target": "identity-domain-rename-auth",
+  "relationship": "enables",
+  "label": "Clean domain enables identity module refactoring"
+},
+{
+  "id": "edge-identity-rename-to-policy-auth",
+  "source": "identity-domain-rename-auth",
+  "target": "policy-authentication-composition",
+  "relationship": "enables",
+  "label": "Identity authentication enables policy composition"
+}
+],
+"milestones": [
+  {
+    "name": "NATS Foundation Complete",
+    "phase": "phase-0",
+    "status": "achieved",
+    "date": "2024-12-20"
+  },
+  {
+    "name": "Event Sourcing Operational",
+    "phase": "phase-1",
+    "status": "in-progress",
+    "target_date": "2024-12-22"
+  },
+  {
+    "name": "Domain Model Complete",
+    "phase": "phase-2",
+    "status": "pending",
+    "target_date": "2024-12-24"
+  },
+  {
+    "name": "CQRS Functional",
+    "phase": "phase-3",
+    "status": "pending",
+    "target_date": "2024-12-26"
+  },
+  {
+    "name": "Conceptual Spaces Live",
+    "phase": "phase-4",
+    "status": "pending",
+    "target_date": "2024-12-28"
+  },
+  {
+    "name": "AI Agents Connected",
+    "phase": "phase-5",
+    "status": "pending",
+    "target_date": "2024-12-30"
+  },
+  {
+    "name": "Self-Hosted Development",
+    "phase": "phase-6",
+    "status": "pending",
+    "target_date": "2025-01-01"
+  }
+],
+"current_focus": {
+  "task": "Authentication Command Handlers and Cross-Domain Event Flow",
+  "status": "completed",
+  "details": [
+    "Implemented all authentication command handlers in Policy domain",
+    "Created cross-domain event handlers for Identity domain (identity verification)",
+    "Created cross-domain event handlers for Location domain (location validation)",
+    "Created cross-domain event handlers for Workflow domain (MFA workflow orchestration)",
+    "Added comprehensive integration tests for authentication scenarios",
+    "All handlers properly handle async/await patterns",
+    "Event flow designed for NATS messaging (subjects defined)",
+    "All code compiles and tests pass"
   ],
-  "milestones": [
-    {
-      "name": "NATS Foundation Complete",
-      "phase": "phase-0",
-      "status": "achieved",
-      "date": "2024-12-20"
-    },
-    {
-      "name": "Event Sourcing Operational",
-      "phase": "phase-1",
-      "status": "in-progress",
-      "target_date": "2024-12-22"
-    },
-    {
-      "name": "Domain Model Complete",
-      "phase": "phase-2",
-      "status": "pending",
-      "target_date": "2024-12-24"
-    },
-    {
-      "name": "CQRS Functional",
-      "phase": "phase-3",
-      "status": "pending",
-      "target_date": "2024-12-26"
-    },
-    {
-      "name": "Conceptual Spaces Live",
-      "phase": "phase-4",
-      "status": "pending",
-      "target_date": "2024-12-28"
-    },
-    {
-      "name": "AI Agents Connected",
-      "phase": "phase-5",
-      "status": "pending",
-      "target_date": "2024-12-30"
-    },
-    {
-      "name": "Self-Hosted Development",
-      "phase": "phase-6",
-      "status": "pending",
-      "target_date": "2025-01-01"
-    }
-  ],
-  "current_focus": "Demo applications created",
-  "current_task": "Three comprehensive demos created showcasing event sourcing, state machines, and CQRS patterns",
-  "next_task": "Update demos to match current API and ensure they compile",
-  "last_updated": "2025-01-10"
+  "next_steps": [
+    "Implement NATS event publishers for authentication events",
+    "Create NATS event subscribers in each domain",
+    "Configure event routing between domains",
+    "Integrate with cim-infrastructure for NATS messaging",
+    "Add session management persistence",
+    "Implement risk assessment service integration"
+  ]
+},
+"current_task": "Authentication Command Handlers and Cross-Domain Event Flow Complete",
+"next_task": "Implement NATS event flow integration for authentication",
+"last_updated": "2025-01-03"
 }

@@ -16,7 +16,27 @@ all = { level = "warn", priority = -1 }
 
 [workspace]
 exclude = ["examples/", "bevy-patched"]
-members = ["cim-compose", "cim-ipld", "cim-contextgraph", "cim-domain", "cim-subject", "cim-viz-bevy"]
+members = [
+    "cim-component",
+    "cim-infrastructure",
+    "cim-compose",
+    "cim-ipld",
+    "cim-contextgraph",
+    "cim-workflow-graph",
+    "cim-ipld-graph",
+    "cim-conceptgraph",
+    "cim-domain",
+    "cim-domain-person",
+    "cim-domain-organization",
+    "cim-domain-agent",
+    "cim-domain-workflow",
+    "cim-domain-location",
+    "cim-domain-graph",
+    "cim-subject",
+    "cim-domain-bevy",
+    "cim-domain-conceptualspaces",
+    "cim-domain-identity"
+]
 resolver = "2"
 
 [features]
@@ -95,7 +115,17 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # Content addressing
 cim-ipld = { path = "cim-ipld" }
 cim-contextgraph = { path = "cim-contextgraph" }
+cim-workflow-graph = { path = "cim-workflow-graph" }
+cim-ipld-graph = { path = "cim-ipld-graph" }
 cim-domain = { path = "cim-domain" }
+cim-domain-graph = { path = "cim-domain-graph" }
+cim-domain-workflow = { path = "cim-domain-workflow" }
+cim-domain-location = { path = "cim-domain-location" }
+cim-domain-document = { path = "cim-domain-document" }
+cim-domain-policy = { path = "cim-domain-policy" }
+cim-domain-agent = { path = "cim-domain-agent" }
+cim-domain-organization = { path = "cim-domain-organization" }
+cim-domain-person = { path = "cim-domain-person" }
 cim-subject = { path = "cim-subject" }
 cid = { version = "0.11", features = ["serde"] }
 multihash = { version = "0.19", features = ["std"] }
@@ -240,3 +270,8 @@ bevy_render = { path = "bevy-patched/crates/bevy_render" }
 bevy_time = { path = "bevy-patched/crates/bevy_time" }
 bevy_window = { path = "bevy-patched/crates/bevy_window" }
 bevy_winit = { path = "bevy-patched/crates/bevy_winit" }
+
+[[test]]
+name = "integration"
+path = "tests/lib.rs"
+required-features = ["integration-tests"]

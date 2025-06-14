@@ -1,0 +1,22 @@
+[package]
+name = "cim-ipld-graph"
+version = "0.1.0"
+edition = "2021"
+authors = ["The Cowboy AI"]
+description = "Content-addressed DAG implementation composing CIM context graphs with IPLD"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/thecowboyai/alchemist"
+keywords = ["ipld", "dag", "cid", "graph", "merkle"]
+categories = ["data-structures", "algorithms", "cryptography"]
+
+[dependencies]
+cim-contextgraph = { path = "../cim-contextgraph" }
+cim-ipld = { path = "../cim-ipld" }
+daggy = "0.8"
+cid = { version = "0.11", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+
+[dev-dependencies]
+pretty_assertions = "1.4"

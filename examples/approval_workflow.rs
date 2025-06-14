@@ -14,7 +14,7 @@ use cim_domain::workflow::{
     WorkflowState, TransitionInput, TransitionOutput,
     WorkflowContext, WorkflowTransition,
 };
-use cim_contextgraph::WorkflowGraph;
+use cim_workflow_graph::WorkflowGraph;
 
 use information_alchemist::{
     application::services::WorkflowExecutionService,
@@ -182,7 +182,7 @@ impl WorkflowTransition<DocumentState, DocumentInput, DocumentOutput> for Approv
 fn create_approval_workflow() -> WorkflowGraph<DocumentState, DocumentInput, DocumentOutput, f32> {
     let mut workflow = WorkflowGraph::new(
         GraphId::new(),
-        cim_contextgraph::WorkflowType::Sequential,
+        cim_workflow_graph::WorkflowType::Sequential,
     );
 
     // Add states

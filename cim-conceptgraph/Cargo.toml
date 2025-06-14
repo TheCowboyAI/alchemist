@@ -1,0 +1,25 @@
+[package]
+name = "cim-conceptgraph"
+version = "0.1.0"
+edition = "2021"
+authors = ["The Cowboy AI"]
+description = "Concept graph implementation composing CIM context graphs with conceptual spaces"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/thecowboyai/alchemist"
+keywords = ["concept", "graph", "semantic", "composition", "conceptual-spaces"]
+categories = ["data-structures", "algorithms"]
+
+[dependencies]
+cim-contextgraph = { path = "../cim-contextgraph" }
+# TODO: Uncomment once cim-domain-conceptualspaces types are compatible
+# cim-domain-conceptualspaces = { path = "../cim-domain-conceptualspaces" }
+cim-domain = { path = "../cim-domain" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+uuid = { version = "1.11", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+pretty_assertions = "1.4"
+tokio = { version = "1.0", features = ["full"] }
