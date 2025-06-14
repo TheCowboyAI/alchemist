@@ -8,8 +8,8 @@
 //! with relationships that have both graph-theoretic and semantic properties.
 
 use cim_contextgraph::{
-    ContextGraph, ContextGraphId, NodeId, EdgeId,
-    Component, Label, GraphError,
+    ContextGraph, NodeId, EdgeId,
+    GraphError,
 };
 // TODO: Use these imports once cim-domain-conceptualspaces types are compatible
 // use cim_domain_conceptualspaces::{
@@ -170,9 +170,9 @@ impl ConceptGraph {
             metadata: HashMap::new(),
         };
 
-        let node_id = self.graph.add_node(node);
-        self.concept_map.insert(concept_id, node_id);
-        node_id
+        let _node_id = self.graph.add_node(node);
+        self.concept_map.insert(concept_id, _node_id);
+        _node_id
     }
 
     /// Connect two concepts with a semantic relationship
@@ -261,6 +261,16 @@ impl ConceptGraph {
         }
         result
     }
+
+    /// Get a node by its NodeId
+    pub fn get_node(&self, node_id: NodeId) -> Option<&ConceptNode> {
+        self.graph.get_node(node_id).map(|entry| &entry.value)
+    }
+    
+    /// Get an edge by its EdgeId
+    pub fn get_edge(&self, edge_id: EdgeId) -> Option<(&ConceptEdge, NodeId, NodeId)> {
+        self.graph.get_edge(edge_id).map(|entry| (&entry.value, entry.source, entry.target))
+    }
 }
 
 #[cfg(test)]
@@ -290,6 +300,14 @@ mod tests {
         );
 
         assert_eq!(graph.nodes().len(), 1);
+
+        // Verify the node was added with the correct ID
+        let nodes = graph.nodes();
+        assert_eq!(nodes[0].0, node_id);
+        
+        // Verify we can retrieve the node by its node_id
+        let node = graph.get_node(node_id).unwrap();
+        assert_eq!(node.concept_id, concept_id);
 
         let concept = graph.get_concept_by_id(concept_id).unwrap();
         assert_eq!(concept.label, "Test Concept");
@@ -324,9 +342,18 @@ mod tests {
 
         assert_eq!(graph.edges().len(), 1);
 
+        // Verify the edge was created with the correct ID
         let edges = graph.edges();
-        assert_eq!(edges[0].1.relationship_type, SemanticRelationship::Similarity);
-        assert_eq!(edges[0].1.strength, 0.8);
+        assert_eq!(edges[0].0, edge_id);
+        
+        // Verify we can retrieve the edge by its edge_id
+        let (edge, source, target) = graph.get_edge(edge_id).unwrap();
+        assert_eq!(edge.relationship_type, SemanticRelationship::Similarity);
+        assert_eq!(edge.strength, 0.8);
+        
+        // Verify the edge connects the correct nodes
+        assert_eq!(source, node1);
+        assert_eq!(target, node2);
     }
 
     #[test]
@@ -358,6 +385,21 @@ mod tests {
         assert_eq!(similar.len(), 1);
         assert_eq!(similar[0].0, c2);
         assert_eq!(similar[0].1, 1.0);
+        
+        // Find concepts similar to c2 within distance 2.5
+        let similar_to_c2 = graph.find_similar_concepts(c2, 2.5).unwrap();
+        assert_eq!(similar_to_c2.len(), 2);
+        
+        // c1 should be closer than c3
+        assert_eq!(similar_to_c2[0].0, c1);
+        assert_eq!(similar_to_c2[0].1, 1.0);
+        assert_eq!(similar_to_c2[1].0, c3);
+        assert_eq!(similar_to_c2[1].1, 2.0);
+        
+        // Verify c3 is too far from c1
+        let similar_to_c1_large = graph.find_similar_concepts(c1, 5.0).unwrap();
+        assert_eq!(similar_to_c1_large.len(), 2);
+        assert!(similar_to_c1_large.iter().any(|(node, _)| *node == c3));
     }
 
     #[test]
@@ -389,5 +431,20 @@ mod tests {
 
         assert_eq!(concepts_in_region.len(), 1);
         assert_eq!(concepts_in_region[0], inside);
+        
+        // Verify the outside node is not in the region
+        assert!(!concepts_in_region.contains(&outside));
+        
+        // Create a larger region that contains both nodes
+        let large_region = ConvexRegion {
+            center: ConceptualPoint { coordinates: vec![0.0, 0.0] },
+            radius: 10.0,
+        };
+        graph.add_region("LargeRegion".to_string(), large_region);
+        
+        let concepts_in_large_region = graph.concepts_in_region("LargeRegion").unwrap();
+        assert_eq!(concepts_in_large_region.len(), 2);
+        assert!(concepts_in_large_region.contains(&inside));
+        assert!(concepts_in_large_region.contains(&outside));
     }
 }

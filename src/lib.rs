@@ -1,62 +1,48 @@
-//! # CIM Keys - Cryptographic Key Management and PKI Support
+//! # Information Alchemist
 //!
-//! This crate provides comprehensive cryptographic key management for the CIM architecture,
-//! including YubiKey hardware token support, PKI infrastructure, and various cryptographic
-//! operations.
+//! A graph editor and workflow manager for Domain Driven Design.
 //!
-//! ## Features
-//!
-//! - **YubiKey Support**: Hardware token integration for secure key storage
-//! - **GPG Integration**: OpenPGP operations and key management
-//! - **SSH Keys**: SSH key generation, management, and authentication
-//! - **X.509/TLS**: Certificate generation, validation, and TLS operations
-//! - **PKI Infrastructure**: Complete PKI setup with CA, intermediate, and end-entity certificates
-//! - **Encryption/Decryption**: Symmetric and asymmetric encryption operations
-//! - **Digital Signatures**: Sign and verify data with various algorithms
-//!
-//! ## Architecture
-//!
-//! The crate is organized into several modules:
-//! - `yubikey`: YubiKey hardware token operations
-//! - `gpg`: GPG/OpenPGP functionality
-//! - `ssh`: SSH key management
-//! - `tls`: TLS/X.509 certificate operations
-//! - `pki`: PKI infrastructure and CA operations
-//! - `storage`: Secure key storage and retrieval
+//! This application provides:
+//! - Visual graph editing capabilities
+//! - Domain-driven workflow management
+//! - Event sourcing and CQRS patterns
+//! - Integration with NATS messaging
+//! - Conceptual space visualization
 
 #![warn(missing_docs)]
-#![warn(rustdoc::missing_crate_level_docs)]
+#![warn(clippy::all)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::module_name_repetitions)]
 
-pub mod error;
-pub mod types;
-pub mod traits;
+// Re-export core dependencies
+pub use bevy;
+pub use bevy_egui;
 
-#[cfg(feature = "yubikey-support")]
-pub mod yubikey;
+// Re-export domain modules
+pub use cim_domain;
+pub use cim_domain_agent;
+pub use cim_domain_document;
+pub use cim_domain_git;
+pub use cim_domain_graph;
+pub use cim_domain_location;
+pub use cim_domain_nix;
+pub use cim_domain_organization;
+pub use cim_domain_person;
+pub use cim_domain_policy;
+pub use cim_domain_workflow;
 
-#[cfg(feature = "gpg-support")]
-pub mod gpg;
+// Re-export infrastructure
+pub use cim_ipld;
+pub use cim_subject;
 
-pub mod ssh;
-pub mod tls;
-pub mod pki;
-pub mod storage;
-
-// Re-export commonly used types
-pub use error::{KeyError, Result};
-pub use types::*;
-pub use traits::*;
+// Re-export graph modules
+pub use cim_compose;
+pub use cim_contextgraph;
+pub use cim_ipld_graph;
+pub use cim_workflow_graph;
 
 /// Prelude module for convenient imports
 pub mod prelude {
-    pub use crate::error::{KeyError, Result};
-    pub use crate::traits::*;
-    pub use crate::types::*;
-
-    #[cfg(feature = "yubikey-support")]
-    pub use crate::yubikey::YubiKeyManager;
-
-    pub use crate::ssh::SshKeyManager;
-    pub use crate::tls::TlsManager;
-    pub use crate::pki::PkiManager;
+    pub use bevy::prelude::*;
+    pub use bevy_egui::*;
 }

@@ -17,40 +17,42 @@ all = { level = "warn", priority = -1 }
 [workspace]
 exclude = ["examples/", "bevy-patched"]
 members = [
-    "cim-component",
-    "cim-infrastructure",
-    "cim-compose",
-    "cim-ipld",
-    "cim-contextgraph",
-    "cim-workflow-graph",
-    "cim-ipld-graph",
-    "cim-conceptgraph",
-    "cim-domain",
-    "cim-domain-person",
-    "cim-domain-organization",
-    "cim-domain-agent",
-    "cim-domain-workflow",
-    "cim-domain-location",
-    "cim-domain-graph",
-    "cim-subject",
-    "cim-domain-bevy",
-    "cim-domain-conceptualspaces",
-    "cim-domain-identity"
+  "cim-component",
+  "cim-infrastructure",
+  "cim-compose",
+  "cim-ipld",
+  "cim-contextgraph",
+  "cim-workflow-graph",
+  "cim-ipld-graph",
+  "cim-conceptgraph",
+  "cim-domain",
+  "cim-domain-person",
+  "cim-domain-organization",
+  "cim-domain-agent",
+  "cim-domain-workflow",
+  "cim-domain-location",
+  "cim-domain-graph",
+  "cim-subject",
+  "cim-domain-bevy",
+  "cim-domain-conceptualspaces",
+  "cim-domain-identity",
+  "cim-domain-git",
+  "cim-domain-nix",
 ]
 resolver = "2"
 
 [features]
 default = []
 dynamic = ["bevy/dynamic_linking"]
-dev = [
-  "bevy/asset_processor",
-  "bevy/file_watcher",
-  "bevy/default",
-  "dynamic"
-]
+dev = ["bevy/asset_processor", "bevy/file_watcher", "bevy/default", "dynamic"]
 integration-tests = []
 # Feature for testing without problematic Bevy features
-test-minimal = ["bevy/bevy_ui", "bevy/bevy_winit", "bevy/default_font", "bevy/bevy_text"]
+test-minimal = [
+  "bevy/bevy_ui",
+  "bevy/bevy_winit",
+  "bevy/default_font",
+  "bevy/bevy_text",
+]
 
 [dependencies]
 # Core dependencies
@@ -127,6 +129,8 @@ cim-domain-agent = { path = "cim-domain-agent" }
 cim-domain-organization = { path = "cim-domain-organization" }
 cim-domain-person = { path = "cim-domain-person" }
 cim-subject = { path = "cim-subject" }
+cim-domain-git = { path = "cim-domain-git" }
+cim-domain-nix = { path = "cim-domain-nix" }
 cid = { version = "0.11", features = ["serde"] }
 multihash = { version = "0.19", features = ["std"] }
 blake3 = "1.5"

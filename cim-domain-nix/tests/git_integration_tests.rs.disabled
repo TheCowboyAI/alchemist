@@ -1,0 +1,104 @@
+//! Tests for Git-Nix integration
+
+use cim_domain_nix::git_integration::{GitNixMapper, GitFlakeService, GitFlakeInput};
+use cim_domain_nix::value_objects::FlakeRef;
+
+#[test]
+fn test_github_url_to_flake_ref() {
+    let mapper = GitNixMapper::new();
+    
+    // Test various GitHub URL formats
+    let test_cases = vec![
+        ("https://github.com/NixOS/nixpkgs", "github:NixOS/nixpkgs"),
+        ("https://github.com/NixOS/nixpkgs.git", "github:NixOS/nixpkgs"),
+        ("https://github.com/numtide/flake-utils", "github:numtide/flake-utils"),
+    ];
+    
+    for (input, expected) in test_cases {
+        let result = mapper.git_url_to_flake_ref(input).unwrap();
+        assert_eq!(result.uri, expected, "Failed for input: {}", input);
+    }
+}
+
+#[test]
+fn test_gitlab_url_to_flake_ref() {
+    let mapper = GitNixMapper::new();
+    
+    let result = mapper.git_url_to_flake_ref("https://gitlab.com/example/project").unwrap();
+    assert_eq!(result.uri, "gitlab:example/project");
+    
+    let result = mapper.git_url_to_flake_ref("https://gitlab.com/example/project.git").unwrap();
+    assert_eq!(result.uri, "gitlab:example/project");
+}
+
+#[test]
+fn test_generic_git_url_to_flake_ref() {
+    let mapper = GitNixMapper::new();
+    
+    // URLs that don't match known forges should get git+ prefix
+    let test_cases = vec![
+        ("https://git.example.com/repo.git", "git+https://git.example.com/repo.git"),
+        ("ssh://git@example.com/repo.git", "git+ssh://git@example.com/repo.git"),
+        ("https://bitbucket.org/user/repo", "git+https://bitbucket.org/user/repo"),
+    ];
+    
+    for (input, expected) in test_cases {
+        let result = mapper.git_url_to_flake_ref(input).unwrap();
+        assert_eq!(result.uri, expected, "Failed for input: {}", input);
+    }
+}
+
+#[test]
+fn test_flake_ref_with_revision() {
+    let mapper = GitNixMapper::new();
+    
+    let mut flake_ref = mapper.git_url_to_flake_ref("https://github.com/NixOS/nixpkgs").unwrap();
+    flake_ref = flake_ref.with_revision("nixos-23.11");
+    
+    assert_eq!(flake_ref.uri, "github:NixOS/nixpkgs");
+    assert_eq!(flake_ref.revision, Some("nixos-23.11".to_string()));
+}
+
+#[test]
+fn test_git_flake_input_creation() {
+    let input = GitFlakeInput {
+        name: "nixpkgs".to_string(),
+        url: "github:NixOS/nixpkgs".to_string(),
+        git_ref: None,
+        resolved_hash: None,
+        store_path: None,
+        follows: None,
+    };
+    
+    assert_eq!(input.name, "nixpkgs");
+    assert_eq!(input.url, "github:NixOS/nixpkgs");
+    assert!(input.git_ref.is_none());
+}
+
+#[tokio::test]
+async fn test_git_flake_service_creation() {
+    let service = GitFlakeService::new();
+    
+    // Service should be created successfully
+    // In a real test, we would test actual Git operations
+    // but for unit tests, we just verify the service can be created
+    assert!(true);
+}
+
+#[test]
+fn test_forge_url_parsing() {
+    let mapper = GitNixMapper::new();
+    
+    // Use the private method through the public API
+    // Test that GitHub URLs are properly recognized
+    let flake_ref = mapper.git_url_to_flake_ref("https://github.com/owner/repo").unwrap();
+    assert!(flake_ref.uri.starts_with("github:"));
+    
+    // Test that GitLab URLs are properly recognized
+    let flake_ref = mapper.git_url_to_flake_ref("https://gitlab.com/owner/repo").unwrap();
+    assert!(flake_ref.uri.starts_with("gitlab:"));
+    
+    // Test that unknown URLs get git+ prefix
+    let flake_ref = mapper.git_url_to_flake_ref("https://unknown.com/repo").unwrap();
+    assert!(flake_ref.uri.starts_with("git+"));
+} 

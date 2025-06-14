@@ -5,6 +5,7 @@ with pkgs; [
   clang
   lld
   mold
+  pkg-config
 
   # Audio support
   alsa-lib
@@ -36,4 +37,7 @@ with pkgs; [
   systemd
   stdenv.cc.cc.lib
   zlib
+  
+  # SSL/TLS support
+  openssl
 ]

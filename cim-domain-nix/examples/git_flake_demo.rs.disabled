@@ -1,0 +1,122 @@
+//! Example demonstrating Git-Nix integration for content-addressed flakes
+
+use cim_domain_nix::{
+    git_integration::{GitFlakeService, GitNixMapper},
+    value_objects::*,
+};
+use tempfile::TempDir;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("=== Git-Nix Integration Demo ===\n");
+
+    // Create services
+    let git_flake_service = GitFlakeService::new();
+    let mapper = GitNixMapper::new();
+
+    // Demo 1: Convert Git URLs to Nix flake references
+    demo_git_url_mapping(&mapper)?;
+
+    // Demo 2: Create a flake from a Git repository
+    demo_create_flake_from_git(&git_flake_service).await?;
+
+    // Demo 3: Map Git hashes to store paths
+    demo_git_hash_mapping(&mapper).await?;
+
+    println!("\n✅ All demos completed successfully!");
+    Ok(())
+}
+
+fn demo_git_url_mapping(mapper: &GitNixMapper) -> Result<(), Box<dyn std::error::Error>> {
+    println!("📍 Demo 1: Git URL to Nix Flake Reference Mapping\n");
+
+    let test_urls = vec![
+        "https://github.com/NixOS/nixpkgs",
+        "https://github.com/numtide/flake-utils.git",
+        "https://gitlab.com/example/project",
+        "https://git.example.com/custom/repo.git",
+    ];
+
+    for url in test_urls {
+        let flake_ref = mapper.git_url_to_flake_ref(url)?;
+        println!("Git URL: {}", url);
+        println!("Flake ref: {}", flake_ref.uri);
+        println!();
+    }
+
+    Ok(())
+}
+
+async fn demo_create_flake_from_git(
+    service: &GitFlakeService,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("📍 Demo 2: Create Flake from Git Repository\n");
+
+    // Create a temporary directory
+    let temp_dir = TempDir::new()?;
+    let target_path = temp_dir.path().join("my-flake");
+
+    // For demo purposes, we'll use a small example repository
+    // In real usage, this would be any Git repository
+    println!("Creating flake from Git repository...");
+    
+    // Note: This would actually clone a repository in a real scenario
+    // For the demo, we'll create a mock flake
+    tokio::fs::create_dir_all(&target_path).await?;
+    
+    let flake_content = r#"{
+  description = "Example flake from Git";
+  
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  };
+  
+  outputs = { self, nixpkgs }: {
+    packages.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.hello;
+  };
+}"#;
+
+    tokio::fs::write(target_path.join("flake.nix"), flake_content).await?;
+
+    println!("✓ Created flake at: {}", target_path.display());
+    println!("✓ Flake content:");
+    println!("{}", flake_content);
+
+    Ok(())
+}
+
+async fn demo_git_hash_mapping(
+    mapper: &GitNixMapper,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("\n📍 Demo 3: Git Hash to Store Path Mapping\n");
+
+    println!("This demonstrates how Git commit hashes map to Nix store paths.");
+    println!("In a real scenario, this would:");
+    println!("1. Take a Git commit hash");
+    println!("2. Use Nix's fetchGit to resolve it to a store path");
+    println!("3. Create an isomorphic mapping between Git and Nix");
+    println!();
+
+    // Example mapping (in reality, this would call Nix)
+    println!("Example mappings:");
+    println!("Git hash: abc123def456... → /nix/store/hash-source");
+    println!("Git hash: 789ghi012jkl... → /nix/store/hash-source-2");
+
+    Ok(())
+}
+
+// Additional helper to demonstrate FHS to store mapping
+fn demo_fhs_to_store_mapping() {
+    println!("\n📍 FHS to Nix Store Mapping\n");
+
+    let fhs_paths = vec![
+        "/usr/bin/gcc",
+        "/lib/libc.so.6",
+        "/usr/share/doc/hello",
+    ];
+
+    println!("FHS paths would map to Nix store paths:");
+    for path in fhs_paths {
+        println!("{} → /nix/store/hash-gcc-12.2.0/bin/gcc", path);
+    }
+} 

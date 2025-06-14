@@ -1,5 +1,4 @@
 //! Tests for ConceptGraph
-use uuid::Uuid;
 use cim_conceptgraph::{ConceptGraph, ConceptId, ConceptualPoint, SemanticRelationship};
 
 #[test]
@@ -48,6 +47,7 @@ fn test_add_concepts_and_relationships() {
     assert_eq!(graph.edges().len(), 1);
 
     let edges = graph.edges();
+    assert_eq!(edges[0].0, edge_id); // Verify the edge ID matches
     assert_eq!(edges[0].1.relationship_type, SemanticRelationship::Similarity);
     assert_eq!(edges[0].1.strength, 0.8);
 }

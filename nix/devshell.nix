@@ -32,6 +32,9 @@ pkgs.mkShell {
     xorg.libXcursor
     xorg.libXi
     xorg.libXrandr
+    
+    # SSL/TLS support
+    openssl
 
     # Development tools
     rust-analyzer
@@ -90,6 +93,7 @@ pkgs.mkShell {
     pkgs.systemd
     pkgs.vulkan-loader
     pkgs.libxkbcommon
+    pkgs.openssl
   ];
 
   # Disable experimental features that might cause issues
