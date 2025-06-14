@@ -1,0 +1,1164 @@
+{
+    "metadata": {
+        "name": "CIM Vocabulary Graph",
+        "description": "Canonical source for CIM vocabulary - includes all domain modules and architecture components",
+        "version": "3.0.0",
+        "created": "2024-12-04",
+        "updated": "2025-01-07",
+        "projection_rules": {
+            "markdown": {
+                "template": "vocabulary-template.md",
+                "grouping": "category",
+                "sorting": [
+                    "category_order",
+                    "name"
+                ],
+                "sections": [
+                    "core-architecture",
+                    "domain-modules",
+                    "ddd-patterns",
+                    "event-sourcing",
+                    "infrastructure",
+                    "visualization",
+                    "integration-patterns"
+                ]
+            }
+        }
+    },
+    "categories": [
+        {
+            "id": "core-architecture",
+            "name": "Core Architecture",
+            "description": "Fundamental architectural components and patterns",
+            "order": 1,
+            "subcategories": [
+                {
+                    "id": "system-components",
+                    "name": "System Components",
+                    "order": 1
+                },
+                {
+                    "id": "architectural-patterns",
+                    "name": "Architectural Patterns",
+                    "order": 2
+                },
+                {
+                    "id": "layer-architecture",
+                    "name": "Layer Architecture",
+                    "order": 3
+                }
+            ]
+        },
+        {
+            "id": "domain-modules",
+            "name": "Domain Modules",
+            "description": "All bounded contexts implemented as git submodules",
+            "order": 2,
+            "subcategories": [
+                {
+                    "id": "core-domains",
+                    "name": "Core Business Domains",
+                    "order": 1
+                },
+                {
+                    "id": "infrastructure-domains",
+                    "name": "Infrastructure Domains",
+                    "order": 2
+                },
+                {
+                    "id": "visualization-domains",
+                    "name": "Visualization Domains",
+                    "order": 3
+                },
+                {
+                    "id": "foundation-modules",
+                    "name": "Foundation Modules",
+                    "order": 4
+                }
+            ]
+        },
+        {
+            "id": "ddd-patterns",
+            "name": "Domain-Driven Design",
+            "description": "DDD building blocks and patterns",
+            "order": 3,
+            "subcategories": [
+                {
+                    "id": "ddd-building-blocks",
+                    "name": "DDD Building Blocks",
+                    "order": 1
+                },
+                {
+                    "id": "ddd-strategic",
+                    "name": "Strategic Design",
+                    "order": 2
+                }
+            ]
+        },
+        {
+            "id": "event-sourcing",
+            "name": "Event Sourcing & CQRS",
+            "description": "Event-driven patterns and components",
+            "order": 4,
+            "subcategories": [
+                {
+                    "id": "event-patterns",
+                    "name": "Event Patterns",
+                    "order": 1
+                },
+                {
+                    "id": "cqrs-components",
+                    "name": "CQRS Components",
+                    "order": 2
+                }
+            ]
+        },
+        {
+            "id": "infrastructure",
+            "name": "Infrastructure",
+            "description": "Technical infrastructure components",
+            "order": 5,
+            "subcategories": [
+                {
+                    "id": "messaging",
+                    "name": "Messaging Infrastructure",
+                    "order": 1
+                },
+                {
+                    "id": "persistence",
+                    "name": "Persistence Infrastructure",
+                    "order": 2
+                },
+                {
+                    "id": "integration",
+                    "name": "Integration Infrastructure",
+                    "order": 3
+                }
+            ]
+        },
+        {
+            "id": "visualization",
+            "name": "Visualization",
+            "description": "3D visualization and interaction components",
+            "order": 6,
+            "subcategories": [
+                {
+                    "id": "bevy-components",
+                    "name": "Bevy ECS Components",
+                    "order": 1
+                },
+                {
+                    "id": "conceptual-spaces",
+                    "name": "Conceptual Spaces",
+                    "order": 2
+                }
+            ]
+        }
+    ],
+    "terms": [
+        {
+            "id": "cim",
+            "name": "CIM (Composable Information Machine)",
+            "category": "core-architecture",
+            "subcategory": "system-components",
+            "type": "Framework",
+            "definition": "A revolutionary distributed system architecture that transforms how we build, visualize, and reason about information systems",
+            "relationships": {
+                "contains": [
+                    "domain-module",
+                    "event-driven-architecture",
+                    "graph-workflows"
+                ],
+                "uses": [
+                    "bevy-ecs",
+                    "nats",
+                    "event-sourcing",
+                    "conceptual-spaces"
+                ]
+            },
+            "usage_context": "Overall system architecture",
+            "code_reference": "src/lib.rs"
+        },
+        {
+            "id": "domain-module",
+            "name": "Domain Module",
+            "category": "core-architecture",
+            "subcategory": "system-components",
+            "type": "Component",
+            "definition": "A bounded context implemented as a git submodule with clear responsibilities and event-based communication",
+            "relationships": {
+                "part-of": [
+                    "cim"
+                ],
+                "communicates-via": [
+                    "domain-event"
+                ],
+                "examples": [
+                    "person-domain",
+                    "agent-domain",
+                    "graph-domain"
+                ]
+            },
+            "usage_context": "Modular architecture",
+            "code_reference": null
+        },
+        {
+            "id": "event-driven-architecture",
+            "name": "Event-Driven Architecture",
+            "category": "core-architecture",
+            "subcategory": "architectural-patterns",
+            "type": "Pattern",
+            "definition": "Architecture where all state changes flow through immutable events",
+            "relationships": {
+                "uses": [
+                    "domain-event",
+                    "event-store",
+                    "nats"
+                ],
+                "enables": [
+                    "loose-coupling",
+                    "audit-trail",
+                    "time-travel"
+                ]
+            },
+            "usage_context": "System communication pattern",
+            "code_reference": null
+        },
+        {
+            "id": "graph-workflows",
+            "name": "Graph-Based Workflows",
+            "category": "core-architecture",
+            "subcategory": "architectural-patterns",
+            "type": "Pattern",
+            "definition": "Visual representation of business processes and knowledge as graphs",
+            "relationships": {
+                "uses": [
+                    "graph-domain",
+                    "workflow-domain"
+                ],
+                "enables": [
+                    "visual-reasoning",
+                    "process-automation"
+                ]
+            },
+            "usage_context": "Workflow representation",
+            "code_reference": null
+        },
+        {
+            "id": "conceptual-spaces",
+            "name": "Conceptual Spaces",
+            "category": "core-architecture",
+            "subcategory": "architectural-patterns",
+            "type": "Pattern",
+            "definition": "Geometric representation of semantic relationships and knowledge",
+            "relationships": {
+                "uses": [
+                    "conceptual-point",
+                    "convex-region"
+                ],
+                "enables": [
+                    "semantic-search",
+                    "similarity-calculation"
+                ]
+            },
+            "usage_context": "Knowledge representation",
+            "code_reference": "cim-domain-conceptualspaces/"
+        },
+        {
+            "id": "presentation-layer",
+            "name": "Presentation Layer",
+            "category": "core-architecture",
+            "subcategory": "layer-architecture",
+            "type": "Layer",
+            "definition": "Bevy ECS-based 3D visualization and interaction layer",
+            "relationships": {
+                "uses": [
+                    "bevy-ecs",
+                    "async-sync-bridge"
+                ],
+                "handles": [
+                    "user-interaction",
+                    "real-time-rendering"
+                ]
+            },
+            "usage_context": "User interface",
+            "code_reference": "src/presentation/"
+        },
+        {
+            "id": "application-layer",
+            "name": "Application Layer",
+            "category": "core-architecture",
+            "subcategory": "layer-architecture",
+            "type": "Layer",
+            "definition": "Command and query routing with cross-cutting concerns",
+            "relationships": {
+                "contains": [
+                    "command-handler",
+                    "query-handler",
+                    "event-processor"
+                ],
+                "coordinates": [
+                    "domain-layer",
+                    "presentation-layer"
+                ]
+            },
+            "usage_context": "Application logic",
+            "code_reference": "src/application/"
+        },
+        {
+            "id": "domain-layer",
+            "name": "Domain Layer",
+            "category": "core-architecture",
+            "subcategory": "layer-architecture",
+            "type": "Layer",
+            "definition": "Business logic, aggregates, and domain events",
+            "relationships": {
+                "contains": [
+                    "aggregate",
+                    "domain-service",
+                    "domain-event"
+                ],
+                "enforces": [
+                    "business-rules",
+                    "invariants"
+                ]
+            },
+            "usage_context": "Business logic",
+            "code_reference": "src/domain/"
+        },
+        {
+            "id": "infrastructure-layer",
+            "name": "Infrastructure Layer",
+            "category": "core-architecture",
+            "subcategory": "layer-architecture",
+            "type": "Layer",
+            "definition": "NATS messaging, event persistence, and external integrations",
+            "relationships": {
+                "provides": [
+                    "event-store",
+                    "message-routing",
+                    "persistence"
+                ],
+                "uses": [
+                    "nats",
+                    "jetstream",
+                    "object-store"
+                ]
+            },
+            "usage_context": "Technical infrastructure",
+            "code_reference": "src/infrastructure/"
+        },
+        {
+            "id": "person-domain",
+            "name": "Person Domain",
+            "category": "domain-modules",
+            "subcategory": "core-domains",
+            "type": "Domain Module",
+            "definition": "Manages person identity, contact information, skills, and employment relationships",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-person"
+                ],
+                "emits": [
+                    "person-created",
+                    "email-changed",
+                    "skill-added"
+                ],
+                "uses": [
+                    "identity-component",
+                    "contact-component"
+                ]
+            },
+            "usage_context": "Identity management",
+            "code_reference": "cim-domain-person/"
+        },
+        {
+            "id": "organization-domain",
+            "name": "Organization Domain",
+            "category": "domain-modules",
+            "subcategory": "core-domains",
+            "type": "Domain Module",
+            "definition": "Manages organizational structures, hierarchies, and member relationships",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-organization"
+                ],
+                "emits": [
+                    "organization-created",
+                    "member-added",
+                    "department-created"
+                ],
+                "relates-to": [
+                    "person-domain"
+                ]
+            },
+            "usage_context": "Organization management",
+            "code_reference": "cim-domain-organization/"
+        },
+        {
+            "id": "agent-domain",
+            "name": "Agent Domain",
+            "category": "domain-modules",
+            "subcategory": "core-domains",
+            "type": "Domain Module",
+            "definition": "Manages autonomous actors with capabilities and tool access",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-agent"
+                ],
+                "emits": [
+                    "agent-created",
+                    "capability-added",
+                    "agent-deployed"
+                ],
+                "uses": [
+                    "capability-component",
+                    "tool-access"
+                ]
+            },
+            "usage_context": "Agent management",
+            "code_reference": "cim-domain-agent/"
+        },
+        {
+            "id": "policy-domain",
+            "name": "Policy Domain",
+            "category": "domain-modules",
+            "subcategory": "core-domains",
+            "type": "Domain Module",
+            "definition": "Manages business rules, security policies, and compliance requirements",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-policy"
+                ],
+                "emits": [
+                    "policy-created",
+                    "rule-added",
+                    "policy-activated"
+                ],
+                "enforces": [
+                    "access-control",
+                    "compliance"
+                ]
+            },
+            "usage_context": "Policy management",
+            "code_reference": "cim-domain-policy/"
+        },
+        {
+            "id": "git-domain",
+            "name": "Git Domain",
+            "category": "domain-modules",
+            "subcategory": "infrastructure-domains",
+            "type": "Domain Module",
+            "definition": "Repository analysis, commit graph extraction, and GitHub integration",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-git"
+                ],
+                "emits": [
+                    "repository-cloned",
+                    "commit-analyzed",
+                    "branch-created"
+                ],
+                "integrates": [
+                    "github-mcp"
+                ]
+            },
+            "usage_context": "Version control integration",
+            "code_reference": "cim-domain-git/"
+        },
+        {
+            "id": "nix-domain",
+            "name": "Nix Domain",
+            "category": "domain-modules",
+            "subcategory": "infrastructure-domains",
+            "type": "Domain Module",
+            "definition": "Nix ecosystem operations including flakes, packages, and configurations",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-nix"
+                ],
+                "emits": [
+                    "flake-created",
+                    "package-built",
+                    "configuration-activated"
+                ],
+                "manages": [
+                    "nix-flake",
+                    "nix-module",
+                    "nix-overlay"
+                ]
+            },
+            "usage_context": "Nix package management",
+            "code_reference": "cim-domain-nix/"
+        },
+        {
+            "id": "document-domain",
+            "name": "Document Domain",
+            "category": "domain-modules",
+            "subcategory": "infrastructure-domains",
+            "type": "Domain Module",
+            "definition": "Content processing, knowledge extraction, and version tracking",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-document"
+                ],
+                "emits": [
+                    "document-created",
+                    "content-extracted",
+                    "version-created"
+                ],
+                "processes": [
+                    "markdown",
+                    "pdf",
+                    "html"
+                ]
+            },
+            "usage_context": "Document management",
+            "code_reference": "cim-domain-document/"
+        },
+        {
+            "id": "location-domain",
+            "name": "Location Domain",
+            "category": "domain-modules",
+            "subcategory": "infrastructure-domains",
+            "type": "Domain Module",
+            "definition": "Geospatial data, address management, and distance calculations",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-location"
+                ],
+                "emits": [
+                    "location-created",
+                    "address-validated",
+                    "region-defined"
+                ],
+                "uses": [
+                    "geo-types",
+                    "spatial-index"
+                ]
+            },
+            "usage_context": "Location services",
+            "code_reference": "cim-domain-location/"
+        },
+        {
+            "id": "graph-domain",
+            "name": "Graph Domain",
+            "category": "domain-modules",
+            "subcategory": "visualization-domains",
+            "type": "Domain Module",
+            "definition": "Graph structures, node and edge management, and layout algorithms",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-graph"
+                ],
+                "emits": [
+                    "node-added",
+                    "edge-connected",
+                    "subgraph-created"
+                ],
+                "provides": [
+                    "graph-aggregate",
+                    "layout-algorithms"
+                ]
+            },
+            "usage_context": "Graph management",
+            "code_reference": "cim-domain-graph/"
+        },
+        {
+            "id": "workflow-domain",
+            "name": "Workflow Domain",
+            "category": "domain-modules",
+            "subcategory": "visualization-domains",
+            "type": "Domain Module",
+            "definition": "Process definitions, state machines, and task orchestration",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-workflow"
+                ],
+                "emits": [
+                    "workflow-created",
+                    "task-completed",
+                    "state-transitioned"
+                ],
+                "uses": [
+                    "state-machine",
+                    "process-engine"
+                ]
+            },
+            "usage_context": "Workflow automation",
+            "code_reference": "cim-domain-workflow/"
+        },
+        {
+            "id": "conceptualspaces-domain",
+            "name": "Conceptual Spaces Domain",
+            "category": "domain-modules",
+            "subcategory": "visualization-domains",
+            "type": "Domain Module",
+            "definition": "Semantic positioning, similarity calculations, and category formation",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-conceptualspaces"
+                ],
+                "emits": [
+                    "concept-added",
+                    "similarity-calculated",
+                    "category-formed"
+                ],
+                "provides": [
+                    "conceptual-point",
+                    "convex-region"
+                ]
+            },
+            "usage_context": "Semantic representation",
+            "code_reference": "cim-domain-conceptualspaces/"
+        },
+        {
+            "id": "bevy-domain",
+            "name": "Bevy Domain",
+            "category": "domain-modules",
+            "subcategory": "visualization-domains",
+            "type": "Domain Module",
+            "definition": "3D rendering, user interaction, and real-time visualization",
+            "relationships": {
+                "submodule": [
+                    "cim-domain-bevy"
+                ],
+                "emits": [
+                    "entity-spawned",
+                    "interaction-detected",
+                    "animation-completed"
+                ],
+                "uses": [
+                    "bevy-ecs",
+                    "wgpu"
+                ]
+            },
+            "usage_context": "3D visualization",
+            "code_reference": "cim-domain-bevy/"
+        },
+        {
+            "id": "cim-domain",
+            "name": "Core Domain Infrastructure",
+            "category": "domain-modules",
+            "subcategory": "foundation-modules",
+            "type": "Foundation Module",
+            "definition": "Core DDD infrastructure including Entity, AggregateRoot, and CQRS traits",
+            "relationships": {
+                "provides": [
+                    "entity-trait",
+                    "aggregate-trait",
+                    "command-trait",
+                    "query-trait"
+                ],
+                "used-by": [
+                    "all-domain-modules"
+                ]
+            },
+            "usage_context": "DDD foundation",
+            "code_reference": "cim-domain/"
+        },
+        {
+            "id": "cim-compose",
+            "name": "Composition Module",
+            "category": "domain-modules",
+            "subcategory": "foundation-modules",
+            "type": "Foundation Module",
+            "definition": "Graph-based composition using category theory principles",
+            "relationships": {
+                "provides": [
+                    "graph-composition",
+                    "composition-patterns"
+                ],
+                "uses": [
+                    "graph-domain",
+                    "workflow-domain"
+                ]
+            },
+            "usage_context": "Domain composition",
+            "code_reference": "cim-compose/"
+        },
+        {
+            "id": "cim-infrastructure",
+            "name": "Infrastructure Module",
+            "category": "domain-modules",
+            "subcategory": "foundation-modules",
+            "type": "Foundation Module",
+            "definition": "NATS integration, event store, and persistence abstractions",
+            "relationships": {
+                "provides": [
+                    "event-store",
+                    "nats-client",
+                    "repository-trait"
+                ],
+                "used-by": [
+                    "all-domain-modules"
+                ]
+            },
+            "usage_context": "Technical infrastructure",
+            "code_reference": "cim-infrastructure/"
+        },
+        {
+            "id": "aggregate",
+            "name": "Aggregate",
+            "category": "ddd-patterns",
+            "subcategory": "ddd-building-blocks",
+            "type": "Pattern",
+            "definition": "A cluster of domain objects that can be treated as a single unit with a consistency boundary",
+            "relationships": {
+                "has": [
+                    "aggregate-root",
+                    "entity",
+                    "value-object"
+                ],
+                "emits": [
+                    "domain-event"
+                ],
+                "handles": [
+                    "command"
+                ]
+            },
+            "usage_context": "Domain consistency",
+            "code_reference": "cim-domain/src/aggregate.rs"
+        },
+        {
+            "id": "entity",
+            "name": "Entity",
+            "category": "ddd-patterns",
+            "subcategory": "ddd-building-blocks",
+            "type": "Pattern",
+            "definition": "An object that has a distinct identity that runs through time and different states",
+            "relationships": {
+                "has": [
+                    "entity-id",
+                    "version"
+                ],
+                "part-of": [
+                    "aggregate"
+                ],
+                "composed-of": [
+                    "component"
+                ]
+            },
+            "usage_context": "Domain objects with identity",
+            "code_reference": "cim-domain/src/entity.rs"
+        },
+        {
+            "id": "value-object",
+            "name": "Value Object",
+            "category": "ddd-patterns",
+            "subcategory": "ddd-building-blocks",
+            "type": "Pattern",
+            "definition": "An immutable object that is defined by its attributes rather than a unique identity",
+            "relationships": {
+                "examples": [
+                    "email",
+                    "position-3d",
+                    "person-name"
+                ],
+                "part-of": [
+                    "entity",
+                    "aggregate"
+                ],
+                "compared-by": [
+                    "value"
+                ]
+            },
+            "usage_context": "Immutable domain data",
+            "code_reference": "cim-domain/src/value_objects/"
+        },
+        {
+            "id": "domain-service",
+            "name": "Domain Service",
+            "category": "ddd-patterns",
+            "subcategory": "ddd-building-blocks",
+            "type": "Pattern",
+            "definition": "Encapsulates domain logic that doesn't naturally fit within a single entity or value object",
+            "relationships": {
+                "operates-on": [
+                    "aggregate",
+                    "entity"
+                ],
+                "implements": [
+                    "business-logic"
+                ],
+                "stateless": true
+            },
+            "usage_context": "Cross-entity operations",
+            "code_reference": null
+        },
+        {
+            "id": "bounded-context",
+            "name": "Bounded Context",
+            "category": "ddd-patterns",
+            "subcategory": "ddd-strategic",
+            "type": "Pattern",
+            "definition": "A logical boundary within which a particular domain model is defined and applicable",
+            "relationships": {
+                "contains": [
+                    "ubiquitous-language",
+                    "domain-model"
+                ],
+                "communicates-via": [
+                    "domain-event"
+                ],
+                "implemented-as": [
+                    "domain-module"
+                ]
+            },
+            "usage_context": "Domain boundaries",
+            "code_reference": null
+        },
+        {
+            "id": "ubiquitous-language",
+            "name": "Ubiquitous Language",
+            "category": "ddd-patterns",
+            "subcategory": "ddd-strategic",
+            "type": "Concept",
+            "definition": "The common language used by developers and domain experts within a bounded context",
+            "relationships": {
+                "used-in": [
+                    "bounded-context"
+                ],
+                "reflected-in": [
+                    "code",
+                    "documentation",
+                    "conversations"
+                ]
+            },
+            "usage_context": "Domain communication",
+            "code_reference": null
+        },
+        {
+            "id": "domain-event",
+            "name": "Domain Event",
+            "category": "event-sourcing",
+            "subcategory": "event-patterns",
+            "type": "Pattern",
+            "definition": "A record of something that happened in the domain, immutable and representing facts",
+            "relationships": {
+                "emitted-by": [
+                    "aggregate"
+                ],
+                "stored-in": [
+                    "event-store"
+                ],
+                "published-to": [
+                    "nats"
+                ],
+                "wrapped-in": [
+                    "event-envelope"
+                ]
+            },
+            "usage_context": "State changes",
+            "code_reference": "cim-domain/src/events.rs"
+        },
+        {
+            "id": "event-sourcing",
+            "name": "Event Sourcing",
+            "category": "event-sourcing",
+            "subcategory": "event-patterns",
+            "type": "Pattern",
+            "definition": "Architectural pattern where state changes are stored as a sequence of events",
+            "relationships": {
+                "uses": [
+                    "domain-event",
+                    "event-store"
+                ],
+                "enables": [
+                    "audit-trail",
+                    "time-travel",
+                    "event-replay"
+                ]
+            },
+            "usage_context": "State persistence",
+            "code_reference": null
+        },
+        {
+            "id": "cid-chain",
+            "name": "CID Chain",
+            "category": "event-sourcing",
+            "subcategory": "event-patterns",
+            "type": "Pattern",
+            "definition": "Cryptographic chain of Content IDs ensuring event integrity and immutability",
+            "relationships": {
+                "links": [
+                    "domain-event"
+                ],
+                "uses": [
+                    "content-identifier"
+                ],
+                "ensures": [
+                    "integrity",
+                    "immutability"
+                ]
+            },
+            "usage_context": "Event integrity",
+            "code_reference": "cim-ipld/"
+        },
+        {
+            "id": "command",
+            "name": "Command",
+            "category": "event-sourcing",
+            "subcategory": "cqrs-components",
+            "type": "Pattern",
+            "definition": "An instruction to perform an action that changes state",
+            "relationships": {
+                "handled-by": [
+                    "command-handler",
+                    "aggregate"
+                ],
+                "produces": [
+                    "domain-event"
+                ],
+                "returns": [
+                    "command-acknowledgment"
+                ]
+            },
+            "usage_context": "State modification",
+            "code_reference": "cim-domain/src/commands.rs"
+        },
+        {
+            "id": "query",
+            "name": "Query",
+            "category": "event-sourcing",
+            "subcategory": "cqrs-components",
+            "type": "Pattern",
+            "definition": "A request for data that doesn't change state",
+            "relationships": {
+                "handled-by": [
+                    "query-handler"
+                ],
+                "reads-from": [
+                    "projection",
+                    "read-model"
+                ],
+                "returns": [
+                    "query-result"
+                ]
+            },
+            "usage_context": "Data retrieval",
+            "code_reference": "cim-domain/src/queries.rs"
+        },
+        {
+            "id": "projection",
+            "name": "Projection",
+            "category": "event-sourcing",
+            "subcategory": "cqrs-components",
+            "type": "Pattern",
+            "definition": "A read model built from events, optimized for specific queries",
+            "relationships": {
+                "built-from": [
+                    "domain-event"
+                ],
+                "updated-by": [
+                    "event-processor"
+                ],
+                "serves": [
+                    "query"
+                ]
+            },
+            "usage_context": "Read optimization",
+            "code_reference": "src/projections/"
+        },
+        {
+            "id": "nats",
+            "name": "NATS",
+            "category": "infrastructure",
+            "subcategory": "messaging",
+            "type": "Technology",
+            "definition": "High-performance messaging system used for event distribution and communication",
+            "relationships": {
+                "transports": [
+                    "domain-event",
+                    "command",
+                    "query"
+                ],
+                "provides": [
+                    "pub-sub",
+                    "request-reply",
+                    "queue-groups"
+                ],
+                "hosts": [
+                    "jetstream"
+                ]
+            },
+            "usage_context": "Message infrastructure",
+            "code_reference": "cim-infrastructure/src/nats/"
+        },
+        {
+            "id": "jetstream",
+            "name": "JetStream",
+            "category": "infrastructure",
+            "subcategory": "messaging",
+            "type": "Technology",
+            "definition": "NATS persistence layer providing at-least-once delivery guarantees",
+            "relationships": {
+                "part-of": [
+                    "nats"
+                ],
+                "persists": [
+                    "domain-event"
+                ],
+                "enables": [
+                    "event-replay",
+                    "guaranteed-delivery"
+                ]
+            },
+            "usage_context": "Event persistence",
+            "code_reference": "cim-infrastructure/src/nats/jetstream.rs"
+        },
+        {
+            "id": "event-store",
+            "name": "Event Store",
+            "category": "infrastructure",
+            "subcategory": "persistence",
+            "type": "Component",
+            "definition": "Persistence layer for domain events with append-only semantics",
+            "relationships": {
+                "stores": [
+                    "domain-event",
+                    "event-envelope"
+                ],
+                "uses": [
+                    "jetstream",
+                    "cid-chain"
+                ],
+                "provides": [
+                    "event-replay",
+                    "event-stream"
+                ]
+            },
+            "usage_context": "Event persistence",
+            "code_reference": "cim-infrastructure/src/event_store/"
+        },
+        {
+            "id": "object-store",
+            "name": "Object Store",
+            "category": "infrastructure",
+            "subcategory": "persistence",
+            "type": "Component",
+            "definition": "Content-addressed storage for large objects referenced by events",
+            "relationships": {
+                "stores": [
+                    "large-payload",
+                    "binary-data"
+                ],
+                "uses": [
+                    "content-identifier"
+                ],
+                "referenced-by": [
+                    "domain-event"
+                ]
+            },
+            "usage_context": "Large data storage",
+            "code_reference": "cim-infrastructure/src/object_store/"
+        },
+        {
+            "id": "async-sync-bridge",
+            "name": "Async/Sync Bridge",
+            "category": "infrastructure",
+            "subcategory": "integration",
+            "type": "Component",
+            "definition": "Translates between Bevy's synchronous ECS and NATS's asynchronous messaging",
+            "relationships": {
+                "connects": [
+                    "bevy-ecs",
+                    "nats"
+                ],
+                "uses": [
+                    "crossbeam-channel",
+                    "tokio"
+                ],
+                "handles": [
+                    "event-flow",
+                    "command-flow"
+                ]
+            },
+            "usage_context": "System integration",
+            "code_reference": "src/infrastructure/bridge/"
+        },
+        {
+            "id": "bevy-ecs",
+            "name": "Bevy ECS",
+            "category": "visualization",
+            "subcategory": "bevy-components",
+            "type": "Technology",
+            "definition": "Entity Component System game engine used for 3D visualization and interaction",
+            "relationships": {
+                "provides": [
+                    "rendering",
+                    "input-handling",
+                    "animation"
+                ],
+                "uses": [
+                    "entity-component-system"
+                ],
+                "integrated-via": [
+                    "async-sync-bridge"
+                ]
+            },
+            "usage_context": "3D visualization",
+            "code_reference": "cim-domain-bevy/"
+        },
+        {
+            "id": "conceptual-point",
+            "name": "Conceptual Point",
+            "category": "visualization",
+            "subcategory": "conceptual-spaces",
+            "type": "Value Object",
+            "definition": "A position in conceptual space representing semantic properties",
+            "relationships": {
+                "part-of": [
+                    "conceptual-space"
+                ],
+                "has": [
+                    "coordinates",
+                    "dimensions"
+                ],
+                "used-for": [
+                    "similarity-calculation"
+                ]
+            },
+            "usage_context": "Semantic positioning",
+            "code_reference": "cim-domain-conceptualspaces/src/value_objects/"
+        },
+        {
+            "id": "convex-region",
+            "name": "Convex Region",
+            "category": "visualization",
+            "subcategory": "conceptual-spaces",
+            "type": "Value Object",
+            "definition": "A convex region in conceptual space representing a natural category",
+            "relationships": {
+                "contains": [
+                    "conceptual-point"
+                ],
+                "has": [
+                    "prototype",
+                    "boundaries"
+                ],
+                "represents": [
+                    "category",
+                    "concept"
+                ]
+            },
+            "usage_context": "Category representation",
+            "code_reference": "cim-domain-conceptualspaces/src/value_objects/"
+        }
+    ],
+    "relationships": {
+        "types": [
+            "contains",
+            "uses",
+            "emits",
+            "handles",
+            "part-of",
+            "communicates-via",
+            "implemented-as",
+            "provides",
+            "enables",
+            "specializes",
+            "examples"
+        ]
+    }
+}
