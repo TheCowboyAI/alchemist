@@ -1,182 +1,201 @@
-# Architecture Documentation
+# CIM Architecture Overview
 
-This directory contains detailed technical documentation about the Information Alchemist architecture.
+## System Architecture
 
-## 📚 Core Documents
+The Composable Information Machine (CIM) is built on a foundation of proven architectural patterns combined in innovative ways to create a truly composable, event-driven system.
 
-### [CIM Overview](cim-overview.md)
-**The Big Picture: Information Alchemist as a CIM Leaf Node**
+```mermaid
+graph TB
+    subgraph "Presentation Layer"
+        Bevy[Bevy ECS Engine]
+        UI[3D UI Components]
+        Viz[Graph Visualization]
+    end
 
-Learn how Information Alchemist fits into the Composable Information Machine ecosystem:
-- Distributed architecture with NATS messaging
-- Event-driven communication patterns
-- Integration with CIM backend services
-- Conceptual spaces for semantic understanding
+    subgraph "Application Layer"
+        Bridge[Async/Sync Bridge]
+        CmdHandler[Command Handlers]
+        QueryHandler[Query Handlers]
+        EventProc[Event Processors]
+    end
 
-### [Event Sourcing](event-sourcing.md)
-**Event-Driven Architecture in Practice**
+    subgraph "Domain Layer"
+        Aggregates[Domain Aggregates]
+        Services[Domain Services]
+        Policies[Domain Policies]
+        ValueObj[Value Objects]
+    end
 
-Deep dive into our event sourcing implementation:
-- Domain events as the source of truth
-- CID chains for cryptographic integrity
-- CQRS pattern for read/write separation
-- Event replay and time travel debugging
+    subgraph "Infrastructure Layer"
+        NATS[NATS JetStream]
+        EventStore[Event Store]
+        ObjectStore[Object Store]
+        Projections[Read Models]
+    end
 
-### [System Components](system-components.md)
-**Detailed Component Reference**
-
-Comprehensive guide to all system components:
-- Domain aggregates and entities
-- Command and event handlers
-- Projections and read models
-- Infrastructure services
-
-## 🏗️ Architecture Principles
-
-### 1. **Event-First Design**
-Every state change flows through events:
-```
-User Action → Presentation Event → Domain Command → Domain Event → Projection Update
-```
-
-### 2. **Clean Architecture Layers**
-```
-Presentation (Bevy ECS)
-    ↓
-Application (CQRS)
-    ↓
-Domain (Business Logic)
-    ↓
-Infrastructure (NATS, Storage)
-```
-
-### 3. **Domain-Driven Design**
-- Aggregates enforce business rules
-- Value objects are immutable
-- Events record business facts
-- Commands express user intent
-
-### 4. **Distributed by Design**
-- NATS for messaging backbone
-- Event store for distributed state
-- Object store for large content
-- CID chains for integrity
-
-## 🔄 Event Flow Architecture
-
-### Presentation Events (Stay in Bevy)
-```rust
-// UI interactions that don't affect domain state
-pub enum PresentationEvent {
-    DragStarted { node_id: NodeId, position: Vec3 },
-    AnimationFrame { progress: f32 },
-    CameraRotated { rotation: Quat },
-}
+    UI --> Bevy
+    Bevy --> Bridge
+    Bridge --> CmdHandler
+    Bridge --> QueryHandler
+    
+    CmdHandler --> Aggregates
+    QueryHandler --> Projections
+    
+    Aggregates --> EventStore
+    EventStore --> NATS
+    NATS --> EventProc
+    EventProc --> Projections
+    
+    Services --> Aggregates
+    Policies --> EventProc
 ```
 
-### Domain Events (Distributed via NATS)
-```rust
-// Business-meaningful state changes
-pub enum DomainEvent {
-    NodeAdded { graph_id: GraphId, node_id: NodeId, content: NodeContent },
-    EdgeConnected { source: NodeId, target: NodeId, relationship: EdgeRelationship },
-    GraphPublished { graph_id: GraphId, version: Version },
-}
-```
+## Core Architectural Patterns
 
-## 🎯 Key Design Decisions
+### 1. Event-Driven Architecture (EDA)
+All state changes in CIM flow through events:
+- Commands express intent to change state
+- Aggregates validate and generate events
+- Events are immutable facts about what happened
+- Event processors update read models and trigger policies
 
-### Why Event Sourcing?
-- **Complete audit trail** - Every change is recorded
-- **Time travel** - Replay to any point in history
-- **Distributed consensus** - Events as shared truth
-- **AI-ready** - Events provide training data
+### 2. Domain-Driven Design (DDD)
+The system is organized into bounded contexts:
+- Each domain module represents a bounded context
+- Clear boundaries between contexts
+- Communication only through events
+- Ubiquitous language within each context
 
-### Why NATS?
-- **High performance** - Millions of messages/second
-- **Built-in persistence** - JetStream for event store
-- **Clustering** - Automatic failover
-- **Security** - JWT auth and TLS
+### 3. Entity Component System (ECS)
+The presentation layer uses Bevy ECS for:
+- High-performance rendering
+- Flexible entity composition
+- Parallel system execution
+- Real-time interaction
 
-### Why Bevy ECS?
-- **Performance** - Cache-friendly data layout
-- **Flexibility** - Compose behaviors from components
-- **Parallelism** - Automatic system scheduling
-- **Hot reload** - Rapid development
+### 4. CQRS (Command Query Responsibility Segregation)
+Separate paths for writes and reads:
+- Commands go through domain aggregates
+- Queries read from optimized projections
+- Eventually consistent read models
+- No direct database access
 
-### Why CID Chains?
-- **Integrity** - Cryptographic proof of history
-- **Deduplication** - Same content = same CID
-- **Distribution** - Content-addressed storage
-- **Interoperability** - IPLD standards
+### 5. Event Sourcing
+Selected aggregates use event sourcing:
+- Events as the source of truth
+- Rebuild state by replaying events
+- Complete audit trail
+- Time travel debugging
 
-## 📊 Current Implementation Status
+## Layer Responsibilities
 
-### ✅ Implemented
-- Event sourcing with CID chains
-- NATS integration with JetStream
-- Graph aggregate with full business logic
-- CQRS command/query separation
-- Integration test suite
-- Projection system for read models
-- Presentation/domain event separation
+### Presentation Layer (Bevy ECS)
+- 3D visualization of graphs and workflows
+- User interaction handling
+- Real-time updates from domain events
+- Visual feedback and animations
 
-### 🚧 In Progress
-- Additional domain aggregates (Workflow, ConceptualSpace)
-- Query handler optimization
-- Snapshot management
-- Performance benchmarking
+### Application Layer
+- Command and query routing
+- Cross-cutting concerns (auth, logging)
+- Async/sync bridge between Bevy and NATS
+- Transaction coordination
 
-### 📅 Planned
-- Conceptual space implementation
-- AI agent integration
-- Multi-user collaboration
-- Plugin architecture
+### Domain Layer
+- Business logic and rules
+- Aggregate invariant enforcement
+- Domain event generation
+- Policy execution
 
-## 🔗 Related Documentation
+### Infrastructure Layer
+- Event persistence and streaming
+- Message routing via NATS
+- Object storage for large data
+- Read model management
 
-### Implementation Details
-- `/doc/design/current/` - Active design documents
-- `/doc/plan/current/` - Implementation plans
-- `/doc/completed/` - Completed designs and plans
+## Key Design Decisions
 
-### Key Design Documents
-- `event-sourced-graph-architecture.md` - Complete system design
-- `presentation-vs-domain-events.md` - Event separation patterns
-- `graph-models-and-morphisms.md` - Graph theory foundation
-- `value-object-immutability.md` - DDD principles
+### 1. Dual ECS Systems
+- **Bevy ECS**: For presentation and real-time interaction
+- **Domain Model**: Traditional DDD aggregates for business logic
+- Bridge translates between the two paradigms
 
-## 🚀 Getting Started
+### 2. Content-Addressed Storage
+- Events linked via CID chains
+- Cryptographic integrity verification
+- Distributed storage capability
+- IPLD for structured data
 
-For developers new to the architecture:
+### 3. Graph as Primary Abstraction
+- Workflows are graphs
+- Knowledge is a graph
+- Events form a graph
+- System architecture is a graph
 
-1. Start with [CIM Overview](cim-overview.md) for the big picture
-2. Read [Event Sourcing](event-sourcing.md) to understand data flow
-3. Explore [System Components](system-components.md) for implementation details
-4. Check `/doc/design/current/` for detailed design rationale
+### 4. Conceptual Spaces Integration
+- Every entity has both visual and conceptual position
+- Semantic similarity drives layout
+- AI-friendly knowledge representation
+- Natural category formation
 
-## 💡 Architecture Highlights
+## Scalability Considerations
 
-### Isomorphic DDD-ECS Mapping
-We maintain a clean mapping between DDD concepts and ECS implementation:
-- DDD Entities → ECS Entities
-- Value Objects → Components
-- Domain Services → Systems
-- Events → Events (shared abstraction)
+### Horizontal Scaling
+- Stateless command/query handlers
+- Event stream partitioning
+- Read model replication
+- NATS clustering
 
-### Event Aggregation Pattern
-Multiple presentation events aggregate into single domain commands:
-```rust
-DragStarted + DragUpdated + DragEnded → MoveNode command
-```
+### Performance Optimization
+- ECS for cache-friendly data layout
+- Parallel system execution
+- Lazy loading of graph sections
+- Progressive rendering
 
-### Bidirectional Event Flow
-External systems can both:
-- Subscribe to our domain events
-- Inject events that we process
+### Resilience
+- Event replay for recovery
+- Circuit breakers for external calls
+- Graceful degradation
+- Automatic retries with backoff
 
-This enables seamless integration with the broader CIM ecosystem.
+## Security Architecture
 
----
+### Authentication & Authorization
+- JWT tokens for API access
+- Subject-based NATS permissions
+- Domain-level access control
+- Audit event generation
 
-*Architecture documentation is continuously updated as the system evolves.*
+### Data Protection
+- Encryption at rest (object store)
+- TLS for all network communication
+- Field-level encryption for PII
+- Secure key management
+
+## Integration Points
+
+### External Systems
+- GitHub via MCP for code repositories
+- NixOS for reproducible deployments
+- External databases via adapters
+- REST/GraphQL API gateways
+
+### Extension Mechanisms
+- Plugin system for custom domains
+- Event handler registration
+- Custom visualization components
+- Policy rule engines
+
+## Future Architecture Evolution
+
+### Planned Enhancements
+- WebAssembly for portable components
+- Multi-region event replication
+- Advanced ML/AI integration
+- Blockchain event anchoring
+
+### Research Areas
+- Quantum-resistant cryptography
+- Neuromorphic computing integration
+- Biological system modeling
+- Emergent behavior analysis 
