@@ -56,3 +56,9 @@
 [submodule "cim-domain-graph"]
 	path = cim-domain-graph
 	url = https://github.com/thecowboyai/cim-domain-graph
+[submodule "cim-domain-nix"]
+	path = cim-domain-nix
+	url = https://github.com/TheCowboyAI/cim-domain-nix.git
+[submodule "cim-conceptgraph"]
+	path = cim-conceptgraph
+	url = https://github.com/TheCowboyAI/cim-conceptgraph.git
