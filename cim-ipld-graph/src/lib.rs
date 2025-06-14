@@ -450,9 +450,34 @@ mod tests {
     fn test_event_chain() {
         let mut event_dag = EventDag::new();
 
-        // Create some test CIDs
-        let cid1 = Cid::default(); // Would be real CID in practice
-        let cid2 = Cid::default(); // Different CID
+        // Create some test CIDs - use different data to get different CIDs
+        // Create hash using BLAKE3
+        let hash1 = blake3::hash(b"event1");
+        let hash_bytes1 = hash1.as_bytes();
+
+        // Create multihash manually with BLAKE3 code (0x1e)
+        let code = 0x1e; // BLAKE3-256
+        let size = hash_bytes1.len() as u8;
+
+        // Build multihash: <varint code><varint size><hash>
+        let mut multihash_bytes1 = Vec::new();
+        multihash_bytes1.push(code);
+        multihash_bytes1.push(size);
+        multihash_bytes1.extend_from_slice(hash_bytes1);
+
+        // Create CID v1
+        let mh1 = multihash::Multihash::from_bytes(&multihash_bytes1).unwrap();
+        let cid1 = Cid::new_v1(0x55, mh1); // 0x55 is raw codec
+
+        // Create second CID
+        let hash2 = blake3::hash(b"event2");
+        let hash_bytes2 = hash2.as_bytes();
+        let mut multihash_bytes2 = Vec::new();
+        multihash_bytes2.push(code);
+        multihash_bytes2.push(size);
+        multihash_bytes2.extend_from_slice(hash_bytes2);
+        let mh2 = multihash::Multihash::from_bytes(&multihash_bytes2).unwrap();
+        let cid2 = Cid::new_v1(0x55, mh2);
 
         let event1 = EventNode {
             event_id: "evt-1".to_string(),

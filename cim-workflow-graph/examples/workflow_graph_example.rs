@@ -9,9 +9,9 @@
 use cim_workflow_graph::{
     WorkflowGraph, WorkflowType, EnrichmentType, BusinessValue,
 };
-use cim_domain::workflow::{
-    WorkflowState, SimpleState, SimpleTransition, SimpleInput, SimpleOutput,
-    WorkflowContext, ContextKeyGuard, ActorGuard,
+use cim_domain_workflow::{
+    WorkflowState, SimpleState, SimpleTransitionImpl, SimpleInput, SimpleOutput,
+    WorkflowContext, value_objects::transition::{ContextKeyGuard, ActorGuard},
 };
 use cim_domain::{GraphId, StateId};
 use serde::{Deserialize, Serialize};
@@ -54,7 +54,7 @@ fn main() {
     println!("\nAdding transitions...");
 
     // Draft -> Review (requires author)
-    let submit_for_review = SimpleTransition::new(
+    let submit_for_review = SimpleTransitionImpl::new(
         "submit_for_review",
         draft.clone(),
         review.clone(),
@@ -73,7 +73,7 @@ fn main() {
     ).unwrap();
 
     // Review -> Approved (requires reviewer role)
-    let approve = SimpleTransition::new(
+    let approve = SimpleTransitionImpl::new(
         "approve",
         review.clone(),
         approved.clone(),
@@ -92,7 +92,7 @@ fn main() {
     ).unwrap();
 
     // Review -> Rejected (requires reviewer role)
-    let reject = SimpleTransition::new(
+    let reject = SimpleTransitionImpl::new(
         "reject",
         review.clone(),
         rejected.clone(),
@@ -111,7 +111,7 @@ fn main() {
     ).unwrap();
 
     // Rejected -> Draft (for revision)
-    let revise = SimpleTransition::new(
+    let revise = SimpleTransitionImpl::new(
         "revise",
         rejected.clone(),
         draft.clone(),
@@ -129,7 +129,7 @@ fn main() {
     ).unwrap();
 
     // Approved -> Published (requires publisher role)
-    let publish = SimpleTransition::new(
+    let publish = SimpleTransitionImpl::new(
         "publish",
         approved.clone(),
         published.clone(),
@@ -148,7 +148,7 @@ fn main() {
     ).unwrap();
 
     // Published -> Archived (automatic after time)
-    let archive = SimpleTransition::new(
+    let archive = SimpleTransitionImpl::new(
         "archive",
         published.clone(),
         archived.clone(),

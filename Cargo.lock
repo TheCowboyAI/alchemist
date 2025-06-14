@@ -1842,6 +1842,10 @@ dependencies = [
  "chrono",
  "cid",
  "cim-component",
+ "cim-domain-agent",
+ "cim-domain-organization",
+ "cim-domain-person",
+ "cim-domain-workflow",
  "cim-ipld",
  "cim-subject",
  "futures",
@@ -2048,6 +2052,8 @@ dependencies = [
  "async-trait",
  "chrono",
  "cim-domain",
+ "cim-domain-location",
+ "cim-domain-policy",
  "cim-infrastructure",
  "cim-subject",
  "indexmap",
@@ -2111,10 +2117,12 @@ dependencies = [
 name = "cim-ipld-graph"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "cid",
  "cim-contextgraph",
  "cim-ipld",
  "daggy 0.8.1",
+ "multihash",
  "pretty_assertions",
  "serde",
  "serde_json",

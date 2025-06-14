@@ -379,7 +379,7 @@ impl EnrichmentValue for BusinessValue {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cim_domain_workflow::{SimpleState, SimpleTransition, SimpleInput, SimpleOutput};
+    use cim_domain_workflow::{SimpleState, SimpleTransitionImpl, SimpleInput, SimpleOutput};
 
     #[test]
     fn test_workflow_graph_creation() {
@@ -411,7 +411,7 @@ mod tests {
         let _processed_idx = graph.add_state(processed.clone());
 
         // Add transition
-        let transition = Box::new(SimpleTransition::new(
+        let transition = Box::new(SimpleTransitionImpl::new(
             "process_document",
             uploaded.clone(),
             processed.clone(),
@@ -450,7 +450,7 @@ mod tests {
         graph.add_state(indexed.clone());
 
         // Add transitions
-        let t1 = Box::new(SimpleTransition::new(
+        let t1 = Box::new(SimpleTransitionImpl::new(
             "validate_document",
             uploaded,
             validated.clone(),
@@ -458,7 +458,7 @@ mod tests {
             SimpleOutput::default(),
         ));
 
-        let t2 = Box::new(SimpleTransition::new(
+        let t2 = Box::new(SimpleTransitionImpl::new(
             "index_document",
             validated,
             indexed,
