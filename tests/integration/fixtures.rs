@@ -1,7 +1,7 @@
 //! Test fixtures and helpers for integration tests
 
 use async_nats::jetstream;
-use cim_domain::{DomainResult, DomainError};
+use cim_domain::{DomainResult, DomainError, DomainEvent};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -16,7 +16,7 @@ impl TestNatsServer {
     pub async fn start() -> DomainResult<Self> {
         let client = async_nats::connect("nats://localhost:4222")
             .await
-            .map_err(|e| DomainError::Infrastructure(format!("Failed to connect to NATS: {}", e)))?;
+            .map_err(|e| DomainError::generic(format!("Failed to connect to NATS: {}", e)))?;
 
         let jetstream = jetstream::new(client.clone());
 
@@ -52,7 +52,7 @@ impl TestNatsServer {
 
 /// Test event store
 pub struct TestEventStore {
-    events: Arc<Mutex<Vec<cim_domain::DomainEvent>>>,
+    events: Arc<Mutex<Vec<Box<dyn DomainEvent>>>>,
 }
 
 impl TestEventStore {
@@ -62,15 +62,15 @@ impl TestEventStore {
         }
     }
 
-    pub async fn append(&self, event: cim_domain::DomainEvent) -> DomainResult<()> {
+    pub async fn append(&self, event: Box<dyn DomainEvent>) -> DomainResult<()> {
         let mut events = self.events.lock().await;
         events.push(event);
         Ok(())
     }
 
-    pub async fn get_events(&self) -> Vec<cim_domain::DomainEvent> {
+    pub async fn get_events(&self) -> Vec<Box<dyn DomainEvent>> {
         let events = self.events.lock().await;
-        events.clone()
+        events.iter().map(|e| e.boxed_clone()).collect()
     }
 
     pub async fn clear(&self) {
@@ -109,7 +109,7 @@ pub mod assertions {
     use cim_domain::DomainEvent;
 
     /// Assert that an event was published
-    pub fn assert_event_published(events: &[DomainEvent], expected_type: &str) {
+    pub fn assert_event_published(events: &[Box<dyn DomainEvent>], expected_type: &str) {
         assert!(
             events.iter().any(|e| e.event_type() == expected_type),
             "Expected event type '{}' was not published. Found: {:?}",
@@ -119,7 +119,7 @@ pub mod assertions {
     }
 
     /// Assert event count
-    pub fn assert_event_count(events: &[DomainEvent], expected: usize) {
+    pub fn assert_event_count(events: &[Box<dyn DomainEvent>], expected: usize) {
         assert_eq!(
             events.len(),
             expected,

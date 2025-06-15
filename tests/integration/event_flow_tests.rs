@@ -1,8 +1,9 @@
 //! Integration tests for event flow through the system
 
 use crate::fixtures::{TestNatsServer, TestEventStore, create_test_graph, assertions::*};
-use cim_domain::{DomainResult, GraphId, NodeId};
-use cim_domain_graph::{GraphCommand, GraphAggregate, NodeType, StepType};
+use cim_domain::{DomainResult, GraphId, NodeId, Position3D, DomainEvent};
+use cim_domain_graph::{GraphCommand, GraphAggregate};
+use cim_domain_workflow::{NodeType, StepType, DecisionCriteria};
 
 #[tokio::test]
 async fn test_command_to_event_store_flow() -> DomainResult<()> {
@@ -16,7 +17,7 @@ async fn test_command_to_event_store_flow() -> DomainResult<()> {
         node_type: NodeType::WorkflowStep {
             step_type: StepType::Process,
         },
-        position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
         metadata: Default::default(),
     };
 
@@ -24,7 +25,7 @@ async fn test_command_to_event_store_flow() -> DomainResult<()> {
 
     // Store events
     for event in &events {
-        event_store.append(event.clone()).await?;
+        event_store.append(event.boxed_clone()).await?;
     }
 
     // Assert
@@ -47,21 +48,21 @@ async fn test_event_projection_update() -> DomainResult<()> {
     let graph_id = GraphId::new();
 
     // Create a node added event
-    let event = cim_domain::DomainEvent::from(
+    let event = Box::new(cim_domain::DomainEvent::from(
         cim_domain_graph::GraphDomainEvent::NodeAdded {
             graph_id,
             node_id: NodeId::new(),
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Process,
             },
-            position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
             conceptual_point: cim_domain_graph::ConceptualPoint::default(),
             metadata: Default::default(),
         }
-    );
+    ));
 
     // Act - Apply event to projection
-    projection.apply_event(&event).await?;
+    projection.apply_event(&*event).await?;
 
     // Assert
     let summary = projection.get_summary(&graph_id)?;
@@ -85,14 +86,14 @@ async fn test_multiple_commands_sequential_processing() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Start,
             },
-            position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
             metadata: Default::default(),
         },
         GraphCommand::AddNode {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::End,
             },
-            position: cim_domain_graph::Position3D { x: 10.0, y: 0.0, z: 0.0 },
+            position: Position3D { x: 10.0, y: 0.0, z: 0.0 },
             metadata: Default::default(),
         },
     ];
@@ -101,7 +102,7 @@ async fn test_multiple_commands_sequential_processing() -> DomainResult<()> {
     for command in commands {
         let events = graph.handle_command(command)?;
         for event in events {
-            event_store.append(event.clone()).await?;
+            event_store.append(event.boxed_clone()).await?;
             all_events.push(event);
         }
     }
@@ -126,14 +127,14 @@ async fn test_event_replay_consistency() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Process,
             },
-            position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
             metadata: Default::default(),
         },
         GraphCommand::AddNode {
             node_type: NodeType::Decision {
-                criteria: cim_domain_graph::DecisionCriteria::default(),
+                criteria: DecisionCriteria::default(),
             },
-            position: cim_domain_graph::Position3D { x: 5.0, y: 5.0, z: 0.0 },
+            position: Position3D { x: 5.0, y: 5.0, z: 0.0 },
             metadata: Default::default(),
         },
     ];
@@ -143,7 +144,7 @@ async fn test_event_replay_consistency() -> DomainResult<()> {
     for command in commands {
         let events = original_graph.handle_command(command)?;
         for event in events {
-            event_store.append(event.clone()).await?;
+            event_store.append(event.boxed_clone()).await?;
             all_events.push(event);
         }
     }
@@ -152,8 +153,8 @@ async fn test_event_replay_consistency() -> DomainResult<()> {
     let mut replayed_graph = create_test_graph();
     let stored_events = event_store.get_events().await;
 
-    for event in stored_events {
-        replayed_graph.apply_event(&event)?;
+    for event in stored_events.iter() {
+        replayed_graph.apply_event(&**event)?;
     }
 
     // Assert - Both graphs should have same state
@@ -179,7 +180,7 @@ async fn test_full_cqrs_flow() -> DomainResult<()> {
         node_type: NodeType::WorkflowStep {
             step_type: StepType::Process,
         },
-        position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
         metadata: Default::default(),
     };
 
@@ -187,9 +188,9 @@ async fn test_full_cqrs_flow() -> DomainResult<()> {
 
     // Store events and update projections
     for event in events {
-        event_store.append(event.clone()).await?;
-        summary_projection.apply_event(&event).await?;
-        node_list_projection.apply_event(&event).await?;
+        event_store.append(event.boxed_clone()).await?;
+        summary_projection.apply_event(&*event).await?;
+        node_list_projection.apply_event(&*event).await?;
     }
 
     // Query projections
