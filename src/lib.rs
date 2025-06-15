@@ -38,6 +38,8 @@ pub use cim_subject;
 // Re-export graph modules
 pub use cim_compose;
 pub use cim_contextgraph;
+pub use cim_workflow_graph;
+pub use cim_ipld_graph;
 
 /// Prelude module for convenient imports
 pub mod prelude {

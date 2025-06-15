@@ -1,0 +1,27 @@
+[package]
+name = "cim-workflow-graph"
+version = "0.1.0"
+edition = "2021"
+authors = ["The Cowboy AI"]
+description = "Workflow graph implementation composing CIM context graphs with workflow domain"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/thecowboyai/alchemist"
+keywords = ["workflow", "graph", "domain", "composition"]
+categories = ["data-structures", "algorithms"]
+
+[dependencies]
+cim-contextgraph = { path = "../cim-contextgraph" }
+cim-domain = { path = "../cim-domain" }
+cim-domain-workflow = { path = "../cim-domain-workflow" }
+petgraph = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+pretty_assertions = "1.4"
+
+[[example]]
+name = "workflow_graph_example"
+path = "examples/workflow_graph_example.rs"

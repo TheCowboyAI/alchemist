@@ -2157,6 +2157,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "cim-ipld-graph"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "cid",
+ "cim-contextgraph",
+ "cim-ipld",
+ "daggy 0.8.1",
+ "multihash",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "cim-subject"
 version = "0.1.0"
 dependencies = [
@@ -2168,6 +2184,21 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "cim-workflow-graph"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "cim-contextgraph",
+ "cim-domain",
+ "cim-domain-workflow",
+ "petgraph 0.6.5",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -2588,6 +2619,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "daggy"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70def8d72740e44d9f676d8dab2c933a236663d86dd24319b57a2bed4d694774"
+dependencies = [
+ "petgraph 0.7.1",
 ]
 
 [[package]]
@@ -3610,11 +3650,13 @@ dependencies = [
  "cim-domain-policy",
  "cim-domain-workflow",
  "cim-ipld",
+ "cim-ipld-graph",
  "cim-subject",
+ "cim-workflow-graph",
  "colored",
  "criterion",
  "crossbeam-channel",
- "daggy",
+ "daggy 0.9.0",
  "futures",
  "lru",
  "multihash",

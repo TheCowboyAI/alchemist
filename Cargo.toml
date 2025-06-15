@@ -22,6 +22,8 @@ members = [
   "cim-compose",
   "cim-ipld",
   "cim-contextgraph",
+  "cim-workflow-graph",
+  "cim-ipld-graph",
   "cim-conceptgraph",
   "cim-domain",
   "cim-domain-person",
@@ -117,6 +119,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # Content addressing
 cim-ipld = { path = "cim-ipld" }
 cim-contextgraph = { path = "cim-contextgraph" }
+cim-workflow-graph = { path = "cim-workflow-graph" }
+cim-ipld-graph = { path = "cim-ipld-graph" }
 cim-domain = { path = "cim-domain" }
 cim-domain-graph = { path = "cim-domain-graph" }
 cim-domain-workflow = { path = "cim-domain-workflow" }
