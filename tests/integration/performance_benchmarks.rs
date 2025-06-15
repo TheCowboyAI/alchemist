@@ -403,35 +403,35 @@ fn generate_test_events(count: usize) -> Vec<DomainEvent> {
     }).collect()
 }
 
-fn create_node_added_event() -> DomainEvent {
-    DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+fn create_node_added_event() -> Box<dyn DomainEvent> {
+    Box::new(DomainEvent::Graph(GraphDomainEvent::NodeAdded {
         graph_id: GraphId::new(),
         node_id: NodeId::new(),
         node_type: NodeType::Concept,
         position: Position3D::default(),
         conceptual_point: Default::default(),
         metadata: Default::default(),
-    })
+    }))
 }
 
-fn create_edge_connected_event() -> DomainEvent {
-    DomainEvent::Graph(GraphDomainEvent::EdgeConnected {
+fn create_edge_connected_event() -> Box<dyn DomainEvent> {
+    Box::new(DomainEvent::Graph(GraphDomainEvent::EdgeConnected {
         graph_id: GraphId::new(),
         edge_id: cim_domain::EdgeId::new(),
         source: NodeId::new(),
         target: NodeId::new(),
         relationship: cim_domain_graph::EdgeRelationship::default(),
-    })
+    }))
 }
 
-fn create_node_updated_event() -> DomainEvent {
-    DomainEvent::Graph(GraphDomainEvent::NodeUpdated {
+fn create_node_updated_event() -> Box<dyn DomainEvent> {
+    Box::new(DomainEvent::Graph(GraphDomainEvent::NodeUpdated {
         graph_id: GraphId::new(),
         node_id: NodeId::new(),
         changes: cim_domain_graph::NodeChanges::default(),
         timestamp: std::time::SystemTime::now(),
         source: cim_domain_graph::UpdateSource::Internal,
-    })
+    }))
 }
 
 fn calculate_percentile(measurements: &mut Vec<Duration>, percentile: f64) -> Duration {

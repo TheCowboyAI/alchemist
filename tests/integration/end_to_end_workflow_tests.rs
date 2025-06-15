@@ -97,12 +97,12 @@ async fn test_complete_graph_creation_workflow() -> DomainResult<()> {
     app.update(); // Process events to entities
 
     // Check that all nodes are visualized
-    let node_query = app.world.query::<&cim_viz_bevy::NodeEntity>();
+    let node_query = app.world.query::<&cim_domain_bevy::components::NodeVisual>();
     let node_count = node_query.iter(&app.world).count();
     assert_eq!(node_count, 4, "All workflow nodes should be visualized");
 
     // Check that all edges are visualized
-    let edge_query = app.world.query::<&cim_viz_bevy::EdgeEntity>();
+    let edge_query = app.world.query::<&cim_domain_bevy::components::EdgeVisual>();
     let edge_count = edge_query.iter(&app.world).count();
     assert_eq!(edge_count, 3, "All workflow edges should be visualized");
 

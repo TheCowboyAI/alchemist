@@ -131,11 +131,11 @@ async fn test_complete_import_to_entity_flow() -> DomainResult<()> {
     app.update(); // Create entities
 
     // Assert - Check that entities were created
-    let node_query = app.world.query::<&cim_viz_bevy::NodeEntity>();
+    let node_query = app.world.query::<&cim_domain_bevy::components::NodeVisual>();
     let node_count = node_query.iter(&app.world).count();
     assert_eq!(node_count, 2, "Should create 2 node entities");
 
-    let edge_query = app.world.query::<&cim_viz_bevy::EdgeEntity>();
+    let edge_query = app.world.query::<&cim_domain_bevy::components::EdgeVisual>();
     let edge_count = edge_query.iter(&app.world).count();
     assert_eq!(edge_count, 1, "Should create 1 edge entity");
 

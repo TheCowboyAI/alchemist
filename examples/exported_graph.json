@@ -9,7 +9,7 @@
     },
     {
       "id": "1b8be1f2-5a85-46b6-9305-de9179f1dc7e",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "28df5430-11df-44a4-8fe6-a5d8ce6c69b9",
       "target": "bf8385f1-540e-46ba-9d38-75265eab76a7"
     },
@@ -63,19 +63,19 @@
     },
     {
       "id": "a816b27e-1961-418c-86e3-deceed3ddf9c",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "bf8385f1-540e-46ba-9d38-75265eab76a7",
       "target": "8bb14658-e5fa-40a9-ab63-01f5432aff29"
     },
     {
       "id": "a0119b6d-cf22-4cd8-8333-4db7cc252ab8",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "8ee43d42-fa73-4753-a786-29f962ddd82f",
       "target": "f2d3bcb8-a60f-4544-bc67-4a6ff776ecfd"
     },
     {
       "id": "a6c97569-8284-426b-a128-a377486fcc8e",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "56f052b6-fa7a-4573-a3ce-773ca081d903",
       "target": "fcca6b7b-fd8b-4910-9979-0c4a3ea20594"
     },
@@ -87,13 +87,13 @@
     },
     {
       "id": "2346a02e-4851-4ec2-bd28-6165ce4da018",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "3fb88c5c-90a2-4edc-978a-b8f5a2e824b9",
       "target": "28df5430-11df-44a4-8fe6-a5d8ce6c69b9"
     },
     {
       "id": "4d1b07a3-3915-48df-bb4b-cc0d6fd95651",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "fcca6b7b-fd8b-4910-9979-0c4a3ea20594",
       "target": "fec1fe48-77ab-41b2-a346-7f3ac33a2f35"
     },
@@ -111,13 +111,13 @@
     },
     {
       "id": "ee6d09bd-4ef9-4964-ab77-da1ff7c0b270",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "fec1fe48-77ab-41b2-a346-7f3ac33a2f35",
       "target": "8ee43d42-fa73-4753-a786-29f962ddd82f"
     },
     {
       "id": "9ce73930-8f9c-4b07-8594-acada3d33862",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "ae964e70-cd13-4826-ac1d-1a7be67ad2da",
       "target": "56f052b6-fa7a-4573-a3ce-773ca081d903"
     },
@@ -135,13 +135,13 @@
     },
     {
       "id": "ad47ce8d-2a98-46ff-a757-5fa37c776521",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "8bb14658-e5fa-40a9-ab63-01f5432aff29",
       "target": "ae964e70-cd13-4826-ac1d-1a7be67ad2da"
     },
     {
       "id": "0b85f561-0538-4ecf-b3df-bcea311e0917",
-      "relationship": "Custom(\"K8S\")",
+      "relationship": "Custom(\"Subject\")",
       "source": "f2d3bcb8-a60f-4544-bc67-4a6ff776ecfd",
       "target": "3fb88c5c-90a2-4edc-978a-b8f5a2e824b9"
     },
