@@ -22,6 +22,7 @@ pub use bevy_egui;
 pub use cim_domain;
 pub use cim_domain_agent;
 pub use cim_domain_document;
+pub use cim_domain_git;
 pub use cim_domain_graph;
 pub use cim_domain_location;
 pub use cim_domain_nix;
