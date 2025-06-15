@@ -22,22 +22,20 @@ members = [
   "cim-compose",
   "cim-ipld",
   "cim-contextgraph",
-  "cim-workflow-graph",
-  "cim-ipld-graph",
   "cim-conceptgraph",
   "cim-domain",
   "cim-domain-person",
   "cim-domain-organization",
   "cim-domain-agent",
-  "cim-domain-workflow",
   "cim-domain-location",
   "cim-domain-graph",
   "cim-subject",
   "cim-domain-bevy",
   "cim-domain-conceptualspaces",
   "cim-domain-identity",
-  "cim-domain-git",
   "cim-domain-nix",
+  "cim-domain-document",
+  "cim-domain-policy",
 ]
 resolver = "2"
 
@@ -117,11 +115,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # Content addressing
 cim-ipld = { path = "cim-ipld" }
 cim-contextgraph = { path = "cim-contextgraph" }
-cim-workflow-graph = { path = "cim-workflow-graph" }
-cim-ipld-graph = { path = "cim-ipld-graph" }
 cim-domain = { path = "cim-domain" }
 cim-domain-graph = { path = "cim-domain-graph" }
-cim-domain-workflow = { path = "cim-domain-workflow" }
 cim-domain-location = { path = "cim-domain-location" }
 cim-domain-document = { path = "cim-domain-document" }
 cim-domain-policy = { path = "cim-domain-policy" }
@@ -129,7 +124,6 @@ cim-domain-agent = { path = "cim-domain-agent" }
 cim-domain-organization = { path = "cim-domain-organization" }
 cim-domain-person = { path = "cim-domain-person" }
 cim-subject = { path = "cim-subject" }
-cim-domain-git = { path = "cim-domain-git" }
 cim-domain-nix = { path = "cim-domain-nix" }
 cid = { version = "0.11", features = ["serde"] }
 multihash = { version = "0.19", features = ["std"] }
