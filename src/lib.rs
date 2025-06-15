@@ -22,7 +22,6 @@ pub use bevy_egui;
 pub use cim_domain;
 pub use cim_domain_agent;
 pub use cim_domain_document;
-pub use cim_domain_git;
 pub use cim_domain_graph;
 pub use cim_domain_location;
 pub use cim_domain_nix;
@@ -38,8 +37,6 @@ pub use cim_subject;
 // Re-export graph modules
 pub use cim_compose;
 pub use cim_contextgraph;
-pub use cim_ipld_graph;
-pub use cim_workflow_graph;
 
 /// Prelude module for convenient imports
 pub mod prelude {

@@ -27,6 +27,7 @@ members = [
   "cim-domain-person",
   "cim-domain-organization",
   "cim-domain-agent",
+  "cim-domain-workflow",
   "cim-domain-location",
   "cim-domain-graph",
   "cim-subject",
@@ -117,6 +118,7 @@ cim-ipld = { path = "cim-ipld" }
 cim-contextgraph = { path = "cim-contextgraph" }
 cim-domain = { path = "cim-domain" }
 cim-domain-graph = { path = "cim-domain-graph" }
+cim-domain-workflow = { path = "cim-domain-workflow" }
 cim-domain-location = { path = "cim-domain-location" }
 cim-domain-document = { path = "cim-domain-document" }
 cim-domain-policy = { path = "cim-domain-policy" }
