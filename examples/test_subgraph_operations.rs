@@ -1,22 +1,20 @@
 //! Test program to verify subgraph operations functionality
 
-use ia::domain::{
-    value_objects::{
-        GraphId, SubgraphId, NodeId, EdgeId, Position3D,
-        SubgraphState, CollapseStrategy, LayoutStrategy, LayoutDirection,
-        MergeStrategy, SplitCriteria, ClusteringAlgorithm,
-        SubgraphType, SubgraphStyle, SubgraphMetadata, SubgraphStatistics,
-        SubgraphAnalysis, SuggestedOperation, OptimizationType,
-        Color, BorderStyle, FillPattern, IconType,
-        SubgraphMetadataBuilder,
-    },
-    events::SubgraphOperationEvent,
-    commands::{SubgraphOperationCommand, AnalysisDepth, MergeSubgraphsBuilder},
-    services::{SubgraphAnalyzer, SubgraphLayoutCalculator},
-};
-use std::collections::{HashMap, HashSet};
-use petgraph::graph::Graph;
 use chrono::Utc;
+use ia::domain::{
+    commands::{AnalysisDepth, MergeSubgraphsBuilder, SubgraphOperationCommand},
+    events::SubgraphOperationEvent,
+    services::{SubgraphAnalyzer, SubgraphLayoutCalculator},
+    value_objects::{
+        BorderStyle, ClusteringAlgorithm, CollapseStrategy, Color, EdgeId, FillPattern, GraphId,
+        IconType, LayoutDirection, LayoutStrategy, MergeStrategy, NodeId, OptimizationType,
+        Position3D, SplitCriteria, SubgraphAnalysis, SubgraphId, SubgraphMetadata,
+        SubgraphMetadataBuilder, SubgraphState, SubgraphStatistics, SubgraphStyle, SubgraphType,
+        SuggestedOperation,
+    },
+};
+use petgraph::graph::Graph;
+use std::collections::{HashMap, HashSet};
 
 fn main() {
     println!("Testing Subgraph Operations...\n");
@@ -60,12 +58,26 @@ fn test_value_objects() {
         .with_tag("example")
         .build();
 
-    println!("✓ SubgraphMetadata created: {} with {} tags", metadata.name, metadata.tags.len());
+    println!(
+        "✓ SubgraphMetadata created: {} with {} tags",
+        metadata.name,
+        metadata.tags.len()
+    );
 
     // Test SubgraphStyle
     let style = SubgraphStyle {
-        border_color: Color { r: 1.0, g: 0.0, b: 0.0, a: 1.0 },
-        fill_color: Color { r: 0.8, g: 0.8, b: 0.8, a: 0.5 },
+        border_color: Color {
+            r: 1.0,
+            g: 0.0,
+            b: 0.0,
+            a: 1.0,
+        },
+        fill_color: Color {
+            r: 0.8,
+            g: 0.8,
+            b: 0.8,
+            a: 0.5,
+        },
         border_style: BorderStyle::Dashed,
         border_width: 2.0,
         fill_pattern: FillPattern::Gradient,
@@ -86,8 +98,10 @@ fn test_value_objects() {
         average_degree: 3.0,
     };
 
-    println!("✓ SubgraphStatistics: {} nodes, {} edges, density: {:.2}",
-        stats.node_count, stats.edge_count, stats.density);
+    println!(
+        "✓ SubgraphStatistics: {} nodes, {} edges, density: {:.2}",
+        stats.node_count, stats.edge_count, stats.density
+    );
 }
 
 fn test_events() {
@@ -123,13 +137,11 @@ fn test_events() {
         cohesion_score: 0.8,
         coupling_score: 0.2,
         complexity_score: 0.5,
-        suggested_operations: vec![
-            SuggestedOperation::Optimize {
-                reason: "High complexity".to_string(),
-                optimization_type: OptimizationType::SimplifyStructure,
-                confidence: 0.7,
-            }
-        ],
+        suggested_operations: vec![SuggestedOperation::Optimize {
+            reason: "High complexity".to_string(),
+            optimization_type: OptimizationType::SimplifyStructure,
+            confidence: 0.7,
+        }],
     };
 
     let analyze_event = SubgraphOperationEvent::SubgraphAnalyzed {
@@ -171,8 +183,13 @@ fn test_commands() {
         .build();
 
     match merge_cmd {
-        SubgraphOperationCommand::MergeSubgraphs { source_subgraphs, .. } => {
-            println!("✓ MergeSubgraphs command created with {} sources", source_subgraphs.len());
+        SubgraphOperationCommand::MergeSubgraphs {
+            source_subgraphs, ..
+        } => {
+            println!(
+                "✓ MergeSubgraphs command created with {} sources",
+                source_subgraphs.len()
+            );
         }
         _ => panic!("Wrong command type"),
     }
@@ -225,9 +242,18 @@ fn test_domain_services() {
     let layout_calc = SubgraphLayoutCalculator::new();
 
     let mut node_positions_map = HashMap::new();
-    node_positions_map.insert(*graph.node_weight(n1).unwrap(), Position3D::new(0.0, 0.0, 0.0));
-    node_positions_map.insert(*graph.node_weight(n2).unwrap(), Position3D::new(10.0, 0.0, 0.0));
-    node_positions_map.insert(*graph.node_weight(n3).unwrap(), Position3D::new(5.0, 8.66, 0.0));
+    node_positions_map.insert(
+        *graph.node_weight(n1).unwrap(),
+        Position3D::new(0.0, 0.0, 0.0),
+    );
+    node_positions_map.insert(
+        *graph.node_weight(n2).unwrap(),
+        Position3D::new(10.0, 0.0, 0.0),
+    );
+    node_positions_map.insert(
+        *graph.node_weight(n3).unwrap(),
+        Position3D::new(5.0, 8.66, 0.0),
+    );
 
     let collapsed_pos = layout_calc.calculate_collapsed_position(
         &node_positions_map,
@@ -235,10 +261,15 @@ fn test_domain_services() {
         None,
     );
 
-    println!("✓ SubgraphLayoutCalculator collapse position: ({:.2}, {:.2}, {:.2})",
-        collapsed_pos.x, collapsed_pos.y, collapsed_pos.z);
+    println!(
+        "✓ SubgraphLayoutCalculator collapse position: ({:.2}, {:.2}, {:.2})",
+        collapsed_pos.x, collapsed_pos.y, collapsed_pos.z
+    );
 
-    let layout_strategy = LayoutStrategy::Circular { radius: 20.0, start_angle: 0.0 };
+    let layout_strategy = LayoutStrategy::Circular {
+        radius: 20.0,
+        start_angle: 0.0,
+    };
     let expanded_layout = layout_calc.calculate_expansion_layout(
         &subgraph_nodes.iter().cloned().collect::<Vec<_>>(),
         collapsed_pos,
@@ -247,6 +278,8 @@ fn test_domain_services() {
         None,
     );
 
-    println!("✓ SubgraphLayoutCalculator expanded {} nodes in circular layout",
-        expanded_layout.len());
+    println!(
+        "✓ SubgraphLayoutCalculator expanded {} nodes in circular layout",
+        expanded_layout.len()
+    );
 }

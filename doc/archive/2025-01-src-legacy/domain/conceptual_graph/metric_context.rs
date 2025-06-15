@@ -1,8 +1,8 @@
 use crate::domain::conceptual_graph::ConceptId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use uuid::Uuid;
 use std::fmt;
+use uuid::Uuid;
 
 /// Unique identifier for a metric context
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -34,19 +34,13 @@ pub struct MetricContext {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MetricType {
     /// Semantic distance between concepts
-    SemanticDistance {
-        distance_function: DistanceFunction,
-    },
+    SemanticDistance { distance_function: DistanceFunction },
 
     /// Cost of transformations or operations
-    TransformationCost {
-        cost_function: CostFunction,
-    },
+    TransformationCost { cost_function: CostFunction },
 
     /// Time delays in processes
-    TemporalDelay {
-        delay_function: DelayFunction,
-    },
+    TemporalDelay { delay_function: DelayFunction },
 
     /// Probability of relationships
     Probabilistic {
@@ -178,8 +172,8 @@ impl MetricContext {
 
     /// Find the shortest path between two concepts using Dijkstra's algorithm
     pub fn shortest_path(&self, from: ConceptId, to: ConceptId) -> Result<Path, String> {
-        use std::collections::{BinaryHeap, HashSet};
         use std::cmp::Ordering;
+        use std::collections::{BinaryHeap, HashSet};
 
         #[derive(Clone)]
         struct State {
@@ -198,7 +192,10 @@ impl MetricContext {
 
         impl Ord for State {
             fn cmp(&self, other: &Self) -> Ordering {
-                other.cost.partial_cmp(&self.cost).unwrap_or(Ordering::Equal)
+                other
+                    .cost
+                    .partial_cmp(&self.cost)
+                    .unwrap_or(Ordering::Equal)
             }
         }
 
@@ -251,7 +248,9 @@ impl MetricContext {
 
     /// Find k-nearest neighbors to a concept
     pub fn nearest_neighbors(&self, concept: ConceptId, k: usize) -> Vec<(ConceptId, f64)> {
-        let mut neighbors: Vec<(ConceptId, f64)> = self.metric_space.distances
+        let mut neighbors: Vec<(ConceptId, f64)> = self
+            .metric_space
+            .distances
             .iter()
             .filter_map(|((from, to), dist)| {
                 if *from == concept {
@@ -269,7 +268,8 @@ impl MetricContext {
 
     /// Find all concepts within a given radius
     pub fn metric_ball(&self, center: ConceptId, radius: f64) -> Vec<ConceptId> {
-        self.metric_space.distances
+        self.metric_space
+            .distances
             .iter()
             .filter_map(|((from, to), dist)| {
                 if *from == center && *dist <= radius {
@@ -287,7 +287,9 @@ impl MetricContext {
         let mut assigned: HashSet<ConceptId> = HashSet::new();
 
         // Get all unique concepts
-        let concepts: HashSet<ConceptId> = self.metric_space.distances
+        let concepts: HashSet<ConceptId> = self
+            .metric_space
+            .distances
             .keys()
             .flat_map(|(a, b)| vec![*a, *b])
             .collect();
@@ -322,8 +324,10 @@ impl MetricContext {
                 let mut count = 0;
 
                 for i in 0..cluster.members.len() {
-                    for j in i+1..cluster.members.len() {
-                        if let Some(dist) = self.get_distance(cluster.members[i], cluster.members[j]) {
+                    for j in i + 1..cluster.members.len() {
+                        if let Some(dist) =
+                            self.get_distance(cluster.members[i], cluster.members[j])
+                        {
                             total_distance += dist;
                             count += 1;
                         }

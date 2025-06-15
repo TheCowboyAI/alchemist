@@ -30,7 +30,10 @@ fn test_graph_creation() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Graph(GraphEvent::GraphCreated { id: event_id, metadata }) => {
+        DomainEvent::Graph(GraphEvent::GraphCreated {
+            id: event_id,
+            metadata,
+        }) => {
             assert_eq!(*event_id, id);
             assert_eq!(metadata.name, name);
             assert!(metadata.tags.contains(&description));
@@ -59,7 +62,11 @@ fn test_handle_rename_graph_command() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Graph(GraphEvent::GraphRenamed { id: _, old_name, new_name }) => {
+        DomainEvent::Graph(GraphEvent::GraphRenamed {
+            id: _,
+            old_name,
+            new_name,
+        }) => {
             assert_eq!(old_name, "Original");
             assert_eq!(new_name, "Renamed");
         }
@@ -175,10 +182,18 @@ fn test_handle_add_node_command() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Node(NodeEvent::NodeAdded { graph_id: _, node_id: event_node_id, metadata, position: event_pos }) => {
+        DomainEvent::Node(NodeEvent::NodeAdded {
+            graph_id: _,
+            node_id: event_node_id,
+            metadata,
+            position: event_pos,
+        }) => {
             assert_eq!(*event_node_id, node_id);
             assert_eq!(*event_pos, position);
-            assert_eq!(metadata.get("label").unwrap().as_str().unwrap(), "Test Node");
+            assert_eq!(
+                metadata.get("label").unwrap().as_str().unwrap(),
+                "Test Node"
+            );
         }
         _ => panic!("Expected NodeAdded event"),
     }
@@ -248,7 +263,7 @@ fn test_handle_add_node_with_invalid_position() {
     // Then
     assert!(result.is_err());
     match result.unwrap_err() {
-        GraphError::InvalidNodePosition => {},
+        GraphError::InvalidNodePosition => {}
         _ => panic!("Expected InvalidNodePosition error"),
     }
 }
@@ -275,10 +290,7 @@ fn test_handle_remove_node_command() {
     graph.mark_events_as_committed();
 
     // When
-    let remove_command = Command::Node(NodeCommand::RemoveNode {
-        graph_id,
-        node_id,
-    });
+    let remove_command = Command::Node(NodeCommand::RemoveNode { graph_id, node_id });
     let result = graph.handle_command(remove_command);
 
     // Then
@@ -287,7 +299,10 @@ fn test_handle_remove_node_command() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Node(NodeEvent::NodeRemoved { graph_id: _, node_id: event_node_id }) => {
+        DomainEvent::Node(NodeEvent::NodeRemoved {
+            graph_id: _,
+            node_id: event_node_id,
+        }) => {
             assert_eq!(*event_node_id, node_id);
         }
         _ => panic!("Expected NodeRemoved event"),
@@ -347,7 +362,10 @@ fn test_handle_remove_node_with_edges_cascade_delete() {
 
     // First event should be edge removal
     match &events[0] {
-        DomainEvent::Edge(EdgeEvent::EdgeRemoved { edge_id: removed_edge_id, .. }) => {
+        DomainEvent::Edge(EdgeEvent::EdgeRemoved {
+            edge_id: removed_edge_id,
+            ..
+        }) => {
             assert_eq!(*removed_edge_id, edge_id);
         }
         _ => panic!("Expected EdgeRemoved event first"),
@@ -355,7 +373,10 @@ fn test_handle_remove_node_with_edges_cascade_delete() {
 
     // Second event should be node removal
     match &events[1] {
-        DomainEvent::Node(NodeEvent::NodeRemoved { node_id: removed_node_id, .. }) => {
+        DomainEvent::Node(NodeEvent::NodeRemoved {
+            node_id: removed_node_id,
+            ..
+        }) => {
             assert_eq!(*removed_node_id, node1);
         }
         _ => panic!("Expected NodeRemoved event second"),
@@ -402,7 +423,7 @@ fn test_handle_update_node_command() {
 
     // Should follow DDD pattern: remove then add
     match &events[0] {
-        DomainEvent::Node(NodeEvent::NodeRemoved { .. }) => {},
+        DomainEvent::Node(NodeEvent::NodeRemoved { .. }) => {}
         _ => panic!("Expected NodeRemoved event first"),
     }
 
@@ -451,7 +472,7 @@ fn test_handle_move_node_command() {
 
     // Should follow DDD pattern: remove then add
     match &events[0] {
-        DomainEvent::Node(NodeEvent::NodeRemoved { .. }) => {},
+        DomainEvent::Node(NodeEvent::NodeRemoved { .. }) => {}
         _ => panic!("Expected NodeRemoved event first"),
     }
 
@@ -509,7 +530,13 @@ fn test_handle_connect_edge_command() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Edge(EdgeEvent::EdgeConnected { graph_id: _, edge_id: event_edge_id, source, target, relationship: rel }) => {
+        DomainEvent::Edge(EdgeEvent::EdgeConnected {
+            graph_id: _,
+            edge_id: event_edge_id,
+            source,
+            target,
+            relationship: rel,
+        }) => {
             assert_eq!(*event_edge_id, edge_id);
             assert_eq!(*source, node1);
             assert_eq!(*target, node2);
@@ -664,10 +691,7 @@ fn test_handle_disconnect_edge_command() {
     graph.mark_events_as_committed();
 
     // When
-    let command = Command::Edge(EdgeCommand::DisconnectEdge {
-        graph_id,
-        edge_id,
-    });
+    let command = Command::Edge(EdgeCommand::DisconnectEdge { graph_id, edge_id });
     let result = graph.handle_command(command);
 
     // Then
@@ -676,7 +700,10 @@ fn test_handle_disconnect_edge_command() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Edge(EdgeEvent::EdgeRemoved { edge_id: removed_id, .. }) => {
+        DomainEvent::Edge(EdgeEvent::EdgeRemoved {
+            edge_id: removed_id,
+            ..
+        }) => {
             assert_eq!(*removed_id, edge_id);
         }
         _ => panic!("Expected EdgeRemoved event"),
@@ -705,10 +732,7 @@ fn test_handle_select_deselect_node_commands() {
     graph.mark_events_as_committed();
 
     // When - select node
-    let select_command = Command::Node(NodeCommand::SelectNode {
-        graph_id,
-        node_id,
-    });
+    let select_command = Command::Node(NodeCommand::SelectNode { graph_id, node_id });
     let result = graph.handle_command(select_command);
 
     // Then
@@ -716,17 +740,14 @@ fn test_handle_select_deselect_node_commands() {
     let events = result.unwrap();
     assert_eq!(events.len(), 1);
     match &events[0] {
-        DomainEvent::Node(NodeEvent::NodeSelected { .. }) => {},
+        DomainEvent::Node(NodeEvent::NodeSelected { .. }) => {}
         _ => panic!("Expected NodeSelected event"),
     }
 
     graph.mark_events_as_committed();
 
     // When - deselect node
-    let deselect_command = Command::Node(NodeCommand::DeselectNode {
-        graph_id,
-        node_id,
-    });
+    let deselect_command = Command::Node(NodeCommand::DeselectNode { graph_id, node_id });
     let result = graph.handle_command(deselect_command);
 
     // Then
@@ -734,7 +755,7 @@ fn test_handle_select_deselect_node_commands() {
     let events = result.unwrap();
     assert_eq!(events.len(), 1);
     match &events[0] {
-        DomainEvent::Node(NodeEvent::NodeDeselected { .. }) => {},
+        DomainEvent::Node(NodeEvent::NodeDeselected { .. }) => {}
         _ => panic!("Expected NodeDeselected event"),
     }
 }

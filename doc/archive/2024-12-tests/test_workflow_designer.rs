@@ -23,20 +23,19 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-) {
+fn setup(mut commands: Commands) {
     println!("Setting up camera...");
 
     // Simple 2D camera for UI
     commands.spawn(Camera2d::default());
 }
 
-fn check_egui(
-    time: Res<Time>,
-) {
+fn check_egui(time: Res<Time>) {
     // Log every second to show the app is running
     if time.elapsed_secs() as u32 % 1 == 0 && time.elapsed_secs_f64().fract() < 0.016 {
-        println!("Workflow Designer running... Time: {:.1}s", time.elapsed_secs());
+        println!(
+            "Workflow Designer running... Time: {:.1}s",
+            time.elapsed_secs()
+        );
     }
 }

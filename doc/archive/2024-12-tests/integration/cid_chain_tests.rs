@@ -3,10 +3,13 @@
 //! These tests verify the cryptographic integrity of event chains
 //! using content-addressed identifiers.
 
-use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent, cid_chain::{ChainedEvent, EventChain}};
-use ia::domain::value_objects::{GraphId, NodeId, Position3D, GraphMetadata};
-use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
 use super::fixtures::*;
+use ia::domain::events::{
+    DomainEvent, GraphEvent, NodeEvent,
+    cid_chain::{ChainedEvent, EventChain},
+};
+use ia::domain::value_objects::{GraphId, GraphMetadata, NodeId, Position3D};
+use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
 use std::time::SystemTime;
 
 #[tokio::test]
@@ -30,7 +33,11 @@ async fn test_cid_chain_creation_and_validation() -> Result<(), Box<dyn std::err
             graph_id,
             node_id: NodeId::new(),
             content: "node-1".to_string(),
-            position: Position3D { x: 1.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 1.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
             timestamp: SystemTime::now(),
         },
@@ -38,21 +45,28 @@ async fn test_cid_chain_creation_and_validation() -> Result<(), Box<dyn std::err
             graph_id,
             node_id: NodeId::new(),
             content: "node-2".to_string(),
-            position: Position3D { x: 2.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 2.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
             timestamp: SystemTime::now(),
         },
     ];
 
     // Store events
-    event_store.append_events(graph_id.to_string(), events.clone()).await?;
+    event_store
+        .append_events(graph_id.to_string(), events.clone())
+        .await?;
 
     // Retrieve and verify chain
     let stored_events = event_store.get_events(graph_id.to_string()).await?;
     assert_eq!(stored_events.len(), 3);
 
     // Convert to chained events
-    let chain_events: Vec<ChainedEvent> = stored_events.iter()
+    let chain_events: Vec<ChainedEvent> = stored_events
+        .iter()
         .map(|e| e.as_chained_event())
         .collect::<Result<Vec<_>, _>>()?;
 
@@ -120,7 +134,8 @@ async fn test_cid_chain_tampering_detection() -> Result<(), Box<dyn std::error::
     };
 
     // Try to create chain with wrong previous CID
-    let wrong_cid = cid::Cid::try_from("bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi").unwrap();
+    let wrong_cid =
+        cid::Cid::try_from("bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi").unwrap();
     let tampered_chained = ChainedEvent {
         event_cid: event_chain.calculate_cid(&tampered_event)?,
         previous_cid: Some(wrong_cid),
@@ -174,10 +189,9 @@ async fn test_parallel_event_chains() -> Result<(), Box<dyn std::error::Error>> 
                 },
             ];
 
-            event_store_clone.append_events(
-                graph_id_clone.to_string(),
-                events
-            ).await
+            event_store_clone
+                .append_events(graph_id_clone.to_string(), events)
+                .await
         });
 
         handles.push(handle);
@@ -195,7 +209,8 @@ async fn test_parallel_event_chains() -> Result<(), Box<dyn std::error::Error>> 
         let events = event_store.get_events(graph_id.to_string()).await?;
         assert_eq!(events.len(), 2);
 
-        let chain_events: Vec<ChainedEvent> = events.iter()
+        let chain_events: Vec<ChainedEvent> = events
+            .iter()
             .map(|e| e.as_chained_event())
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -213,16 +228,14 @@ async fn test_event_replay_with_cid_verification() -> Result<(), Box<dyn std::er
 
     // Create a long chain of events
     let graph_id = GraphId::new();
-    let mut events = vec![
-        DomainEvent::GraphCreated {
-            id: graph_id,
-            metadata: GraphMetadata {
-                name: "replay-test".to_string(),
-                ..Default::default()
-            },
-            timestamp: SystemTime::now(),
+    let mut events = vec![DomainEvent::GraphCreated {
+        id: graph_id,
+        metadata: GraphMetadata {
+            name: "replay-test".to_string(),
+            ..Default::default()
         },
-    ];
+        timestamp: SystemTime::now(),
+    }];
 
     // Add many nodes
     for i in 0..50 {
@@ -241,7 +254,9 @@ async fn test_event_replay_with_cid_verification() -> Result<(), Box<dyn std::er
     }
 
     // Store all events
-    event_store.append_events(graph_id.to_string(), events).await?;
+    event_store
+        .append_events(graph_id.to_string(), events)
+        .await?;
 
     // Replay from different points
     let all_events = event_store.get_events(graph_id.to_string()).await?;
@@ -251,7 +266,8 @@ async fn test_event_replay_with_cid_verification() -> Result<(), Box<dyn std::er
         let replay_slice = &all_events[*start_index..];
 
         if replay_slice.len() > 1 {
-            let chain_events: Vec<ChainedEvent> = replay_slice.iter()
+            let chain_events: Vec<ChainedEvent> = replay_slice
+                .iter()
                 .map(|e| e.as_chained_event())
                 .collect::<Result<Vec<_>, _>>()?;
 

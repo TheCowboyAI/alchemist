@@ -3,14 +3,14 @@
 //! Selection changes are presentation-only until the user performs
 //! an action on the selection (delete, group, etc.)
 
-use bevy::prelude::*;
-use std::collections::HashSet;
+use super::EventAggregator;
 use crate::domain::{
     commands::{DomainCommand, UpdateGraphSelection},
     value_objects::NodeId,
 };
 use crate::presentation::events::interaction::{SelectionChanged, SelectionCleared};
-use super::EventAggregator;
+use bevy::prelude::*;
+use std::collections::HashSet;
 
 /// Aggregates selection changes
 pub struct SelectionAggregator {
@@ -112,8 +112,8 @@ impl EventAggregator for SelectionAggregator {
 
 #[derive(Clone, Debug)]
 pub enum SelectionMode {
-    Replace,  // Clear and select new
-    Add,      // Add to selection
-    Remove,   // Remove from selection
-    Toggle,   // Toggle selection state
+    Replace, // Clear and select new
+    Add,     // Add to selection
+    Remove,  // Remove from selection
+    Toggle,  // Toggle selection state
 }

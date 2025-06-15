@@ -79,7 +79,9 @@ impl fmt::Display for ContextType {
             ContextType::Aggregate { aggregate_type } => write!(f, "Aggregate({})", aggregate_type),
             ContextType::Module { module_name } => write!(f, "Module({})", module_name),
             ContextType::Service { service_type } => write!(f, "Service({})", service_type),
-            ContextType::ConceptualSpace { space_name } => write!(f, "ConceptualSpace({})", space_name),
+            ContextType::ConceptualSpace { space_name } => {
+                write!(f, "ConceptualSpace({})", space_name)
+            }
             ContextType::Workflow { workflow_type } => write!(f, "Workflow({})", workflow_type),
         }
     }
@@ -177,7 +179,7 @@ impl Default for ContextMetadata {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ContextGraph {
     pub id: GraphId,
-    pub context_root: NodeId,  // The semantic anchor
+    pub context_root: NodeId, // The semantic anchor
     pub context_type: ContextType,
     pub nodes: HashMap<NodeId, ContextNode>,
     pub edges: HashMap<EdgeId, ContextEdge>,
@@ -213,7 +215,10 @@ impl ContextGraph {
     }
 
     /// Create an aggregate context
-    pub fn new_aggregate(aggregate_type: &str, aggregate_id: impl Into<String>) -> Result<Self, ContextError> {
+    pub fn new_aggregate(
+        aggregate_type: &str,
+        aggregate_id: impl Into<String>,
+    ) -> Result<Self, ContextError> {
         let root_node = ContextNode::new_root(
             NodeType::Aggregate,
             format!("{} Root", aggregate_type),
@@ -275,7 +280,7 @@ impl ContextGraph {
         if let Some(root_node) = self.nodes.get(&self.context_root) {
             if !root_node.is_context_root {
                 return Err(ContextError::InvalidContext(
-                    "Context root node must be marked as root".to_string()
+                    "Context root node must be marked as root".to_string(),
                 ));
             }
         }
@@ -292,11 +297,7 @@ impl ContextGraph {
     ) -> Result<NodeId, ContextError> {
         self.validate_context_root()?;
 
-        let node = ContextNode::new(
-            NodeType::Entity,
-            label.to_string(),
-            data,
-        );
+        let node = ContextNode::new(NodeType::Entity, label.to_string(), data);
         let node_id = node.id;
 
         self.nodes.insert(node_id, node);
@@ -319,11 +320,7 @@ impl ContextGraph {
             return Err(ContextError::NodeNotFound(parent_id));
         }
 
-        let node = ContextNode::new(
-            NodeType::ValueObject,
-            label.to_string(),
-            data,
-        );
+        let node = ContextNode::new(NodeType::ValueObject, label.to_string(), data);
         let node_id = node.id;
 
         self.nodes.insert(node_id, node);
@@ -401,9 +398,10 @@ impl ContextGraph {
             if *node_id != self.context_root {
                 let has_path_to_root = self.has_path_to_root(node_id);
                 if !has_path_to_root {
-                    return Err(ContextError::InvariantViolation(
-                        format!("Node {:?} is not connected to aggregate root", node_id)
-                    ));
+                    return Err(ContextError::InvariantViolation(format!(
+                        "Node {:?} is not connected to aggregate root",
+                        node_id
+                    )));
                 }
             }
         }
@@ -437,10 +435,9 @@ impl ContextGraph {
 
     /// Add a term to the ubiquitous language
     pub fn define_term(&mut self, term: &str, definition: &str) {
-        self.metadata.ubiquitous_language.insert(
-            term.to_string(),
-            definition.to_string(),
-        );
+        self.metadata
+            .ubiquitous_language
+            .insert(term.to_string(), definition.to_string());
     }
 
     /// Get the ubiquitous language for this context
@@ -462,10 +459,7 @@ impl ContextBounded for ContextGraph {
         }
 
         // Create a new context that contains both
-        let mut result = ContextGraph::new_bounded_context(
-            "ComposedContext",
-            "Composed Root"
-        )?;
+        let mut result = ContextGraph::new_bounded_context("ComposedContext", "Composed Root")?;
 
         // Add both contexts as nested contexts
         result.add_nested_context(self.clone())?;
@@ -503,28 +497,31 @@ mod tests {
 
     #[test]
     fn test_bounded_context_creation() {
-        let context = ContextGraph::new_bounded_context(
-            "UserManagement",
-            "User Aggregate Root"
-        ).unwrap();
+        let context =
+            ContextGraph::new_bounded_context("UserManagement", "User Aggregate Root").unwrap();
 
         assert_eq!(context.nodes.len(), 1);
         assert!(context.nodes.contains_key(&context.context_root));
-        assert!(context.nodes.get(&context.context_root).unwrap().is_context_root);
+        assert!(
+            context
+                .nodes
+                .get(&context.context_root)
+                .unwrap()
+                .is_context_root
+        );
     }
 
     #[test]
     fn test_add_entity_to_context() {
-        let mut context = ContextGraph::new_aggregate(
-            "Order",
-            "order-123"
-        ).unwrap();
+        let mut context = ContextGraph::new_aggregate("Order", "order-123").unwrap();
 
-        let item_id = context.add_entity_related_to_root(
-            "OrderItem",
-            serde_json::json!({ "product": "Widget", "quantity": 2 }),
-            RelationshipType::Contains,
-        ).unwrap();
+        let item_id = context
+            .add_entity_related_to_root(
+                "OrderItem",
+                serde_json::json!({ "product": "Widget", "quantity": 2 }),
+                RelationshipType::Contains,
+            )
+            .unwrap();
 
         assert_eq!(context.nodes.len(), 2);
         assert!(context.contains_node(&item_id));
@@ -533,10 +530,7 @@ mod tests {
 
     #[test]
     fn test_context_invariants() {
-        let mut context = ContextGraph::new_aggregate(
-            "Order",
-            "order-123"
-        ).unwrap();
+        let mut context = ContextGraph::new_aggregate("Order", "order-123").unwrap();
 
         // Add a disconnected node (violates invariant)
         let orphan = ContextNode::new(
@@ -553,15 +547,10 @@ mod tests {
 
     #[test]
     fn test_nested_contexts() {
-        let mut user_context = ContextGraph::new_bounded_context(
-            "UserManagement",
-            "User Root"
-        ).unwrap();
+        let mut user_context =
+            ContextGraph::new_bounded_context("UserManagement", "User Root").unwrap();
 
-        let auth_module = ContextGraph::new_module(
-            "Authentication",
-            "Auth Root"
-        ).unwrap();
+        let auth_module = ContextGraph::new_module("Authentication", "Auth Root").unwrap();
 
         user_context.add_nested_context(auth_module).unwrap();
 
@@ -571,10 +560,7 @@ mod tests {
 
     #[test]
     fn test_ubiquitous_language() {
-        let mut context = ContextGraph::new_bounded_context(
-            "Inventory",
-            "Inventory Root"
-        ).unwrap();
+        let mut context = ContextGraph::new_bounded_context("Inventory", "Inventory Root").unwrap();
 
         context.define_term("SKU", "Stock Keeping Unit - unique product identifier");
         context.define_term("Reorder Point", "Minimum quantity before reordering");

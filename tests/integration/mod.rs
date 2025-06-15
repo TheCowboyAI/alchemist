@@ -6,18 +6,18 @@
 //! - Projection updates from events
 //! - Bevy ECS synchronization
 
-pub mod fixtures;
-pub mod simple_test;
-pub mod event_flow_tests;
-pub mod nats_integration_tests;
-pub mod domain_integration_tests;
 pub mod cid_chain_tests;
-pub mod import_pipeline_tests;
-pub mod query_handler_tests;
-pub mod projection_sync_tests;
-pub mod external_system_tests;
-pub mod performance_benchmarks;
+pub mod domain_integration_tests;
 pub mod end_to_end_workflow_tests;
+pub mod event_flow_tests;
+pub mod external_system_tests;
+pub mod fixtures;
+pub mod import_pipeline_tests;
+pub mod nats_integration_tests;
+pub mod performance_benchmarks;
+pub mod projection_sync_tests;
+pub mod query_handler_tests;
+pub mod simple_test;
 
 /// Common test configuration
 pub struct TestConfig {

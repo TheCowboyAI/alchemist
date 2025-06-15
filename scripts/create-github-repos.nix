@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> { } }:
 
 let
   # Repository configurations
@@ -102,7 +102,7 @@ let
 in
 pkgs.mkShell {
   buildInputs = with pkgs; [
-    gh  # GitHub CLI
+    gh # GitHub CLI
     git
     createRepoScript
   ];

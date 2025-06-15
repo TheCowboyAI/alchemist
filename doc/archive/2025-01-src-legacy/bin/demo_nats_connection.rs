@@ -47,7 +47,7 @@
 //! - ✅ Logs success message confirming connectivity
 
 use ia::infrastructure::nats::{NatsClient, NatsConfig};
-use tracing::{info, error};
+use tracing::{error, info};
 use tracing_subscriber;
 
 #[tokio::main]

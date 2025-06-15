@@ -18,13 +18,13 @@
 //!     E --> G[Bevy Entities]
 //! ```
 
-use crate::fixtures::{TestNatsServer, TestEventStore, create_test_app, assertions::*};
-use cim_domain::{DomainResult, GraphId, NodeId, DomainEvent};
-use cim_domain_graph::{
-    GraphCommand, GraphAggregate, GraphDomainEvent, NodeType, StepType,
-    ImportSource, ImportOptions, ImportFormat, Position3D,
-};
+use crate::fixtures::{TestEventStore, TestNatsServer, assertions::*, create_test_app};
 use bevy::prelude::*;
+use cim_domain::{DomainEvent, DomainResult, GraphId, NodeId};
+use cim_domain_graph::{
+    GraphAggregate, GraphCommand, GraphDomainEvent, ImportFormat, ImportOptions, ImportSource,
+    NodeType, Position3D, StepType,
+};
 use std::time::SystemTime;
 
 /// Test that import command generates appropriate domain events
@@ -56,10 +56,13 @@ async fn test_import_command_generates_events() -> DomainResult<()> {
     assert!(!events.is_empty(), "Import should generate events");
 
     // Should have GraphImportRequested event
-    assert!(events.iter().any(|e| matches!(
-        e,
-        DomainEvent::Graph(GraphDomainEvent::GraphImportRequested { .. })
-    )), "Should generate GraphImportRequested event");
+    assert!(
+        events.iter().any(|e| matches!(
+            e,
+            DomainEvent::Graph(GraphDomainEvent::GraphImportRequested { .. })
+        )),
+        "Should generate GraphImportRequested event"
+    );
 
     Ok(())
 }
@@ -74,10 +77,13 @@ async fn test_import_event_processing() -> DomainResult<()> {
     // Create import requested event
     let import_event = DomainEvent::Graph(GraphDomainEvent::GraphImportRequested {
         graph_id: graph.id(),
-        source: ImportSource::Text(r#"{
+        source: ImportSource::Text(
+            r#"{
             "nodes": [{"id": "1", "type": "concept", "label": "Test"}],
             "edges": []
-        }"#.to_string()),
+        }"#
+            .to_string(),
+        ),
         format: ImportFormat::Json,
         options: ImportOptions::default(),
         timestamp: SystemTime::now(),
@@ -94,10 +100,12 @@ async fn test_import_event_processing() -> DomainResult<()> {
 
     // Assert
     let stored_events = event_store.get_events().await;
-    assert!(stored_events.iter().any(|e| matches!(
-        e,
-        DomainEvent::Graph(GraphDomainEvent::NodeAdded { .. })
-    )), "Import should generate NodeAdded events");
+    assert!(
+        stored_events
+            .iter()
+            .any(|e| matches!(e, DomainEvent::Graph(GraphDomainEvent::NodeAdded { .. }))),
+        "Import should generate NodeAdded events"
+    );
 
     Ok(())
 }
@@ -112,7 +120,8 @@ async fn test_complete_import_to_entity_flow() -> DomainResult<()> {
     // Add import command to the world
     app.world.send_event(GraphCommand::ImportGraph {
         graph_id,
-        source: ImportSource::Text(r#"{
+        source: ImportSource::Text(
+            r#"{
             "nodes": [
                 {"id": "1", "type": "concept", "label": "Concept A", "x": 0, "y": 0},
                 {"id": "2", "type": "process", "label": "Process B", "x": 10, "y": 0}
@@ -120,7 +129,9 @@ async fn test_complete_import_to_entity_flow() -> DomainResult<()> {
             "edges": [
                 {"source": "1", "target": "2", "relationship": "feeds_into"}
             ]
-        }"#.to_string()),
+        }"#
+            .to_string(),
+        ),
         format: ImportFormat::Json,
         options: ImportOptions::default(),
     });
@@ -131,11 +142,15 @@ async fn test_complete_import_to_entity_flow() -> DomainResult<()> {
     app.update(); // Create entities
 
     // Assert - Check that entities were created
-    let node_query = app.world.query::<&cim_domain_bevy::components::NodeVisual>();
+    let node_query = app
+        .world
+        .query::<&cim_domain_bevy::components::NodeVisual>();
     let node_count = node_query.iter(&app.world).count();
     assert_eq!(node_count, 2, "Should create 2 node entities");
 
-    let edge_query = app.world.query::<&cim_domain_bevy::components::EdgeVisual>();
+    let edge_query = app
+        .world
+        .query::<&cim_domain_bevy::components::EdgeVisual>();
     let edge_count = edge_query.iter(&app.world).count();
     assert_eq!(edge_count, 1, "Should create 1 edge entity");
 
@@ -164,10 +179,13 @@ async fn test_import_invalid_data_handling() -> DomainResult<()> {
     let events = result.unwrap();
 
     // Should generate import failed event
-    assert!(events.iter().any(|e| matches!(
-        e,
-        DomainEvent::Graph(GraphDomainEvent::GraphImportFailed { .. })
-    )), "Should generate GraphImportFailed event for invalid data");
+    assert!(
+        events.iter().any(|e| matches!(
+            e,
+            DomainEvent::Graph(GraphDomainEvent::GraphImportFailed { .. })
+        )),
+        "Should generate GraphImportFailed event for invalid data"
+    );
 
     Ok(())
 }
@@ -194,30 +212,32 @@ async fn test_concurrent_imports() -> DomainResult<()> {
 
     // Arrange
     let event_store = TestEventStore::new();
-    let handles: Vec<_> = (0..5).map(|i| {
-        let store = event_store.clone();
-        task::spawn(async move {
-            let graph_id = GraphId::new();
-            let mut graph = GraphAggregate::new(graph_id);
+    let handles: Vec<_> = (0..5)
+        .map(|i| {
+            let store = event_store.clone();
+            task::spawn(async move {
+                let graph_id = GraphId::new();
+                let mut graph = GraphAggregate::new(graph_id);
 
-            let command = GraphCommand::ImportGraph {
-                graph_id,
-                source: ImportSource::Text(format!(
-                    r#"{{"nodes": [{{"id": "{}", "type": "concept"}}], "edges": []}}"#,
-                    i
-                )),
-                format: ImportFormat::Json,
-                options: ImportOptions::default(),
-            };
+                let command = GraphCommand::ImportGraph {
+                    graph_id,
+                    source: ImportSource::Text(format!(
+                        r#"{{"nodes": [{{"id": "{}", "type": "concept"}}], "edges": []}}"#,
+                        i
+                    )),
+                    format: ImportFormat::Json,
+                    options: ImportOptions::default(),
+                };
 
-            let events = graph.handle_command(command)?;
-            for event in events {
-                store.append(event).await?;
-            }
+                let events = graph.handle_command(command)?;
+                for event in events {
+                    store.append(event).await?;
+                }
 
-            Ok::<_, cim_domain::DomainError>(())
+                Ok::<_, cim_domain::DomainError>(())
+            })
         })
-    }).collect();
+        .collect();
 
     // Act - Wait for all imports
     for handle in handles {
@@ -241,13 +261,17 @@ async fn test_import_large_dataset() -> DomainResult<()> {
     for i in 0..1000 {
         nodes.push(format!(
             r#"{{"id": "{}", "type": "concept", "label": "Node {}", "x": {}, "y": {}}}"#,
-            i, i, i % 100, i / 100
+            i,
+            i,
+            i % 100,
+            i / 100
         ));
 
         if i > 0 {
             edges.push(format!(
                 r#"{{"source": "{}", "target": "{}", "relationship": "connects"}}"#,
-                i - 1, i
+                i - 1,
+                i
             ));
         }
     }
@@ -273,8 +297,14 @@ async fn test_import_large_dataset() -> DomainResult<()> {
     let duration = start.elapsed();
 
     // Assert
-    assert!(!events.is_empty(), "Should generate events for large import");
-    assert!(duration.as_secs() < 5, "Large import should complete within 5 seconds");
+    assert!(
+        !events.is_empty(),
+        "Should generate events for large import"
+    );
+    assert!(
+        duration.as_secs() < 5,
+        "Large import should complete within 5 seconds"
+    );
 
     // Should have import requested event
     assert!(events.iter().any(|e| matches!(
@@ -291,7 +321,10 @@ fn process_import_event(event: DomainEvent) -> DomainResult<Vec<DomainEvent>> {
     // This simulates what the ImportEventHandler would do
     match event {
         DomainEvent::Graph(GraphDomainEvent::GraphImportRequested {
-            graph_id, source, format, ..
+            graph_id,
+            source,
+            format,
+            ..
         }) => {
             // Parse the import data and generate events
             let mut events = Vec::new();
@@ -308,7 +341,7 @@ fn process_import_event(event: DomainEvent) -> DomainResult<Vec<DomainEvent>> {
 
             Ok(events)
         }
-        _ => Ok(vec![])
+        _ => Ok(vec![]),
     }
 }
 
@@ -323,7 +356,11 @@ async fn test_import_format(format: ImportFormat, data: String) -> DomainResult<
     };
 
     let events = graph.handle_command(command)?;
-    assert!(!events.is_empty(), "Import should generate events for format {:?}", format);
+    assert!(
+        !events.is_empty(),
+        "Import should generate events for format {:?}",
+        format
+    );
 
     Ok(())
 }
@@ -332,7 +369,8 @@ fn get_json_test_data() -> String {
     r#"{
         "nodes": [{"id": "1", "type": "concept"}],
         "edges": []
-    }"#.to_string()
+    }"#
+    .to_string()
 }
 
 fn get_mermaid_test_data() -> String {
@@ -343,5 +381,6 @@ fn get_arrows_app_test_data() -> String {
     r#"{
         "nodes": [{"id": "1", "caption": "Test"}],
         "relationships": []
-    }"#.to_string()
+    }"#
+    .to_string()
 }

@@ -3,10 +3,13 @@
 //! Factories create properly configured aggregates with all their
 //! dependencies injected.
 
-use crate::shared::types::Result;
-use crate::contexts::graph::domain::{ContextGraph, context_graph::{InvariantValidator, PositionCalculator}};
 use crate::contexts::graph::domain::commands::{CreateGraph, GraphFactory};
-use crate::contexts::graph::domain::invariants::{ValidatorFactory, DefaultValidatorFactory};
+use crate::contexts::graph::domain::invariants::{DefaultValidatorFactory, ValidatorFactory};
+use crate::contexts::graph::domain::{
+    ContextGraph,
+    context_graph::{InvariantValidator, PositionCalculator},
+};
+use crate::shared::types::Result;
 use std::sync::Arc;
 
 /// Default graph factory implementation
@@ -40,7 +43,9 @@ impl DefaultGraphFactory {
 impl GraphFactory for DefaultGraphFactory {
     fn create_graph(&self, command: CreateGraph) -> Result<ContextGraph> {
         // Create appropriate validator based on context type
-        let validator = self.validator_factory.create_validator(&command.context_type);
+        let validator = self
+            .validator_factory
+            .create_validator(&command.context_type);
 
         // Create a new position calculator instance
         use crate::contexts::graph::domain::context_graph::DefaultPositionCalculator;

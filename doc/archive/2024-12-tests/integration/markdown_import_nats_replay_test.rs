@@ -10,19 +10,21 @@ use bevy::prelude::*;
 use ia::{
     application::{CommandEvent, EventNotification},
     domain::{
-        commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
-        events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent},
+        commands::{
+            Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior,
+        },
+        events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
         services::ImportFormat,
-        value_objects::{GraphId, NodeId, EdgeId, Position3D},
+        value_objects::{EdgeId, GraphId, NodeId, Position3D},
     },
     infrastructure::{
+        event_store::{DistributedEventStore, EventStore},
         nats::{NatsClient, NatsConfig},
-        event_store::{EventStore, DistributedEventStore},
     },
     presentation::{
-        components::{GraphContainer, GraphNode, GraphEdge},
-        plugins::GraphEditorPlugin,
+        components::{GraphContainer, GraphEdge, GraphNode},
         events::{ImportRequestEvent, ImportResultEvent},
+        plugins::GraphEditorPlugin,
     },
 };
 use std::collections::HashMap;
@@ -43,7 +45,8 @@ async fn create_test_nats_client() -> Result<NatsClient, Box<dyn std::error::Err
         connection_name: Some("markdown_import_test".to_string()),
         max_reconnects: Some(5),
         reconnect_wait: Some(Duration::from_secs(1)),
-    }).await?;
+    })
+    .await?;
 
     // Clean up any existing test streams
     if let Ok(context) = client.jetstream().await {
@@ -96,7 +99,11 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
         options: ImportOptions {
             merge_behavior: MergeBehavior::MergePreferImported,
             id_prefix: Some("ddd_core".to_string()),
-            position_offset: Some(Position3D { x: 0.0, y: 0.0, z: 0.0 }),
+            position_offset: Some(Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
             mapping: None,
             validate: true,
             max_nodes: Some(1000),
@@ -121,7 +128,11 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
         options: ImportOptions {
             merge_behavior: MergeBehavior::MergePreferImported,
             id_prefix: Some("ddd_core".to_string()),
-            position_offset: Some(Position3D { x: 0.0, y: 0.0, z: 0.0 }),
+            position_offset: Some(Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
             mapping: None,
             validate: true,
             max_nodes: Some(1000),
@@ -178,7 +189,9 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
     // 6. Store events in NATS
     println!("Storing {} events in NATS...", recorded_events.len());
     for event in &recorded_events {
-        event_store.append_event(graph_id.to_string(), event.clone()).await?;
+        event_store
+            .append_event(graph_id.to_string(), event.clone())
+            .await?;
     }
 
     // 7. Wait a bit for events to be persisted
@@ -197,49 +210,77 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
     let events = event_store.get_events(graph_id.to_string(), None).await?;
 
     assert!(!events.is_empty(), "Should have events to replay");
-    assert_eq!(events.len(), recorded_events.len(), "Should replay all recorded events");
+    assert_eq!(
+        events.len(),
+        recorded_events.len(),
+        "Should replay all recorded events"
+    );
 
     // 10. Process replayed events
     for event in events {
         match event {
-            DomainEvent::Node(NodeEvent::NodeAdded { node_id, content, position, .. }) => {
+            DomainEvent::Node(NodeEvent::NodeAdded {
+                node_id,
+                content,
+                position,
+                ..
+            }) => {
                 println!("Replaying node: {} at {:?}", content.label, position);
 
                 // In a real app, this would spawn a Bevy entity
-                let entity = replay_app.world_mut().spawn((
-                    GraphNode {
-                        node_id,
-                        graph_id,
-                    },
-                    Transform::from_translation(Vec3::new(position.x, position.y, position.z)),
-                )).id();
+                let entity = replay_app
+                    .world_mut()
+                    .spawn((
+                        GraphNode { node_id, graph_id },
+                        Transform::from_translation(Vec3::new(position.x, position.y, position.z)),
+                    ))
+                    .id();
 
                 replayed_nodes.insert(node_id, entity);
             }
-            DomainEvent::Edge(EdgeEvent::EdgeAdded { edge_id, source, target, .. }) => {
+            DomainEvent::Edge(EdgeEvent::EdgeAdded {
+                edge_id,
+                source,
+                target,
+                ..
+            }) => {
                 println!("Replaying edge from {:?} to {:?}", source, target);
 
                 // Verify nodes exist
-                assert!(replayed_nodes.contains_key(&source), "Source node should exist");
-                assert!(replayed_nodes.contains_key(&target), "Target node should exist");
+                assert!(
+                    replayed_nodes.contains_key(&source),
+                    "Source node should exist"
+                );
+                assert!(
+                    replayed_nodes.contains_key(&target),
+                    "Target node should exist"
+                );
 
                 let source_entity = replayed_nodes[&source];
                 let target_entity = replayed_nodes[&target];
 
                 // In a real app, this would create edge visualization
-                let edge_entity = replay_app.world_mut().spawn((
-                    GraphEdge {
+                let edge_entity = replay_app
+                    .world_mut()
+                    .spawn((GraphEdge {
                         edge_id,
                         graph_id,
                         source: source_entity,
                         target: target_entity,
-                    },
-                )).id();
+                    },))
+                    .id();
 
                 replayed_edges.push(edge_entity);
             }
-            DomainEvent::Graph(GraphEvent::GraphImportCompleted { imported_nodes, imported_edges, .. }) => {
-                println!("Import completed: {} nodes, {} edges", imported_nodes, imported_edges);
+            DomainEvent::Graph(GraphEvent::GraphImportCompleted {
+                imported_nodes,
+                imported_edges,
+                ..
+            }) => {
+                println!(
+                    "Import completed: {} nodes, {} edges",
+                    imported_nodes, imported_edges
+                );
                 assert_eq!(replayed_nodes.len(), imported_nodes);
                 assert_eq!(replayed_edges.len(), imported_edges);
             }
@@ -248,7 +289,11 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
     }
 
     // 11. Verify the replayed graph structure
-    assert_eq!(replayed_nodes.len(), node_ids.len(), "All nodes should be replayed");
+    assert_eq!(
+        replayed_nodes.len(),
+        node_ids.len(),
+        "All nodes should be replayed"
+    );
     assert_eq!(replayed_edges.len(), 1, "Edge should be replayed");
 
     // 12. Test querying the replayed entities
@@ -305,7 +350,11 @@ graph TB
         options: ImportOptions {
             merge_behavior: MergeBehavior::AlwaysCreate,
             id_prefix: Some("complex".to_string()),
-            position_offset: Some(Position3D { x: 0.0, y: 0.0, z: 0.0 }),
+            position_offset: Some(Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
             mapping: None,
             validate: true,
             max_nodes: Some(100),

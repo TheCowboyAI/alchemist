@@ -45,7 +45,10 @@ fn benchmark_hashmap() -> std::time::Duration {
     for i in 0..10_000 {
         nodes.insert(i, format!("Person_{}", i));
     }
-    println!("  - Added 10,000 nodes in {:.3}s", node_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 10,000 nodes in {:.3}s",
+        node_start.elapsed().as_secs_f64()
+    );
 
     // Add edges (simple pattern: each node connects to next 5)
     let edge_start = Instant::now();
@@ -64,7 +67,10 @@ fn benchmark_hashmap() -> std::time::Duration {
         }
     }
 
-    println!("  - Added 5,000 edges in {:.3}s", edge_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 5,000 edges in {:.3}s",
+        edge_start.elapsed().as_secs_f64()
+    );
 
     // Simple query: find all neighbors of node 0
     let query_start = Instant::now();
@@ -74,9 +80,11 @@ fn benchmark_hashmap() -> std::time::Duration {
             neighbors.push(*to);
         }
     }
-    println!("  - Found {} neighbors of node 0 in {:.6}s",
-             neighbors.len(),
-             query_start.elapsed().as_secs_f64());
+    println!(
+        "  - Found {} neighbors of node 0 in {:.6}s",
+        neighbors.len(),
+        query_start.elapsed().as_secs_f64()
+    );
 
     start.elapsed()
 }
@@ -93,7 +101,10 @@ fn benchmark_vec() -> std::time::Duration {
     for i in 0..10_000 {
         nodes.push(format!("Person_{}", i));
     }
-    println!("  - Added 10,000 nodes in {:.3}s", node_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 10,000 nodes in {:.3}s",
+        node_start.elapsed().as_secs_f64()
+    );
 
     // Add edges
     let edge_start = Instant::now();
@@ -112,7 +123,10 @@ fn benchmark_vec() -> std::time::Duration {
         }
     }
 
-    println!("  - Added 5,000 edges in {:.3}s", edge_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 5,000 edges in {:.3}s",
+        edge_start.elapsed().as_secs_f64()
+    );
 
     // Simple query: find all neighbors of node 0
     let query_start = Instant::now();
@@ -122,9 +136,11 @@ fn benchmark_vec() -> std::time::Duration {
             neighbors.push(*to);
         }
     }
-    println!("  - Found {} neighbors of node 0 in {:.6}s",
-             neighbors.len(),
-             query_start.elapsed().as_secs_f64());
+    println!(
+        "  - Found {} neighbors of node 0 in {:.6}s",
+        neighbors.len(),
+        query_start.elapsed().as_secs_f64()
+    );
 
     start.elapsed()
 }

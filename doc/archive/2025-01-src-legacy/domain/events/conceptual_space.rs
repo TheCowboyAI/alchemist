@@ -1,8 +1,8 @@
 //! Conceptual Space Events
 
 use crate::domain::{
+    conceptual_graph::{ConceptId, ConceptualPoint, DistanceMetric, QualityDimension},
     value_objects::{ConceptualSpaceId, DimensionId, RegionId, UserId},
-    conceptual_graph::{QualityDimension, DistanceMetric, ConceptualPoint, ConceptId},
 };
 use serde::{Deserialize, Serialize};
 

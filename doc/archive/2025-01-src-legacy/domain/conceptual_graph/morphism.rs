@@ -3,10 +3,10 @@
 //! Morphisms are structure-preserving maps between graphs that enable
 //! composition and transformation of concepts.
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-use crate::domain::conceptual_graph::concept::{ConceptId, NodeId, EdgeId};
+use crate::domain::conceptual_graph::concept::{ConceptId, EdgeId, NodeId};
 
 /// Types of graph morphisms
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -66,9 +66,7 @@ pub enum GraphMorphism {
     },
 
     /// Coproduct - disjoint union
-    Coproduct {
-        component_ids: Vec<ConceptId>,
-    },
+    Coproduct { component_ids: Vec<ConceptId> },
 
     /// Functor - maps between categories
     Functor {
@@ -125,9 +123,9 @@ pub struct EquivalenceRelation {
 
 impl PartialEq for EquivalenceRelation {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name &&
-        self.equivalence_classes == other.equivalence_classes &&
-        self.representatives == other.representatives
+        self.name == other.name
+            && self.equivalence_classes == other.equivalence_classes
+            && self.representatives == other.representatives
     }
 }
 

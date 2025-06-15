@@ -3,10 +3,10 @@
 //! This module provides functionality for managing subgraphs as spatial units
 //! with their own coordinate systems and base origins.
 
+use crate::domain::value_objects::{GraphId, NodeId};
+use crate::presentation::components::{GraphNode, NodeLabel};
 use bevy::prelude::*;
 use std::collections::HashMap;
-use crate::presentation::components::{GraphNode, NodeLabel};
-use crate::domain::value_objects::{NodeId, GraphId};
 
 /// Represents a subgraph with its own spatial origin
 #[derive(Component, Debug, Clone)]
@@ -39,16 +39,18 @@ pub fn create_subgraph_origin(
     let base_position = Vec3::ZERO;
 
     // Create an invisible origin entity
-    let origin_entity = commands.spawn((
-        SubgraphOrigin {
-            graph_id,
-            base_position,
-        },
-        Transform::from_translation(base_position),
-        GlobalTransform::default(),
-        // Make it invisible but still part of the transform hierarchy
-        Visibility::Hidden,
-    )).id();
+    let origin_entity = commands
+        .spawn((
+            SubgraphOrigin {
+                graph_id,
+                base_position,
+            },
+            Transform::from_translation(base_position),
+            GlobalTransform::default(),
+            // Make it invisible but still part of the transform hierarchy
+            Visibility::Hidden,
+        ))
+        .id();
 
     // Update spatial map
     spatial_map.origins.insert(graph_id, origin_entity);
@@ -70,18 +72,15 @@ pub fn add_node_to_subgraph(
     let origin_entity = spatial_map.origins.get(&graph_id)?;
 
     // Create the node as a child of the origin
-    let node_entity = commands.spawn((
-        GraphNode {
-            node_id,
-            graph_id,
-        },
-        NodeLabel {
-            text: label,
-        },
-        SubgraphMember { graph_id },
-        Transform::from_translation(relative_position),
-        GlobalTransform::default(),
-    )).id();
+    let node_entity = commands
+        .spawn((
+            GraphNode { node_id, graph_id },
+            NodeLabel { text: label },
+            SubgraphMember { graph_id },
+            Transform::from_translation(relative_position),
+            GlobalTransform::default(),
+        ))
+        .id();
 
     // Set the parent-child relationship
     commands.entity(*origin_entity).add_child(node_entity);
@@ -131,11 +130,7 @@ pub fn layout_subgraph_nodes(
 pub fn circular_layout(radius: f32, count: usize) -> impl Fn(usize) -> Vec3 {
     move |index| {
         let angle = (index as f32) * 2.0 * std::f32::consts::PI / (count as f32);
-        Vec3::new(
-            radius * angle.cos(),
-            0.0,
-            radius * angle.sin(),
-        )
+        Vec3::new(radius * angle.cos(), 0.0, radius * angle.sin())
     }
 }
 
@@ -179,22 +174,70 @@ pub fn visualize_subgraph_boundaries(
         let color = Color::srgba(0.3, 0.7, 0.9, 0.3);
 
         // Bottom face
-        gizmos.line(Vec3::new(min.x, min.y, min.z), Vec3::new(max.x, min.y, min.z), color);
-        gizmos.line(Vec3::new(max.x, min.y, min.z), Vec3::new(max.x, min.y, max.z), color);
-        gizmos.line(Vec3::new(max.x, min.y, max.z), Vec3::new(min.x, min.y, max.z), color);
-        gizmos.line(Vec3::new(min.x, min.y, max.z), Vec3::new(min.x, min.y, min.z), color);
+        gizmos.line(
+            Vec3::new(min.x, min.y, min.z),
+            Vec3::new(max.x, min.y, min.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(max.x, min.y, min.z),
+            Vec3::new(max.x, min.y, max.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(max.x, min.y, max.z),
+            Vec3::new(min.x, min.y, max.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(min.x, min.y, max.z),
+            Vec3::new(min.x, min.y, min.z),
+            color,
+        );
 
         // Top face
-        gizmos.line(Vec3::new(min.x, max.y, min.z), Vec3::new(max.x, max.y, min.z), color);
-        gizmos.line(Vec3::new(max.x, max.y, min.z), Vec3::new(max.x, max.y, max.z), color);
-        gizmos.line(Vec3::new(max.x, max.y, max.z), Vec3::new(min.x, max.y, max.z), color);
-        gizmos.line(Vec3::new(min.x, max.y, max.z), Vec3::new(min.x, max.y, min.z), color);
+        gizmos.line(
+            Vec3::new(min.x, max.y, min.z),
+            Vec3::new(max.x, max.y, min.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(max.x, max.y, min.z),
+            Vec3::new(max.x, max.y, max.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(max.x, max.y, max.z),
+            Vec3::new(min.x, max.y, max.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(min.x, max.y, max.z),
+            Vec3::new(min.x, max.y, min.z),
+            color,
+        );
 
         // Vertical edges
-        gizmos.line(Vec3::new(min.x, min.y, min.z), Vec3::new(min.x, max.y, min.z), color);
-        gizmos.line(Vec3::new(max.x, min.y, min.z), Vec3::new(max.x, max.y, min.z), color);
-        gizmos.line(Vec3::new(max.x, min.y, max.z), Vec3::new(max.x, max.y, max.z), color);
-        gizmos.line(Vec3::new(min.x, min.y, max.z), Vec3::new(min.x, max.y, max.z), color);
+        gizmos.line(
+            Vec3::new(min.x, min.y, min.z),
+            Vec3::new(min.x, max.y, min.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(max.x, min.y, min.z),
+            Vec3::new(max.x, max.y, min.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(max.x, min.y, max.z),
+            Vec3::new(max.x, max.y, max.z),
+            color,
+        );
+        gizmos.line(
+            Vec3::new(min.x, min.y, max.z),
+            Vec3::new(min.x, max.y, max.z),
+            color,
+        );
     }
 }
 

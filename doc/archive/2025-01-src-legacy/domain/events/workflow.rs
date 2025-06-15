@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::domain::{
-    aggregates::workflow::{WorkflowStep, WorkflowResult},
-    value_objects::{WorkflowId, StepId, EdgeId, UserId},
+    aggregates::workflow::{WorkflowResult, WorkflowStep},
+    value_objects::{EdgeId, StepId, UserId, WorkflowId},
 };
 
 /// All workflow-related events

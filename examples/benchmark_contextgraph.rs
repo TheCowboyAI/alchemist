@@ -1,7 +1,7 @@
 //! Simple benchmark comparing ContextGraph implementations
 
-use std::time::Instant;
 use rand::Rng;
+use std::time::Instant;
 
 fn main() {
     println!("ContextGraph Performance Comparison");
@@ -47,7 +47,10 @@ fn benchmark_hashmap() -> std::time::Duration {
     for i in 0..10_000 {
         nodes.insert(i, format!("Person_{}", i));
     }
-    println!("  - Added 10,000 nodes in {:.3}s", node_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 10,000 nodes in {:.3}s",
+        node_start.elapsed().as_secs_f64()
+    );
 
     // Add random edges
     let edge_start = Instant::now();
@@ -64,7 +67,10 @@ fn benchmark_hashmap() -> std::time::Duration {
         }
     }
 
-    println!("  - Added 5,000 edges in {:.3}s", edge_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 5,000 edges in {:.3}s",
+        edge_start.elapsed().as_secs_f64()
+    );
 
     // Simple query: find all neighbors of node 0
     let query_start = Instant::now();
@@ -74,9 +80,11 @@ fn benchmark_hashmap() -> std::time::Duration {
             neighbors.push(*to);
         }
     }
-    println!("  - Found {} neighbors of node 0 in {:.6}s",
-             neighbors.len(),
-             query_start.elapsed().as_secs_f64());
+    println!(
+        "  - Found {} neighbors of node 0 in {:.6}s",
+        neighbors.len(),
+        query_start.elapsed().as_secs_f64()
+    );
 
     start.elapsed()
 }
@@ -95,7 +103,10 @@ fn benchmark_petgraph() -> std::time::Duration {
         let idx = graph.add_node(format!("Person_{}", i));
         node_indices.push(idx);
     }
-    println!("  - Added 10,000 nodes in {:.3}s", node_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 10,000 nodes in {:.3}s",
+        node_start.elapsed().as_secs_f64()
+    );
 
     // Add random edges
     let edge_start = Instant::now();
@@ -110,20 +121,25 @@ fn benchmark_petgraph() -> std::time::Duration {
             graph.add_edge(
                 node_indices[from_idx],
                 node_indices[to_idx],
-                format!("knows_{}", edge_count)
+                format!("knows_{}", edge_count),
             );
             edge_count += 1;
         }
     }
 
-    println!("  - Added 5,000 edges in {:.3}s", edge_start.elapsed().as_secs_f64());
+    println!(
+        "  - Added 5,000 edges in {:.3}s",
+        edge_start.elapsed().as_secs_f64()
+    );
 
     // Simple query: find all neighbors of node 0
     let query_start = Instant::now();
     let neighbors: Vec<_> = graph.neighbors(node_indices[0]).collect();
-    println!("  - Found {} neighbors of node 0 in {:.6}s",
-             neighbors.len(),
-             query_start.elapsed().as_secs_f64());
+    println!(
+        "  - Found {} neighbors of node 0 in {:.6}s",
+        neighbors.len(),
+        query_start.elapsed().as_secs_f64()
+    );
 
     // Bonus: Run some algorithms
     let algo_start = Instant::now();
@@ -134,7 +150,10 @@ fn benchmark_petgraph() -> std::time::Duration {
 
     println!("  - Graph is cyclic: {}", is_cyclic);
     println!("  - Strongly connected components: {}", sccs.len());
-    println!("  - Algorithm tests took: {:.3}s", algo_start.elapsed().as_secs_f64());
+    println!(
+        "  - Algorithm tests took: {:.3}s",
+        algo_start.elapsed().as_secs_f64()
+    );
 
     start.elapsed()
 }

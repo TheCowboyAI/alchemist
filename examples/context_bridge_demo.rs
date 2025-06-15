@@ -3,15 +3,13 @@
 //! This example demonstrates how to use ContextBridge to translate concepts
 //! between different bounded contexts using various mapping patterns.
 
-use ia::domain::conceptual_graph::{
-    ConceptGraph, ConceptId, NodeId,
-    ContextBridge, ContextMappingType, TranslationRule,
-    ConceptTransformation, TranslationDirection,
-};
 use ia::domain::conceptual_graph::context_bridge::{
-    InterfaceContract, ContractOperation, DataSchema, FieldType,
-    PublishedLanguage, PublishedConcept,
-    AttributeDefinition, ConceptPattern,
+    AttributeDefinition, ConceptPattern, ContractOperation, DataSchema, FieldType,
+    InterfaceContract, PublishedConcept, PublishedLanguage,
+};
+use ia::domain::conceptual_graph::{
+    ConceptGraph, ConceptId, ConceptTransformation, ContextBridge, ContextMappingType, NodeId,
+    TranslationDirection, TranslationRule,
 };
 use std::collections::HashMap;
 
@@ -59,7 +57,10 @@ fn demo_customer_supplier(inventory: &ConceptGraph, order: &ConceptGraph) {
             mappings: {
                 let mut m = HashMap::new();
                 m.insert("sku".to_string(), "product_code".to_string());
-                m.insert("quantity_on_hand".to_string(), "available_quantity".to_string());
+                m.insert(
+                    "quantity_on_hand".to_string(),
+                    "available_quantity".to_string(),
+                );
                 m
             },
         },
@@ -77,7 +78,10 @@ fn demo_customer_supplier(inventory: &ConceptGraph, order: &ConceptGraph) {
     };
     bridge.add_translation_rule(rule);
 
-    println!("Bridge created with mapping type: {}", bridge.mapping_description());
+    println!(
+        "Bridge created with mapping type: {}",
+        bridge.mapping_description()
+    );
     println!("Translation rules added for Product -> OrderItem mapping");
     println!();
 }
@@ -127,26 +131,24 @@ fn demo_published_language(inventory: &ConceptGraph, order: &ConceptGraph) {
     let language = PublishedLanguage {
         name: "Product Catalog Language".to_string(),
         version: "1.0".to_string(),
-        concepts: vec![
-            PublishedConcept {
-                name: "CatalogProduct".to_string(),
-                attributes: vec![
-                    AttributeDefinition {
-                        name: "product_id".to_string(),
-                        attribute_type: "String".to_string(),
-                        required: true,
-                        constraints: vec!["unique".to_string()],
-                    },
-                    AttributeDefinition {
-                        name: "name".to_string(),
-                        attribute_type: "String".to_string(),
-                        required: true,
-                        constraints: vec!["non_empty".to_string()],
-                    },
-                ],
-                invariants: vec!["product_id must be unique".to_string()],
-            },
-        ],
+        concepts: vec![PublishedConcept {
+            name: "CatalogProduct".to_string(),
+            attributes: vec![
+                AttributeDefinition {
+                    name: "product_id".to_string(),
+                    attribute_type: "String".to_string(),
+                    required: true,
+                    constraints: vec!["unique".to_string()],
+                },
+                AttributeDefinition {
+                    name: "name".to_string(),
+                    attribute_type: "String".to_string(),
+                    required: true,
+                    constraints: vec!["non_empty".to_string()],
+                },
+            ],
+            invariants: vec!["product_id must be unique".to_string()],
+        }],
         relationships: vec![],
         constraints: vec![],
     };

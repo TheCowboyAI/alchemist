@@ -1,18 +1,11 @@
 //! Object store infrastructure for CIM-IPLD
 
-mod nats_object_store;
 mod content_storage;
+mod nats_object_store;
 
+pub use content_storage::{CacheStats, ContentStorageService};
 pub use nats_object_store::{
-    NatsObjectStore,
-    ObjectStoreError,
-    ContentBucket,
-    ObjectInfo,
-    BucketStats,
-};
-pub use content_storage::{
-    ContentStorageService,
-    CacheStats,
+    BucketStats, ContentBucket, NatsObjectStore, ObjectInfo, ObjectStoreError,
 };
 
 // Re-export Result type

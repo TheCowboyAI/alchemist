@@ -29,7 +29,11 @@ impl EventChain {
         Self
     }
 
-    pub fn add_event(&self, event: DomainEvent, previous_cid: Option<Cid>) -> Result<ChainedEvent, Box<dyn std::error::Error>> {
+    pub fn add_event(
+        &self,
+        event: DomainEvent,
+        previous_cid: Option<Cid>,
+    ) -> Result<ChainedEvent, Box<dyn std::error::Error>> {
         let payload = serde_json::to_value(&event)?;
         let event_cid = self.calculate_cid(&event)?;
 

@@ -36,9 +36,9 @@
     firewall = {
       enable = true;
       allowedTCPPorts = [
-        4222  # NATS
-        4223  # NATS WebSocket
-        8222  # NATS monitoring
+        4222 # NATS
+        4223 # NATS WebSocket
+        8222 # NATS monitoring
       ];
     };
   };
@@ -121,7 +121,7 @@
     # Terminal and file management
     gnome.gnome-terminal
     firefox
-    vscode  # Since Cursor needs manual installation
+    vscode # Since Cursor needs manual installation
 
     # System utilities
     unzip

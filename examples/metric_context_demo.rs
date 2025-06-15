@@ -1,6 +1,6 @@
 use ia::domain::conceptual_graph::{
-    ConceptId, CostFunction, DistanceFunction, MetricContext, MetricType, ResourceType,
-    ConsumptionFunction,
+    ConceptId, ConsumptionFunction, CostFunction, DistanceFunction, MetricContext, MetricType,
+    ResourceType,
 };
 
 fn main() {
@@ -73,14 +73,17 @@ fn main() {
     );
 
     // Set migration costs (in developer days)
-    cost_metric.set_distance(ui_concept, api_concept, 5.0);   // UI to API migration
-    cost_metric.set_distance(api_concept, db_concept, 10.0);  // API to DB migration
+    cost_metric.set_distance(ui_concept, api_concept, 5.0); // UI to API migration
+    cost_metric.set_distance(api_concept, db_concept, 10.0); // API to DB migration
     cost_metric.set_distance(db_concept, cache_concept, 3.0); // DB to Cache migration
 
     // Find components within budget
     let budget_radius = 8.0;
     let within_budget = cost_metric.metric_ball(ui_concept, budget_radius);
-    println!("   Components reachable within {} days from UI:", budget_radius);
+    println!(
+        "   Components reachable within {} days from UI:",
+        budget_radius
+    );
     for concept in within_budget {
         println!("   - {:?}", concept);
     }
@@ -99,16 +102,17 @@ fn main() {
     );
 
     // Set resource consumption relationships
-    resource_metric.set_distance(ui_concept, api_concept, 10.0);    // 10 CPU units
-    resource_metric.set_distance(api_concept, db_concept, 50.0);    // 50 CPU units
-    resource_metric.set_distance(api_concept, cache_concept, 5.0);   // 5 CPU units
-    resource_metric.set_distance(cache_concept, db_concept, 45.0);  // 45 CPU units
+    resource_metric.set_distance(ui_concept, api_concept, 10.0); // 10 CPU units
+    resource_metric.set_distance(api_concept, db_concept, 50.0); // 50 CPU units
+    resource_metric.set_distance(api_concept, cache_concept, 5.0); // 5 CPU units
+    resource_metric.set_distance(cache_concept, db_concept, 45.0); // 45 CPU units
 
     // Cluster by resource usage similarity
     let clusters = resource_metric.cluster_by_distance(20.0);
     println!("   Resource usage clusters (threshold: 20 CPU units):");
     for (i, cluster) in clusters.iter().enumerate() {
-        println!("   Cluster {}: {} members, avg distance: {:.2}",
+        println!(
+            "   Cluster {}: {} members, avg distance: {:.2}",
             i + 1,
             cluster.members.len(),
             cluster.average_distance
@@ -134,10 +138,14 @@ fn main() {
     data_flow_metric.set_distance(ui_concept, api_concept, 10.0);
     data_flow_metric.set_distance(api_concept, ui_concept, 100.0);
 
-    println!("   Data flow from UI to API: {:?} MB/s",
-        data_flow_metric.get_distance(ui_concept, api_concept));
-    println!("   Data flow from API to UI: {:?} MB/s",
-        data_flow_metric.get_distance(api_concept, ui_concept));
+    println!(
+        "   Data flow from UI to API: {:?} MB/s",
+        data_flow_metric.get_distance(ui_concept, api_concept)
+    );
+    println!(
+        "   Data flow from API to UI: {:?} MB/s",
+        data_flow_metric.get_distance(api_concept, ui_concept)
+    );
 
     println!("\n=== Demo Complete ===");
 }

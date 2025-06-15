@@ -1,17 +1,17 @@
 //! Voronoi tessellation for conceptual space partitioning
 
 use bevy::prelude::*;
+use bevy::render::mesh::MeshVertexAttribute;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
-use bevy::render::mesh::MeshVertexAttribute;
 use bevy::render::render_resource::VertexFormat;
 use tracing::info;
 
+use crate::domain::value_objects::SubgraphId;
 use crate::presentation::components::{
     ConceptualPosition, ConceptualSpacePartition, DistanceMetric, GraphNode, QualityDimension,
-    SubgraphMember, SubgraphRegion, VoronoiCell, VoronoiSettings, SubgraphOrigins,
+    SubgraphMember, SubgraphOrigins, SubgraphRegion, VoronoiCell, VoronoiSettings,
 };
-use crate::domain::value_objects::SubgraphId;
 use std::collections::{HashMap, HashSet};
 
 /// Plugin for Voronoi tessellation
@@ -29,7 +29,8 @@ impl Plugin for VoronoiTessellationPlugin {
                     update_quality_dimensions,
                     calculate_voronoi_tessellation,
                     assign_nodes_to_cells,
-                    visualize_voronoi_cells.run_if(resource_equals(VoronoiVisualizationEnabled(true))),
+                    visualize_voronoi_cells
+                        .run_if(resource_equals(VoronoiVisualizationEnabled(true))),
                 )
                     .chain(),
             );
@@ -51,7 +52,10 @@ fn toggle_voronoi_visualization(
 ) {
     if keyboard.just_pressed(KeyCode::KeyV) {
         enabled.0 = !enabled.0;
-        info!("Voronoi visualization: {}", if enabled.0 { "ON" } else { "OFF" });
+        info!(
+            "Voronoi visualization: {}",
+            if enabled.0 { "ON" } else { "OFF" }
+        );
 
         // Remove existing cells if disabling
         if !enabled.0 {
@@ -247,7 +251,8 @@ fn calculate_voronoi_cells_2d(
 
         for k in 0..num_vertices {
             let angle = (k as f32 / num_vertices as f32) * std::f32::consts::TAU;
-            let mut vertex = *proto + Vec3::new(angle.cos() * base_radius, 0.0, angle.sin() * base_radius);
+            let mut vertex =
+                *proto + Vec3::new(angle.cos() * base_radius, 0.0, angle.sin() * base_radius);
 
             // Adjust vertex position based on nearby prototypes
             for (j, (_, other_proto)) in prototypes.iter().enumerate() {
@@ -306,7 +311,8 @@ fn calculate_voronoi_cells_2d(
 fn apply_lloyds_relaxation(cells: &mut [VoronoiCell], factor: f32) {
     for cell in cells.iter_mut() {
         // Calculate centroid of cell vertices
-        let centroid = cell.vertices.iter().fold(Vec3::ZERO, |acc, v| acc + *v) / cell.vertices.len() as f32;
+        let centroid =
+            cell.vertices.iter().fold(Vec3::ZERO, |acc, v| acc + *v) / cell.vertices.len() as f32;
 
         // Move prototype towards centroid
         cell.prototype = cell.prototype.lerp(centroid, factor);
@@ -458,20 +464,21 @@ impl VoronoiCellMesh {
     }
 
     fn to_mesh(&self) -> Mesh {
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+        let mut mesh = Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        );
 
         // Add vertices
-        mesh.insert_attribute(
-            Mesh::ATTRIBUTE_POSITION,
-            self.vertices.clone(),
-        );
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, self.vertices.clone());
 
         // Add normals (all pointing up for floor mesh)
         let normals = vec![Vec3::Y; self.vertices.len()];
         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
 
         // Add UVs
-        let uvs: Vec<[f32; 2]> = self.vertices
+        let uvs: Vec<[f32; 2]> = self
+            .vertices
             .iter()
             .map(|v| [(v.x + 50.0) / 100.0, (v.z + 50.0) / 100.0])
             .collect();

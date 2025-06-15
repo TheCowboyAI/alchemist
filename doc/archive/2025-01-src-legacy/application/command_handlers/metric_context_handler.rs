@@ -20,11 +20,19 @@ impl MetricContextHandler {
         }
     }
 
-    pub async fn handle_command(&self, command: MetricContextCommand) -> Result<Vec<DomainEvent>, String> {
+    pub async fn handle_command(
+        &self,
+        command: MetricContextCommand,
+    ) -> Result<Vec<DomainEvent>, String> {
         match command {
-            MetricContextCommand::CreateMetricContext { name, base_context, metric_type } => {
+            MetricContextCommand::CreateMetricContext {
+                name,
+                base_context,
+                metric_type,
+            } => {
                 let context_id = MetricContextId::new();
-                let mut context = MetricContext::new(name.clone(), base_context, metric_type.clone());
+                let mut context =
+                    MetricContext::new(name.clone(), base_context, metric_type.clone());
                 context.id = context_id;
 
                 let mut contexts = self.contexts.write().await;
@@ -37,16 +45,23 @@ impl MetricContextHandler {
                     metric_type: metric_type.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            MetricContextCommand::SetDistance { context_id, from, to, distance } => {
+            MetricContextCommand::SetDistance {
+                context_id,
+                from,
+                to,
+                distance,
+            } => {
                 let mut contexts = self.contexts.write().await;
-                let context = contexts.get_mut(&context_id)
+                let context = contexts
+                    .get_mut(&context_id)
                     .ok_or_else(|| "Metric context not found".to_string())?;
 
                 context.set_distance(from, to, distance);
@@ -58,37 +73,50 @@ impl MetricContextHandler {
                     distance,
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            MetricContextCommand::CalculateShortestPath { context_id, from, to } => {
+            MetricContextCommand::CalculateShortestPath {
+                context_id,
+                from,
+                to,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Metric context not found".to_string())?;
 
                 let path = context.shortest_path(from, to)?;
 
-                let event = DomainEvent::MetricContext(MetricContextEvent::ShortestPathCalculated {
-                    context_id,
-                    from,
-                    to,
-                    path: path.clone(),
-                });
+                let event =
+                    DomainEvent::MetricContext(MetricContextEvent::ShortestPathCalculated {
+                        context_id,
+                        from,
+                        to,
+                        path: path.clone(),
+                    });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            MetricContextCommand::FindNearestNeighbors { context_id, concept, k } => {
+            MetricContextCommand::FindNearestNeighbors {
+                context_id,
+                concept,
+                k,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Metric context not found".to_string())?;
 
                 let neighbors = context.nearest_neighbors(concept, k);
@@ -99,16 +127,21 @@ impl MetricContextHandler {
                     neighbors: neighbors.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            MetricContextCommand::ClusterByDistance { context_id, threshold } => {
+            MetricContextCommand::ClusterByDistance {
+                context_id,
+                threshold,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Metric context not found".to_string())?;
 
                 let clusters = context.cluster_by_distance(threshold);
@@ -119,28 +152,36 @@ impl MetricContextHandler {
                     clusters: clusters.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            MetricContextCommand::FindWithinRadius { context_id, center, radius } => {
+            MetricContextCommand::FindWithinRadius {
+                context_id,
+                center,
+                radius,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Metric context not found".to_string())?;
 
                 let concepts = context.metric_ball(center, radius);
 
-                let event = DomainEvent::MetricContext(MetricContextEvent::ConceptsWithinRadiusFound {
-                    context_id,
-                    center,
-                    radius,
-                    concepts,
-                });
+                let event =
+                    DomainEvent::MetricContext(MetricContextEvent::ConceptsWithinRadiusFound {
+                        context_id,
+                        center,
+                        radius,
+                        concepts,
+                    });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
@@ -151,10 +192,11 @@ impl MetricContextHandler {
                 context_id,
                 is_symmetric,
                 satisfies_triangle_inequality,
-                has_zero_self_distance
+                has_zero_self_distance,
             } => {
                 let mut contexts = self.contexts.write().await;
-                let context = contexts.get_mut(&context_id)
+                let context = contexts
+                    .get_mut(&context_id)
                     .ok_or_else(|| "Metric context not found".to_string())?;
 
                 if let Some(symmetric) = is_symmetric {
@@ -167,14 +209,16 @@ impl MetricContextHandler {
                     context.metric_space.has_zero_self_distance = zero_self;
                 }
 
-                let event = DomainEvent::MetricContext(MetricContextEvent::MetricPropertiesUpdated {
-                    context_id,
-                    is_symmetric,
-                    satisfies_triangle_inequality,
-                    has_zero_self_distance,
-                });
+                let event =
+                    DomainEvent::MetricContext(MetricContextEvent::MetricPropertiesUpdated {
+                        context_id,
+                        is_symmetric,
+                        satisfies_triangle_inequality,
+                        has_zero_self_distance,
+                    });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 

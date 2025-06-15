@@ -6,10 +6,10 @@ use bevy::prelude::*;
 use crossbeam::channel::{Receiver, Sender};
 use std::sync::Arc;
 
-use cim_domain::workflow::{WorkflowEvent as DomainWorkflowEvent, WorkflowState};
-use crate::domain::value_objects::{WorkflowId, StepId};
+use crate::domain::value_objects::{StepId, WorkflowId};
+use crate::infrastructure::event_bridge::{BridgeCommand, BridgeEvent};
 use crate::presentation::events::WorkflowEvent as PresentationWorkflowEvent;
-use crate::infrastructure::event_bridge::{BridgeEvent, BridgeCommand};
+use cim_domain::workflow::{WorkflowEvent as DomainWorkflowEvent, WorkflowState};
 
 /// Bridge for workflow events between domain and presentation
 pub struct WorkflowEventBridge {
@@ -37,30 +37,29 @@ impl WorkflowEventBridge {
         // Process all pending domain events
         while let Ok(bridge_event) = self.domain_receiver.try_recv() {
             match bridge_event {
-                BridgeEvent::WorkflowStarted { workflow_id, instance_id } => {
+                BridgeEvent::WorkflowStarted {
+                    workflow_id,
+                    instance_id,
+                } => {
                     events.send(PresentationWorkflowEvent::WorkflowStarted {
                         workflow_id,
                         instance_id,
                     });
                 }
                 BridgeEvent::WorkflowStepStarted { step_id } => {
-                    events.send(PresentationWorkflowEvent::StepStarted {
-                        step_id,
-                    });
+                    events.send(PresentationWorkflowEvent::StepStarted { step_id });
                 }
                 BridgeEvent::WorkflowStepCompleted { step_id, duration } => {
-                    events.send(PresentationWorkflowEvent::StepCompleted {
-                        step_id,
-                        duration,
-                    });
+                    events.send(PresentationWorkflowEvent::StepCompleted { step_id, duration });
                 }
                 BridgeEvent::WorkflowStepFailed { step_id, error } => {
-                    events.send(PresentationWorkflowEvent::StepFailed {
-                        step_id,
-                        error,
-                    });
+                    events.send(PresentationWorkflowEvent::StepFailed { step_id, error });
                 }
-                BridgeEvent::WorkflowCompleted { workflow_id, instance_id, total_duration } => {
+                BridgeEvent::WorkflowCompleted {
+                    workflow_id,
+                    instance_id,
+                    total_duration,
+                } => {
                     events.send(PresentationWorkflowEvent::WorkflowCompleted {
                         workflow_id,
                         instance_id,
@@ -84,9 +83,12 @@ impl Plugin for WorkflowEventBridgePlugin {
     fn build(&self, app: &mut App) {
         let bridge = self.bridge.clone();
 
-        app.add_systems(Update, move |events: EventWriter<PresentationWorkflowEvent>| {
-            bridge.process_events(events);
-        });
+        app.add_systems(
+            Update,
+            move |events: EventWriter<PresentationWorkflowEvent>| {
+                bridge.process_events(events);
+            },
+        );
     }
 }
 
@@ -110,13 +112,14 @@ where
             // Could map to step events if needed
             None
         }
-        DomainWorkflowEvent::WorkflowCompleted { workflow_id, duration } => {
-            Some(BridgeEvent::WorkflowCompleted {
-                workflow_id: convert_workflow_id(workflow_id),
-                instance_id: uuid::Uuid::new_v4(),
-                total_duration: duration.as_secs_f32(),
-            })
-        }
+        DomainWorkflowEvent::WorkflowCompleted {
+            workflow_id,
+            duration,
+        } => Some(BridgeEvent::WorkflowCompleted {
+            workflow_id: convert_workflow_id(workflow_id),
+            instance_id: uuid::Uuid::new_v4(),
+            total_duration: duration.as_secs_f32(),
+        }),
         DomainWorkflowEvent::WorkflowSuspended { .. } => {
             // Could add suspended event to presentation
             None

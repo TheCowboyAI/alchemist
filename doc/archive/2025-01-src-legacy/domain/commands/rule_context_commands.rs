@@ -87,9 +87,7 @@ pub enum RuleContextCommand {
     },
 
     /// Validate rule consistency
-    ValidateRules {
-        context_id: RuleContextId,
-    },
+    ValidateRules { context_id: RuleContextId },
 
     /// Export rules to a format
     ExportRules {

@@ -4,8 +4,8 @@
 //! event stores, repositories, and external service integrations.
 
 pub mod event_store;
-pub mod repositories;
 pub mod factories;
+pub mod repositories;
 
 // Re-export commonly used types
 pub use event_store::GraphEventStore;

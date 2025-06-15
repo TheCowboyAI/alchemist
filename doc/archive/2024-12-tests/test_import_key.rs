@@ -2,9 +2,9 @@
 
 use bevy::prelude::*;
 use ia::application::CommandEvent;
-use ia::presentation::plugins::GraphEditorPlugin;
-use ia::domain::commands::{Command, GraphCommand, ImportSource, ImportOptions};
 use ia::domain::commands::graph_commands::MergeBehavior;
+use ia::domain::commands::{Command, GraphCommand, ImportOptions, ImportSource};
+use ia::presentation::plugins::GraphEditorPlugin;
 
 fn main() {
     App::new()

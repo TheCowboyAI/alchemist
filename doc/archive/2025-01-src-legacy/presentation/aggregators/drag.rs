@@ -3,14 +3,14 @@
 //! During a drag operation, we may receive hundreds of position updates.
 //! We aggregate these and only send the final position to the domain.
 
-use bevy::prelude::*;
-use std::collections::HashMap;
+use super::EventAggregator;
 use crate::domain::{
     commands::{DomainCommand, UpdateNodePositions},
     value_objects::{NodeId, Position3D},
 };
-use crate::presentation::events::interaction::{DragStart, DragUpdate, DragEnd};
-use super::EventAggregator;
+use crate::presentation::events::interaction::{DragEnd, DragStart, DragUpdate};
+use bevy::prelude::*;
+use std::collections::HashMap;
 
 /// Aggregates drag operations into position update commands
 pub struct DragAggregator {
@@ -64,7 +64,7 @@ impl DragAggregator {
         }
     }
 
-        pub fn handle_drag_update(&mut self, event: &DragUpdate) {
+    pub fn handle_drag_update(&mut self, event: &DragUpdate) {
         if let Some(state) = self.active_drags.get_mut(&event.entity) {
             state.current_position = event.current_position;
 
@@ -76,7 +76,8 @@ impl DragAggregator {
                     z: event.current_position.z,
                 };
 
-                self.position_changes.insert(state.node_id, (original, current));
+                self.position_changes
+                    .insert(state.node_id, (original, current));
             }
 
             // Handle multi-select drag using world delta
@@ -105,7 +106,8 @@ impl DragAggregator {
         }
 
         // Only include nodes that actually moved
-        let updates: Vec<(NodeId, Position3D)> = self.position_changes
+        let updates: Vec<(NodeId, Position3D)> = self
+            .position_changes
             .iter()
             .filter(|(_, (original, current))| original != current)
             .map(|(node_id, (_, current))| (*node_id, *current))

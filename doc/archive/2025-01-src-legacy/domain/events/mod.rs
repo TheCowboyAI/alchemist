@@ -1,43 +1,41 @@
 //! Domain Events
 
-use serde::{Deserialize, Serialize};
 use bevy::prelude::Event;
+use serde::{Deserialize, Serialize};
 
 pub mod cid_chain;
-pub mod graph;
-pub mod node;
-pub mod edge;
-pub mod subgraph;
-pub mod subgraph_operations;
-pub mod context_bridge;
-pub mod metric_context;
-pub mod rule_context;
-pub mod workflow;
 pub mod conceptual_space;
 pub mod content_graph;
+pub mod context_bridge;
+pub mod edge;
+pub mod graph;
+pub mod metric_context;
+pub mod node;
+pub mod rule_context;
+pub mod subgraph;
+pub mod subgraph_operations;
+pub mod workflow;
 
 pub use cid_chain::{ChainedEvent, EventChain};
-pub use graph::{GraphEvent};
-pub use node::{NodeEvent};
-pub use edge::{EdgeEvent};
-pub use subgraph::{SubgraphEvent};
-pub use subgraph_operations::{SubgraphOperationEvent, BoundaryType};
-pub use context_bridge::ContextBridgeEvent;
-pub use metric_context::MetricContextEvent;
-pub use rule_context::{RuleContextEvent, ValidationResult};
-pub use workflow::{
-    WorkflowEvent, WorkflowCreated, StepAdded, StepsConnected, WorkflowValidated,
-    WorkflowStarted, StepCompleted, WorkflowPaused, WorkflowResumed, WorkflowCompleted,
-    WorkflowFailed,
-};
 pub use conceptual_space::{
-    ConceptualSpaceCreated, QualityDimensionAdded, ConceptMapped, RegionDefined,
-    SimilarityCalculated, MetricUpdated,
+    ConceptMapped, ConceptualSpaceCreated, MetricUpdated, QualityDimensionAdded, RegionDefined,
+    SimilarityCalculated,
 };
 pub use content_graph::{
-    ContentGraphCreated, ContentAdded, ContentRemoved, RelationshipEstablished,
-    RelationshipRemoved, RelationshipDiscovered, SemanticClustersUpdated,
-    MetricsCalculated, PatternDetected,
+    ContentAdded, ContentGraphCreated, ContentRemoved, MetricsCalculated, PatternDetected,
+    RelationshipDiscovered, RelationshipEstablished, RelationshipRemoved, SemanticClustersUpdated,
+};
+pub use context_bridge::ContextBridgeEvent;
+pub use edge::EdgeEvent;
+pub use graph::GraphEvent;
+pub use metric_context::MetricContextEvent;
+pub use node::NodeEvent;
+pub use rule_context::{RuleContextEvent, ValidationResult};
+pub use subgraph::SubgraphEvent;
+pub use subgraph_operations::{BoundaryType, SubgraphOperationEvent};
+pub use workflow::{
+    StepAdded, StepCompleted, StepsConnected, WorkflowCompleted, WorkflowCreated, WorkflowEvent,
+    WorkflowFailed, WorkflowPaused, WorkflowResumed, WorkflowStarted, WorkflowValidated,
 };
 
 /// All domain events in the system
@@ -109,20 +107,32 @@ impl DomainEvent {
             DomainEvent::ContextBridge(e) => match e {
                 ContextBridgeEvent::BridgeCreated { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::TranslationRuleAdded { bridge_id, .. } => bridge_id.to_string(),
-                ContextBridgeEvent::TranslationRuleRemoved { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationRuleRemoved { bridge_id, .. } => {
+                    bridge_id.to_string()
+                }
                 ContextBridgeEvent::ConceptTranslated { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::TranslationFailed { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::BridgeDeleted { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::MappingTypeUpdated { bridge_id, .. } => bridge_id.to_string(),
             },
             DomainEvent::MetricContext(e) => match e {
-                MetricContextEvent::MetricContextCreated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::MetricContextCreated { context_id, .. } => {
+                    context_id.to_string()
+                }
                 MetricContextEvent::DistanceSet { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::ShortestPathCalculated { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::NearestNeighborsFound { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ShortestPathCalculated { context_id, .. } => {
+                    context_id.to_string()
+                }
+                MetricContextEvent::NearestNeighborsFound { context_id, .. } => {
+                    context_id.to_string()
+                }
                 MetricContextEvent::ConceptsClustered { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::ConceptsWithinRadiusFound { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::MetricPropertiesUpdated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ConceptsWithinRadiusFound { context_id, .. } => {
+                    context_id.to_string()
+                }
+                MetricContextEvent::MetricPropertiesUpdated { context_id, .. } => {
+                    context_id.to_string()
+                }
             },
             DomainEvent::RuleContext(e) => match e {
                 RuleContextEvent::RuleContextCreated { context_id, .. } => context_id.to_string(),
@@ -142,7 +152,9 @@ impl DomainEvent {
                 RuleContextEvent::RulesImported { context_id, .. } => context_id.to_string(),
                 RuleContextEvent::RuleViolated { context_id, .. } => context_id.to_string(),
                 RuleContextEvent::RuleExecutionFailed { context_id, .. } => context_id.to_string(),
-                RuleContextEvent::CircularDependencyDetected { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::CircularDependencyDetected { context_id, .. } => {
+                    context_id.to_string()
+                }
             },
             DomainEvent::Workflow(e) => match e {
                 WorkflowEvent::WorkflowCreated(event) => event.workflow_id.to_string(),
@@ -283,22 +295,20 @@ impl DomainEvent {
 #[cfg(test)]
 mod event_handler_tests {
     use super::*;
-    use crate::domain::value_objects::{GraphId, NodeId, WorkflowId, UserId, EdgeId, StepId};
+    use crate::domain::value_objects::{EdgeId, GraphId, NodeId, StepId, UserId, WorkflowId};
     use chrono::Utc;
 
     #[test]
     fn test_all_graph_events_have_handlers() {
         // Test that every GraphEvent variant can be handled
-        use crate::domain::commands::{ImportSource, ImportOptions};
+        use crate::domain::commands::{ImportOptions, ImportSource};
 
         let test_events = vec![
             GraphEvent::GraphCreated {
                 id: GraphId::new(),
                 metadata: Default::default(),
             },
-            GraphEvent::GraphDeleted {
-                id: GraphId::new(),
-            },
+            GraphEvent::GraphDeleted { id: GraphId::new() },
             GraphEvent::GraphRenamed {
                 id: GraphId::new(),
                 old_name: "Old".to_string(),
@@ -319,7 +329,9 @@ mod event_handler_tests {
             },
             GraphEvent::GraphImportRequested {
                 graph_id: GraphId::new(),
-                source: ImportSource::InlineContent { content: "test".to_string() },
+                source: ImportSource::InlineContent {
+                    content: "test".to_string(),
+                },
                 format: "json".to_string(),
                 options: ImportOptions {
                     merge_behavior: crate::domain::commands::graph_commands::MergeBehavior::Skip,
@@ -334,11 +346,15 @@ mod event_handler_tests {
                 graph_id: GraphId::new(),
                 imported_nodes: 10,
                 imported_edges: 5,
-                source: ImportSource::InlineContent { content: "test".to_string() },
+                source: ImportSource::InlineContent {
+                    content: "test".to_string(),
+                },
             },
             GraphEvent::GraphImportFailed {
                 graph_id: GraphId::new(),
-                source: ImportSource::InlineContent { content: "test".to_string() },
+                source: ImportSource::InlineContent {
+                    content: "test".to_string(),
+                },
                 error: "Test error".to_string(),
             },
         ];
@@ -352,9 +368,15 @@ mod event_handler_tests {
                 GraphEvent::GraphTagged { .. } => assert!(true, "GraphTagged handler exists"),
                 GraphEvent::GraphUntagged { .. } => assert!(true, "GraphUntagged handler exists"),
                 GraphEvent::GraphUpdated { .. } => assert!(true, "GraphUpdated handler exists"),
-                GraphEvent::GraphImportRequested { .. } => assert!(true, "GraphImportRequested handler exists"),
-                GraphEvent::GraphImportCompleted { .. } => assert!(true, "GraphImportCompleted handler exists"),
-                GraphEvent::GraphImportFailed { .. } => assert!(true, "GraphImportFailed handler exists"),
+                GraphEvent::GraphImportRequested { .. } => {
+                    assert!(true, "GraphImportRequested handler exists")
+                }
+                GraphEvent::GraphImportCompleted { .. } => {
+                    assert!(true, "GraphImportCompleted handler exists")
+                }
+                GraphEvent::GraphImportFailed { .. } => {
+                    assert!(true, "GraphImportFailed handler exists")
+                }
             }
         }
     }
@@ -403,7 +425,9 @@ mod event_handler_tests {
                 NodeEvent::NodeRemoved { .. } => assert!(true, "NodeRemoved handler exists"),
                 NodeEvent::NodeUpdated { .. } => assert!(true, "NodeUpdated handler exists"),
                 NodeEvent::NodeMoved { .. } => assert!(true, "NodeMoved handler exists"),
-                NodeEvent::NodeContentChanged { .. } => assert!(true, "NodeContentChanged handler exists"),
+                NodeEvent::NodeContentChanged { .. } => {
+                    assert!(true, "NodeContentChanged handler exists")
+                }
             }
         }
     }
@@ -454,7 +478,7 @@ mod event_handler_tests {
     #[test]
     fn test_all_workflow_events_have_handlers() {
         // Test that every WorkflowEvent variant can be handled
-        use crate::domain::aggregates::workflow::{WorkflowStep, StepType, WorkflowResult};
+        use crate::domain::aggregates::workflow::{StepType, WorkflowResult, WorkflowStep};
         use std::collections::HashMap;
 
         let test_events = vec![
@@ -549,15 +573,25 @@ mod event_handler_tests {
         // Verify each event type can be processed
         for event in test_events {
             match event {
-                WorkflowEvent::WorkflowCreated(_) => assert!(true, "WorkflowCreated handler exists"),
+                WorkflowEvent::WorkflowCreated(_) => {
+                    assert!(true, "WorkflowCreated handler exists")
+                }
                 WorkflowEvent::StepAdded(_) => assert!(true, "StepAdded handler exists"),
                 WorkflowEvent::StepsConnected(_) => assert!(true, "StepsConnected handler exists"),
-                WorkflowEvent::WorkflowValidated(_) => assert!(true, "WorkflowValidated handler exists"),
-                WorkflowEvent::WorkflowStarted(_) => assert!(true, "WorkflowStarted handler exists"),
+                WorkflowEvent::WorkflowValidated(_) => {
+                    assert!(true, "WorkflowValidated handler exists")
+                }
+                WorkflowEvent::WorkflowStarted(_) => {
+                    assert!(true, "WorkflowStarted handler exists")
+                }
                 WorkflowEvent::StepCompleted(_) => assert!(true, "StepCompleted handler exists"),
                 WorkflowEvent::WorkflowPaused(_) => assert!(true, "WorkflowPaused handler exists"),
-                WorkflowEvent::WorkflowResumed(_) => assert!(true, "WorkflowResumed handler exists"),
-                WorkflowEvent::WorkflowCompleted(_) => assert!(true, "WorkflowCompleted handler exists"),
+                WorkflowEvent::WorkflowResumed(_) => {
+                    assert!(true, "WorkflowResumed handler exists")
+                }
+                WorkflowEvent::WorkflowCompleted(_) => {
+                    assert!(true, "WorkflowCompleted handler exists")
+                }
                 WorkflowEvent::WorkflowFailed(_) => assert!(true, "WorkflowFailed handler exists"),
             }
         }
@@ -571,14 +605,15 @@ mod event_handler_tests {
             metadata: Default::default(),
         });
 
-        let workflow_event = DomainEvent::Workflow(WorkflowEvent::WorkflowCreated(WorkflowCreated {
-            workflow_id: WorkflowId::new(),
-            name: "Test".to_string(),
-            description: "Test".to_string(),
-            created_by: UserId::new(),
-            created_at: Utc::now(),
-            tags: vec![],
-        }));
+        let workflow_event =
+            DomainEvent::Workflow(WorkflowEvent::WorkflowCreated(WorkflowCreated {
+                workflow_id: WorkflowId::new(),
+                name: "Test".to_string(),
+                description: "Test".to_string(),
+                created_by: UserId::new(),
+                created_at: Utc::now(),
+                tags: vec![],
+            }));
 
         // Verify pattern matching works for all event types
         match graph_event {

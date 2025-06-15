@@ -2,8 +2,7 @@
 
 use crate::domain::{
     aggregates::conceptual_space::ConceptualSpace,
-    commands::conceptual_space::ConceptualSpaceCommand,
-    events::DomainEvent,
+    commands::conceptual_space::ConceptualSpaceCommand, events::DomainEvent,
 };
 use crate::infrastructure::event_store::EventStore;
 use std::sync::Arc;
@@ -65,10 +64,7 @@ impl ConceptualSpaceCommandHandler {
         &self,
         space_id: crate::domain::value_objects::ConceptualSpaceId,
     ) -> Result<ConceptualSpace, ConceptualSpaceCommandError> {
-        let events = self
-            .event_store
-            .get_events(space_id.to_string())
-            .await?;
+        let events = self.event_store.get_events(space_id.to_string()).await?;
 
         if events.is_empty() {
             // Create new space
@@ -88,7 +84,8 @@ impl ConceptualSpaceCommandHandler {
             );
 
             for event in events {
-                space.apply_event(&event)
+                space
+                    .apply_event(&event)
                     .map_err(|e| ConceptualSpaceCommandError::Domain(e.to_string()))?;
             }
 
@@ -100,8 +97,8 @@ impl ConceptualSpaceCommandHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::commands::conceptual_space::{CreateConceptualSpace, AddQualityDimension};
-    use crate::domain::conceptual_graph::{QualityDimension, DimensionType};
+    use crate::domain::commands::conceptual_space::{AddQualityDimension, CreateConceptualSpace};
+    use crate::domain::conceptual_graph::{DimensionType, QualityDimension};
     use crate::domain::value_objects::{ConceptualSpaceId, DimensionId, UserId};
     use crate::infrastructure::event_store::memory::InMemoryEventStore;
     use uuid::Uuid;

@@ -3,8 +3,8 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use uuid::Uuid;
 use std::hash::Hash;
+use uuid::Uuid;
 
 /// Type alias for aggregate IDs (using String for flexibility)
 pub type AggregateId = String;
@@ -163,7 +163,7 @@ impl Position3D {
     pub fn new(x: f32, y: f32, z: f32) -> Result<Self, crate::domain::DomainError> {
         if !x.is_finite() || !y.is_finite() || !z.is_finite() {
             return Err(crate::domain::DomainError::InvalidPosition(
-                "Position coordinates must be finite values".to_string()
+                "Position coordinates must be finite values".to_string(),
             ));
         }
         Ok(Self { x, y, z })
@@ -219,32 +219,32 @@ pub struct NodeContent {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NodeType {
     // Core object types
-    Concept,        // Abstract concept or idea
-    Category,       // Grouping or classification
-    Instance,       // Concrete instance of a concept
-    Entity,         // Domain entity (DDD)
-    ValueObject,    // Immutable value (DDD)
-    Aggregate,      // Aggregate root (DDD)
+    Concept,     // Abstract concept or idea
+    Category,    // Grouping or classification
+    Instance,    // Concrete instance of a concept
+    Entity,      // Domain entity (DDD)
+    ValueObject, // Immutable value (DDD)
+    Aggregate,   // Aggregate root (DDD)
 
     // Event sourcing objects
-    Event,          // Domain event
-    Command,        // Command object
-    Query,          // Query object
+    Event,   // Domain event
+    Command, // Command object
+    Query,   // Query object
 
     // Workflow objects
-    Activity,       // Workflow activity/step
-    Gateway,        // Decision point
-    DataObject,     // Data flowing through workflow
+    Activity,   // Workflow activity/step
+    Gateway,    // Decision point
+    DataObject, // Data flowing through workflow
 
     // Development tracking objects
-    Milestone,      // Project milestone
-    Phase,          // Development phase
-    Task,           // Work task
+    Milestone, // Project milestone
+    Phase,     // Development phase
+    Task,      // Work task
 
     // Version control objects
-    Commit,         // Git commit
-    Branch,         // Git branch
-    Tag,            // Git tag
+    Commit, // Git commit
+    Branch, // Git branch
+    Tag,    // Git tag
 
     // Generic/Unknown
     Unidentified,   // Type not yet identified
@@ -267,38 +267,38 @@ pub struct EdgeRelationship {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RelationshipType {
     // Structural morphisms
-    Contains,       // Composition relationship
-    References,     // Weak reference
-    DependsOn,      // Dependency arrow
+    Contains,   // Composition relationship
+    References, // Weak reference
+    DependsOn,  // Dependency arrow
 
     // Process morphisms
-    FlowsTo,        // Data/control flow
-    Triggers,       // Causes execution
-    Transforms,     // Maps input to output
-    Constrains,     // Applies constraint
+    FlowsTo,    // Data/control flow
+    Triggers,   // Causes execution
+    Transforms, // Maps input to output
+    Constrains, // Applies constraint
 
     // Event morphisms
-    Publishes,      // Emits events
-    Subscribes,     // Listens to events
-    Produces,       // Creates output
-    Consumes,       // Uses input
+    Publishes,  // Emits events
+    Subscribes, // Listens to events
+    Produces,   // Creates output
+    Consumes,   // Uses input
 
     // Inheritance morphisms
-    Implements,     // Interface realization
-    Extends,        // Inheritance
-    Specializes,    // Subtype relationship
+    Implements,  // Interface realization
+    Extends,     // Inheritance
+    Specializes, // Subtype relationship
 
     // Version control morphisms
-    Parent,         // Git parent commit
-    Merged,         // Git merge
-    Branched,       // Git branch
-    Tagged,         // Git tag
+    Parent,   // Git parent commit
+    Merged,   // Git merge
+    Branched, // Git branch
+    Tagged,   // Git tag
 
     // Workflow morphisms
-    Sequence,       // Sequential execution
-    Parallel,       // Parallel execution
-    Choice,         // Alternative paths
-    Blocks,         // Prevents progress
+    Sequence, // Sequential execution
+    Parallel, // Parallel execution
+    Choice,   // Alternative paths
+    Blocks,   // Prevents progress
 
     // Generic
     Custom(String),
@@ -804,7 +804,10 @@ mod tests {
         assert_eq!(RelationshipType::Blocks.to_string(), "Blocks");
 
         // Test custom
-        assert_eq!(RelationshipType::Custom("MyRelation".to_string()).to_string(), "MyRelation");
+        assert_eq!(
+            RelationshipType::Custom("MyRelation".to_string()).to_string(),
+            "MyRelation"
+        );
     }
 
     #[test]
@@ -822,48 +825,91 @@ mod tests {
     #[test]
     fn test_graph_model_expected_nodes() {
         // Test complete graph
-        assert_eq!(GraphModel::CompleteGraph { order: 5 }.expected_nodes(), Some(5));
-        assert_eq!(GraphModel::CompleteGraph { order: 0 }.expected_nodes(), Some(0));
+        assert_eq!(
+            GraphModel::CompleteGraph { order: 5 }.expected_nodes(),
+            Some(5)
+        );
+        assert_eq!(
+            GraphModel::CompleteGraph { order: 0 }.expected_nodes(),
+            Some(0)
+        );
 
         // Test cycle graph
-        assert_eq!(GraphModel::CycleGraph { order: 4 }.expected_nodes(), Some(4));
+        assert_eq!(
+            GraphModel::CycleGraph { order: 4 }.expected_nodes(),
+            Some(4)
+        );
 
         // Test path graph
         assert_eq!(GraphModel::PathGraph { order: 3 }.expected_nodes(), Some(3));
 
         // Test bipartite graph
-        assert_eq!(GraphModel::BipartiteGraph { m: 3, n: 4 }.expected_nodes(), Some(7));
+        assert_eq!(
+            GraphModel::BipartiteGraph { m: 3, n: 4 }.expected_nodes(),
+            Some(7)
+        );
 
         // Test star graph
-        assert_eq!(GraphModel::StarGraph { satellites: 5 }.expected_nodes(), Some(6)); // 5 satellites + 1 center
+        assert_eq!(
+            GraphModel::StarGraph { satellites: 5 }.expected_nodes(),
+            Some(6)
+        ); // 5 satellites + 1 center
 
         // Test tree
-        let tree = GraphModel::Tree { branching_factor: 2, depth: 2 };
+        let tree = GraphModel::Tree {
+            branching_factor: 2,
+            depth: 2,
+        };
         assert_eq!(tree.expected_nodes(), Some(7)); // 1 + 2 + 4 = 7 nodes
 
-        let tree2 = GraphModel::Tree { branching_factor: 3, depth: 1 };
+        let tree2 = GraphModel::Tree {
+            branching_factor: 3,
+            depth: 1,
+        };
         assert_eq!(tree2.expected_nodes(), Some(4)); // 1 + 3 = 4 nodes
 
         // Test models with unknown node count
-        assert_eq!(GraphModel::MealyMachine {
-            states: vec![],
-            inputs: vec![],
-            outputs: vec![]
-        }.expected_nodes(), None);
+        assert_eq!(
+            GraphModel::MealyMachine {
+                states: vec![],
+                inputs: vec![],
+                outputs: vec![]
+            }
+            .expected_nodes(),
+            None
+        );
 
         assert_eq!(GraphModel::AddressGraph.expected_nodes(), None);
-        assert_eq!(GraphModel::WorkflowGraph { workflow_type: "test".to_string() }.expected_nodes(), None);
+        assert_eq!(
+            GraphModel::WorkflowGraph {
+                workflow_type: "test".to_string()
+            }
+            .expected_nodes(),
+            None
+        );
     }
 
     #[test]
     fn test_graph_model_expected_edges() {
         // Test complete graph edges: n(n-1)/2
-        assert_eq!(GraphModel::CompleteGraph { order: 5 }.expected_edges(), Some(10)); // 5*4/2 = 10
-        assert_eq!(GraphModel::CompleteGraph { order: 4 }.expected_edges(), Some(6)); // 4*3/2 = 6
-        assert_eq!(GraphModel::CompleteGraph { order: 0 }.expected_edges(), Some(0));
+        assert_eq!(
+            GraphModel::CompleteGraph { order: 5 }.expected_edges(),
+            Some(10)
+        ); // 5*4/2 = 10
+        assert_eq!(
+            GraphModel::CompleteGraph { order: 4 }.expected_edges(),
+            Some(6)
+        ); // 4*3/2 = 6
+        assert_eq!(
+            GraphModel::CompleteGraph { order: 0 }.expected_edges(),
+            Some(0)
+        );
 
         // Test cycle graph edges: n
-        assert_eq!(GraphModel::CycleGraph { order: 4 }.expected_edges(), Some(4));
+        assert_eq!(
+            GraphModel::CycleGraph { order: 4 }.expected_edges(),
+            Some(4)
+        );
 
         // Test path graph edges: n-1
         assert_eq!(GraphModel::PathGraph { order: 3 }.expected_edges(), Some(2));
@@ -871,17 +917,32 @@ mod tests {
         assert_eq!(GraphModel::PathGraph { order: 0 }.expected_edges(), Some(0)); // saturating_sub
 
         // Test bipartite graph edges: m*n
-        assert_eq!(GraphModel::BipartiteGraph { m: 3, n: 4 }.expected_edges(), Some(12));
+        assert_eq!(
+            GraphModel::BipartiteGraph { m: 3, n: 4 }.expected_edges(),
+            Some(12)
+        );
 
         // Test star graph edges: satellites
-        assert_eq!(GraphModel::StarGraph { satellites: 5 }.expected_edges(), Some(5));
+        assert_eq!(
+            GraphModel::StarGraph { satellites: 5 }.expected_edges(),
+            Some(5)
+        );
 
         // Test tree edges: nodes - 1
-        let tree = GraphModel::Tree { branching_factor: 2, depth: 2 };
+        let tree = GraphModel::Tree {
+            branching_factor: 2,
+            depth: 2,
+        };
         assert_eq!(tree.expected_edges(), Some(6)); // 7 nodes - 1 = 6 edges
 
         // Test models with unknown edge count
-        assert_eq!(GraphModel::ConceptualGraph { space_name: "test".to_string() }.expected_edges(), None);
+        assert_eq!(
+            GraphModel::ConceptualGraph {
+                space_name: "test".to_string()
+            }
+            .expected_edges(),
+            None
+        );
     }
 
     #[test]
@@ -894,7 +955,11 @@ mod tests {
         };
 
         match mealy {
-            GraphModel::MealyMachine { states, inputs, outputs } => {
+            GraphModel::MealyMachine {
+                states,
+                inputs,
+                outputs,
+            } => {
                 assert_eq!(states.len(), 2);
                 assert_eq!(inputs.len(), 2);
                 assert_eq!(outputs.len(), 2);
@@ -932,8 +997,10 @@ mod tests {
         assert!(rel.bidirectional);
 
         // Test with properties
-        rel.properties.insert("strength".to_string(), serde_json::json!(0.8));
-        rel.properties.insert("verified".to_string(), serde_json::json!(true));
+        rel.properties
+            .insert("strength".to_string(), serde_json::json!(0.8));
+        rel.properties
+            .insert("verified".to_string(), serde_json::json!(true));
 
         assert_eq!(rel.properties.len(), 2);
         assert_eq!(rel.properties["strength"], 0.8);
@@ -1024,30 +1091,50 @@ mod tests {
     #[test]
     fn test_complex_graph_models() {
         // Test tree with different parameters
-        let binary_tree = GraphModel::Tree { branching_factor: 2, depth: 3 };
+        let binary_tree = GraphModel::Tree {
+            branching_factor: 2,
+            depth: 3,
+        };
         assert_eq!(binary_tree.expected_nodes(), Some(15)); // 1 + 2 + 4 + 8 = 15
 
-        let ternary_tree = GraphModel::Tree { branching_factor: 3, depth: 2 };
+        let ternary_tree = GraphModel::Tree {
+            branching_factor: 3,
+            depth: 2,
+        };
         assert_eq!(ternary_tree.expected_nodes(), Some(13)); // 1 + 3 + 9 = 13
 
         // Test edge cases
-        let single_node_tree = GraphModel::Tree { branching_factor: 0, depth: 0 };
+        let single_node_tree = GraphModel::Tree {
+            branching_factor: 0,
+            depth: 0,
+        };
         assert_eq!(single_node_tree.expected_nodes(), Some(1)); // Just root
 
-        let zero_depth_tree = GraphModel::Tree { branching_factor: 5, depth: 0 };
+        let zero_depth_tree = GraphModel::Tree {
+            branching_factor: 5,
+            depth: 0,
+        };
         assert_eq!(zero_depth_tree.expected_nodes(), Some(1)); // Just root
     }
 
     #[test]
     fn test_moore_machine_model() {
         let moore = GraphModel::MooreMachine {
-            states: vec!["Idle".to_string(), "Processing".to_string(), "Done".to_string()],
+            states: vec![
+                "Idle".to_string(),
+                "Processing".to_string(),
+                "Done".to_string(),
+            ],
             inputs: vec!["start".to_string(), "stop".to_string()],
             outputs: vec!["0".to_string(), "1".to_string()],
         };
 
         match moore {
-            GraphModel::MooreMachine { states, inputs, outputs } => {
+            GraphModel::MooreMachine {
+                states,
+                inputs,
+                outputs,
+            } => {
                 assert_eq!(states.len(), 3);
                 assert_eq!(inputs.len(), 2);
                 assert_eq!(outputs.len(), 2);
@@ -1062,19 +1149,30 @@ mod tests {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum GraphModel {
     /// Complete graph Kn - every vertex connected to every other vertex
-    CompleteGraph { order: usize },
+    CompleteGraph {
+        order: usize,
+    },
 
     /// Cycle graph Cn - vertices connected in a cycle
-    CycleGraph { order: usize },
+    CycleGraph {
+        order: usize,
+    },
 
     /// Path graph Pn - vertices connected in a line
-    PathGraph { order: usize },
+    PathGraph {
+        order: usize,
+    },
 
     /// Bipartite graph Km,n
-    BipartiteGraph { m: usize, n: usize },
+    BipartiteGraph {
+        m: usize,
+        n: usize,
+    },
 
     /// Star graph - one central node connected to all others
-    StarGraph { satellites: usize },
+    StarGraph {
+        satellites: usize,
+    },
 
     /// Tree structure
     Tree {
@@ -1098,11 +1196,18 @@ pub enum GraphModel {
 
     /// Domain-specific models
     AddressGraph,
-    WorkflowGraph { workflow_type: String },
-    ConceptualGraph { space_name: String },
+    WorkflowGraph {
+        workflow_type: String,
+    },
+    ConceptualGraph {
+        space_name: String,
+    },
 
     /// Unknown or custom model
-    Custom { name: String, properties: serde_json::Value },
+    Custom {
+        name: String,
+        properties: serde_json::Value,
+    },
 }
 
 impl GraphModel {
@@ -1114,7 +1219,10 @@ impl GraphModel {
             GraphModel::PathGraph { order } => Some(*order),
             GraphModel::BipartiteGraph { m, n } => Some(m + n),
             GraphModel::StarGraph { satellites } => Some(satellites + 1),
-            GraphModel::Tree { branching_factor, depth } => {
+            GraphModel::Tree {
+                branching_factor,
+                depth,
+            } => {
                 // Calculate total nodes in a complete tree
                 let mut total = 0;
                 let mut level_nodes = 1;
@@ -1139,7 +1247,7 @@ impl GraphModel {
                 } else {
                     Some(order.saturating_sub(1).saturating_mul(*order) / 2)
                 }
-            },
+            }
             GraphModel::CycleGraph { order } => Some(*order),
             GraphModel::PathGraph { order } => Some(order.saturating_sub(1)),
             GraphModel::BipartiteGraph { m, n } => Some(m * n),

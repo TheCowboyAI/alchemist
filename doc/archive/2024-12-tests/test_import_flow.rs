@@ -3,13 +3,13 @@
 use bevy::prelude::*;
 use ia::application::CommandEvent;
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
-    value_objects::{GraphId, Position3D},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     services::ImportFormat,
+    value_objects::{GraphId, Position3D},
 };
-use ia::presentation::plugins::GraphEditorPlugin;
 use ia::presentation::components::GraphContainer;
-use ia::presentation::systems::{import_file_to_graph, ImportState};
+use ia::presentation::plugins::GraphEditorPlugin;
+use ia::presentation::systems::{ImportState, import_file_to_graph};
 use std::collections::HashMap;
 
 fn main() {

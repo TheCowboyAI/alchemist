@@ -2,7 +2,7 @@
 
 use ia::domain::{
     aggregates::Graph,
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     events::{DomainEvent, GraphEvent},
     services::{GraphImportService, ImportFormat},
     value_objects::GraphId,
@@ -33,16 +33,28 @@ fn test_import_graph_command_generates_event() {
     // The domain aggregate should handle the command
     let result = graph.handle_command(import_cmd);
 
-    assert!(result.is_ok(), "ImportGraph command should be handled successfully");
+    assert!(
+        result.is_ok(),
+        "ImportGraph command should be handled successfully"
+    );
 
     if let Ok(events) = result {
-        assert!(!events.is_empty(), "ImportGraph command should generate events");
+        assert!(
+            !events.is_empty(),
+            "ImportGraph command should generate events"
+        );
 
         let has_import_event = events.iter().any(|event| {
-            matches!(event, DomainEvent::Graph(GraphEvent::GraphImportRequested { .. }))
+            matches!(
+                event,
+                DomainEvent::Graph(GraphEvent::GraphImportRequested { .. })
+            )
         });
 
-        assert!(has_import_event, "ImportGraph command should generate GraphImportRequested event");
+        assert!(
+            has_import_event,
+            "ImportGraph command should generate GraphImportRequested event"
+        );
     }
 }
 

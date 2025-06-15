@@ -3,8 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::domain::conceptual_graph::{
-    ConceptId, ContextBridgeId, ContextMappingType,
-    TranslationRule
+    ConceptId, ContextBridgeId, ContextMappingType, TranslationRule,
 };
 
 /// Events related to context bridges
@@ -38,9 +37,7 @@ pub enum ContextBridgeEvent {
     },
 
     /// A bridge was removed
-    BridgeDeleted {
-        bridge_id: ContextBridgeId,
-    },
+    BridgeDeleted { bridge_id: ContextBridgeId },
 
     /// Bridge mapping type was changed
     MappingTypeUpdated {

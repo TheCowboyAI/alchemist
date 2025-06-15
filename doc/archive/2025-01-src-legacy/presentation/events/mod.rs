@@ -12,10 +12,10 @@ pub use animation::*;
 pub use interaction::*;
 pub use layout::*;
 
-use bevy::prelude::*;
-use crate::domain::events::DomainEvent;
 use crate::domain::commands::graph_commands::GraphCommand;
-use crate::domain::value_objects::{WorkflowId, StepId};
+use crate::domain::events::DomainEvent;
+use crate::domain::value_objects::{StepId, WorkflowId};
+use bevy::prelude::*;
 
 /// Marker trait for presentation events
 pub trait PresentationEvent: Event + Clone + Send + Sync + 'static {
@@ -75,21 +75,13 @@ pub enum WorkflowEvent {
     },
 
     /// Workflow step started execution
-    StepStarted {
-        step_id: StepId,
-    },
+    StepStarted { step_id: StepId },
 
     /// Workflow step completed
-    StepCompleted {
-        step_id: StepId,
-        duration: f32,
-    },
+    StepCompleted { step_id: StepId, duration: f32 },
 
     /// Workflow step failed
-    StepFailed {
-        step_id: StepId,
-        error: String,
-    },
+    StepFailed { step_id: StepId, error: String },
 
     /// Workflow instance completed
     WorkflowCompleted {

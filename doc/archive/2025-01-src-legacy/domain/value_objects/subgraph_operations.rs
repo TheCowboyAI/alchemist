@@ -1,6 +1,6 @@
+use crate::domain::value_objects::{Position3D, SubgraphId};
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use crate::domain::value_objects::{Position3D, SubgraphId};
 
 /// Represents the visual state of a subgraph
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -59,7 +59,7 @@ pub enum LayoutStrategy {
     },
     // Equiangular Polygon Representation based on number of nodes
     Geometric {
-        spacing: f32
+        spacing: f32,
     },
     /// Restore to previous positions
     RestorePrevious,
@@ -91,10 +91,7 @@ pub enum MergeStrategy {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SplitCriteria {
     /// Split by drawing a line
-    GeometricLine {
-        start: Position3D,
-        end: Position3D,
-    },
+    GeometricLine { start: Position3D, end: Position3D },
     /// Split by connectivity analysis
     Connectivity {
         min_cut: bool,
@@ -160,11 +157,27 @@ pub struct Color {
 /// Border style options
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BorderStyle {
-    Solid { width: f32 },
-    Dashed { width: f32, dash_length: f32, gap_length: f32 },
-    Dotted { width: f32, dot_spacing: f32 },
-    Double { width: f32, gap: f32 },
-    Gradient { start_color: Color, end_color: Color, width: f32 },
+    Solid {
+        width: f32,
+    },
+    Dashed {
+        width: f32,
+        dash_length: f32,
+        gap_length: f32,
+    },
+    Dotted {
+        width: f32,
+        dot_spacing: f32,
+    },
+    Double {
+        width: f32,
+        gap: f32,
+    },
+    Gradient {
+        start_color: Color,
+        end_color: Color,
+        width: f32,
+    },
 }
 
 /// Fill pattern options
@@ -174,13 +187,15 @@ pub enum FillPattern {
     Gradient {
         start_color: Color,
         end_color: Color,
-        angle: f32
+        angle: f32,
     },
     Pattern {
         pattern_type: PatternType,
-        scale: f32
+        scale: f32,
     },
-    Transparent { opacity: f32 },
+    Transparent {
+        opacity: f32,
+    },
 }
 
 /// Pattern types for fills
@@ -283,7 +298,13 @@ impl fmt::Display for SubgraphState {
             SubgraphState::Expanded => write!(f, "Expanded"),
             SubgraphState::Collapsed => write!(f, "Collapsed"),
             SubgraphState::Transitioning { progress, from, to } => {
-                write!(f, "Transitioning ({:.1}%): {:?} -> {:?}", progress * 100.0, from, to)
+                write!(
+                    f,
+                    "Transitioning ({:.1}%): {:?} -> {:?}",
+                    progress * 100.0,
+                    from,
+                    to
+                )
             }
         }
     }

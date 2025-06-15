@@ -3,14 +3,14 @@
 //! Systems for rendering and managing conceptual graphs in 3D space,
 //! including quality dimension mapping and interactive features.
 
-use bevy::prelude::*;
-use crate::presentation::components::{
-    ConceptualNodeVisual, QualityDimensionAxis,
-    ConceptualSpaceVisual, NodeVisualStyle, NodeShape, TransitionAnimation, EasingFunction,
-    ConceptualVisualizationSettings, Highlighted, DraggableNode,
-};
 use crate::domain::conceptual_graph::{ConceptNode as DomainConceptNode, ConceptualPoint};
 use crate::domain::value_objects::NodeId;
+use crate::presentation::components::{
+    ConceptualNodeVisual, ConceptualSpaceVisual, ConceptualVisualizationSettings, DraggableNode,
+    EasingFunction, Highlighted, NodeShape, NodeVisualStyle, QualityDimensionAxis,
+    TransitionAnimation,
+};
+use bevy::prelude::*;
 
 /// Wrapper component for domain ConceptNode
 #[derive(Component)]
@@ -19,10 +19,7 @@ pub struct ConceptNodeEntity {
 }
 
 /// Maps a conceptual point to 3D visual space
-pub fn map_to_visual_space(
-    point: &ConceptualPoint,
-    space: &ConceptualSpaceVisual,
-) -> Vec3 {
+pub fn map_to_visual_space(point: &ConceptualPoint, space: &ConceptualSpaceVisual) -> Vec3 {
     let mut position = space.origin;
 
     // Map each dimension to its corresponding axis
@@ -86,10 +83,9 @@ pub fn visualize_conceptual_nodes(
                 visual_style.scale,
                 visual_style.scale,
             )),
-            NodeShape::Cylinder => meshes.add(Cylinder::new(
-                0.5 * visual_style.scale,
-                visual_style.scale,
-            )),
+            NodeShape::Cylinder => {
+                meshes.add(Cylinder::new(0.5 * visual_style.scale, visual_style.scale))
+            }
             NodeShape::Cone => meshes.add(Cone {
                 radius: 0.5 * visual_style.scale,
                 height: visual_style.scale,
@@ -273,14 +269,10 @@ pub fn create_conceptual_grid(
             let x_line_length = (x_line_end - x_line_start).length();
             let z_line_length = (z_line_end - z_line_start).length();
 
-            let x_line_mesh = meshes.add(Cylinder::new(
-                space.grid_settings.line_width,
-                x_line_length,
-            ));
-            let z_line_mesh = meshes.add(Cylinder::new(
-                space.grid_settings.line_width,
-                z_line_length,
-            ));
+            let x_line_mesh =
+                meshes.add(Cylinder::new(space.grid_settings.line_width, x_line_length));
+            let z_line_mesh =
+                meshes.add(Cylinder::new(space.grid_settings.line_width, z_line_length));
 
             // X-line transform
             let x_line_center = (x_line_start + x_line_end) * 0.5;
@@ -448,8 +440,7 @@ pub struct ConceptualVisualizationPlugin;
 
 impl Plugin for ConceptualVisualizationPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<ConceptualVisualizationSettings>()
+        app.init_resource::<ConceptualVisualizationSettings>()
             .add_systems(
                 Update,
                 (

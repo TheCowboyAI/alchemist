@@ -3,12 +3,12 @@
 //! These tests verify NATS-specific functionality including
 //! event publishing, consumption, and the Bevy-NATS bridge.
 
-use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent};
-use ia::domain::value_objects::{GraphId, NodeId, Position3D, GraphMetadata};
-use ia::infrastructure::event_bridge::{EventBridge, BridgeCommand, BridgeEvent};
-use ia::infrastructure::nats::{NatsClient, NatsConfig};
 use super::fixtures::*;
 use async_nats::jetstream;
+use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent};
+use ia::domain::value_objects::{GraphId, GraphMetadata, NodeId, Position3D};
+use ia::infrastructure::event_bridge::{BridgeCommand, BridgeEvent, EventBridge};
+use ia::infrastructure::nats::{NatsClient, NatsConfig};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -48,16 +48,14 @@ async fn test_nats_event_publishing_and_consumption() -> Result<(), Box<dyn std:
     };
 
     let payload = serde_json::to_vec(&event)?;
-    jetstream.publish("events.test.graph.created", payload.into())
+    jetstream
+        .publish("events.test.graph.created", payload.into())
         .await?
         .await?;
 
     // Consume event
     let mut messages = consumer.messages().await?;
-    let message = tokio::time::timeout(
-        Duration::from_secs(1),
-        messages.next()
-    ).await??;
+    let message = tokio::time::timeout(Duration::from_secs(1), messages.next()).await??;
 
     let message = message?;
     let received_event: DomainEvent = serde_json::from_slice(&message.payload)?;
@@ -96,7 +94,11 @@ async fn test_event_bridge_bidirectional_flow() -> Result<(), Box<dyn std::error
             graph_id: GraphId::new(),
             node_id: NodeId::new(),
             content: "bridge-test-node".to_string(),
-            position: Position3D { x: 1.0, y: 2.0, z: 3.0 },
+            position: Position3D {
+                x: 1.0,
+                y: 2.0,
+                z: 3.0,
+            },
             metadata: Default::default(),
             timestamp: std::time::SystemTime::now(),
         },
@@ -121,23 +123,21 @@ async fn test_event_bridge_bidirectional_flow() -> Result<(), Box<dyn std::error
         timestamp: std::time::SystemTime::now(),
     };
 
-    nats_client.publish("events.graph.created", &incoming_event).await?;
+    nats_client
+        .publish("events.graph.created", &incoming_event)
+        .await?;
 
     // Receive event through bridge
-    let bridge_event = tokio::time::timeout(
-        Duration::from_secs(1),
-        event_receiver.recv()
-    ).await??;
+    let bridge_event =
+        tokio::time::timeout(Duration::from_secs(1), event_receiver.recv()).await??;
 
     match bridge_event {
-        Some(BridgeEvent::EventReceived { event, .. }) => {
-            match event {
-                DomainEvent::GraphCreated { metadata, .. } => {
-                    assert_eq!(metadata.name, "incoming-graph");
-                }
-                _ => panic!("Unexpected event type"),
+        Some(BridgeEvent::EventReceived { event, .. }) => match event {
+            DomainEvent::GraphCreated { metadata, .. } => {
+                assert_eq!(metadata.name, "incoming-graph");
             }
-        }
+            _ => panic!("Unexpected event type"),
+        },
         _ => panic!("Expected EventReceived"),
     }
 
@@ -231,10 +231,16 @@ async fn test_jetstream_stream_management() -> Result<(), Box<dyn std::error::Er
 
     // Publish to correct subjects
     let graph_payload = serde_json::to_vec(&graph_event)?;
-    jetstream.publish("events.graph.created", graph_payload.into()).await?.await?;
+    jetstream
+        .publish("events.graph.created", graph_payload.into())
+        .await?
+        .await?;
 
     let node_payload = serde_json::to_vec(&node_event)?;
-    jetstream.publish("events.node.added", node_payload.into()).await?.await?;
+    jetstream
+        .publish("events.node.added", node_payload.into())
+        .await?
+        .await?;
 
     // Verify messages in streams
     let graph_stream = jetstream.get_stream("GRAPH-EVENTS").await?;
@@ -270,10 +276,12 @@ async fn test_event_ordering_guarantees() -> Result<(), Box<dyn std::error::Erro
     let stream = jetstream.create_stream(stream_config).await?;
 
     // Create ordered consumer
-    let consumer = stream.create_consumer(jetstream::consumer::pull::OrderedConfig {
-        name: Some("ordered-consumer".to_string()),
-        ..Default::default()
-    }).await?;
+    let consumer = stream
+        .create_consumer(jetstream::consumer::pull::OrderedConfig {
+            name: Some("ordered-consumer".to_string()),
+            ..Default::default()
+        })
+        .await?;
 
     // Publish events in order
     let graph_id = GraphId::new();
@@ -304,10 +312,10 @@ async fn test_event_ordering_guarantees() -> Result<(), Box<dyn std::error::Erro
     // Publish all events
     for (i, event) in events.iter().enumerate() {
         let payload = serde_json::to_vec(event)?;
-        jetstream.publish(
-            format!("ordered.event.{}", i),
-            payload.into()
-        ).await?.await?;
+        jetstream
+            .publish(format!("ordered.event.{}", i), payload.into())
+            .await?
+            .await?;
     }
 
     // Consume in order
@@ -315,10 +323,7 @@ async fn test_event_ordering_guarantees() -> Result<(), Box<dyn std::error::Erro
     let mut received_events = Vec::new();
 
     for _ in 0..events.len() {
-        let message = tokio::time::timeout(
-            Duration::from_secs(1),
-            messages.next()
-        ).await???;
+        let message = tokio::time::timeout(Duration::from_secs(1), messages.next()).await???;
 
         let event: DomainEvent = serde_json::from_slice(&message.payload)?;
         received_events.push(event);
@@ -329,7 +334,10 @@ async fn test_event_ordering_guarantees() -> Result<(), Box<dyn std::error::Erro
     assert_eq!(received_events.len(), events.len());
 
     // First should be GraphCreated
-    assert!(matches!(received_events[0], DomainEvent::GraphCreated { .. }));
+    assert!(matches!(
+        received_events[0],
+        DomainEvent::GraphCreated { .. }
+    ));
 
     // Next two should be NodeAdded with correct content
     match &received_events[1] {

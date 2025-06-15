@@ -2,14 +2,14 @@
 //!
 //! Provides visual boundaries and regions for subgraphs in the graph editor.
 
+use crate::domain::value_objects::SubgraphId;
+use crate::presentation::components::{
+    BoundaryType, GraphNode, SubgraphBoundary, SubgraphBoundaryStyle, SubgraphMember,
+    SubgraphRegion,
+};
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
-use crate::presentation::components::{
-    GraphNode, SubgraphRegion, SubgraphBoundary, SubgraphMember,
-    BoundaryType, SubgraphBoundaryStyle,
-};
-use crate::domain::value_objects::SubgraphId;
 use std::collections::HashSet;
 use tracing::info;
 
@@ -58,7 +58,8 @@ pub fn update_subgraph_boundaries(
 
         // Find existing boundary entity if it exists
         let boundary_entity = if let Some(children) = children {
-            children.iter()
+            children
+                .iter()
                 .find(|&child| boundaries.get(child).is_ok())
                 .map(|entity| entity)
         } else {
@@ -158,17 +159,19 @@ fn spawn_boundary_entity(
 
     let mesh_handle = meshes.add(mesh);
 
-    let boundary_entity = commands.spawn((
-        Mesh3d(mesh_handle.clone()),
-        MeshMaterial3d(material),
-        Transform::default(),
-        SubgraphBoundary {
-            subgraph_id: region.subgraph_id,
-            mesh_needs_update: false,
-            center,
-            mesh: Some(mesh_handle),
-        },
-    )).id();
+    let boundary_entity = commands
+        .spawn((
+            Mesh3d(mesh_handle.clone()),
+            MeshMaterial3d(material),
+            Transform::default(),
+            SubgraphBoundary {
+                subgraph_id: region.subgraph_id,
+                mesh_needs_update: false,
+                center,
+                mesh: Some(mesh_handle),
+            },
+        ))
+        .id();
 
     commands.entity(parent).add_child(boundary_entity);
 }
@@ -176,14 +179,14 @@ fn spawn_boundary_entity(
 /// Create a convex hull mesh from node positions
 fn create_convex_hull_mesh(positions: &[Vec3], color: Color) -> Mesh {
     if positions.len() < 3 {
-        return Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+        return Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        );
     }
 
     // Project to 2D for convex hull calculation
-    let points_2d: Vec<(f32, f32)> = positions
-        .iter()
-        .map(|p| (p.x, p.z))
-        .collect();
+    let points_2d: Vec<(f32, f32)> = positions.iter().map(|p| (p.x, p.z)).collect();
 
     // Calculate convex hull
     let hull_indices = convex_hull_2d(&points_2d);
@@ -194,7 +197,10 @@ fn create_convex_hull_mesh(positions: &[Vec3], color: Color) -> Mesh {
         .map(|&i| [positions[i].x, positions[i].y, positions[i].z])
         .collect();
 
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    );
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices.clone());
 
     // Add vertex colors based on the provided color
@@ -221,7 +227,10 @@ fn create_convex_hull_mesh(positions: &[Vec3], color: Color) -> Mesh {
 /// Create a bounding box mesh from node positions
 fn create_bounding_box_mesh(positions: &[Vec3], color: Color) -> Mesh {
     if positions.is_empty() {
-        return Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+        return Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        );
     }
 
     // Find min and max bounds
@@ -262,20 +271,18 @@ fn create_bounding_box_mesh(positions: &[Vec3], color: Color) -> Mesh {
     // Box indices (12 triangles, 2 per face)
     let indices = vec![
         // Front
-        0, 1, 2, 0, 2, 3,
-        // Back
-        5, 4, 7, 5, 7, 6,
-        // Left
-        4, 0, 3, 4, 3, 7,
-        // Right
-        1, 5, 6, 1, 6, 2,
-        // Top
-        3, 2, 6, 3, 6, 7,
-        // Bottom
+        0, 1, 2, 0, 2, 3, // Back
+        5, 4, 7, 5, 7, 6, // Left
+        4, 0, 3, 4, 3, 7, // Right
+        1, 5, 6, 1, 6, 2, // Top
+        3, 2, 6, 3, 6, 7, // Bottom
         4, 5, 1, 4, 1, 0,
     ];
 
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    );
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
     mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, vertex_colors);
     mesh.insert_indices(Indices::U32(indices));
@@ -287,7 +294,10 @@ fn create_bounding_box_mesh(positions: &[Vec3], color: Color) -> Mesh {
 /// Create a circular boundary mesh from node positions
 fn create_circle_boundary_mesh(positions: &[Vec3], color: Color) -> Mesh {
     if positions.is_empty() {
-        return Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+        return Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        );
     }
 
     // Find center and radius
@@ -296,7 +306,8 @@ fn create_circle_boundary_mesh(positions: &[Vec3], color: Color) -> Mesh {
         .iter()
         .map(|p| (*p - center).length())
         .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap_or(10.0) + 2.0; // Add padding
+        .unwrap_or(10.0)
+        + 2.0; // Add padding
 
     // Create circle vertices
     let segments = 32;
@@ -331,7 +342,10 @@ fn create_circle_boundary_mesh(positions: &[Vec3], color: Color) -> Mesh {
         indices.push((next + 1) as u32);
     }
 
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::default());
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    );
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
     mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, vertex_colors);
     mesh.insert_indices(Indices::U32(indices));
@@ -368,7 +382,11 @@ pub fn create_subgraph_from_selection(
                     set.insert(subgraph_id);
                     set
                 },
-                relative_position: crate::domain::value_objects::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+                relative_position: crate::domain::value_objects::Position3D {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
             });
         }
 
@@ -427,16 +445,10 @@ pub struct SubgraphVisualizationPlugin;
 
 impl Plugin for SubgraphVisualizationPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<SubgraphBoundarySettings>()
-            .add_systems(
-                Update,
-                (
-                    update_subgraph_boundaries,
-                    visualize_subgraph_boundaries,
-                )
-                    .chain(),
-            );
+        app.init_resource::<SubgraphBoundarySettings>().add_systems(
+            Update,
+            (update_subgraph_boundaries, visualize_subgraph_boundaries).chain(),
+        );
     }
 }
 
@@ -450,11 +462,13 @@ fn convex_hull_2d(points: &[(f32, f32)]) -> Vec<usize> {
     let mut indices: Vec<usize> = (0..points.len()).collect();
 
     // Find the bottom-most point (or left-most if tied)
-    let start = indices.iter()
+    let start = indices
+        .iter()
         .min_by(|&&a, &&b| {
             let pa = points[a];
             let pb = points[b];
-            pa.1.partial_cmp(&pb.1).unwrap()
+            pa.1.partial_cmp(&pb.1)
+                .unwrap()
                 .then(pa.0.partial_cmp(&pb.0).unwrap())
         })
         .copied()
@@ -463,8 +477,12 @@ fn convex_hull_2d(points: &[(f32, f32)]) -> Vec<usize> {
     // Sort points by polar angle with respect to start point
     let start_point = points[start];
     indices.sort_by(|&a, &b| {
-        if a == start { return std::cmp::Ordering::Less; }
-        if b == start { return std::cmp::Ordering::Greater; }
+        if a == start {
+            return std::cmp::Ordering::Less;
+        }
+        if b == start {
+            return std::cmp::Ordering::Greater;
+        }
 
         let pa = points[a];
         let pb = points[b];
@@ -532,29 +550,20 @@ pub fn visualize_subgraph_boundaries(
                 if let Some(_mesh) = &boundary.mesh {
                     // For now, draw a simple outline
                     // In a real implementation, extract vertices from mesh
-                    gizmos.circle(
-                        Isometry3d::from_translation(boundary.center),
-                        10.0,
-                        color,
-                    );
+                    gizmos.circle(Isometry3d::from_translation(boundary.center), 10.0, color);
                 }
             }
             SubgraphBoundaryStyle::BoundingBox => {
                 // Draw bounding box
                 let half_size = Vec3::new(10.0, 1.0, 10.0);
                 gizmos.cuboid(
-                    Transform::from_translation(boundary.center)
-                        .with_scale(half_size * 2.0),
+                    Transform::from_translation(boundary.center).with_scale(half_size * 2.0),
                     color,
                 );
             }
             SubgraphBoundaryStyle::Circle => {
                 // Draw circle
-                gizmos.circle(
-                    Isometry3d::from_translation(boundary.center),
-                    15.0,
-                    color,
-                );
+                gizmos.circle(Isometry3d::from_translation(boundary.center), 15.0, color);
             }
         }
     }

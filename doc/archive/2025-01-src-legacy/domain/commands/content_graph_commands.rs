@@ -9,9 +9,7 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ContentGraphCommand {
     /// Create a new content graph
-    CreateGraph {
-        graph_id: GraphId,
-    },
+    CreateGraph { graph_id: GraphId },
 
     /// Add content to the graph
     AddContent {
@@ -22,9 +20,7 @@ pub enum ContentGraphCommand {
     },
 
     /// Remove content from the graph
-    RemoveContent {
-        node_id: NodeId,
-    },
+    RemoveContent { node_id: NodeId },
 
     /// Establish a relationship between content nodes
     EstablishRelationship {
@@ -35,14 +31,10 @@ pub enum ContentGraphCommand {
     },
 
     /// Remove a relationship
-    RemoveRelationship {
-        edge_id: EdgeId,
-    },
+    RemoveRelationship { edge_id: EdgeId },
 
     /// Discover relationships based on similarity
-    DiscoverRelationships {
-        threshold: f64,
-    },
+    DiscoverRelationships { threshold: f64 },
 
     /// Update semantic clusters
     UpdateSemanticClusters,
@@ -58,13 +50,8 @@ pub enum ContentGraphCommand {
     },
 
     /// Update a view
-    UpdateView {
-        name: String,
-        node_ids: Vec<NodeId>,
-    },
+    UpdateView { name: String, node_ids: Vec<NodeId> },
 
     /// Remove a view
-    RemoveView {
-        name: String,
-    },
+    RemoveView { name: String },
 }

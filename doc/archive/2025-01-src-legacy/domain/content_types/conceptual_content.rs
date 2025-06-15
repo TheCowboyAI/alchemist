@@ -84,9 +84,7 @@ impl ConceptualSpaceContent {
     pub fn find_similar(&self, point: &ConceptualPoint, threshold: f64) -> Vec<&ConceptualPoint> {
         self.points
             .iter()
-            .filter(|p| {
-                p.entity_id != point.entity_id && self.distance(point, p) <= threshold
-            })
+            .filter(|p| p.entity_id != point.entity_id && self.distance(point, p) <= threshold)
             .collect()
     }
 }

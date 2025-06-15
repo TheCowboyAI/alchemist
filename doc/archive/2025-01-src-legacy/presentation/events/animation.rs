@@ -3,9 +3,9 @@
 //! These events handle visual transitions, interpolations, and effects
 //! without affecting domain state.
 
-use bevy::prelude::*;
-use crate::domain::value_objects::{NodeId, EdgeId};
 use super::PresentationEvent;
+use crate::domain::value_objects::{EdgeId, NodeId};
+use bevy::prelude::*;
 
 /// Frame update for ongoing animations
 #[derive(Event, Clone, Debug)]
@@ -61,10 +61,19 @@ pub struct CameraAnimation {
 
 #[derive(Clone, Debug)]
 pub enum CameraAnimationType {
-    ZoomTo { target_scale: f32 },
-    PanTo { target_position: Vec3 },
-    OrbitTo { target_rotation: Quat },
-    FocusOn { target_entity: Entity, zoom_level: f32 },
+    ZoomTo {
+        target_scale: f32,
+    },
+    PanTo {
+        target_position: Vec3,
+    },
+    OrbitTo {
+        target_rotation: Quat,
+    },
+    FocusOn {
+        target_entity: Entity,
+        zoom_level: f32,
+    },
 }
 
 impl PresentationEvent for CameraAnimation {

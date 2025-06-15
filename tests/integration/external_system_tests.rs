@@ -18,11 +18,10 @@
 //!     G --> C
 //! ```
 
-use crate::fixtures::{TestNatsServer, TestEventStore, create_test_graph, assertions::*};
-use cim_domain::{DomainResult, GraphId, NodeId, EdgeId, DomainEvent};
+use crate::fixtures::{TestEventStore, TestNatsServer, assertions::*, create_test_graph};
+use cim_domain::{DomainEvent, DomainResult, EdgeId, GraphId, NodeId};
 use cim_domain_graph::{
-    GraphAggregate, GraphDomainEvent, NodeType, Position3D,
-    ExternalProjection, SyncDirection,
+    ExternalProjection, GraphAggregate, GraphDomainEvent, NodeType, Position3D, SyncDirection,
 };
 use std::collections::HashMap;
 
@@ -105,17 +104,25 @@ async fn test_neo4j_bidirectional_sync() -> DomainResult<()> {
     }
 
     // Modify in Neo4j (simulate external change)
-    projection.neo4j.execute("MATCH (n) SET n.updated = true").await?;
+    projection
+        .neo4j
+        .execute("MATCH (n) SET n.updated = true")
+        .await?;
 
     // Sync back
     let external_events = projection.ingest_changes().await?;
 
     // Assert
-    assert!(!external_events.is_empty(), "Should detect external changes");
-    assert!(external_events.iter().any(|e| matches!(
-        e,
-        DomainEvent::Graph(GraphDomainEvent::NodeUpdated { .. })
-    )), "Should generate update events");
+    assert!(
+        !external_events.is_empty(),
+        "Should detect external changes"
+    );
+    assert!(
+        external_events
+            .iter()
+            .any(|e| matches!(e, DomainEvent::Graph(GraphDomainEvent::NodeUpdated { .. }))),
+        "Should generate update events"
+    );
 
     // Cleanup
     nats.cleanup().await?;
@@ -126,19 +133,18 @@ async fn test_neo4j_bidirectional_sync() -> DomainResult<()> {
 /// Test external API integration with retry logic
 #[tokio::test]
 async fn test_external_api_integration_with_retry() -> DomainResult<()> {
-    use wiremock::{MockServer, Mock, ResponseTemplate};
     use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     // Arrange - Start mock server
     let mock_server = MockServer::start().await;
 
     // Configure mock to fail twice then succeed
     let fail_response = ResponseTemplate::new(500);
-    let success_response = ResponseTemplate::new(200)
-        .set_body_json(serde_json::json!({
-            "status": "success",
-            "data": {"processed": true}
-        }));
+    let success_response = ResponseTemplate::new(200).set_body_json(serde_json::json!({
+        "status": "success",
+        "data": {"processed": true}
+    }));
 
     Mock::given(method("POST"))
         .and(path("/api/process"))
@@ -164,11 +170,13 @@ async fn test_external_api_integration_with_retry() -> DomainResult<()> {
     );
 
     // Act - Send data with retry
-    let result = api_client.process_graph_data(GraphData {
-        graph_id: GraphId::new(),
-        nodes: vec![],
-        edges: vec![],
-    }).await;
+    let result = api_client
+        .process_graph_data(GraphData {
+            graph_id: GraphId::new(),
+            nodes: vec![],
+            edges: vec![],
+        })
+        .await;
 
     // Assert
     assert!(result.is_ok(), "Should succeed after retries");
@@ -184,20 +192,22 @@ async fn test_external_api_integration_with_retry() -> DomainResult<()> {
 /// Test webhook event reception from external systems
 #[tokio::test]
 async fn test_webhook_event_reception() -> DomainResult<()> {
-    use axum::{Router, routing::post, Json};
+    use axum::{Json, Router, routing::post};
     use tokio::sync::mpsc;
 
     // Arrange - Create webhook receiver
     let (tx, mut rx) = mpsc::channel(10);
 
-    let app = Router::new()
-        .route("/webhook", post(move |Json(payload): Json<serde_json::Value>| {
+    let app = Router::new().route(
+        "/webhook",
+        post(move |Json(payload): Json<serde_json::Value>| {
             let tx = tx.clone();
             async move {
                 tx.send(payload).await.unwrap();
                 Json(serde_json::json!({"status": "received"}))
             }
-        }));
+        }),
+    );
 
     // Start webhook server
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
@@ -246,7 +256,11 @@ async fn test_data_transformation_pipeline() -> DomainResult<()> {
         graph_id: GraphId::new(),
         node_id: NodeId::new(),
         node_type: NodeType::Concept,
-        position: Position3D { x: 1.0, y: 2.0, z: 3.0 },
+        position: Position3D {
+            x: 1.0,
+            y: 2.0,
+            z: 3.0,
+        },
         conceptual_point: Default::default(),
         metadata: HashMap::from([
             ("title".to_string(), "Test Node".to_string()),
@@ -283,17 +297,27 @@ async fn test_external_system_health_monitoring() -> DomainResult<()> {
     let health_monitor = ExternalSystemHealthMonitor::new();
 
     // Register external systems
-    health_monitor.register_system("neo4j", HealthCheck {
-        endpoint: "http://localhost:7474/health",
-        timeout_ms: 5000,
-        expected_status: 200,
-    }).await?;
+    health_monitor
+        .register_system(
+            "neo4j",
+            HealthCheck {
+                endpoint: "http://localhost:7474/health",
+                timeout_ms: 5000,
+                expected_status: 200,
+            },
+        )
+        .await?;
 
-    health_monitor.register_system("api_gateway", HealthCheck {
-        endpoint: "http://api.example.com/health",
-        timeout_ms: 3000,
-        expected_status: 200,
-    }).await?;
+    health_monitor
+        .register_system(
+            "api_gateway",
+            HealthCheck {
+                endpoint: "http://api.example.com/health",
+                timeout_ms: 3000,
+                expected_status: 200,
+            },
+        )
+        .await?;
 
     // Act - Perform health checks
     let health_status = health_monitor.check_all_systems().await;
@@ -305,7 +329,10 @@ async fn test_external_system_health_monitoring() -> DomainResult<()> {
     // Check circuit breaker activation
     if let Some(status) = health_status.get("neo4j") {
         if !status.is_healthy {
-            assert!(status.circuit_breaker_open, "Circuit breaker should open on failure");
+            assert!(
+                status.circuit_breaker_open,
+                "Circuit breaker should open on failure"
+            );
         }
     }
 
@@ -346,11 +373,9 @@ async fn test_bulk_data_export() -> DomainResult<()> {
         compression: Some(CompressionType::Gzip),
     };
 
-    let export_result = exporter.export_graph(
-        &event_store,
-        graph_id,
-        export_config,
-    ).await?;
+    let export_result = exporter
+        .export_graph(&event_store, graph_id, export_config)
+        .await?;
 
     // Assert
     assert_eq!(export_result.total_records, 1000);
@@ -375,7 +400,10 @@ async fn test_concurrent_external_update_conflict_resolution() -> DomainResult<(
         graph_id,
         node_id,
         changes: cim_domain_graph::NodeChanges {
-            metadata: Some(HashMap::from([("status".to_string(), "internal".to_string())])),
+            metadata: Some(HashMap::from([(
+                "status".to_string(),
+                "internal".to_string(),
+            )])),
             position: None,
             node_type: None,
         },
@@ -387,7 +415,10 @@ async fn test_concurrent_external_update_conflict_resolution() -> DomainResult<(
         graph_id,
         node_id,
         changes: cim_domain_graph::NodeChanges {
-            metadata: Some(HashMap::from([("status".to_string(), "external".to_string())])),
+            metadata: Some(HashMap::from([(
+                "status".to_string(),
+                "external".to_string(),
+            )])),
             position: None,
             node_type: None,
         },
@@ -421,13 +452,18 @@ struct Neo4jProjection {
 
 impl Neo4jProjection {
     fn new(neo4j: MockNeo4jClient, sync_direction: SyncDirection) -> Self {
-        Self { neo4j, sync_direction }
+        Self {
+            neo4j,
+            sync_direction,
+        }
     }
 
     async fn sync_event(&mut self, event: &DomainEvent) -> DomainResult<()> {
         // Transform and sync to Neo4j
         match event {
-            DomainEvent::Graph(GraphDomainEvent::NodeAdded { node_id, metadata, .. }) => {
+            DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                node_id, metadata, ..
+            }) => {
                 let query = format!(
                     "CREATE (n:Node {{id: '{}', name: '{}'}})",
                     node_id,
@@ -446,7 +482,11 @@ impl Neo4jProjection {
         let mut events = Vec::new();
 
         for node in nodes {
-            if node.get("updated").and_then(|v| v.as_bool()).unwrap_or(false) {
+            if node
+                .get("updated")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+            {
                 // Generate update event
                 events.push(DomainEvent::Graph(GraphDomainEvent::NodeUpdated {
                     graph_id: GraphId::new(),
@@ -477,13 +517,17 @@ impl ExternalApiClient {
         }
     }
 
-    async fn process_graph_data(&self, data: GraphData) -> Result<serde_json::Value, reqwest::Error> {
+    async fn process_graph_data(
+        &self,
+        data: GraphData,
+    ) -> Result<serde_json::Value, reqwest::Error> {
         let mut attempts = 0;
 
         loop {
             attempts += 1;
 
-            let result = self.client
+            let result = self
+                .client
                 .post(format!("{}/api/process", self.base_url))
                 .json(&data)
                 .send()
@@ -495,14 +539,16 @@ impl ExternalApiClient {
                 }
                 Ok(_) | Err(_) if attempts < self.retry_config.max_attempts => {
                     tokio::time::sleep(tokio::time::Duration::from_millis(
-                        self.retry_config.backoff_ms * attempts as u64
-                    )).await;
+                        self.retry_config.backoff_ms * attempts as u64,
+                    ))
+                    .await;
                 }
                 Err(e) => return Err(e),
                 Ok(response) => {
-                    return Err(reqwest::Error::from(
-                        std::io::Error::new(std::io::ErrorKind::Other, "Request failed")
-                    ));
+                    return Err(reqwest::Error::from(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        "Request failed",
+                    )));
                 }
             }
         }
@@ -532,20 +578,21 @@ impl DataTransformer {
     fn to_external_format(&self, event: &DomainEvent) -> DomainResult<serde_json::Value> {
         match event {
             DomainEvent::Graph(GraphDomainEvent::NodeAdded {
-                node_id, position, metadata, ..
-            }) => {
-                Ok(serde_json::json!({
-                    "type": "node_created",
-                    "id": node_id.to_string(),
-                    "properties": metadata,
-                    "position": {
-                        "x": position.x,
-                        "y": position.y,
-                        "z": position.z,
-                    }
-                }))
-            }
-            _ => Ok(serde_json::json!({}))
+                node_id,
+                position,
+                metadata,
+                ..
+            }) => Ok(serde_json::json!({
+                "type": "node_created",
+                "id": node_id.to_string(),
+                "properties": metadata,
+                "position": {
+                    "x": position.x,
+                    "y": position.y,
+                    "z": position.z,
+                }
+            })),
+            _ => Ok(serde_json::json!({})),
         }
     }
 
@@ -554,26 +601,28 @@ impl DataTransformer {
         let event_type = data["type"].as_str().unwrap_or("");
 
         match event_type {
-            "node_created" => {
-                Ok(DomainEvent::Graph(GraphDomainEvent::NodeAdded {
-                    graph_id: GraphId::new(),
-                    node_id: NodeId::new(),
-                    node_type: NodeType::Concept,
-                    position: Position3D {
-                        x: data["position"]["x"].as_f64().unwrap_or(0.0) as f32,
-                        y: data["position"]["y"].as_f64().unwrap_or(0.0) as f32,
-                        z: data["position"]["z"].as_f64().unwrap_or(0.0) as f32,
-                    },
-                    conceptual_point: Default::default(),
-                    metadata: data["properties"].as_object()
-                        .map(|obj| obj.iter()
+            "node_created" => Ok(DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                graph_id: GraphId::new(),
+                node_id: NodeId::new(),
+                node_type: NodeType::Concept,
+                position: Position3D {
+                    x: data["position"]["x"].as_f64().unwrap_or(0.0) as f32,
+                    y: data["position"]["y"].as_f64().unwrap_or(0.0) as f32,
+                    z: data["position"]["z"].as_f64().unwrap_or(0.0) as f32,
+                },
+                conceptual_point: Default::default(),
+                metadata: data["properties"]
+                    .as_object()
+                    .map(|obj| {
+                        obj.iter()
                             .map(|(k, v)| (k.clone(), v.as_str().unwrap_or("").to_string()))
                             .collect()
-                        )
-                        .unwrap_or_default(),
-                }))
-            }
-            _ => Err(cim_domain::DomainError::ValidationError("Unknown event type".to_string()))
+                    })
+                    .unwrap_or_default(),
+            })),
+            _ => Err(cim_domain::DomainError::ValidationError(
+                "Unknown event type".to_string(),
+            )),
         }
     }
 }
@@ -601,11 +650,14 @@ impl ExternalSystemHealthMonitor {
 
         for (name, check) in systems.iter() {
             // Simulate health check
-            results.insert(name.clone(), SystemHealth {
-                is_healthy: true, // Would actually check endpoint
-                circuit_breaker_open: false,
-                last_check: std::time::SystemTime::now(),
-            });
+            results.insert(
+                name.clone(),
+                SystemHealth {
+                    is_healthy: true, // Would actually check endpoint
+                    circuit_breaker_open: false,
+                    last_check: std::time::SystemTime::now(),
+                },
+            );
         }
 
         results
@@ -696,12 +748,17 @@ impl ConflictResolver {
         match self.strategy {
             ResolutionStrategy::LastWriteWins => {
                 // Return event with latest timestamp
-                events.into_iter()
+                events
+                    .into_iter()
                     .max_by_key(|e| match e {
-                        DomainEvent::Graph(GraphDomainEvent::NodeUpdated { timestamp, .. }) => *timestamp,
+                        DomainEvent::Graph(GraphDomainEvent::NodeUpdated { timestamp, .. }) => {
+                            *timestamp
+                        }
                         _ => std::time::SystemTime::UNIX_EPOCH,
                     })
-                    .ok_or(cim_domain::DomainError::ValidationError("No events to resolve".to_string()))
+                    .ok_or(cim_domain::DomainError::ValidationError(
+                        "No events to resolve".to_string(),
+                    ))
             }
         }
     }

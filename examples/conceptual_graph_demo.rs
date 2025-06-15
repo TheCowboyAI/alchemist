@@ -4,11 +4,9 @@
 //! using Applied Category Theory principles.
 
 use ia::domain::conceptual_graph::{
-    ConceptGraph, ConceptNode, ConceptEdge, ConceptRelationship,
-    ConceptType, NodeId, ConceptId,
-    QualityDimension, DimensionType, ConceptualPoint,
-    CategoryType, EnrichmentType,
-    GraphComposer, CompositionBuilder, ProductType,
+    CategoryType, CompositionBuilder, ConceptEdge, ConceptGraph, ConceptId, ConceptNode,
+    ConceptRelationship, ConceptType, ConceptualPoint, DimensionType, EnrichmentType,
+    GraphComposer, NodeId, ProductType, QualityDimension,
 };
 use std::collections::HashMap;
 
@@ -17,16 +15,25 @@ fn main() {
 
     // 1. Create a simple concept graph for "User"
     let user_graph = create_user_concept();
-    println!("Created User concept with {} nodes", user_graph.node_count());
+    println!(
+        "Created User concept with {} nodes",
+        user_graph.node_count()
+    );
 
     // 2. Create a concept graph for "Email"
     let email_graph = create_email_concept();
-    println!("Created Email concept with {} nodes", email_graph.node_count());
+    println!(
+        "Created Email concept with {} nodes",
+        email_graph.node_count()
+    );
 
     // 3. Compose them together
     let composed = compose_concepts(user_graph, email_graph);
-    println!("\nComposed graph has {} nodes and {} edges",
-             composed.node_count(), composed.edge_count());
+    println!(
+        "\nComposed graph has {} nodes and {} edges",
+        composed.node_count(),
+        composed.edge_count()
+    );
 
     // 4. Demonstrate quality dimensions and conceptual space
     demonstrate_conceptual_space();
@@ -140,8 +147,10 @@ fn demonstrate_conceptual_space() {
 
     // Show dimension properties
     for dim in &dimensions {
-        println!("Dimension '{}': {:?}, metric: {:?}",
-                 dim.name, dim.dimension_type, dim.metric);
+        println!(
+            "Dimension '{}': {:?}, metric: {:?}",
+            dim.name, dim.dimension_type, dim.metric
+        );
     }
 }
 
@@ -155,15 +164,17 @@ fn demonstrate_categories() {
         CategoryType::Monoidal,
         CategoryType::Topos,
         CategoryType::Enriched {
-            enrichment: EnrichmentType::Metric
+            enrichment: EnrichmentType::Metric,
         },
     ];
 
     for cat in categories {
         println!("\n{:?}:", cat);
         println!("  Description: {}", cat.description());
-        println!("  Supports parallel composition: {}",
-                 cat.supports_parallel_composition());
+        println!(
+            "  Supports parallel composition: {}",
+            cat.supports_parallel_composition()
+        );
         println!("  Has logic: {}", cat.has_logic());
         println!("  Has ordering: {}", cat.has_ordering());
     }

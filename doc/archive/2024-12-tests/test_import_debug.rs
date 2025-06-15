@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource},
     events::{DomainEvent, GraphEvent},
     value_objects::GraphId,
 };
@@ -12,7 +12,7 @@ use ia::presentation::{
     plugins::GraphEditorPlugin,
 };
 use std::collections::HashMap;
-use tracing::{info, Level};
+use tracing::{Level, info};
 use tracing_subscriber::FmtSubscriber;
 
 fn main() {
@@ -20,8 +20,7 @@ fn main() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::DEBUG)
         .finish();
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     info!("Starting import debug application");
 
@@ -34,12 +33,15 @@ fn main() {
     app.add_plugins(GraphEditorPlugin);
 
     // Add debug systems
-    app.add_systems(Update, (
-        debug_command_events,
-        debug_event_notifications,
-        debug_import_requests,
-        debug_import_results,
-    ));
+    app.add_systems(
+        Update,
+        (
+            debug_command_events,
+            debug_event_notifications,
+            debug_import_requests,
+            debug_import_results,
+        ),
+    );
 
     // Add startup system to trigger import
     app.add_systems(Startup, trigger_test_import);
@@ -73,7 +75,10 @@ fn trigger_test_import(mut commands: EventWriter<CommandEvent>) {
         }),
     });
 
-    info!("Sent CreateGraph and ImportGraph commands for graph: {:?}", graph_id);
+    info!(
+        "Sent CreateGraph and ImportGraph commands for graph: {:?}",
+        graph_id
+    );
 }
 
 fn debug_command_events(mut events: EventReader<CommandEvent>) {
@@ -84,7 +89,10 @@ fn debug_command_events(mut events: EventReader<CommandEvent>) {
 
 fn debug_event_notifications(mut events: EventReader<EventNotification>) {
     for event in events.read() {
-        info!("DEBUG: EventNotification received: {:?}", event.event.event_type());
+        info!(
+            "DEBUG: EventNotification received: {:?}",
+            event.event.event_type()
+        );
 
         if let DomainEvent::Graph(GraphEvent::GraphImportRequested { .. }) = &event.event {
             info!("  -> This is a GraphImportRequested event!");
@@ -94,12 +102,18 @@ fn debug_event_notifications(mut events: EventReader<EventNotification>) {
 
 fn debug_import_requests(mut events: EventReader<ImportRequestEvent>) {
     for event in events.read() {
-        info!("DEBUG: ImportRequestEvent received: {:?}", event.event.event_type());
+        info!(
+            "DEBUG: ImportRequestEvent received: {:?}",
+            event.event.event_type()
+        );
     }
 }
 
 fn debug_import_results(mut events: EventReader<ImportResultEvent>) {
     for event in events.read() {
-        info!("DEBUG: ImportResultEvent received: {:?}", event.event.event_type());
+        info!(
+            "DEBUG: ImportResultEvent received: {:?}",
+            event.event.event_type()
+        );
     }
 }

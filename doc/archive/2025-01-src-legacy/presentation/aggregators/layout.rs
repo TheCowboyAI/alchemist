@@ -3,17 +3,16 @@
 //! Force-directed layouts may run hundreds of iterations. We aggregate these
 //! and only send the final positions to the domain when the layout completes.
 
-use bevy::prelude::*;
-use std::collections::HashMap;
+use super::EventAggregator;
 use crate::domain::{
-    commands::{DomainCommand, UpdateNodePositions, RecognizeGraphModel},
-    value_objects::{NodeId, Position3D, GraphModel},
+    commands::{DomainCommand, RecognizeGraphModel, UpdateNodePositions},
+    value_objects::{GraphModel, NodeId, Position3D},
 };
 use crate::presentation::events::layout::{
-    ForceLayoutIteration, LayoutComplete, LayoutType,
-    ConceptualForceUpdate, TemporaryNodePosition,
+    ConceptualForceUpdate, ForceLayoutIteration, LayoutComplete, LayoutType, TemporaryNodePosition,
 };
-use super::EventAggregator;
+use bevy::prelude::*;
+use std::collections::HashMap;
 
 /// Aggregates layout calculations into position update commands
 pub struct LayoutAggregator {
@@ -77,21 +76,24 @@ impl LayoutAggregator {
 
         // Create position update command
         if !event.final_positions.is_empty() {
-            let updates: Vec<(NodeId, Position3D)> = event.final_positions
+            let updates: Vec<(NodeId, Position3D)> = event
+                .final_positions
                 .iter()
                 .map(|(node_id, pos)| {
-                    (*node_id, Position3D {
-                        x: pos.x,
-                        y: pos.y,
-                        z: pos.z,
-                    })
+                    (
+                        *node_id,
+                        Position3D {
+                            x: pos.x,
+                            y: pos.y,
+                            z: pos.z,
+                        },
+                    )
                 })
                 .collect();
 
             let reason = format!(
                 "{:?} layout completed after {} iterations",
-                event.layout_type,
-                event.iterations_performed
+                event.layout_type, event.iterations_performed
             );
 
             commands.push(DomainCommand::UpdateNodePositions(UpdateNodePositions {
@@ -165,14 +167,18 @@ impl EventAggregator for LayoutAggregator {
         }
 
         // Force completion with current positions
-        let updates: Vec<(NodeId, Position3D)> = self.position_updates
+        let updates: Vec<(NodeId, Position3D)> = self
+            .position_updates
             .iter()
             .map(|(node_id, pos)| {
-                (*node_id, Position3D {
-                    x: pos.x,
-                    y: pos.y,
-                    z: pos.z,
-                })
+                (
+                    *node_id,
+                    Position3D {
+                        x: pos.x,
+                        y: pos.y,
+                        z: pos.z,
+                    },
+                )
             })
             .collect();
 

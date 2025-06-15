@@ -4,15 +4,15 @@
 //! using ContentGraph's recursive structure. It shows how DDD patterns map naturally
 //! into our recursive ContentGraph structure.
 
+use cim_ipld::ContentType;
 use ia::domain::{
-    aggregates::content_graph::{ContentGraph, NodeContent, GraphType},
+    aggregates::content_graph::{ContentGraph, GraphType, NodeContent},
     commands::ContentGraphCommand,
     events::DomainEvent,
-    value_objects::{GraphId, NodeId, EdgeId, Position3D, RelatedBy},
+    value_objects::{EdgeId, GraphId, NodeId, Position3D, RelatedBy},
 };
-use std::collections::HashMap;
 use serde_json::json;
-use cim_ipld::ContentType;
+use std::collections::HashMap;
 
 fn pause_for_enter() {
     println!("\nPress Enter to continue...");
@@ -29,9 +29,11 @@ fn main() {
     let mut all_events = Vec::new();
 
     // Track events as we build the graph
-    let events = context_graph.handle_command(ContentGraphCommand::CreateGraph {
-        graph_id: context_id,
-    }).unwrap();
+    let events = context_graph
+        .handle_command(ContentGraphCommand::CreateGraph {
+            graph_id: context_id,
+        })
+        .unwrap();
     all_events.extend(events.clone());
     for event in &events {
         context_graph.apply_event(event).unwrap();
@@ -41,10 +43,16 @@ fn main() {
     let doc_aggregate_id = create_document_aggregate(&mut context_graph, &mut all_events);
 
     // Create the Document Requirement Aggregate
-    let req_aggregate_id = create_document_requirement_aggregate(&mut context_graph, &mut all_events);
+    let req_aggregate_id =
+        create_document_requirement_aggregate(&mut context_graph, &mut all_events);
 
     // Connect the aggregates
-    connect_aggregates(&mut context_graph, doc_aggregate_id, req_aggregate_id, &mut all_events);
+    connect_aggregates(
+        &mut context_graph,
+        doc_aggregate_id,
+        req_aggregate_id,
+        &mut all_events,
+    );
 
     // Create some domain events
     create_domain_events(&mut context_graph, doc_aggregate_id, &mut all_events);
@@ -145,7 +153,11 @@ fn create_document_aggregate(graph: &mut ContentGraph, events: &mut Vec<DomainEv
     aggregate_id
 }
 
-fn create_file_metadata(graph: &mut ContentGraph, aggregate_id: NodeId, events: &mut Vec<DomainEvent>) -> NodeId {
+fn create_file_metadata(
+    graph: &mut ContentGraph,
+    aggregate_id: NodeId,
+    events: &mut Vec<DomainEvent>,
+) -> NodeId {
     let metadata_id = NodeId::new();
 
     // FileMetadata is a value object (also a graph)
@@ -223,7 +235,11 @@ fn create_file_metadata(graph: &mut ContentGraph, aggregate_id: NodeId, events: 
     metadata_id
 }
 
-fn create_verification_status(graph: &mut ContentGraph, aggregate_id: NodeId, events: &mut Vec<DomainEvent>) -> NodeId {
+fn create_verification_status(
+    graph: &mut ContentGraph,
+    aggregate_id: NodeId,
+    events: &mut Vec<DomainEvent>,
+) -> NodeId {
     let status_id = NodeId::new();
 
     // VerificationStatus value object
@@ -267,7 +283,11 @@ fn create_verification_status(graph: &mut ContentGraph, aggregate_id: NodeId, ev
     status_id
 }
 
-fn create_verification_rule(graph: &mut ContentGraph, status_id: NodeId, events: &mut Vec<DomainEvent>) -> NodeId {
+fn create_verification_rule(
+    graph: &mut ContentGraph,
+    status_id: NodeId,
+    events: &mut Vec<DomainEvent>,
+) -> NodeId {
     let rule_id = NodeId::new();
 
     let command = ContentGraphCommand::AddContent {
@@ -308,7 +328,10 @@ fn create_verification_rule(graph: &mut ContentGraph, status_id: NodeId, events:
     rule_id
 }
 
-fn create_document_requirement_aggregate(graph: &mut ContentGraph, events: &mut Vec<DomainEvent>) -> NodeId {
+fn create_document_requirement_aggregate(
+    graph: &mut ContentGraph,
+    events: &mut Vec<DomainEvent>,
+) -> NodeId {
     let aggregate_id = NodeId::new();
 
     // Add the requirement aggregate
@@ -381,7 +404,11 @@ fn create_document_requirement_aggregate(graph: &mut ContentGraph, events: &mut 
     aggregate_id
 }
 
-fn create_document_type_requirement(graph: &mut ContentGraph, aggregate_id: NodeId, events: &mut Vec<DomainEvent>) -> NodeId {
+fn create_document_type_requirement(
+    graph: &mut ContentGraph,
+    aggregate_id: NodeId,
+    events: &mut Vec<DomainEvent>,
+) -> NodeId {
     let entity_id = NodeId::new();
 
     let command = ContentGraphCommand::AddContent {
@@ -421,7 +448,12 @@ fn create_document_type_requirement(graph: &mut ContentGraph, aggregate_id: Node
     entity_id
 }
 
-fn connect_aggregates(graph: &mut ContentGraph, doc_id: NodeId, req_id: NodeId, events: &mut Vec<DomainEvent>) {
+fn connect_aggregates(
+    graph: &mut ContentGraph,
+    doc_id: NodeId,
+    req_id: NodeId,
+    events: &mut Vec<DomainEvent>,
+) {
     let edge_id = EdgeId::new();
     let command = ContentGraphCommand::EstablishRelationship {
         edge_id,
@@ -437,7 +469,11 @@ fn connect_aggregates(graph: &mut ContentGraph, doc_id: NodeId, req_id: NodeId, 
     events.extend(new_events);
 }
 
-fn create_domain_events(graph: &mut ContentGraph, doc_aggregate_id: NodeId, events: &mut Vec<DomainEvent>) {
+fn create_domain_events(
+    graph: &mut ContentGraph,
+    doc_aggregate_id: NodeId,
+    events: &mut Vec<DomainEvent>,
+) {
     // Create DocumentUploadedEvent
     let event_id = NodeId::new();
     let command = ContentGraphCommand::AddContent {
@@ -494,22 +530,29 @@ fn format_event(event: &DomainEvent) -> String {
         DomainEvent::ContentAdded(e) => {
             let content_type = match &e.content {
                 NodeContent::Value { .. } => "Value",
-                NodeContent::Graph { graph_type, .. } => {
-                    match graph_type {
-                        GraphType::Aggregate { aggregate_type } => &format!("Aggregate<{}>", aggregate_type),
-                        GraphType::Entity { entity_type } => &format!("Entity<{}>", entity_type),
-                        GraphType::ValueObject { value_type } => &format!("ValueObject<{}>", value_type),
-                        GraphType::Event { event_type } => &format!("Event<{}>", event_type),
-                        _ => "Graph",
+                NodeContent::Graph { graph_type, .. } => match graph_type {
+                    GraphType::Aggregate { aggregate_type } => {
+                        &format!("Aggregate<{}>", aggregate_type)
                     }
-                }
+                    GraphType::Entity { entity_type } => &format!("Entity<{}>", entity_type),
+                    GraphType::ValueObject { value_type } => {
+                        &format!("ValueObject<{}>", value_type)
+                    }
+                    GraphType::Event { event_type } => &format!("Event<{}>", event_type),
+                    _ => "Graph",
+                },
                 NodeContent::Reference { .. } => "Reference",
             };
-            format!("ContentAdded {{ node_id: {}, type: {} }}", e.node_id, content_type)
+            format!(
+                "ContentAdded {{ node_id: {}, type: {} }}",
+                e.node_id, content_type
+            )
         }
         DomainEvent::RelationshipEstablished(e) => {
-            format!("RelationshipEstablished {{ {} --[{:?}]--> {} }}",
-                e.source, e.relationship, e.target)
+            format!(
+                "RelationshipEstablished {{ {} --[{:?}]--> {} }}",
+                e.source, e.relationship, e.target
+            )
         }
         _ => format!("{:?}", event),
     }
@@ -538,23 +581,21 @@ fn print_graph_structure(graph: &ContentGraph) {
 
     for (node_id, node) in &graph.nodes {
         match &node.content {
-            NodeContent::Graph { graph_type, .. } => {
-                match graph_type {
-                    GraphType::Aggregate { aggregate_type } => {
-                        aggregates.push((node_id, aggregate_type));
-                    }
-                    GraphType::Entity { entity_type } => {
-                        entities.push((node_id, entity_type));
-                    }
-                    GraphType::ValueObject { value_type } => {
-                        value_objects.push((node_id, value_type));
-                    }
-                    GraphType::Event { event_type } => {
-                        events.push((node_id, event_type));
-                    }
-                    _ => {}
+            NodeContent::Graph { graph_type, .. } => match graph_type {
+                GraphType::Aggregate { aggregate_type } => {
+                    aggregates.push((node_id, aggregate_type));
                 }
-            }
+                GraphType::Entity { entity_type } => {
+                    entities.push((node_id, entity_type));
+                }
+                GraphType::ValueObject { value_type } => {
+                    value_objects.push((node_id, value_type));
+                }
+                GraphType::Event { event_type } => {
+                    events.push((node_id, event_type));
+                }
+                _ => {}
+            },
             NodeContent::Value { data, .. } => {
                 if let Some(field) = data.get("field") {
                     values.push((node_id, field.as_str().unwrap_or("unknown")));
@@ -587,7 +628,9 @@ fn print_graph_structure(graph: &ContentGraph) {
 }
 
 fn print_children(graph: &ContentGraph, parent_id: &NodeId, indent: usize) {
-    let children: Vec<_> = graph.edges.values()
+    let children: Vec<_> = graph
+        .edges
+        .values()
         .filter(|edge| edge.source == *parent_id)
         .collect();
 
@@ -629,11 +672,18 @@ fn demonstrate_queries(graph: &ContentGraph) {
     }
 
     // Find all value objects
-    let value_object_count = graph.nodes.values()
-        .filter(|node| matches!(
-            &node.content,
-            NodeContent::Graph { graph_type: GraphType::ValueObject { .. }, .. }
-        ))
+    let value_object_count = graph
+        .nodes
+        .values()
+        .filter(|node| {
+            matches!(
+                &node.content,
+                NodeContent::Graph {
+                    graph_type: GraphType::ValueObject { .. },
+                    ..
+                }
+            )
+        })
         .count();
 
     println!("\nValue Objects: {}", value_object_count);

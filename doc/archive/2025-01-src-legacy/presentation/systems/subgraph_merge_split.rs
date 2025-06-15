@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use crate::domain::value_objects::{SubgraphId, NodeId, Position3D, GraphId, MergeStrategy};
-use crate::domain::commands::{Command, SubgraphOperationCommand};
-use crate::presentation::components::{GraphNode, SubgraphMember, SubgraphOrigin};
 use crate::application::CommandEvent;
+use crate::domain::commands::{Command, SubgraphOperationCommand};
+use crate::domain::value_objects::{GraphId, MergeStrategy, NodeId, Position3D, SubgraphId};
+use crate::presentation::components::{GraphNode, SubgraphMember, SubgraphOrigin};
+use bevy::prelude::*;
 use std::collections::HashSet;
 
 /// Resource for tracking merge state
@@ -86,14 +86,16 @@ pub fn handle_multi_selection(
                                 let distance = (-b - discriminant.sqrt()) / (2.0 * a);
                                 if distance >= 0.0 {
                                     // Toggle selection
-                                    if merge_state.selected_subgraphs.contains(&origin.subgraph_id) {
+                                    if merge_state.selected_subgraphs.contains(&origin.subgraph_id)
+                                    {
                                         merge_state.selected_subgraphs.remove(&origin.subgraph_id);
                                     } else {
                                         merge_state.selected_subgraphs.insert(origin.subgraph_id);
                                     }
 
                                     // Update merge capability
-                                    merge_state.can_merge = merge_state.selected_subgraphs.len() >= 2;
+                                    merge_state.can_merge =
+                                        merge_state.selected_subgraphs.len() >= 2;
                                     break;
                                 }
                             }
@@ -141,7 +143,11 @@ pub fn preview_merge(
                 // Calculate radius
                 let mut max_distance = 0.0f32;
                 for (_, member, transform) in nodes.iter() {
-                    if member.subgraph_ids.iter().any(|id| merge_state.selected_subgraphs.contains(id)) {
+                    if member
+                        .subgraph_ids
+                        .iter()
+                        .any(|id| merge_state.selected_subgraphs.contains(id))
+                    {
                         let distance = transform.translation.distance(center);
                         max_distance = max_distance.max(distance);
                     }
@@ -175,14 +181,12 @@ pub fn execute_merge(
 
         if subgraphs.len() >= 2 {
             events.send(CommandEvent {
-                command: Command::SubgraphOperation(
-                    SubgraphOperationCommand::MergeSubgraphs {
-                        graph_id: GraphId::new(), // TODO: Get actual graph ID
-                        source_subgraphs: subgraphs,
-                        target_subgraph_id: SubgraphId::new(),
-                        strategy: MergeStrategy::Union,
-                    },
-                ),
+                command: Command::SubgraphOperation(SubgraphOperationCommand::MergeSubgraphs {
+                    graph_id: GraphId::new(), // TODO: Get actual graph ID
+                    source_subgraphs: subgraphs,
+                    target_subgraph_id: SubgraphId::new(),
+                    strategy: MergeStrategy::Union,
+                }),
             });
         }
     }
@@ -270,11 +274,8 @@ pub fn detect_split_gesture(
             // Update preview groups after updating split line
             if let Some(subgraph_id) = split_state.splitting_subgraph {
                 if let Some(split_line) = &split_state.split_line {
-                    split_state.preview_groups = calculate_split_groups(
-                        subgraph_id,
-                        split_line,
-                        &nodes,
-                    );
+                    split_state.preview_groups =
+                        calculate_split_groups(subgraph_id, split_line, &nodes);
 
                     split_state.can_split = split_state.preview_groups.len() >= 2;
                 }
@@ -308,11 +309,7 @@ pub fn preview_split(
 
     // Draw split line
     if let Some(ref split_line) = split_state.split_line {
-        gizmos.line(
-            split_line.start,
-            split_line.end,
-            Color::srgb(1.0, 1.0, 0.0),
-        );
+        gizmos.line(split_line.start, split_line.end, Color::srgb(1.0, 1.0, 0.0));
 
         // Draw normal indicator
         let mid = (split_line.start + split_line.end) * 0.5;
@@ -354,8 +351,16 @@ pub fn execute_split(
             // Use geometric line split
             let split_criteria = if let Some(line) = &split_state.split_line {
                 crate::domain::value_objects::SplitCriteria::GeometricLine {
-                    start: Position3D { x: line.start.x, y: line.start.y, z: line.start.z },
-                    end: Position3D { x: line.end.x, y: line.end.y, z: line.end.z },
+                    start: Position3D {
+                        x: line.start.x,
+                        y: line.start.y,
+                        z: line.start.z,
+                    },
+                    end: Position3D {
+                        x: line.end.x,
+                        y: line.end.y,
+                        z: line.end.z,
+                    },
                 }
             } else {
                 // Default to connectivity-based split
@@ -366,13 +371,11 @@ pub fn execute_split(
             };
 
             events.send(CommandEvent {
-                command: Command::SubgraphOperation(
-                    SubgraphOperationCommand::SplitSubgraph {
-                        graph_id: GraphId::new(), // TODO: Get actual graph ID
-                        subgraph_id,
-                        criteria: split_criteria,
-                    }
-                ),
+                command: Command::SubgraphOperation(SubgraphOperationCommand::SplitSubgraph {
+                    graph_id: GraphId::new(), // TODO: Get actual graph ID
+                    subgraph_id,
+                    criteria: split_criteria,
+                }),
             });
 
             // Clear state
@@ -467,8 +470,7 @@ pub struct SubgraphMergeSplitPlugin;
 
 impl Plugin for SubgraphMergeSplitPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<MergeState>()
+        app.init_resource::<MergeState>()
             .init_resource::<SplitState>()
             .add_systems(
                 Update,

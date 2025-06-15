@@ -11,24 +11,22 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use cim_domain::workflow::{
-    WorkflowState, TransitionInput, TransitionOutput,
-    WorkflowContext, WorkflowTransition,
+    TransitionInput, TransitionOutput, WorkflowContext, WorkflowState, WorkflowTransition,
 };
 use cim_workflow_graph::WorkflowGraph;
 
 use information_alchemist::{
     application::services::WorkflowExecutionService,
+    domain::value_objects::{GraphId, StepId, WorkflowId},
     infrastructure::{
-        nats::{NatsClient, NatsConfig},
-        event_store::EventStore,
         event_bridge::{EventBridge, EventBridgePlugin, WorkflowEventBridgePlugin},
+        event_store::EventStore,
+        nats::{NatsClient, NatsConfig},
     },
     presentation::{
-        components::workflow_visualization::*,
+        components::workflow_visualization::*, events::WorkflowEvent,
         systems::workflow_visualization::WorkflowVisualizationPlugin,
-        events::WorkflowEvent,
     },
-    domain::value_objects::{WorkflowId, StepId, GraphId},
 };
 
 /// Document workflow states
@@ -60,7 +58,10 @@ impl WorkflowState for DocumentState {
 
     fn metadata(&self) -> std::collections::HashMap<String, serde_json::Value> {
         let mut metadata = std::collections::HashMap::new();
-        metadata.insert("state_type".to_string(), serde_json::json!(format!("{:?}", self)));
+        metadata.insert(
+            "state_type".to_string(),
+            serde_json::json!(format!("{:?}", self)),
+        );
         metadata
     }
 }
@@ -88,10 +89,22 @@ impl TransitionInput for DocumentInput {
 /// Output from document transitions
 #[derive(Debug, Clone, Serialize, Deserialize)]
 enum DocumentOutput {
-    Submitted { timestamp: String },
-    Approved { timestamp: String, reviewer: String },
-    Rejected { timestamp: String, reviewer: String, reason: String },
-    Revised { timestamp: String, author: String },
+    Submitted {
+        timestamp: String,
+    },
+    Approved {
+        timestamp: String,
+        reviewer: String,
+    },
+    Rejected {
+        timestamp: String,
+        reviewer: String,
+        reason: String,
+    },
+    Revised {
+        timestamp: String,
+        author: String,
+    },
 }
 
 impl TransitionOutput for DocumentOutput {
@@ -130,7 +143,8 @@ impl WorkflowTransition<DocumentState, DocumentInput, DocumentOutput> for Approv
         match &self.input_type.as_str() {
             &"approve" | &"reject" => {
                 // Only reviewers can approve/reject
-                context.get::<String>("role")
+                context
+                    .get::<String>("role")
                     .map(|role| role == "reviewer")
                     .unwrap_or(false)
             }
@@ -140,50 +154,54 @@ impl WorkflowTransition<DocumentState, DocumentInput, DocumentOutput> for Approv
 
     fn accepts_input(&self, input: &DocumentInput) -> bool {
         match (&self.source, &self.target, input) {
-            (DocumentState::Draft, DocumentState::UnderReview, DocumentInput::SubmitForReview { .. }) => true,
-            (DocumentState::UnderReview, DocumentState::Approved, DocumentInput::Approve { .. }) => true,
-            (DocumentState::UnderReview, DocumentState::Rejected, DocumentInput::Reject { .. }) => true,
+            (
+                DocumentState::Draft,
+                DocumentState::UnderReview,
+                DocumentInput::SubmitForReview { .. },
+            ) => true,
+            (
+                DocumentState::UnderReview,
+                DocumentState::Approved,
+                DocumentInput::Approve { .. },
+            ) => true,
+            (DocumentState::UnderReview, DocumentState::Rejected, DocumentInput::Reject { .. }) => {
+                true
+            }
             (DocumentState::Rejected, DocumentState::Draft, DocumentInput::Revise { .. }) => true,
             _ => false,
         }
     }
 
-    fn execute(&self, input: &DocumentInput, _context: &WorkflowContext) -> Result<DocumentOutput, cim_domain::workflow::TransitionError> {
+    fn execute(
+        &self,
+        input: &DocumentInput,
+        _context: &WorkflowContext,
+    ) -> Result<DocumentOutput, cim_domain::workflow::TransitionError> {
         let timestamp = chrono::Utc::now().to_rfc3339();
 
         match input {
-            DocumentInput::SubmitForReview { .. } => {
-                Ok(DocumentOutput::Submitted { timestamp })
-            }
-            DocumentInput::Approve { reviewer } => {
-                Ok(DocumentOutput::Approved {
-                    timestamp,
-                    reviewer: reviewer.clone(),
-                })
-            }
-            DocumentInput::Reject { reviewer, reason } => {
-                Ok(DocumentOutput::Rejected {
-                    timestamp,
-                    reviewer: reviewer.clone(),
-                    reason: reason.clone(),
-                })
-            }
-            DocumentInput::Revise { author } => {
-                Ok(DocumentOutput::Revised {
-                    timestamp,
-                    author: author.clone(),
-                })
-            }
+            DocumentInput::SubmitForReview { .. } => Ok(DocumentOutput::Submitted { timestamp }),
+            DocumentInput::Approve { reviewer } => Ok(DocumentOutput::Approved {
+                timestamp,
+                reviewer: reviewer.clone(),
+            }),
+            DocumentInput::Reject { reviewer, reason } => Ok(DocumentOutput::Rejected {
+                timestamp,
+                reviewer: reviewer.clone(),
+                reason: reason.clone(),
+            }),
+            DocumentInput::Revise { author } => Ok(DocumentOutput::Revised {
+                timestamp,
+                author: author.clone(),
+            }),
         }
     }
 }
 
 /// Create the approval workflow graph
 fn create_approval_workflow() -> WorkflowGraph<DocumentState, DocumentInput, DocumentOutput, f32> {
-    let mut workflow = WorkflowGraph::new(
-        GraphId::new(),
-        cim_workflow_graph::WorkflowType::Sequential,
-    );
+    let mut workflow =
+        WorkflowGraph::new(GraphId::new(), cim_workflow_graph::WorkflowType::Sequential);
 
     // Add states
     let draft = workflow.add_state(DocumentState::Draft);
@@ -252,14 +270,18 @@ fn main() {
         tokio::runtime::Runtime::new()
             .unwrap()
             .block_on(NatsClient::new(nats_config))
-            .expect("Failed to create NATS client")
+            .expect("Failed to create NATS client"),
     );
 
     // Create event store
     let event_store = Arc::new(EventStore::new());
 
     // Create workflow execution service
-    let workflow_service = Arc::new(WorkflowExecutionService::<DocumentState, DocumentInput, DocumentOutput>::new(
+    let workflow_service = Arc::new(WorkflowExecutionService::<
+        DocumentState,
+        DocumentInput,
+        DocumentOutput,
+    >::new(
         nats_client.clone(),
         event_store.clone(),
         "workflow.document".to_string(),
@@ -280,10 +302,7 @@ fn main() {
         .add_plugins(EventBridgePlugin)
         .add_plugins(WorkflowVisualizationPlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, (
-            handle_input,
-            update_workflow_display,
-        ))
+        .add_systems(Update, (handle_input, update_workflow_display))
         .insert_resource(WorkflowService {
             service: workflow_service,
             definition_id: workflow_def_id,
@@ -389,12 +408,14 @@ fn handle_input(
         let service = workflow_service.service.clone();
         let def_id = workflow_service.definition_id.clone();
 
-        let workflow_id = runtime.block_on(async {
-            let mut context = WorkflowContext::new();
-            context.set("role", "author".to_string());
+        let workflow_id = runtime
+            .block_on(async {
+                let mut context = WorkflowContext::new();
+                context.set("role", "author".to_string());
 
-            service.start_workflow(def_id, context).await
-        }).expect("Failed to start workflow");
+                service.start_workflow(def_id, context).await
+            })
+            .expect("Failed to start workflow");
 
         workflow_service.current_workflow = Some(workflow_id);
         info!("Started workflow: {}", workflow_id);
@@ -406,14 +427,18 @@ fn handle_input(
             let service = workflow_service.service.clone();
             let wf_id = workflow_id.clone();
 
-            runtime.block_on(async {
-                service.execute_transition(
-                    &wf_id,
-                    DocumentInput::SubmitForReview {
-                        author: "John Doe".to_string(),
-                    },
-                ).await
-            }).ok();
+            runtime
+                .block_on(async {
+                    service
+                        .execute_transition(
+                            &wf_id,
+                            DocumentInput::SubmitForReview {
+                                author: "John Doe".to_string(),
+                            },
+                        )
+                        .await
+                })
+                .ok();
         }
 
         if keyboard.just_pressed(KeyCode::Digit2) {
@@ -421,18 +446,22 @@ fn handle_input(
             let service = workflow_service.service.clone();
             let wf_id = workflow_id.clone();
 
-            runtime.block_on(async {
-                // Change role to reviewer
-                let mut context = WorkflowContext::new();
-                context.set("role", "reviewer".to_string());
+            runtime
+                .block_on(async {
+                    // Change role to reviewer
+                    let mut context = WorkflowContext::new();
+                    context.set("role", "reviewer".to_string());
 
-                service.execute_transition(
-                    &wf_id,
-                    DocumentInput::Approve {
-                        reviewer: "Jane Smith".to_string(),
-                    },
-                ).await
-            }).ok();
+                    service
+                        .execute_transition(
+                            &wf_id,
+                            DocumentInput::Approve {
+                                reviewer: "Jane Smith".to_string(),
+                            },
+                        )
+                        .await
+                })
+                .ok();
         }
 
         if keyboard.just_pressed(KeyCode::Digit3) {
@@ -440,19 +469,23 @@ fn handle_input(
             let service = workflow_service.service.clone();
             let wf_id = workflow_id.clone();
 
-            runtime.block_on(async {
-                // Change role to reviewer
-                let mut context = WorkflowContext::new();
-                context.set("role", "reviewer".to_string());
+            runtime
+                .block_on(async {
+                    // Change role to reviewer
+                    let mut context = WorkflowContext::new();
+                    context.set("role", "reviewer".to_string());
 
-                service.execute_transition(
-                    &wf_id,
-                    DocumentInput::Reject {
-                        reviewer: "Jane Smith".to_string(),
-                        reason: "Needs more detail".to_string(),
-                    },
-                ).await
-            }).ok();
+                    service
+                        .execute_transition(
+                            &wf_id,
+                            DocumentInput::Reject {
+                                reviewer: "Jane Smith".to_string(),
+                                reason: "Needs more detail".to_string(),
+                            },
+                        )
+                        .await
+                })
+                .ok();
         }
 
         if keyboard.just_pressed(KeyCode::Digit4) {
@@ -460,14 +493,18 @@ fn handle_input(
             let service = workflow_service.service.clone();
             let wf_id = workflow_id.clone();
 
-            runtime.block_on(async {
-                service.execute_transition(
-                    &wf_id,
-                    DocumentInput::Revise {
-                        author: "John Doe".to_string(),
-                    },
-                ).await
-            }).ok();
+            runtime
+                .block_on(async {
+                    service
+                        .execute_transition(
+                            &wf_id,
+                            DocumentInput::Revise {
+                                author: "John Doe".to_string(),
+                            },
+                        )
+                        .await
+                })
+                .ok();
         }
     }
 }

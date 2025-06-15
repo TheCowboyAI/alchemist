@@ -2,8 +2,8 @@
 
 use crate::domain::value_objects::{EdgeId, GraphId, NodeId, Position3D, SubgraphId};
 use bevy::prelude::*;
-use std::collections::HashSet;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 /// Component marking an entity as a graph node
 #[derive(Component)]
@@ -215,16 +215,16 @@ pub struct Selected;
 #[derive(Component, Debug, Clone)]
 pub struct VoronoiCell {
     pub subgraph_id: SubgraphId,
-    pub prototype: Vec3,  // Center point (prototype) of this quality dimension
-    pub vertices: Vec<Vec3>,  // Vertices of the Voronoi cell
-    pub neighbors: HashSet<SubgraphId>,  // Adjacent cells
+    pub prototype: Vec3,     // Center point (prototype) of this quality dimension
+    pub vertices: Vec<Vec3>, // Vertices of the Voronoi cell
+    pub neighbors: HashSet<SubgraphId>, // Adjacent cells
 }
 
 /// Component for conceptual space partitioning
 #[derive(Component, Debug)]
 pub struct ConceptualSpacePartition {
     pub cells: Vec<VoronoiCell>,
-    pub bounds: (Vec3, Vec3),  // Min and max bounds of the space
+    pub bounds: (Vec3, Vec3), // Min and max bounds of the space
 }
 
 /// Component for quality dimension in conceptual space
@@ -232,8 +232,8 @@ pub struct ConceptualSpacePartition {
 pub struct QualityDimension {
     pub subgraph_id: SubgraphId,
     pub name: String,
-    pub prototype: Vec3,  // Prototype point in conceptual space
-    pub weight: f32,  // Importance/weight of this dimension
+    pub prototype: Vec3, // Prototype point in conceptual space
+    pub weight: f32,     // Importance/weight of this dimension
     pub metric: DistanceMetric,
 }
 
@@ -243,27 +243,27 @@ pub enum DistanceMetric {
     Euclidean,
     Manhattan,
     WeightedEuclidean { weights: [f32; 3] },
-    Conceptual,  // Custom metric based on semantic similarity
+    Conceptual, // Custom metric based on semantic similarity
 }
 
 /// Component for nodes positioned in conceptual space
 #[derive(Component, Debug, Clone)]
 pub struct ConceptualPosition {
-    pub coordinates: Vec3,  // Position in quality dimensions
-    pub cell_id: Option<SubgraphId>,  // Which Voronoi cell it belongs to
+    pub coordinates: Vec3,           // Position in quality dimensions
+    pub cell_id: Option<SubgraphId>, // Which Voronoi cell it belongs to
     pub distance_to_prototype: f32,  // Distance to nearest prototype
 }
 
 /// Resource for Voronoi tessellation settings
 #[derive(Resource, Debug)]
 pub struct VoronoiSettings {
-    pub enabled: bool,  // Whether Voronoi visualization is enabled
-    pub update_frequency: f32,  // How often to recalculate (seconds)
-    pub smoothing_factor: f32,  // For Lloyd's relaxation
-    pub min_cell_size: f32,  // Minimum size for a cell
-    pub cell_size: f32,  // Default cell size
-    pub boundary_padding: f32,  // Padding around the space
-    pub visualization_height: f32,  // Y-offset for 2D visualization
+    pub enabled: bool,             // Whether Voronoi visualization is enabled
+    pub update_frequency: f32,     // How often to recalculate (seconds)
+    pub smoothing_factor: f32,     // For Lloyd's relaxation
+    pub min_cell_size: f32,        // Minimum size for a cell
+    pub cell_size: f32,            // Default cell size
+    pub boundary_padding: f32,     // Padding around the space
+    pub visualization_height: f32, // Y-offset for 2D visualization
 }
 
 impl Default for VoronoiSettings {
@@ -275,7 +275,7 @@ impl Default for VoronoiSettings {
             min_cell_size: 10.0,
             cell_size: 20.0,
             boundary_padding: 20.0,
-            visualization_height: 0.1,  // Slightly above ground plane
+            visualization_height: 0.1, // Slightly above ground plane
         }
     }
 }

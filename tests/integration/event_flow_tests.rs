@@ -1,9 +1,9 @@
 //! Integration tests for event flow through the system
 
-use crate::fixtures::{TestNatsServer, TestEventStore, create_test_graph, assertions::*};
-use cim_domain::{DomainResult, GraphId, NodeId, Position3D, DomainEvent};
-use cim_domain_graph::{GraphCommand, GraphAggregate};
-use cim_domain_workflow::{NodeType, StepType, DecisionCriteria};
+use crate::fixtures::{TestEventStore, TestNatsServer, assertions::*, create_test_graph};
+use cim_domain::{DomainEvent, DomainResult, GraphId, NodeId, Position3D};
+use cim_domain_graph::{GraphAggregate, GraphCommand};
+use cim_domain_workflow::{DecisionCriteria, NodeType, StepType};
 
 #[tokio::test]
 async fn test_command_to_event_store_flow() -> DomainResult<()> {
@@ -17,7 +17,11 @@ async fn test_command_to_event_store_flow() -> DomainResult<()> {
         node_type: NodeType::WorkflowStep {
             step_type: StepType::Process,
         },
-        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: Position3D {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
         metadata: Default::default(),
     };
 
@@ -55,10 +59,14 @@ async fn test_event_projection_update() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Process,
             },
-            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             conceptual_point: cim_domain_graph::ConceptualPoint::default(),
             metadata: Default::default(),
-        }
+        },
     ));
 
     // Act - Apply event to projection
@@ -86,14 +94,22 @@ async fn test_multiple_commands_sequential_processing() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Start,
             },
-            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         },
         GraphCommand::AddNode {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::End,
             },
-            position: Position3D { x: 10.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 10.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         },
     ];
@@ -127,14 +143,22 @@ async fn test_event_replay_consistency() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Process,
             },
-            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         },
         GraphCommand::AddNode {
             node_type: NodeType::Decision {
                 criteria: DecisionCriteria::default(),
             },
-            position: Position3D { x: 5.0, y: 5.0, z: 0.0 },
+            position: Position3D {
+                x: 5.0,
+                y: 5.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         },
     ];
@@ -180,7 +204,11 @@ async fn test_full_cqrs_flow() -> DomainResult<()> {
         node_type: NodeType::WorkflowStep {
             step_type: StepType::Process,
         },
-        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: Position3D {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
         metadata: Default::default(),
     };
 

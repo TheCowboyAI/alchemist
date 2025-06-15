@@ -1,14 +1,15 @@
 //! Subject-based event routing for reliable event delivery
 
 use bevy::prelude::*;
-use crossbeam_channel::{bounded, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender, bounded};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use tracing::{debug, error, info, warn};
 
 use crate::domain::events::{
-    DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, SubgraphOperationEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
+    ContextBridgeEvent, DomainEvent, EdgeEvent, GraphEvent, MetricContextEvent, NodeEvent,
+    RuleContextEvent, SubgraphEvent, SubgraphOperationEvent, WorkflowEvent,
 };
 use crate::domain::value_objects::AggregateId;
 
@@ -116,7 +117,9 @@ impl SubjectRouter {
 
     /// Register a subject pattern
     pub fn register_subject(&self, pattern: &str) -> Result<Receiver<RoutedEvent>, String> {
-        let mut routes = self.routes.write()
+        let mut routes = self
+            .routes
+            .write()
             .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
 
         if routes.contains_key(pattern) {
@@ -160,7 +163,9 @@ impl SubjectRouter {
         };
 
         // Route to matching subjects
-        let routes = self.routes.read()
+        let routes = self
+            .routes
+            .read()
             .map_err(|e| format!("Failed to acquire read lock: {}", e))?;
 
         for (pattern, channel) in routes.iter() {
@@ -214,14 +219,18 @@ impl SubjectRouter {
     }
 
     fn increment_global_sequence(&self) -> Result<u64, String> {
-        let mut seq = self.global_sequence.write()
+        let mut seq = self
+            .global_sequence
+            .write()
             .map_err(|e| format!("Failed to acquire sequence lock: {}", e))?;
         *seq += 1;
         Ok(*seq)
     }
 
     fn increment_aggregate_sequence(&self, aggregate_id: AggregateId) -> Result<u64, String> {
-        let mut sequences = self.aggregate_sequences.write()
+        let mut sequences = self
+            .aggregate_sequences
+            .write()
             .map_err(|e| format!("Failed to acquire sequence lock: {}", e))?;
         let seq = sequences.entry(aggregate_id).or_insert(0);
         *seq += 1;
@@ -230,10 +239,12 @@ impl SubjectRouter {
 
     /// Get statistics for all channels
     pub fn get_stats(&self) -> HashMap<String, ChannelStats> {
-        self.routes.read()
+        self.routes
+            .read()
             .ok()
             .map(|routes| {
-                routes.iter()
+                routes
+                    .iter()
                     .map(|(k, v)| (k.clone(), v.stats.clone()))
                     .collect()
             })
@@ -284,7 +295,10 @@ impl SubjectConsumer {
             receivers.push(receiver);
         }
 
-        Ok(Self { patterns, receivers })
+        Ok(Self {
+            patterns,
+            receivers,
+        })
     }
 
     /// Poll for events (non-blocking)
@@ -373,22 +387,46 @@ fn subgraph_event_to_subject(event: &SubgraphEvent) -> String {
 
 fn subgraph_operation_event_to_subject(event: &SubgraphOperationEvent) -> String {
     match event {
-        SubgraphOperationEvent::SubgraphCollapsed { .. } => "event.subgraph_op.collapsed".to_string(),
+        SubgraphOperationEvent::SubgraphCollapsed { .. } => {
+            "event.subgraph_op.collapsed".to_string()
+        }
         SubgraphOperationEvent::SubgraphExpanded { .. } => "event.subgraph_op.expanded".to_string(),
         SubgraphOperationEvent::SubgraphsMerged { .. } => "event.subgraph_op.merged".to_string(),
         SubgraphOperationEvent::SubgraphSplit { .. } => "event.subgraph_op.split".to_string(),
-        SubgraphOperationEvent::SubgraphTransitionStarted { .. } => "event.subgraph_op.transition_started".to_string(),
-        SubgraphOperationEvent::SubgraphTransitionCompleted { .. } => "event.subgraph_op.transition_completed".to_string(),
-        SubgraphOperationEvent::SubgraphMetadataUpdated { .. } => "event.subgraph_op.metadata_updated".to_string(),
-        SubgraphOperationEvent::SubgraphStyleChanged { .. } => "event.subgraph_op.style_changed".to_string(),
-        SubgraphOperationEvent::SubgraphTypeChanged { .. } => "event.subgraph_op.type_changed".to_string(),
+        SubgraphOperationEvent::SubgraphTransitionStarted { .. } => {
+            "event.subgraph_op.transition_started".to_string()
+        }
+        SubgraphOperationEvent::SubgraphTransitionCompleted { .. } => {
+            "event.subgraph_op.transition_completed".to_string()
+        }
+        SubgraphOperationEvent::SubgraphMetadataUpdated { .. } => {
+            "event.subgraph_op.metadata_updated".to_string()
+        }
+        SubgraphOperationEvent::SubgraphStyleChanged { .. } => {
+            "event.subgraph_op.style_changed".to_string()
+        }
+        SubgraphOperationEvent::SubgraphTypeChanged { .. } => {
+            "event.subgraph_op.type_changed".to_string()
+        }
         SubgraphOperationEvent::SubgraphAnalyzed { .. } => "event.subgraph_op.analyzed".to_string(),
-        SubgraphOperationEvent::NodesGroupedIntoSubgraph { .. } => "event.subgraph_op.nodes_grouped".to_string(),
-        SubgraphOperationEvent::SubgraphUngrouped { .. } => "event.subgraph_op.ungrouped".to_string(),
-        SubgraphOperationEvent::SubgraphHierarchyEstablished { .. } => "event.subgraph_op.hierarchy_established".to_string(),
-        SubgraphOperationEvent::SubgraphHierarchyRemoved { .. } => "event.subgraph_op.hierarchy_removed".to_string(),
-        SubgraphOperationEvent::SubgraphLayoutRecalculated { .. } => "event.subgraph_op.layout_recalculated".to_string(),
-        SubgraphOperationEvent::SubgraphBoundaryUpdated { .. } => "event.subgraph_op.boundary_updated".to_string(),
+        SubgraphOperationEvent::NodesGroupedIntoSubgraph { .. } => {
+            "event.subgraph_op.nodes_grouped".to_string()
+        }
+        SubgraphOperationEvent::SubgraphUngrouped { .. } => {
+            "event.subgraph_op.ungrouped".to_string()
+        }
+        SubgraphOperationEvent::SubgraphHierarchyEstablished { .. } => {
+            "event.subgraph_op.hierarchy_established".to_string()
+        }
+        SubgraphOperationEvent::SubgraphHierarchyRemoved { .. } => {
+            "event.subgraph_op.hierarchy_removed".to_string()
+        }
+        SubgraphOperationEvent::SubgraphLayoutRecalculated { .. } => {
+            "event.subgraph_op.layout_recalculated".to_string()
+        }
+        SubgraphOperationEvent::SubgraphBoundaryUpdated { .. } => {
+            "event.subgraph_op.boundary_updated".to_string()
+        }
     }
 }
 
@@ -410,24 +448,46 @@ fn workflow_event_to_subject(event: &WorkflowEvent) -> String {
 fn context_bridge_event_to_subject(event: &ContextBridgeEvent) -> String {
     match event {
         ContextBridgeEvent::BridgeCreated { .. } => "event.context_bridge.created".to_string(),
-        ContextBridgeEvent::TranslationRuleAdded { .. } => "event.context_bridge.rule_added".to_string(),
-        ContextBridgeEvent::TranslationRuleRemoved { .. } => "event.context_bridge.rule_removed".to_string(),
-        ContextBridgeEvent::ConceptTranslated { .. } => "event.context_bridge.concept_translated".to_string(),
+        ContextBridgeEvent::TranslationRuleAdded { .. } => {
+            "event.context_bridge.rule_added".to_string()
+        }
+        ContextBridgeEvent::TranslationRuleRemoved { .. } => {
+            "event.context_bridge.rule_removed".to_string()
+        }
+        ContextBridgeEvent::ConceptTranslated { .. } => {
+            "event.context_bridge.concept_translated".to_string()
+        }
         ContextBridgeEvent::BridgeDeleted { .. } => "event.context_bridge.deleted".to_string(),
-        ContextBridgeEvent::MappingTypeUpdated { .. } => "event.context_bridge.mapping_updated".to_string(),
-        ContextBridgeEvent::TranslationFailed { .. } => "event.context_bridge.translation_failed".to_string(),
+        ContextBridgeEvent::MappingTypeUpdated { .. } => {
+            "event.context_bridge.mapping_updated".to_string()
+        }
+        ContextBridgeEvent::TranslationFailed { .. } => {
+            "event.context_bridge.translation_failed".to_string()
+        }
     }
 }
 
 fn metric_context_event_to_subject(event: &MetricContextEvent) -> String {
     match event {
-        MetricContextEvent::MetricContextCreated { .. } => "event.metric_context.created".to_string(),
+        MetricContextEvent::MetricContextCreated { .. } => {
+            "event.metric_context.created".to_string()
+        }
         MetricContextEvent::DistanceSet { .. } => "event.metric_context.distance_set".to_string(),
-        MetricContextEvent::ShortestPathCalculated { .. } => "event.metric_context.path_calculated".to_string(),
-        MetricContextEvent::NearestNeighborsFound { .. } => "event.metric_context.neighbors_found".to_string(),
-        MetricContextEvent::ConceptsClustered { .. } => "event.metric_context.concepts_clustered".to_string(),
-        MetricContextEvent::ConceptsWithinRadiusFound { .. } => "event.metric_context.radius_search".to_string(),
-        MetricContextEvent::MetricPropertiesUpdated { .. } => "event.metric_context.properties_updated".to_string(),
+        MetricContextEvent::ShortestPathCalculated { .. } => {
+            "event.metric_context.path_calculated".to_string()
+        }
+        MetricContextEvent::NearestNeighborsFound { .. } => {
+            "event.metric_context.neighbors_found".to_string()
+        }
+        MetricContextEvent::ConceptsClustered { .. } => {
+            "event.metric_context.concepts_clustered".to_string()
+        }
+        MetricContextEvent::ConceptsWithinRadiusFound { .. } => {
+            "event.metric_context.radius_search".to_string()
+        }
+        MetricContextEvent::MetricPropertiesUpdated { .. } => {
+            "event.metric_context.properties_updated".to_string()
+        }
     }
 }
 
@@ -436,21 +496,33 @@ fn rule_context_event_to_subject(event: &RuleContextEvent) -> String {
         RuleContextEvent::RuleContextCreated { .. } => "event.rule_context.created".to_string(),
         RuleContextEvent::RuleAdded { .. } => "event.rule_context.rule_added".to_string(),
         RuleContextEvent::RuleRemoved { .. } => "event.rule_context.rule_removed".to_string(),
-        RuleContextEvent::RuleEnabledChanged { .. } => "event.rule_context.rule_enabled_changed".to_string(),
+        RuleContextEvent::RuleEnabledChanged { .. } => {
+            "event.rule_context.rule_enabled_changed".to_string()
+        }
         RuleContextEvent::RulesEvaluated { .. } => "event.rule_context.rules_evaluated".to_string(),
-        RuleContextEvent::ComplianceChecked { .. } => "event.rule_context.compliance_checked".to_string(),
+        RuleContextEvent::ComplianceChecked { .. } => {
+            "event.rule_context.compliance_checked".to_string()
+        }
         RuleContextEvent::FactsInferred { .. } => "event.rule_context.facts_inferred".to_string(),
         RuleContextEvent::ImpactAnalyzed { .. } => "event.rule_context.impact_analyzed".to_string(),
-        RuleContextEvent::RulePriorityUpdated { .. } => "event.rule_context.priority_updated".to_string(),
+        RuleContextEvent::RulePriorityUpdated { .. } => {
+            "event.rule_context.priority_updated".to_string()
+        }
         RuleContextEvent::FactAdded { .. } => "event.rule_context.fact_added".to_string(),
         RuleContextEvent::FactRemoved { .. } => "event.rule_context.fact_removed".to_string(),
-        RuleContextEvent::RuleActionsExecuted { .. } => "event.rule_context.actions_executed".to_string(),
+        RuleContextEvent::RuleActionsExecuted { .. } => {
+            "event.rule_context.actions_executed".to_string()
+        }
         RuleContextEvent::RulesValidated { .. } => "event.rule_context.rules_validated".to_string(),
         RuleContextEvent::RulesExported { .. } => "event.rule_context.rules_exported".to_string(),
         RuleContextEvent::RulesImported { .. } => "event.rule_context.rules_imported".to_string(),
         RuleContextEvent::RuleViolated { .. } => "event.rule_context.rule_violated".to_string(),
-        RuleContextEvent::RuleExecutionFailed { .. } => "event.rule_context.execution_failed".to_string(),
-        RuleContextEvent::CircularDependencyDetected { .. } => "event.rule_context.circular_dependency".to_string(),
+        RuleContextEvent::RuleExecutionFailed { .. } => {
+            "event.rule_context.execution_failed".to_string()
+        }
+        RuleContextEvent::CircularDependencyDetected { .. } => {
+            "event.rule_context.circular_dependency".to_string()
+        }
     }
 }
 
@@ -466,21 +538,51 @@ pub fn event_to_subject(event: &DomainEvent) -> String {
         DomainEvent::ContextBridge(e) => context_bridge_event_to_subject(e),
         DomainEvent::MetricContext(e) => metric_context_event_to_subject(e),
         DomainEvent::RuleContext(e) => rule_context_event_to_subject(e),
-        DomainEvent::ConceptualSpaceCreated(e) => format!("event.conceptual_space.created.{}", e.space_id),
-        DomainEvent::QualityDimensionAdded(e) => format!("event.conceptual_space.dimension_added.{}", e.space_id),
-        DomainEvent::ConceptMapped(e) => format!("event.conceptual_space.concept_mapped.{}", e.space_id),
-        DomainEvent::RegionDefined(e) => format!("event.conceptual_space.region_defined.{}", e.space_id),
-        DomainEvent::SimilarityCalculated(e) => format!("event.conceptual_space.similarity_calculated.{}", e.space_id),
-        DomainEvent::MetricUpdated(e) => format!("event.conceptual_space.metric_updated.{}", e.space_id),
+        DomainEvent::ConceptualSpaceCreated(e) => {
+            format!("event.conceptual_space.created.{}", e.space_id)
+        }
+        DomainEvent::QualityDimensionAdded(e) => {
+            format!("event.conceptual_space.dimension_added.{}", e.space_id)
+        }
+        DomainEvent::ConceptMapped(e) => {
+            format!("event.conceptual_space.concept_mapped.{}", e.space_id)
+        }
+        DomainEvent::RegionDefined(e) => {
+            format!("event.conceptual_space.region_defined.{}", e.space_id)
+        }
+        DomainEvent::SimilarityCalculated(e) => format!(
+            "event.conceptual_space.similarity_calculated.{}",
+            e.space_id
+        ),
+        DomainEvent::MetricUpdated(e) => {
+            format!("event.conceptual_space.metric_updated.{}", e.space_id)
+        }
         // ContentGraph events
-        DomainEvent::ContentGraphCreated(e) => format!("event.content_graph.created.{}", e.graph_id),
+        DomainEvent::ContentGraphCreated(e) => {
+            format!("event.content_graph.created.{}", e.graph_id)
+        }
         DomainEvent::ContentAdded(e) => format!("event.content_graph.content_added.{}", e.graph_id),
-        DomainEvent::ContentRemoved(e) => format!("event.content_graph.content_removed.{}", e.graph_id),
-        DomainEvent::RelationshipEstablished(e) => format!("event.content_graph.relationship_established.{}", e.graph_id),
-        DomainEvent::RelationshipRemoved(e) => format!("event.content_graph.relationship_removed.{}", e.graph_id),
-        DomainEvent::RelationshipDiscovered(e) => format!("event.content_graph.relationship_discovered.{}", e.graph_id),
-        DomainEvent::SemanticClustersUpdated(e) => format!("event.content_graph.clusters_updated.{}", e.graph_id),
-        DomainEvent::MetricsCalculated(e) => format!("event.content_graph.metrics_calculated.{}", e.graph_id),
-        DomainEvent::PatternDetected(e) => format!("event.content_graph.pattern_detected.{}", e.graph_id),
+        DomainEvent::ContentRemoved(e) => {
+            format!("event.content_graph.content_removed.{}", e.graph_id)
+        }
+        DomainEvent::RelationshipEstablished(e) => format!(
+            "event.content_graph.relationship_established.{}",
+            e.graph_id
+        ),
+        DomainEvent::RelationshipRemoved(e) => {
+            format!("event.content_graph.relationship_removed.{}", e.graph_id)
+        }
+        DomainEvent::RelationshipDiscovered(e) => {
+            format!("event.content_graph.relationship_discovered.{}", e.graph_id)
+        }
+        DomainEvent::SemanticClustersUpdated(e) => {
+            format!("event.content_graph.clusters_updated.{}", e.graph_id)
+        }
+        DomainEvent::MetricsCalculated(e) => {
+            format!("event.content_graph.metrics_calculated.{}", e.graph_id)
+        }
+        DomainEvent::PatternDetected(e) => {
+            format!("event.content_graph.pattern_detected.{}", e.graph_id)
+        }
     }
 }

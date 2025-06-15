@@ -10,17 +10,19 @@ use bevy::prelude::*;
 use ia::{
     application::{CommandEvent, EventNotification},
     domain::{
-        commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
-        events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent},
+        commands::{
+            Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior,
+        },
+        events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
         services::ImportFormat,
-        value_objects::{GraphId, NodeId, EdgeId, Position3D},
+        value_objects::{EdgeId, GraphId, NodeId, Position3D},
     },
     infrastructure::{
-        nats::{NatsClient, NatsConfig, JetStreamConfig},
-        event_store::{EventStore, DistributedEventStore},
+        event_store::{DistributedEventStore, EventStore},
+        nats::{JetStreamConfig, NatsClient, NatsConfig},
     },
     presentation::{
-        components::{GraphContainer, GraphNode, GraphEdge},
+        components::{GraphContainer, GraphEdge, GraphNode},
         plugins::GraphEditorPlugin,
     },
 };
@@ -59,12 +61,15 @@ fn main() {
         .add_plugins(GraphEditorPlugin)
         .insert_resource(ReplayState::default())
         .add_systems(Startup, setup)
-        .add_systems(Update, (
-            handle_import_input,
-            handle_replay_input,
-            handle_clear_input,
-            process_nats_events,
-        ))
+        .add_systems(
+            Update,
+            (
+                handle_import_input,
+                handle_replay_input,
+                handle_clear_input,
+                process_nats_events,
+            ),
+        )
         .run();
 }
 
@@ -122,7 +127,8 @@ fn setup(
     });
 }
 
-async fn setup_nats_connection() -> Result<DistributedEventStore, Box<dyn std::error::Error + Send + Sync>> {
+async fn setup_nats_connection()
+-> Result<DistributedEventStore, Box<dyn std::error::Error + Send + Sync>> {
     let client = NatsClient::new(NatsConfig {
         url: "nats://localhost:4222".to_string(),
         auth: None,
@@ -135,7 +141,8 @@ async fn setup_nats_connection() -> Result<DistributedEventStore, Box<dyn std::e
         connection_name: Some("markdown_demo".to_string()),
         max_reconnects: Some(5),
         reconnect_wait: Some(std::time::Duration::from_secs(1)),
-    }).await?;
+    })
+    .await?;
 
     let jetstream = client.jetstream().await?;
     let event_store = DistributedEventStore::new(jetstream).await?;
@@ -184,7 +191,11 @@ fn handle_import_input(
                 options: ImportOptions {
                     merge_behavior: MergeBehavior::MergePreferImported,
                     id_prefix: Some("ddd".to_string()),
-                    position_offset: Some(Position3D { x: 0.0, y: 0.0, z: 0.0 }),
+                    position_offset: Some(Position3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }),
                     mapping: None,
                     validate: true,
                     max_nodes: Some(1000),
@@ -269,16 +280,32 @@ fn process_nats_events(
                     // For demo, we'll just print them
                     for (i, event) in events.iter().enumerate() {
                         match event {
-                            DomainEvent::Node(NodeEvent::NodeAdded { content, position, .. }) => {
-                                println!("  {} Node: {} at ({:.1}, {:.1}, {:.1})",
-                                    i + 1, content.label, position.x, position.y, position.z);
+                            DomainEvent::Node(NodeEvent::NodeAdded {
+                                content, position, ..
+                            }) => {
+                                println!(
+                                    "  {} Node: {} at ({:.1}, {:.1}, {:.1})",
+                                    i + 1,
+                                    content.label,
+                                    position.x,
+                                    position.y,
+                                    position.z
+                                );
                             }
                             DomainEvent::Edge(EdgeEvent::EdgeAdded { source, target, .. }) => {
                                 println!("  {} Edge: {:?} → {:?}", i + 1, source, target);
                             }
-                            DomainEvent::Graph(GraphEvent::GraphImportCompleted { imported_nodes, imported_edges, .. }) => {
-                                println!("  {} Import completed: {} nodes, {} edges",
-                                    i + 1, imported_nodes, imported_edges);
+                            DomainEvent::Graph(GraphEvent::GraphImportCompleted {
+                                imported_nodes,
+                                imported_edges,
+                                ..
+                            }) => {
+                                println!(
+                                    "  {} Import completed: {} nodes, {} edges",
+                                    i + 1,
+                                    imported_nodes,
+                                    imported_edges
+                                );
                             }
                             _ => {}
                         }
@@ -297,10 +324,7 @@ fn process_nats_events(
 }
 
 /// Store events to NATS when they're generated
-fn store_events_to_nats(
-    mut events: EventReader<EventNotification>,
-    nats: Res<NatsConnection>,
-) {
+fn store_events_to_nats(mut events: EventReader<EventNotification>, nats: Res<NatsConnection>) {
     let runtime = nats.runtime.clone();
     let event_store = nats.event_store.clone();
 

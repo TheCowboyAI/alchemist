@@ -9,7 +9,7 @@ pkgs.mkShell {
     rust-toolchain
     pkgs.cargo-watch
     pkgs.cargo-nextest
-];
+  ];
   buildInputs = with pkgs; [
     # Build tools
     pkg-config
@@ -32,7 +32,7 @@ pkgs.mkShell {
     xorg.libXcursor
     xorg.libXi
     xorg.libXrandr
-    
+
     # SSL/TLS support
     openssl
 
@@ -81,10 +81,11 @@ pkgs.mkShell {
   BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
 
   # Library paths - include Rust standard library path
-  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (nonRustDeps ++ [
-    pkgs.vulkan-loader
-    rust-toolchain
-  ]) + ":${rust-toolchain}/lib:${toString ../.}/target/debug/deps:${toString ../.}/target/release/deps";
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath
+    (nonRustDeps ++ [
+      pkgs.vulkan-loader
+      rust-toolchain
+    ]) + ":${rust-toolchain}/lib:${toString ../.}/target/debug/deps:${toString ../.}/target/release/deps";
 
   # PKG_CONFIG_PATH for finding system libraries
   PKG_CONFIG_PATH = pkgs.lib.makeSearchPath "lib/pkgconfig" [

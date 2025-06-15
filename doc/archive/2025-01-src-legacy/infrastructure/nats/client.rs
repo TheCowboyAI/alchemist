@@ -3,8 +3,8 @@
 use async_nats::{Client, Subscriber};
 use serde::{Deserialize, Serialize};
 
-use super::{NatsConfig, Result};
 use super::error::NatsError;
+use super::{NatsConfig, Result};
 
 /// NATS client wrapper
 #[derive(Clone)]
@@ -31,8 +31,8 @@ impl NatsClient {
     where
         T: Serialize,
     {
-        let payload = serde_json::to_vec(message)
-            .map_err(|e| NatsError::Serialization(e.to_string()))?;
+        let payload =
+            serde_json::to_vec(message).map_err(|e| NatsError::Serialization(e.to_string()))?;
 
         self.client
             .publish(subject.to_string(), payload.into())
@@ -56,10 +56,11 @@ impl NatsClient {
         T: Serialize,
         R: for<'de> Deserialize<'de>,
     {
-        let payload = serde_json::to_vec(message)
-            .map_err(|e| NatsError::Serialization(e.to_string()))?;
+        let payload =
+            serde_json::to_vec(message).map_err(|e| NatsError::Serialization(e.to_string()))?;
 
-        let response = self.client
+        let response = self
+            .client
             .request(subject.to_string(), payload.into())
             .await
             .map_err(|e| NatsError::Request(e.to_string()))?;

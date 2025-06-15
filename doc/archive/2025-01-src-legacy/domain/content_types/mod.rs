@@ -2,16 +2,16 @@
 
 use cim_ipld::ContentType;
 
-pub mod graph_content;
 pub mod conceptual_content;
-pub mod workflow_content;
 pub mod event_content;
+pub mod graph_content;
+pub mod workflow_content;
 
 pub use graph_content::GraphContent;
 
 pub use conceptual_content::ConceptualSpaceContent;
+pub use event_content::{EventChainMetadata, EventContent};
 pub use workflow_content::WorkflowContent;
-pub use event_content::{EventContent, EventChainMetadata};
 
 /// Information Alchemist specific content types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

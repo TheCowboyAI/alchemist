@@ -97,7 +97,7 @@ impl ContentBucket {
             0x300104 => Self::Workflows,
             0x300105 => Self::Events,
             0x300106 => Self::Events, // EventChainMetadata
-            _ => Self::Documents, // Default
+            _ => Self::Documents,     // Default
         }
     }
 }
@@ -129,10 +129,7 @@ pub struct NatsObjectStore {
 
 impl NatsObjectStore {
     /// Create a new NATS Object Store wrapper
-    pub async fn new(
-        jetstream: jetstream::Context,
-        compression_threshold: usize,
-    ) -> Result<Self> {
+    pub async fn new(jetstream: jetstream::Context, compression_threshold: usize) -> Result<Self> {
         let store = Self {
             jetstream,
             buckets: Arc::new(RwLock::new(HashMap::new())),
@@ -167,7 +164,10 @@ impl NatsObjectStore {
                     ..Default::default()
                 };
 
-                let object_store = self.jetstream.create_object_store(config).await
+                let object_store = self
+                    .jetstream
+                    .create_object_store(config)
+                    .await
                     .map_err(|e| ObjectStoreError::BucketCreation(e.to_string()))?;
 
                 let mut buckets = self.buckets.write().await;
@@ -180,7 +180,8 @@ impl NatsObjectStore {
     /// Get the object store for a specific bucket
     async fn get_bucket(&self, bucket: ContentBucket) -> Result<ObjectStore> {
         let buckets = self.buckets.read().await;
-        buckets.get(&bucket)
+        buckets
+            .get(&bucket)
             .cloned()
             .ok_or_else(|| ObjectStoreError::BucketNotFound(bucket.as_str().to_string()))
     }
@@ -191,11 +192,13 @@ impl NatsObjectStore {
         let object_store = self.get_bucket(bucket).await?;
 
         // Calculate CID
-        let cid = content.calculate_cid()
+        let cid = content
+            .calculate_cid()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
 
         // Serialize content
-        let data = content.to_bytes()
+        let data = content
+            .to_bytes()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
 
         // Compress if over threshold
@@ -211,7 +214,9 @@ impl NatsObjectStore {
         let key = cid.to_string();
 
         // Put the object - use key.as_str() to get &str
-        object_store.put(key.as_str(), &mut data.as_slice()).await
+        object_store
+            .put(key.as_str(), &mut data.as_slice())
+            .await
             .map_err(|e| ObjectStoreError::Storage(e.to_string()))?;
 
         Ok(cid)
@@ -225,12 +230,16 @@ impl NatsObjectStore {
         let key = cid.to_string();
 
         // Get the object
-        let mut object = object_store.get(&key).await
+        let mut object = object_store
+            .get(&key)
+            .await
             .map_err(|_| ObjectStoreError::NotFound(key.clone()))?;
 
         // Read all data from the stream
         let mut data = Vec::new();
-        object.read_to_end(&mut data).await
+        object
+            .read_to_end(&mut data)
+            .await
             .map_err(|e| ObjectStoreError::Storage(e.to_string()))?;
 
         // For now, assume compressed if data looks compressed (starts with zstd magic)
@@ -238,17 +247,17 @@ impl NatsObjectStore {
 
         // Decompress if needed
         let data = if compressed {
-            decode_all(&data[..])
-                .map_err(|e| ObjectStoreError::Compression(e.to_string()))?
+            decode_all(&data[..]).map_err(|e| ObjectStoreError::Compression(e.to_string()))?
         } else {
             data
         };
 
         // Deserialize and verify CID
-        let content = T::from_bytes(&data)
-            .map_err(|e| ObjectStoreError::Deserialization(e.to_string()))?;
+        let content =
+            T::from_bytes(&data).map_err(|e| ObjectStoreError::Deserialization(e.to_string()))?;
 
-        let computed_cid = content.calculate_cid()
+        let computed_cid = content
+            .calculate_cid()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
 
         if computed_cid != *cid {
@@ -279,7 +288,9 @@ impl NatsObjectStore {
         let object_store = self.get_bucket(bucket).await?;
 
         let key = cid.to_string();
-        object_store.delete(&key).await
+        object_store
+            .delete(&key)
+            .await
             .map_err(|e| ObjectStoreError::Storage(e.to_string()))?;
 
         Ok(())
@@ -289,7 +300,9 @@ impl NatsObjectStore {
     pub async fn list(&self, bucket: ContentBucket) -> Result<Vec<ObjectInfo>> {
         let object_store = self.get_bucket(bucket).await?;
 
-        let mut list = object_store.list().await
+        let mut list = object_store
+            .list()
+            .await
             .map_err(|e| ObjectStoreError::Storage(e.to_string()))?;
 
         let mut objects = Vec::new();
@@ -301,7 +314,8 @@ impl NatsObjectStore {
                     cid,
                     size: info.size,
                     created_at: SystemTime::now(), // NATS doesn't provide mtime in the API
-                    compressed: info.headers
+                    compressed: info
+                        .headers
                         .as_ref()
                         .and_then(|h| h.get("Compressed"))
                         .and_then(|v| v.as_str().parse::<bool>().ok())
@@ -336,6 +350,9 @@ mod tests {
     async fn test_bucket_names() {
         assert_eq!(ContentBucket::Events.as_str(), "cim-events");
         assert_eq!(ContentBucket::Graphs.as_str(), "cim-graphs");
-        assert_eq!(ContentBucket::for_content_type(0x300100), ContentBucket::Graphs);
+        assert_eq!(
+            ContentBucket::for_content_type(0x300100),
+            ContentBucket::Graphs
+        );
     }
 }

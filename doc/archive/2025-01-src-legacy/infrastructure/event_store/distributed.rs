@@ -3,18 +3,20 @@
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::event_store::EventStoreError;
 use crate::infrastructure::nats::{NatsClient, NatsError};
-use async_nats::jetstream::{self, consumer::pull::Config as ConsumerConfig, stream::Config as StreamConfig};
+use async_nats::jetstream::{
+    self, consumer::pull::Config as ConsumerConfig, stream::Config as StreamConfig,
+};
+use chrono::{DateTime, Utc};
+use futures::StreamExt;
+use lru::LruCache;
 use serde::{Deserialize, Serialize};
+use std::num::NonZeroUsize;
+use std::sync::Arc;
 use std::time::Duration;
+use time::OffsetDateTime;
+use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
-use time::OffsetDateTime;
-use lru::LruCache;
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use futures::StreamExt;
-use std::num::NonZeroUsize;
 
 /// Configuration for the distributed event store
 #[derive(Debug, Clone)]
@@ -99,7 +101,8 @@ impl DistributedEventStore {
         let stream_name = config.stream_name.clone();
 
         // Get JetStream context
-        let jetstream = client.jetstream()
+        let jetstream = client
+            .jetstream()
             .map_err(|e| EventStoreError::Storage(e.to_string()))?;
 
         // Create stream configuration
@@ -126,8 +129,8 @@ impl DistributedEventStore {
         }
 
         // Create LRU cache
-        let cache_size = NonZeroUsize::new(config.cache_size)
-            .unwrap_or(NonZeroUsize::new(10000).unwrap());
+        let cache_size =
+            NonZeroUsize::new(config.cache_size).unwrap_or(NonZeroUsize::new(10000).unwrap());
         let cache = Arc::new(Mutex::new(LruCache::new(cache_size)));
 
         Ok(Self {
@@ -163,7 +166,9 @@ impl DistributedEventStore {
             .map_err(|e| NatsError::SerializationError(e.to_string()))?;
 
         // Get JetStream context
-        let jetstream = self.client.jetstream()
+        let jetstream = self
+            .client
+            .jetstream()
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Publish to JetStream
@@ -174,8 +179,10 @@ impl DistributedEventStore {
             .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
-        info!("Stored event {} to JetStream, sequence: {}",
-            stored_event.event_id, ack.sequence);
+        info!(
+            "Stored event {} to JetStream, sequence: {}",
+            stored_event.event_id, ack.sequence
+        );
 
         // Update cache
         let mut cache = self.cache.lock().await;
@@ -204,8 +211,11 @@ impl DistributedEventStore {
         }
 
         if !cached_events.is_empty() {
-            info!("Loaded {} events from cache for aggregate {}",
-                cached_events.len(), aggregate_id);
+            info!(
+                "Loaded {} events from cache for aggregate {}",
+                cached_events.len(),
+                aggregate_id
+            );
             return Ok(cached_events.into_iter().map(|se| se.event).collect());
         }
 
@@ -213,7 +223,9 @@ impl DistributedEventStore {
         let subject = format!("events.{aggregate_type}.>");
 
         // Get JetStream context
-        let jetstream = self.client.jetstream()
+        let jetstream = self
+            .client
+            .jetstream()
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Get stream handle
@@ -260,12 +272,17 @@ impl DistributedEventStore {
             }
 
             // Acknowledge message
-            message.ack().await
+            message
+                .ack()
+                .await
                 .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
         }
 
-        info!("Loaded {} events from JetStream for aggregate {}",
-            events.len(), aggregate_id);
+        info!(
+            "Loaded {} events from JetStream for aggregate {}",
+            events.len(),
+            aggregate_id
+        );
 
         // Sort events by timestamp
         events.sort_by_key(|e| e.timestamp);
@@ -280,7 +297,9 @@ impl DistributedEventStore {
         subject_filter: Option<String>,
     ) -> Result<impl futures::Stream<Item = Result<DomainEvent, NatsError>>, NatsError> {
         // Get JetStream context
-        let jetstream = self.client.jetstream()
+        let jetstream = self
+            .client
+            .jetstream()
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Get stream handle
@@ -343,7 +362,9 @@ impl DistributedEventStore {
     /// Get event store statistics
     pub async fn get_stats(&self) -> Result<EventStoreStats, NatsError> {
         // Get JetStream context
-        let jetstream = self.client.jetstream()
+        let jetstream = self
+            .client
+            .jetstream()
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Get stream info
@@ -352,7 +373,8 @@ impl DistributedEventStore {
             .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
-        let info = stream.info()
+        let info = stream
+            .info()
             .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
@@ -381,7 +403,9 @@ impl DistributedEventStore {
         let subject = format!("events.{aggregate_type}.>");
 
         // Get JetStream context
-        let jetstream = self.client.jetstream()
+        let jetstream = self
+            .client
+            .jetstream()
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Get stream handle
@@ -391,14 +415,20 @@ impl DistributedEventStore {
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Create consumer for reading events
-        let consumer = stream.create_consumer(ConsumerConfig {
-            filter_subject: subject,
-            ..Default::default()
-        }).await
+        let consumer = stream
+            .create_consumer(ConsumerConfig {
+                filter_subject: subject,
+                ..Default::default()
+            })
+            .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         // Fetch messages
-        let mut messages = consumer.fetch().max_messages(1000).messages().await
+        let mut messages = consumer
+            .fetch()
+            .max_messages(1000)
+            .messages()
+            .await
             .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
 
         let mut events = Vec::new();
@@ -411,12 +441,17 @@ impl DistributedEventStore {
             events.push(stored_event.event);
 
             // Acknowledge message
-            message.ack().await
+            message
+                .ack()
+                .await
                 .map_err(|e| NatsError::JetStreamError(e.to_string()))?;
         }
 
-        info!("Loaded {} events from JetStream for aggregate type {}",
-            events.len(), aggregate_type);
+        info!(
+            "Loaded {} events from JetStream for aggregate type {}",
+            events.len(),
+            aggregate_type
+        );
 
         // Events are already in order from JetStream
         Ok(events)

@@ -93,7 +93,7 @@ impl ValueObjectChangePatterns {
                 graph_id,
                 node_id,
                 content: NodeContent {
-                    label: String::new(), // Would be retrieved from aggregate
+                    label: String::new(),              // Would be retrieved from aggregate
                     node_type: NodeType::Unidentified, // Would be retrieved from aggregate
                     properties: std::collections::HashMap::new(), // Would be retrieved from aggregate
                 },
@@ -147,7 +147,10 @@ mod tests {
 
         // First event should be removal
         match &events[0] {
-            DomainEvent::Node(NodeEvent::NodeRemoved { graph_id: g, node_id: n }) => {
+            DomainEvent::Node(NodeEvent::NodeRemoved {
+                graph_id: g,
+                node_id: n,
+            }) => {
                 assert_eq!(*g, graph_id);
                 assert_eq!(*n, node_id);
             }

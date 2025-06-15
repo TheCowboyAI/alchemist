@@ -1,6 +1,6 @@
 //! Demo showing how graph-composition library integrates with our modular architecture
 
-use graph_composition::{GraphComposition, BaseNodeType, BaseRelationshipType};
+use graph_composition::{BaseNodeType, BaseRelationshipType, GraphComposition};
 use ia::contexts::graph::domain::{
     ContextGraph,
     context_graph::{ContextType, DefaultInvariantValidator, DefaultPositionCalculator},
@@ -39,14 +39,20 @@ fn main() {
 
     match validate.then(&process) {
         Ok(sequential) => {
-            println!("   Sequential composition created: {} nodes", sequential.nodes.len());
+            println!(
+                "   Sequential composition created: {} nodes",
+                sequential.nodes.len()
+            );
         }
         Err(e) => println!("   Composition failed: {}", e),
     }
 
     match validate.parallel(&process) {
         Ok(parallel) => {
-            println!("   Parallel composition created: {} nodes", parallel.nodes.len());
+            println!(
+                "   Parallel composition created: {} nodes",
+                parallel.nodes.len()
+            );
         }
         Err(e) => println!("   Composition failed: {}", e),
     }
@@ -58,12 +64,32 @@ fn main() {
 fn create_workflow_graph() -> GraphComposition {
     GraphComposition::composite("OrderProcessing")
         .add_node(BaseNodeType::Command, "ReceiveOrder", serde_json::json!({}))
-        .add_node(BaseNodeType::Service, "ValidateOrder", serde_json::json!({}))
-        .add_node(BaseNodeType::Service, "ProcessPayment", serde_json::json!({}))
+        .add_node(
+            BaseNodeType::Service,
+            "ValidateOrder",
+            serde_json::json!({}),
+        )
+        .add_node(
+            BaseNodeType::Service,
+            "ProcessPayment",
+            serde_json::json!({}),
+        )
         .add_node(BaseNodeType::Event, "OrderCompleted", serde_json::json!({}))
-        .add_edge_by_label("ReceiveOrder", "ValidateOrder", BaseRelationshipType::Sequence)
-        .add_edge_by_label("ValidateOrder", "ProcessPayment", BaseRelationshipType::Sequence)
-        .add_edge_by_label("ProcessPayment", "OrderCompleted", BaseRelationshipType::Sequence)
+        .add_edge_by_label(
+            "ReceiveOrder",
+            "ValidateOrder",
+            BaseRelationshipType::Sequence,
+        )
+        .add_edge_by_label(
+            "ValidateOrder",
+            "ProcessPayment",
+            BaseRelationshipType::Sequence,
+        )
+        .add_edge_by_label(
+            "ProcessPayment",
+            "OrderCompleted",
+            BaseRelationshipType::Sequence,
+        )
 }
 
 /// Create a context graph using our domain model
@@ -82,7 +108,8 @@ fn create_context_graph() -> ContextGraph {
         root_id,
         Box::new(DefaultInvariantValidator),
         Box::new(DefaultPositionCalculator),
-    ).expect("Failed to create context graph");
+    )
+    .expect("Failed to create context graph");
 
     // Note: In a real application, you would use commands to modify the graph
     // Commands would be processed through command handlers that emit events

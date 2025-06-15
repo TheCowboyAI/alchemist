@@ -15,23 +15,25 @@ use bevy::prelude::*;
 use ia::{
     application::{CommandEvent, EventNotification},
     domain::{
-        commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
-        events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent},
+        commands::{
+            Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior,
+        },
+        events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
         value_objects::{GraphId, Position3D},
     },
     infrastructure::{
+        event_store::{DistributedEventStore, EventStore},
         nats::{NatsClient, NatsConfig, config::JetStreamConfig},
-        event_store::{EventStore, DistributedEventStore},
     },
     presentation::{
+        components::{GraphContainer, GraphEdge, GraphNode},
         plugins::GraphEditorPlugin,
-        components::{GraphContainer, GraphNode, GraphEdge},
     },
 };
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
-use tracing::{info, error};
+use tracing::{error, info};
 
 #[derive(Resource)]
 struct NatsRuntime {
@@ -59,20 +61,20 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(GraphEditorPlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, (
-            handle_markdown_import,
-            handle_replay,
-            handle_clear,
-            record_events,
-            display_stats,
-        ))
+        .add_systems(
+            Update,
+            (
+                handle_markdown_import,
+                handle_replay,
+                handle_clear,
+                record_events,
+                display_stats,
+            ),
+        )
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut event_writer: EventWriter<CommandEvent>,
-) {
+fn setup(mut commands: Commands, mut event_writer: EventWriter<CommandEvent>) {
     // Camera
     commands.spawn((
         Camera3d::default(),
@@ -200,7 +202,10 @@ fn handle_markdown_import(
             let files = [
                 ("assets/models/KECO_DDD_Core_Model.md", "core"),
                 ("assets/models/KECO_DDD_LoanOriginationContext.md", "loan"),
-                ("assets/models/KECO_DDD_UnderwritingContext.md", "underwriting"),
+                (
+                    "assets/models/KECO_DDD_UnderwritingContext.md",
+                    "underwriting",
+                ),
                 ("assets/models/KECO_DDD_DocumentContext.md", "document"),
                 ("assets/models/KECO_DDD_ClosingContext.md", "closing"),
             ];
@@ -220,7 +225,11 @@ fn handle_markdown_import(
                     options: ImportOptions {
                         merge_behavior: MergeBehavior::MergePreferImported,
                         id_prefix: Some(prefix.to_string()),
-                        position_offset: Some(Position3D { x: 0.0, y: 0.0, z: 0.0 }),
+                        position_offset: Some(Position3D {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 0.0,
+                        }),
                         mapping: None,
                         validate: true,
                         max_nodes: Some(1000),
@@ -250,9 +259,9 @@ fn handle_replay(
             let graph_id = container.graph_id;
             let event_store = nats.event_store.clone();
 
-            let events = nats.runtime.block_on(async {
-                event_store.get_events(graph_id.to_string()).await
-            });
+            let events = nats
+                .runtime
+                .block_on(async { event_store.get_events(graph_id.to_string()).await });
 
             match events {
                 Ok(events) => {
@@ -265,7 +274,12 @@ fn handle_replay(
 
                     // Replay each event
                     for (i, event) in events.iter().enumerate() {
-                        println!("  Replaying event {}/{}: {:?}", i + 1, events.len(), event_type_name(event));
+                        println!(
+                            "  Replaying event {}/{}: {:?}",
+                            i + 1,
+                            events.len(),
+                            event_type_name(event)
+                        );
 
                         // Convert domain events back to commands
                         if let Some(command) = event_to_command(event, graph_id) {
@@ -297,7 +311,7 @@ fn handle_clear(
 
             event_writer.write(CommandEvent {
                 command: Command::Graph(GraphCommand::ClearGraph {
-                    graph_id: container.graph_id
+                    graph_id: container.graph_id,
                 }),
             });
 
@@ -328,7 +342,9 @@ fn record_events(
             // Store in NATS
             let event_store = nats.event_store.clone();
             let result = nats.runtime.block_on(async {
-                event_store.append_events(graph_id.to_string(), vec![event.clone()]).await
+                event_store
+                    .append_events(graph_id.to_string(), vec![event.clone()])
+                    .await
             });
 
             match result {
@@ -354,8 +370,10 @@ fn display_stats(
         let edge_count = edges.iter().count();
         let event_count = recorder.events.len();
 
-        println!("\n📊 Stats: {} nodes, {} edges, {} events recorded",
-                 node_count, edge_count, event_count);
+        println!(
+            "\n📊 Stats: {} nodes, {} edges, {} events recorded",
+            node_count, edge_count, event_count
+        );
     }
 }
 
@@ -374,15 +392,22 @@ fn event_type_name(event: &DomainEvent) -> &'static str {
 
 fn event_to_command(event: &DomainEvent, graph_id: GraphId) -> Option<Command> {
     match event {
-        DomainEvent::Node(NodeEvent::NodeAdded { node_id, metadata, position, .. }) => {
+        DomainEvent::Node(NodeEvent::NodeAdded {
+            node_id,
+            metadata,
+            position,
+            ..
+        }) => {
             // Extract node_type from metadata
-            let node_type = metadata.get("node_type")
+            let node_type = metadata
+                .get("node_type")
                 .and_then(|v| v.as_str())
                 .unwrap_or("default")
                 .to_string();
 
             // Convert metadata to content
-            let content = serde_json::to_value(metadata).unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+            let content = serde_json::to_value(metadata)
+                .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
 
             Some(Command::Graph(GraphCommand::AddNode {
                 graph_id,
@@ -392,16 +417,20 @@ fn event_to_command(event: &DomainEvent, graph_id: GraphId) -> Option<Command> {
                 content,
             }))
         }
-        DomainEvent::Edge(EdgeEvent::EdgeConnected { edge_id, source, target, relationship, .. }) => {
-            Some(Command::Graph(GraphCommand::ConnectNodes {
-                graph_id,
-                edge_id: *edge_id,
-                source_id: *source,
-                target_id: *target,
-                edge_type: relationship.clone(),
-                properties: HashMap::new(),
-            }))
-        }
+        DomainEvent::Edge(EdgeEvent::EdgeConnected {
+            edge_id,
+            source,
+            target,
+            relationship,
+            ..
+        }) => Some(Command::Graph(GraphCommand::ConnectNodes {
+            graph_id,
+            edge_id: *edge_id,
+            source_id: *source,
+            target_id: *target,
+            edge_type: relationship.clone(),
+            properties: HashMap::new(),
+        })),
         _ => None,
     }
 }

@@ -1,12 +1,12 @@
 //! Demo of conceptual graph visualization with interactive manipulation
 
 use alchemist::domain::conceptual_graph::{
-    ConceptGraph, ConceptNode, ConceptEdge, ConceptType, ConceptRelationship,
-    ConceptualPoint, QualityDimension, DimensionType, NodeId,
+    ConceptEdge, ConceptGraph, ConceptNode, ConceptRelationship, ConceptType, ConceptualPoint,
+    DimensionType, NodeId, QualityDimension,
 };
 use alchemist::presentation::components::conceptual_visualization::{
-    ConceptualNodeVisual, ConceptualEdgeVisual, ConceptualSpaceVisual,
-    QualityDimensionAxis, VisualStyle,
+    ConceptualEdgeVisual, ConceptualNodeVisual, ConceptualSpaceVisual, QualityDimensionAxis,
+    VisualStyle,
 };
 use alchemist::presentation::plugins::GraphEditorPlugin;
 use bevy::prelude::*;
@@ -46,9 +46,21 @@ fn setup_demo_graph(
 
     // Define quality dimensions for DDD concepts
     graph = graph
-        .with_dimension(QualityDimension::new("abstraction", DimensionType::Continuous, 0.0..1.0))
-        .with_dimension(QualityDimension::new("complexity", DimensionType::Continuous, 0.0..1.0))
-        .with_dimension(QualityDimension::new("coupling", DimensionType::Continuous, 0.0..1.0));
+        .with_dimension(QualityDimension::new(
+            "abstraction",
+            DimensionType::Continuous,
+            0.0..1.0,
+        ))
+        .with_dimension(QualityDimension::new(
+            "complexity",
+            DimensionType::Continuous,
+            0.0..1.0,
+        ))
+        .with_dimension(QualityDimension::new(
+            "coupling",
+            DimensionType::Continuous,
+            0.0..1.0,
+        ));
 
     // Create DDD concept nodes
     let entity_node = ConceptNode::Atom {
@@ -94,10 +106,26 @@ fn setup_demo_graph(
     let event_idx = graph.add_node(event_node.clone());
 
     // Add relationships
-    graph.add_edge(aggregate_idx, entity_idx, ConceptEdge::new(ConceptRelationship::PartOf));
-    graph.add_edge(aggregate_idx, value_idx, ConceptEdge::new(ConceptRelationship::PartOf));
-    graph.add_edge(policy_idx, aggregate_idx, ConceptEdge::new(ConceptRelationship::DependsOn));
-    graph.add_edge(aggregate_idx, event_idx, ConceptEdge::new(ConceptRelationship::Triggers));
+    graph.add_edge(
+        aggregate_idx,
+        entity_idx,
+        ConceptEdge::new(ConceptRelationship::PartOf),
+    );
+    graph.add_edge(
+        aggregate_idx,
+        value_idx,
+        ConceptEdge::new(ConceptRelationship::PartOf),
+    );
+    graph.add_edge(
+        policy_idx,
+        aggregate_idx,
+        ConceptEdge::new(ConceptRelationship::DependsOn),
+    );
+    graph.add_edge(
+        aggregate_idx,
+        event_idx,
+        ConceptEdge::new(ConceptRelationship::Triggers),
+    );
 
     // Spawn the conceptual space visualization
     commands.spawn((
@@ -157,7 +185,7 @@ fn setup_demo_graph(
             - Right Drag: Rotate camera\n\
             - Tab: Switch tools\n\
             - Space: Toggle grid\n\
-            - Escape: Clear selection"
+            - Escape: Clear selection",
         ),
         TextFont {
             font_size: 14.0,
@@ -179,18 +207,12 @@ fn rotate_camera(
 ) {
     if keyboard.pressed(KeyCode::KeyQ) {
         for mut transform in query.iter_mut() {
-            transform.rotate_around(
-                Vec3::ZERO,
-                Quat::from_rotation_y(time.delta_secs() * 0.5),
-            );
+            transform.rotate_around(Vec3::ZERO, Quat::from_rotation_y(time.delta_secs() * 0.5));
         }
     }
     if keyboard.pressed(KeyCode::KeyE) {
         for mut transform in query.iter_mut() {
-            transform.rotate_around(
-                Vec3::ZERO,
-                Quat::from_rotation_y(-time.delta_secs() * 0.5),
-            );
+            transform.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-time.delta_secs() * 0.5));
         }
     }
 }

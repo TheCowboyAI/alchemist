@@ -3,26 +3,26 @@
 use crate::application::{CommandEvent, EventNotification};
 use crate::domain::commands::{Command, EdgeCommand, GraphCommand, NodeCommand};
 use crate::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
-use crate::domain::value_objects::{Position3D, GraphMetadata};
-use crate::infrastructure::event_bridge::{EventBridge, BridgeCommand};
+use crate::domain::value_objects::{GraphMetadata, Position3D};
+use crate::infrastructure::event_bridge::{BridgeCommand, EventBridge};
 use bevy::prelude::*;
 use serde_json;
 use tracing::{error, warn};
 
 // Async command handlers for integration with event store
+pub mod conceptual_space_command_handler;
 pub mod graph_command_handler;
-pub mod workflow_command_handler;
 pub mod graph_import_handler;
 pub mod metric_context_handler;
 pub mod rule_context_handler;
-pub mod conceptual_space_command_handler;
+pub mod workflow_command_handler;
 
-pub use graph_command_handler::{GraphCommandHandler, CommandHandler};
-pub use workflow_command_handler::WorkflowCommandHandler;
+pub use conceptual_space_command_handler::ConceptualSpaceCommandHandler;
+pub use graph_command_handler::{CommandHandler, GraphCommandHandler};
 pub use graph_import_handler::GraphImportHandler;
 pub use metric_context_handler::MetricContextHandler;
 pub use rule_context_handler::RuleContextHandler;
-pub use conceptual_space_command_handler::ConceptualSpaceCommandHandler;
+pub use workflow_command_handler::WorkflowCommandHandler;
 
 /// System that processes commands and generates events
 pub fn process_commands(
@@ -31,7 +31,10 @@ pub fn process_commands(
     event_bridge: Res<EventBridge>,
 ) {
     for command_event in commands.read() {
-        tracing::info!("Processing command: {:?}", command_event.command.command_type());
+        tracing::info!(
+            "Processing command: {:?}",
+            command_event.command.command_type()
+        );
 
         match &command_event.command {
             Command::Graph(graph_cmd) => {
@@ -39,7 +42,9 @@ pub fn process_commands(
 
                 // Use the handle_graph_command function
                 if let Some(event) = handle_graph_command(graph_cmd) {
-                    if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(event.clone())) {
+                    if let Err(e) =
+                        event_bridge.send_command(BridgeCommand::PublishEvent(event.clone()))
+                    {
                         error!("Failed to send event: {}", e);
                     }
 
@@ -49,7 +54,9 @@ pub fn process_commands(
             Command::Node(node_cmd) => {
                 // Process node commands
                 if let Some(event) = handle_node_command(node_cmd) {
-                    if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(event.clone())) {
+                    if let Err(e) =
+                        event_bridge.send_command(BridgeCommand::PublishEvent(event.clone()))
+                    {
                         error!("Failed to send event: {}", e);
                     }
                     events.write(EventNotification { event });
@@ -58,7 +65,9 @@ pub fn process_commands(
             Command::Edge(edge_cmd) => {
                 // Process edge commands
                 if let Some(event) = handle_edge_command(edge_cmd) {
-                    if let Err(e) = event_bridge.send_command(BridgeCommand::PublishEvent(event.clone())) {
+                    if let Err(e) =
+                        event_bridge.send_command(BridgeCommand::PublishEvent(event.clone()))
+                    {
                         error!("Failed to send event: {}", e);
                     }
                     events.write(EventNotification { event });
@@ -97,12 +106,14 @@ pub fn process_commands(
 /// Handle graph commands and generate events
 fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
     match command {
-        GraphCommand::CreateGraph { id, name, metadata: _ } => {
-            Some(DomainEvent::Graph(GraphEvent::GraphCreated {
-                id: *id,
-                metadata: GraphMetadata::new(name.clone()),
-            }))
-        }
+        GraphCommand::CreateGraph {
+            id,
+            name,
+            metadata: _,
+        } => Some(DomainEvent::Graph(GraphEvent::GraphCreated {
+            id: *id,
+            metadata: GraphMetadata::new(name.clone()),
+        })),
         GraphCommand::RenameGraph { id, new_name } => {
             Some(DomainEvent::Graph(GraphEvent::GraphRenamed {
                 id: *id,
@@ -123,18 +134,25 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
         GraphCommand::DeleteGraph { id } => {
             Some(DomainEvent::Graph(GraphEvent::GraphDeleted { id: *id }))
         }
-        GraphCommand::UpdateGraph { id, name, description } => {
-            Some(DomainEvent::Graph(GraphEvent::GraphUpdated {
-                graph_id: *id,
-                name: name.clone(),
-                description: description.clone(),
-            }))
-        }
+        GraphCommand::UpdateGraph {
+            id,
+            name,
+            description,
+        } => Some(DomainEvent::Graph(GraphEvent::GraphUpdated {
+            graph_id: *id,
+            name: name.clone(),
+            description: description.clone(),
+        })),
         GraphCommand::ClearGraph { .. } => {
             // ClearGraph is handled by the aggregate - it generates NodeRemoved and EdgeRemoved events
             None
         }
-        GraphCommand::ImportGraph { graph_id, source, format, options } => {
+        GraphCommand::ImportGraph {
+            graph_id,
+            source,
+            format,
+            options,
+        } => {
             // For now, emit the GraphImportRequested event
             // The process_graph_import_requests system will handle the actual import
             Some(DomainEvent::Graph(GraphEvent::GraphImportRequested {
@@ -144,42 +162,48 @@ fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
                 options: options.clone(),
             }))
         }
-        GraphCommand::ImportFromFile { graph_id, file_path, format } => {
+        GraphCommand::ImportFromFile {
+            graph_id,
+            file_path,
+            format,
+        } => {
             // Convert to ImportGraph with File source
             Some(DomainEvent::Graph(GraphEvent::GraphImportRequested {
                 graph_id: *graph_id,
                 source: crate::domain::commands::ImportSource::File {
-                    path: file_path.clone()
+                    path: file_path.clone(),
                 },
                 format: format.clone(),
                 options: crate::domain::commands::ImportOptions::default(),
             }))
         }
-        GraphCommand::ImportFromUrl { graph_id, url, format } => {
+        GraphCommand::ImportFromUrl {
+            graph_id,
+            url,
+            format,
+        } => {
             // Convert to ImportGraph with URL source
             Some(DomainEvent::Graph(GraphEvent::GraphImportRequested {
                 graph_id: *graph_id,
-                source: crate::domain::commands::ImportSource::Url {
-                    url: url.clone()
-                },
+                source: crate::domain::commands::ImportSource::Url { url: url.clone() },
                 format: format.clone(),
                 options: crate::domain::commands::ImportOptions::default(),
             }))
         }
-        GraphCommand::AddNode { .. } |
-        GraphCommand::UpdateNode { .. } |
-        GraphCommand::RemoveNode { .. } |
-        GraphCommand::ConnectNodes { .. } |
-        GraphCommand::DisconnectNodes { .. } |
-        GraphCommand::UpdateEdge { .. } => {
+        GraphCommand::AddNode { .. }
+        | GraphCommand::UpdateNode { .. }
+        | GraphCommand::RemoveNode { .. }
+        | GraphCommand::ConnectNodes { .. }
+        | GraphCommand::DisconnectNodes { .. }
+        | GraphCommand::UpdateEdge { .. } => {
             // These are handled by the aggregate
             None
         }
         // Conceptual graph commands - handled by the aggregate
-        GraphCommand::CreateConceptualGraph { .. } |
-        GraphCommand::AddConceptualNode { .. } |
-        GraphCommand::ApplyGraphMorphism { .. } |
-        GraphCommand::ComposeConceptualGraphs { .. } => {
+        GraphCommand::CreateConceptualGraph { .. }
+        | GraphCommand::AddConceptualNode { .. }
+        | GraphCommand::ApplyGraphMorphism { .. }
+        | GraphCommand::ComposeConceptualGraphs { .. } => {
             // These are handled by the conceptual graph aggregate
             None
         }
@@ -197,8 +221,14 @@ fn handle_node_command(command: &NodeCommand) -> Option<DomainEvent> {
         } => {
             // Convert NodeContent to metadata HashMap
             let mut metadata = content.properties.clone();
-            metadata.insert("label".to_string(), serde_json::Value::String(content.label.clone()));
-            metadata.insert("node_type".to_string(), serde_json::to_value(&content.node_type).unwrap());
+            metadata.insert(
+                "label".to_string(),
+                serde_json::Value::String(content.label.clone()),
+            );
+            metadata.insert(
+                "node_type".to_string(),
+                serde_json::to_value(&content.node_type).unwrap(),
+            );
 
             Some(DomainEvent::Node(NodeEvent::NodeAdded {
                 graph_id: *graph_id,
@@ -278,8 +308,8 @@ fn handle_edge_command(command: &EdgeCommand) -> Option<DomainEvent> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::commands::{ImportSource, ImportOptions};
     use crate::domain::commands::graph_commands::MergeBehavior;
+    use crate::domain::commands::{ImportOptions, ImportSource};
 
     #[test]
     fn test_import_graph_command_generates_event() {

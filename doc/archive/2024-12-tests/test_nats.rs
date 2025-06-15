@@ -18,11 +18,14 @@ async fn main() -> Result<()> {
                     println!("✓ JetStream context created");
 
                     // Try to create a test object store
-                    match jetstream.create_object_store(async_nats::jetstream::object_store::Config {
-                        bucket: "test-connectivity".to_string(),
-                        description: Some("Test connectivity bucket".to_string()),
-                        ..Default::default()
-                    }).await {
+                    match jetstream
+                        .create_object_store(async_nats::jetstream::object_store::Config {
+                            bucket: "test-connectivity".to_string(),
+                            description: Some("Test connectivity bucket".to_string()),
+                            ..Default::default()
+                        })
+                        .await
+                    {
                         Ok(_) => {
                             println!("✓ Created test object store");
                             // Clean up
@@ -39,10 +42,7 @@ async fn main() -> Result<()> {
             let mut sub = client.subscribe("test.subject").await?;
             client.publish("test.subject", "Hello NATS!".into()).await?;
 
-            match tokio::time::timeout(
-                std::time::Duration::from_secs(1),
-                sub.next()
-            ).await {
+            match tokio::time::timeout(std::time::Duration::from_secs(1), sub.next()).await {
                 Ok(Some(msg)) => {
                     let payload = String::from_utf8_lossy(&msg.payload);
                     println!("✓ Pub/Sub working: received '{payload}'");

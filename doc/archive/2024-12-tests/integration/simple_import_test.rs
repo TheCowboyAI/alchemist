@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource},
     events::{DomainEvent, GraphEvent},
     value_objects::GraphId,
 };
@@ -30,14 +30,18 @@ fn test_import_creates_graph_nodes() {
     app.add_event::<ImportRequestEvent>();
 
     // Add only the systems we need to test
-    app.add_systems(Update, (
-        // Process commands to generate GraphImportRequested events
-        ia::application::command_handlers::process_commands,
-        // Forward import requests
-        forward_import_requests,
-        // Process imports
-        process_graph_import_requests,
-    ).chain());
+    app.add_systems(
+        Update,
+        (
+            // Process commands to generate GraphImportRequested events
+            ia::application::command_handlers::process_commands,
+            // Forward import requests
+            forward_import_requests,
+            // Process imports
+            process_graph_import_requests,
+        )
+            .chain(),
+    );
 
     // Create simple test JSON
     let test_json = r#"{
@@ -68,21 +72,31 @@ fn test_import_creates_graph_nodes() {
     app.update();
 
     // Check if GraphImportRequested event was generated
-    let import_requested_events: Vec<_> = app.world()
+    let import_requested_events: Vec<_> = app
+        .world()
         .resource::<Events<EventNotification>>()
         .iter_current_update_events()
-        .filter(|e| matches!(&e.event, DomainEvent::Graph(GraphEvent::GraphImportRequested { .. })))
+        .filter(|e| {
+            matches!(
+                &e.event,
+                DomainEvent::Graph(GraphEvent::GraphImportRequested { .. })
+            )
+        })
         .collect();
 
-    assert_eq!(import_requested_events.len(), 1,
+    assert_eq!(
+        import_requested_events.len(),
+        1,
         "Should have generated 1 GraphImportRequested event, but found {}",
-        import_requested_events.len());
+        import_requested_events.len()
+    );
 
     // Process another update to handle the import
     app.update();
 
     // Check if any events were generated from the import
-    let all_events: Vec<_> = app.world()
+    let all_events: Vec<_> = app
+        .world()
         .resource::<Events<EventNotification>>()
         .iter_current_update_events()
         .collect();
@@ -93,10 +107,13 @@ fn test_import_creates_graph_nodes() {
     }
 
     // The import processor should have generated NodeAdded events
-    let node_added_events: Vec<_> = all_events.iter()
+    let node_added_events: Vec<_> = all_events
+        .iter()
         .filter(|e| matches!(&e.event, DomainEvent::Node(_)))
         .collect();
 
-    assert!(node_added_events.len() > 0,
-        "Import should have generated NodeAdded events, but found 0");
+    assert!(
+        node_added_events.len() > 0,
+        "Import should have generated NodeAdded events, but found 0"
+    );
 }

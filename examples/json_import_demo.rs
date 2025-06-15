@@ -7,21 +7,18 @@
 //! 3. Generating proper domain events
 //! 4. Creating a ContentGraph with CID
 
+use cim_ipld::types::ContentType;
+use colored::*;
 use ia::domain::{
     aggregates::content_graph::{ContentGraph, NodeContent},
     events::{
         DomainEvent,
-        content_graph::{ContentGraphCreated, ContentAdded, RelationshipEstablished},
+        content_graph::{ContentAdded, ContentGraphCreated, RelationshipEstablished},
     },
-    value_objects::{
-        NodeId, EdgeId, GraphId,
-        Position3D, RelatedBy,
-    },
+    value_objects::{EdgeId, GraphId, NodeId, Position3D, RelatedBy},
 };
-use cim_ipld::types::ContentType;
-use colored::*;
-use serde::{Deserialize};
-use serde_json::{json, Value};
+use serde::Deserialize;
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fs;
 use std::time::SystemTime;
@@ -97,7 +94,8 @@ fn main() {
         }
     };
 
-    println!("✅ Found {} nodes and {} relationships",
+    println!(
+        "✅ Found {} nodes and {} relationships",
         external_graph.nodes.len().to_string().green(),
         external_graph.relationships.len().to_string().green()
     );
@@ -183,7 +181,11 @@ fn import_external_graph(external: ExternalGraph) -> ImportResult {
         if let Err(e) = graph.apply_event(&DomainEvent::ContentAdded(add_event)) {
             warnings.push(format!("Failed to add node {}: {}", ext_node.caption, e));
         } else {
-            println!("   ✅ {} ({})", ext_node.caption.green(), ext_node.id.dimmed());
+            println!(
+                "   ✅ {} ({})",
+                ext_node.caption.green(),
+                ext_node.id.dimmed()
+            );
         }
     }
 
@@ -194,8 +196,10 @@ fn import_external_graph(external: ExternalGraph) -> ImportResult {
         let source_id = match node_mapping.get(&ext_rel.from_id) {
             Some(id) => id.clone(),
             None => {
-                warnings.push(format!("Source node {} not found for relationship {}",
-                    ext_rel.from_id, ext_rel.id));
+                warnings.push(format!(
+                    "Source node {} not found for relationship {}",
+                    ext_rel.from_id, ext_rel.id
+                ));
                 continue;
             }
         };
@@ -203,8 +207,10 @@ fn import_external_graph(external: ExternalGraph) -> ImportResult {
         let target_id = match node_mapping.get(&ext_rel.to_id) {
             Some(id) => id.clone(),
             None => {
-                warnings.push(format!("Target node {} not found for relationship {}",
-                    ext_rel.to_id, ext_rel.id));
+                warnings.push(format!(
+                    "Target node {} not found for relationship {}",
+                    ext_rel.to_id, ext_rel.id
+                ));
                 continue;
             }
         };
@@ -225,7 +231,8 @@ fn import_external_graph(external: ExternalGraph) -> ImportResult {
         if let Err(e) = graph.apply_event(&DomainEvent::RelationshipEstablished(edge_event)) {
             warnings.push(format!("Failed to add relationship: {}", e));
         } else {
-            println!("   ✅ {} → {} ({})",
+            println!(
+                "   ✅ {} → {} ({})",
                 ext_rel.from_id.green(),
                 ext_rel.to_id.green(),
                 ext_rel.relationship_type.yellow()
@@ -253,9 +260,18 @@ fn map_relationship_type(external_type: &str) -> RelatedBy {
 
 fn display_import_results(result: &ImportResult) {
     println!("\n{}", "📊 Import Summary:".bright_magenta());
-    println!("   Total Events Generated: {}", result.events.len().to_string().green());
-    println!("   Nodes Imported: {}", result.graph.nodes.len().to_string().green());
-    println!("   Edges Imported: {}", result.graph.edges.len().to_string().green());
+    println!(
+        "   Total Events Generated: {}",
+        result.events.len().to_string().green()
+    );
+    println!(
+        "   Nodes Imported: {}",
+        result.graph.nodes.len().to_string().green()
+    );
+    println!(
+        "   Edges Imported: {}",
+        result.graph.edges.len().to_string().green()
+    );
 
     if !result.warnings.is_empty() {
         println!("\n{}", "⚠️  Warnings:".yellow());
@@ -272,10 +288,12 @@ fn display_import_results(result: &ImportResult) {
     for (node_id, node) in &result.graph.nodes {
         if let NodeContent::Value { data, .. } = &node.content {
             if let Some(caption) = data.get("caption").and_then(|v| v.as_str()) {
-                let original_id = data.get("original_id")
+                let original_id = data
+                    .get("original_id")
                     .and_then(|v| v.as_str())
                     .unwrap_or("unknown");
-                node_types.entry(caption.to_string())
+                node_types
+                    .entry(caption.to_string())
                     .or_insert_with(Vec::new)
                     .push(original_id.to_string());
             }
@@ -283,7 +301,8 @@ fn display_import_results(result: &ImportResult) {
     }
 
     for (node_type, ids) in node_types {
-        println!("   {} {}: {}",
+        println!(
+            "   {} {}: {}",
             "▶".green(),
             node_type.bright_white(),
             ids.join(", ").dimmed()
@@ -309,7 +328,8 @@ fn display_import_results(result: &ImportResult) {
 
     println!("\n{}", "🔗 Relationship Types:".bright_cyan());
     for (rel_type, count) in rel_stats {
-        println!("   {} {}: {}",
+        println!(
+            "   {} {}: {}",
             "→".green(),
             rel_type.bright_white(),
             count.to_string().yellow()
@@ -342,14 +362,18 @@ fn export_to_json(graph: &ContentGraph) {
     }).collect();
 
     // Export edges
-    let edges: Vec<Value> = graph.edges.iter().map(|(id, edge)| {
-        json!({
-            "id": id.to_string(),
-            "source": edge.source.to_string(),
-            "target": edge.target.to_string(),
-            "relationship": format!("{:?}", edge.relationship),
+    let edges: Vec<Value> = graph
+        .edges
+        .iter()
+        .map(|(id, edge)| {
+            json!({
+                "id": id.to_string(),
+                "source": edge.source.to_string(),
+                "target": edge.target.to_string(),
+                "relationship": format!("{:?}", edge.relationship),
+            })
         })
-    }).collect();
+        .collect();
 
     export["nodes"] = json!(nodes);
     export["edges"] = json!(edges);

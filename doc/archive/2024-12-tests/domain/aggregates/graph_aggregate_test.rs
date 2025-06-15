@@ -25,7 +25,10 @@ fn test_graph_creation_with_command() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Graph(GraphEvent::GraphCreated { id: event_id, metadata }) => {
+        DomainEvent::Graph(GraphEvent::GraphCreated {
+            id: event_id,
+            metadata,
+        }) => {
             assert_eq!(*event_id, id);
             assert_eq!(metadata.name, name);
         }
@@ -50,7 +53,11 @@ fn test_graph_rename_generates_correct_event() {
     assert_eq!(events.len(), 1);
 
     match &events[0] {
-        DomainEvent::Graph(GraphEvent::GraphRenamed { id: event_id, old_name, new_name }) => {
+        DomainEvent::Graph(GraphEvent::GraphRenamed {
+            id: event_id,
+            old_name,
+            new_name,
+        }) => {
             assert_eq!(*event_id, id);
             assert_eq!(old_name, "Original");
             assert_eq!(new_name, "New Name");
@@ -63,7 +70,11 @@ fn test_graph_rename_generates_correct_event() {
 fn test_graph_tagging_operations() {
     // Given
     let id = GraphId::new();
-    let mut graph = Graph::new(id, "Tagged Graph".to_string(), Some("initial-tag".to_string()));
+    let mut graph = Graph::new(
+        id,
+        "Tagged Graph".to_string(),
+        Some("initial-tag".to_string()),
+    );
     graph.mark_events_as_committed();
 
     // When - add tags
@@ -81,7 +92,7 @@ fn test_graph_tagging_operations() {
 
     for event in &events {
         match event {
-            DomainEvent::Graph(GraphEvent::GraphTagged { .. }) => {},
+            DomainEvent::Graph(GraphEvent::GraphTagged { .. }) => {}
             _ => panic!("Expected GraphTagged events"),
         }
     }
@@ -219,7 +230,15 @@ fn test_graph_idempotent_tag_operations() {
 
     // Then - tag appears multiple times (not idempotent by design)
     assert_eq!(graph.metadata.tags.len(), 3);
-    assert_eq!(graph.metadata.tags.iter().filter(|t| *t == &"duplicate".to_string()).count(), 3);
+    assert_eq!(
+        graph
+            .metadata
+            .tags
+            .iter()
+            .filter(|t| *t == &"duplicate".to_string())
+            .count(),
+        3
+    );
 
     // This shows that the aggregate doesn't enforce idempotency
     // This would need to be handled at the command handler level

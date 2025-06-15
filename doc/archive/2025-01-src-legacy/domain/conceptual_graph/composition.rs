@@ -2,17 +2,14 @@
 //!
 //! Implements various ways to compose conceptual graphs
 
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
 use petgraph::graph::NodeIndex;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-use crate::domain::conceptual_graph::concept::{ConceptGraph, ConceptNode, ConceptEdge, NodeId};
-use crate::domain::conceptual_graph::morphism::{GraphMorphism, ProductType, InjectionMap};
+use crate::domain::conceptual_graph::concept::{ConceptEdge, ConceptGraph, ConceptNode, NodeId};
+use crate::domain::conceptual_graph::morphism::{GraphMorphism, InjectionMap, ProductType};
 
-use crate::domain::conceptual_graph::{
-    concept::ConceptId,
-    quality_dimension::ConceptualPoint,
-};
+use crate::domain::conceptual_graph::{concept::ConceptId, quality_dimension::ConceptualPoint};
 
 /// Types of composition operations
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -81,13 +78,14 @@ impl GraphComposer {
                     let source_node = subgraph.structure.node_weight(source).unwrap();
                     let target_node = subgraph.structure.node_weight(target).unwrap();
 
-                    if let (Some(source_id), Some(target_id)) =
-                        (Self::get_node_id(source_node), Self::get_node_id(target_node)) {
-
-                        if let (Some(&new_source), Some(&new_target)) =
-                            (node_mappings.get(&(subgraph.id, source_id)),
-                             node_mappings.get(&(subgraph.id, target_id))) {
-
+                    if let (Some(source_id), Some(target_id)) = (
+                        Self::get_node_id(source_node),
+                        Self::get_node_id(target_node),
+                    ) {
+                        if let (Some(&new_source), Some(&new_target)) = (
+                            node_mappings.get(&(subgraph.id, source_id)),
+                            node_mappings.get(&(subgraph.id, target_id)),
+                        ) {
                             let new_edge = edge.clone();
                             host.add_edge(new_source, new_target, new_edge);
                             injection.add_edge_injection(edge.id, edge.id);
@@ -122,7 +120,9 @@ impl GraphComposer {
 
         // Combine quality dimensions
         result.quality_dimensions = left.quality_dimensions.clone();
-        result.quality_dimensions.extend(right.quality_dimensions.clone());
+        result
+            .quality_dimensions
+            .extend(right.quality_dimensions.clone());
 
         let mut node_mappings = HashMap::new();
         let mut left_to_product = HashMap::new();
@@ -131,18 +131,18 @@ impl GraphComposer {
         // Create product nodes
         for left_idx in left.structure.node_indices() {
             for right_idx in right.structure.node_indices() {
-                if let (Some(left_node), Some(right_node)) =
-                    (left.structure.node_weight(left_idx),
-                     right.structure.node_weight(right_idx)) {
-
+                if let (Some(left_node), Some(right_node)) = (
+                    left.structure.node_weight(left_idx),
+                    right.structure.node_weight(right_idx),
+                ) {
                     // Create product node
                     let product_node = Self::create_product_node(left_node, right_node)?;
                     let product_idx = result.add_node(product_node);
 
                     // Track mappings
                     if let (Some(left_id), Some(right_id)) =
-                        (Self::get_node_id(left_node), Self::get_node_id(right_node)) {
-
+                        (Self::get_node_id(left_node), Self::get_node_id(right_node))
+                    {
                         left_to_product.insert(left_idx, product_idx);
                         right_to_product.insert(right_idx, product_idx);
                         node_mappings.insert((left.id, left_id), product_idx);
@@ -155,22 +155,32 @@ impl GraphComposer {
         // Create product edges based on product type
         match product_type {
             ProductType::Cartesian => {
-                Self::add_cartesian_edges(&left, &right, &mut result, &left_to_product, &right_to_product)?;
+                Self::add_cartesian_edges(
+                    &left,
+                    &right,
+                    &mut result,
+                    &left_to_product,
+                    &right_to_product,
+                )?;
             }
             ProductType::Tensor => {
-                Self::add_tensor_edges(&left, &right, &mut result, &left_to_product, &right_to_product)?;
+                Self::add_tensor_edges(
+                    &left,
+                    &right,
+                    &mut result,
+                    &left_to_product,
+                    &right_to_product,
+                )?;
             }
             _ => return Err("Product type not implemented".to_string()),
         }
 
         // Create morphisms
-        let morphisms = vec![
-            GraphMorphism::Product {
-                left_id: left.id,
-                right_id: right.id,
-                product_type,
-            }
-        ];
+        let morphisms = vec![GraphMorphism::Product {
+            left_id: left.id,
+            right_id: right.id,
+            product_type,
+        }];
 
         Ok(CompositionResult {
             graph: result,
@@ -186,7 +196,11 @@ impl GraphComposer {
         }
 
         let mut result = ConceptGraph::new(
-            graphs.iter().map(|g| g.name.clone()).collect::<Vec<_>>().join(" ⊕ ")
+            graphs
+                .iter()
+                .map(|g| g.name.clone())
+                .collect::<Vec<_>>()
+                .join(" ⊕ "),
         );
 
         let mut node_mappings = HashMap::new();
@@ -215,13 +229,14 @@ impl GraphComposer {
                         let source_node = graph.structure.node_weight(source).unwrap();
                         let target_node = graph.structure.node_weight(target).unwrap();
 
-                        if let (Some(source_id), Some(target_id)) =
-                            (Self::get_node_id(source_node), Self::get_node_id(target_node)) {
-
-                            if let (Some(&new_source), Some(&new_target)) =
-                                (node_mappings.get(&(graph.id, source_id)),
-                                 node_mappings.get(&(graph.id, target_id))) {
-
+                        if let (Some(source_id), Some(target_id)) = (
+                            Self::get_node_id(source_node),
+                            Self::get_node_id(target_node),
+                        ) {
+                            if let (Some(&new_source), Some(&new_target)) = (
+                                node_mappings.get(&(graph.id, source_id)),
+                                node_mappings.get(&(graph.id, target_id)),
+                            ) {
                                 result.add_edge(new_source, new_target, edge.clone());
                             }
                         }
@@ -287,8 +302,8 @@ impl GraphComposer {
                     // For each node in right graph
                     for right_idx in right.structure.node_indices() {
                         if let (Some(&prod_source), Some(&prod_target)) =
-                            (left_map.get(&source), left_map.get(&target)) {
-
+                            (left_map.get(&source), left_map.get(&target))
+                        {
                             let new_edge = ConceptEdge::new(edge.relationship.clone());
                             result.add_edge(prod_source, prod_target, new_edge);
                         }
@@ -338,7 +353,8 @@ impl CompositionBuilder {
     }
 
     pub fn product(mut self, graph: ConceptGraph, product_type: ProductType) -> Self {
-        self.operations.push((CompositionOperation::Product(product_type), graph));
+        self.operations
+            .push((CompositionOperation::Product(product_type), graph));
         self
     }
 
@@ -348,7 +364,8 @@ impl CompositionBuilder {
         for (op, graph) in self.operations {
             match op {
                 CompositionOperation::Embed => {
-                    let composition = GraphComposer::embed(&graph, &mut result, vec![0.0, 0.0, 0.0])?;
+                    let composition =
+                        GraphComposer::embed(&graph, &mut result, vec![0.0, 0.0, 0.0])?;
                     result = composition.graph;
                 }
                 CompositionOperation::Product(product_type) => {

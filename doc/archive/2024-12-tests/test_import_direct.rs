@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use ia::application::CommandEvent;
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     value_objects::{GraphId, Position3D},
 };
 use ia::presentation::plugins::GraphEditorPlugin;
@@ -68,7 +68,8 @@ fn check_for_nodes(
 ) {
     let current_count = nodes.iter().count();
     if current_count != *last_count {
-        println!("[{:.2}s] Node count changed: {} -> {}",
+        println!(
+            "[{:.2}s] Node count changed: {} -> {}",
             time.elapsed_secs(),
             *last_count,
             current_count
@@ -77,7 +78,10 @@ fn check_for_nodes(
         if current_count > 0 {
             println!("Current nodes:");
             for node in nodes.iter() {
-                println!("  Node ID: {:?}, Graph ID: {:?}", node.node_id, node.graph_id);
+                println!(
+                    "  Node ID: {:?}, Graph ID: {:?}",
+                    node.node_id, node.graph_id
+                );
             }
         }
 

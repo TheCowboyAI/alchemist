@@ -3,33 +3,33 @@
 use serde::{Deserialize, Serialize};
 
 pub mod aggregated_commands;
-pub mod edge_commands;
-pub mod graph_commands;
-pub mod node_commands;
-pub mod workflow;
-pub mod subgraph_commands;
-pub mod subgraph_operations;
-pub mod context_bridge_commands;
-pub mod metric_context_commands;
-pub mod rule_context_commands;
 pub mod conceptual_space;
 pub mod content_graph_commands;
+pub mod context_bridge_commands;
+pub mod edge_commands;
+pub mod graph_commands;
+pub mod metric_context_commands;
+pub mod node_commands;
+pub mod rule_context_commands;
+pub mod subgraph_commands;
+pub mod subgraph_operations;
+pub mod workflow;
 
 pub use aggregated_commands::{
-    DomainCommand, UpdateNodePositions, UpdateGraphSelection,
-    RecognizeGraphModel, ApplyGraphMorphism, MorphismType
+    ApplyGraphMorphism, DomainCommand, MorphismType, RecognizeGraphModel, UpdateGraphSelection,
+    UpdateNodePositions,
 };
-pub use edge_commands::EdgeCommand;
-pub use graph_commands::{GraphCommand, ImportSource, ImportOptions};
-pub use node_commands::NodeCommand;
-pub use workflow::WorkflowCommand;
-pub use subgraph_commands::SubgraphCommand;
-pub use subgraph_operations::{SubgraphOperationCommand, OptimizationType};
-pub use context_bridge_commands::ContextBridgeCommand;
-pub use metric_context_commands::MetricContextCommand;
-pub use rule_context_commands::{RuleContextCommand, ExportFormat};
 pub use conceptual_space::ConceptualSpaceCommand;
 pub use content_graph_commands::ContentGraphCommand;
+pub use context_bridge_commands::ContextBridgeCommand;
+pub use edge_commands::EdgeCommand;
+pub use graph_commands::{GraphCommand, ImportOptions, ImportSource};
+pub use metric_context_commands::MetricContextCommand;
+pub use node_commands::NodeCommand;
+pub use rule_context_commands::{ExportFormat, RuleContextCommand};
+pub use subgraph_commands::SubgraphCommand;
+pub use subgraph_operations::{OptimizationType, SubgraphOperationCommand};
+pub use workflow::WorkflowCommand;
 
 /// All commands in the system
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,7 +66,10 @@ impl Command {
 #[cfg(test)]
 mod handler_existence_tests {
     use super::*;
-    use crate::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, NodeContent, EdgeRelationship, WorkflowId, StepId, UserId};
+    use crate::domain::value_objects::{
+        EdgeId, EdgeRelationship, GraphId, NodeContent, NodeId, Position3D, StepId, UserId,
+        WorkflowId,
+    };
     use std::collections::HashMap;
 
     #[test]
@@ -78,9 +81,7 @@ mod handler_existence_tests {
                 name: "Test Graph".to_string(),
                 metadata: HashMap::new(),
             },
-            GraphCommand::DeleteGraph {
-                id: GraphId::new(),
-            },
+            GraphCommand::DeleteGraph { id: GraphId::new() },
             GraphCommand::RenameGraph {
                 id: GraphId::new(),
                 new_name: "New Name".to_string(),
@@ -137,7 +138,9 @@ mod handler_existence_tests {
             },
             GraphCommand::ImportGraph {
                 graph_id: GraphId::new(),
-                source: ImportSource::InlineContent { content: "test".to_string() },
+                source: ImportSource::InlineContent {
+                    content: "test".to_string(),
+                },
                 format: "mermaid".to_string(),
                 options: ImportOptions {
                     merge_behavior: graph_commands::MergeBehavior::Skip,
@@ -174,15 +177,27 @@ mod handler_existence_tests {
                 GraphCommand::UpdateNode { .. } => assert!(true, "UpdateNode handler exists"),
                 GraphCommand::RemoveNode { .. } => assert!(true, "RemoveNode handler exists"),
                 GraphCommand::ConnectNodes { .. } => assert!(true, "ConnectNodes handler exists"),
-                GraphCommand::DisconnectNodes { .. } => assert!(true, "DisconnectNodes handler exists"),
+                GraphCommand::DisconnectNodes { .. } => {
+                    assert!(true, "DisconnectNodes handler exists")
+                }
                 GraphCommand::UpdateEdge { .. } => assert!(true, "UpdateEdge handler exists"),
                 GraphCommand::ImportGraph { .. } => assert!(true, "ImportGraph handler exists"),
-                GraphCommand::ImportFromFile { .. } => assert!(true, "ImportFromFile handler exists"),
+                GraphCommand::ImportFromFile { .. } => {
+                    assert!(true, "ImportFromFile handler exists")
+                }
                 GraphCommand::ImportFromUrl { .. } => assert!(true, "ImportFromUrl handler exists"),
-                GraphCommand::CreateConceptualGraph { .. } => assert!(true, "CreateConceptualGraph handler exists"),
-                GraphCommand::AddConceptualNode { .. } => assert!(true, "AddConceptualNode handler exists"),
-                GraphCommand::ApplyGraphMorphism { .. } => assert!(true, "ApplyGraphMorphism handler exists"),
-                GraphCommand::ComposeConceptualGraphs { .. } => assert!(true, "ComposeConceptualGraphs handler exists"),
+                GraphCommand::CreateConceptualGraph { .. } => {
+                    assert!(true, "CreateConceptualGraph handler exists")
+                }
+                GraphCommand::AddConceptualNode { .. } => {
+                    assert!(true, "AddConceptualNode handler exists")
+                }
+                GraphCommand::ApplyGraphMorphism { .. } => {
+                    assert!(true, "ApplyGraphMorphism handler exists")
+                }
+                GraphCommand::ComposeConceptualGraphs { .. } => {
+                    assert!(true, "ComposeConceptualGraphs handler exists")
+                }
             }
         }
     }
@@ -295,7 +310,9 @@ mod handler_existence_tests {
         for cmd in test_commands {
             match cmd {
                 EdgeCommand::ConnectEdge { .. } => assert!(true, "ConnectEdge handler exists"),
-                EdgeCommand::DisconnectEdge { .. } => assert!(true, "DisconnectEdge handler exists"),
+                EdgeCommand::DisconnectEdge { .. } => {
+                    assert!(true, "DisconnectEdge handler exists")
+                }
                 EdgeCommand::SelectEdge { .. } => assert!(true, "SelectEdge handler exists"),
                 EdgeCommand::DeselectEdge { .. } => assert!(true, "DeselectEdge handler exists"),
             }
@@ -305,8 +322,8 @@ mod handler_existence_tests {
     #[test]
     fn test_workflow_commands_have_handlers() {
         // Test that every WorkflowCommand variant can be handled
-        use crate::domain::value_objects::{WorkflowId, StepId, EdgeId as WorkflowEdgeId, UserId};
-        use crate::domain::aggregates::workflow::{WorkflowStep, StepType};
+        use crate::domain::aggregates::workflow::{StepType, WorkflowStep};
+        use crate::domain::value_objects::{EdgeId as WorkflowEdgeId, StepId, UserId, WorkflowId};
 
         let test_commands = vec![
             WorkflowCommand::CreateWorkflow(workflow::CreateWorkflow {
@@ -371,14 +388,20 @@ mod handler_existence_tests {
         // Verify each command type exists and is covered
         for cmd in test_commands {
             match cmd {
-                WorkflowCommand::CreateWorkflow(_) => assert!(true, "CreateWorkflow handler exists"),
+                WorkflowCommand::CreateWorkflow(_) => {
+                    assert!(true, "CreateWorkflow handler exists")
+                }
                 WorkflowCommand::AddStep(_) => assert!(true, "AddStep handler exists"),
                 WorkflowCommand::ConnectSteps(_) => assert!(true, "ConnectSteps handler exists"),
-                WorkflowCommand::ValidateWorkflow(_) => assert!(true, "ValidateWorkflow handler exists"),
+                WorkflowCommand::ValidateWorkflow(_) => {
+                    assert!(true, "ValidateWorkflow handler exists")
+                }
                 WorkflowCommand::StartWorkflow(_) => assert!(true, "StartWorkflow handler exists"),
                 WorkflowCommand::CompleteStep(_) => assert!(true, "CompleteStep handler exists"),
                 WorkflowCommand::PauseWorkflow(_) => assert!(true, "PauseWorkflow handler exists"),
-                WorkflowCommand::ResumeWorkflow(_) => assert!(true, "ResumeWorkflow handler exists"),
+                WorkflowCommand::ResumeWorkflow(_) => {
+                    assert!(true, "ResumeWorkflow handler exists")
+                }
                 WorkflowCommand::FailWorkflow(_) => assert!(true, "FailWorkflow handler exists"),
             }
         }
@@ -416,13 +439,14 @@ mod handler_existence_tests {
             },
         });
 
-        let workflow_cmd = Command::Workflow(WorkflowCommand::CreateWorkflow(workflow::CreateWorkflow {
-            workflow_id: WorkflowId::new(),
-            name: "Test".to_string(),
-            description: "Test".to_string(),
-            created_by: UserId::new(),
-            tags: vec![],
-        }));
+        let workflow_cmd =
+            Command::Workflow(WorkflowCommand::CreateWorkflow(workflow::CreateWorkflow {
+                workflow_id: WorkflowId::new(),
+                name: "Test".to_string(),
+                description: "Test".to_string(),
+                created_by: UserId::new(),
+                tags: vec![],
+            }));
 
         // Verify pattern matching works for all command types
         match graph_cmd {

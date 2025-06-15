@@ -59,7 +59,8 @@ impl RuleContext {
 
     /// Remove a rule and update dependencies
     pub fn remove_rule(&mut self, rule_id: RuleId) -> Result<(), String> {
-        self.rules.remove(&rule_id)
+        self.rules
+            .remove(&rule_id)
             .ok_or_else(|| "Rule not found".to_string())?;
 
         self.rule_dependencies.remove_rule(rule_id);
@@ -110,7 +111,8 @@ impl RuleContext {
 
     /// Find rules that would be triggered by a fact change
     pub fn analyze_impact(&self, fact_change: &FactChange) -> Vec<RuleId> {
-        self.rules.iter()
+        self.rules
+            .iter()
             .filter(|(_, rule)| rule.depends_on_fact(&fact_change.fact_type))
             .map(|(id, _)| *id)
             .collect()
@@ -218,9 +220,7 @@ pub enum Condition {
         conditions: Vec<Condition>,
     },
     /// Pattern matching on graph structure
-    GraphPattern {
-        pattern: GraphPattern,
-    },
+    GraphPattern { pattern: GraphPattern },
     /// Custom predicate function
     Custom {
         predicate_name: String,
@@ -231,7 +231,10 @@ pub enum Condition {
 impl Condition {
     pub fn evaluate(&self, concept: ConceptId, facts: &FactSet) -> Result<bool, String> {
         match self {
-            Condition::FactExists { fact_type, expected_value } => {
+            Condition::FactExists {
+                fact_type,
+                expected_value,
+            } => {
                 let fact = facts.get_fact(concept, fact_type);
                 match (fact, expected_value) {
                     (Some(actual), Some(expected)) => Ok(&actual == expected),
@@ -239,56 +242,70 @@ impl Condition {
                     (None, _) => Ok(false),
                 }
             }
-            Condition::Comparison { left, operator, right } => {
+            Condition::Comparison {
+                left,
+                operator,
+                right,
+            } => {
                 let left_val = left.resolve(concept, facts)?;
                 let right_val = right.resolve(concept, facts)?;
                 operator.evaluate(&left_val, &right_val)
             }
-            Condition::Logical { operator, conditions } => {
-                match operator {
-                    LogicalOperator::And => {
-                        for cond in conditions {
-                            if !cond.evaluate(concept, facts)? {
-                                return Ok(false);
-                            }
+            Condition::Logical {
+                operator,
+                conditions,
+            } => match operator {
+                LogicalOperator::And => {
+                    for cond in conditions {
+                        if !cond.evaluate(concept, facts)? {
+                            return Ok(false);
                         }
-                        Ok(true)
                     }
-                    LogicalOperator::Or => {
-                        for cond in conditions {
-                            if cond.evaluate(concept, facts)? {
-                                return Ok(true);
-                            }
-                        }
-                        Ok(false)
-                    }
-                    LogicalOperator::Not => {
-                        if conditions.len() != 1 {
-                            return Err("NOT operator requires exactly one condition".to_string());
-                        }
-                        Ok(!conditions[0].evaluate(concept, facts)?)
-                    }
+                    Ok(true)
                 }
-            }
-            Condition::GraphPattern { pattern } => {
-                pattern.matches(concept, facts)
-            }
-            Condition::Custom { predicate_name, parameters } => {
+                LogicalOperator::Or => {
+                    for cond in conditions {
+                        if cond.evaluate(concept, facts)? {
+                            return Ok(true);
+                        }
+                    }
+                    Ok(false)
+                }
+                LogicalOperator::Not => {
+                    if conditions.len() != 1 {
+                        return Err("NOT operator requires exactly one condition".to_string());
+                    }
+                    Ok(!conditions[0].evaluate(concept, facts)?)
+                }
+            },
+            Condition::GraphPattern { pattern } => pattern.matches(concept, facts),
+            Condition::Custom {
+                predicate_name,
+                parameters,
+            } => {
                 // In a real implementation, this would call registered predicates
-                Err(format!("Custom predicate '{}' not implemented", predicate_name))
+                Err(format!(
+                    "Custom predicate '{}' not implemented",
+                    predicate_name
+                ))
             }
         }
     }
 
     pub fn describe_failure(&self, concept: ConceptId, facts: &FactSet) -> String {
         match self {
-            Condition::FactExists { fact_type, expected_value } => {
-                match expected_value {
-                    Some(expected) => format!("Expected {} to be {:?}", fact_type, expected),
-                    None => format!("Expected {} to exist", fact_type),
-                }
-            }
-            Condition::Comparison { left, operator, right } => {
+            Condition::FactExists {
+                fact_type,
+                expected_value,
+            } => match expected_value {
+                Some(expected) => format!("Expected {} to be {:?}", fact_type, expected),
+                None => format!("Expected {} to exist", fact_type),
+            },
+            Condition::Comparison {
+                left,
+                operator,
+                right,
+            } => {
                 format!("Comparison failed: {:?} {:?} {:?}", left, operator, right)
             }
             Condition::Logical { operator, .. } => {
@@ -313,7 +330,7 @@ impl Condition {
                 conditions.iter().any(|c| c.references_fact(fact_type))
             }
             Condition::GraphPattern { .. } => false, // Simplified for now
-            Condition::Custom { .. } => true, // Conservative assumption
+            Condition::Custom { .. } => true,        // Conservative assumption
         }
     }
 }
@@ -322,18 +339,11 @@ impl Condition {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Action {
     /// Assert a new fact
-    AssertFact {
-        fact_type: String,
-        value: FactValue,
-    },
+    AssertFact { fact_type: String, value: FactValue },
     /// Retract an existing fact
-    RetractFact {
-        fact_type: String,
-    },
+    RetractFact { fact_type: String },
     /// Trigger another rule
-    TriggerRule {
-        rule_id: RuleId,
-    },
+    TriggerRule { rule_id: RuleId },
     /// Send a notification
     Notify {
         message: String,
@@ -360,14 +370,16 @@ pub enum FactReference {
 impl FactReference {
     pub fn resolve(&self, concept: ConceptId, facts: &FactSet) -> Result<FactValue, String> {
         match self {
-            FactReference::Fact { fact_type } => {
-                facts.get_fact(concept, fact_type)
-                    .ok_or_else(|| format!("Fact '{}' not found", fact_type))
-            }
+            FactReference::Fact { fact_type } => facts
+                .get_fact(concept, fact_type)
+                .ok_or_else(|| format!("Fact '{}' not found", fact_type)),
             FactReference::Literal { value } => Ok(value.clone()),
             FactReference::Computed { expression } => {
                 // In a real implementation, this would evaluate the expression
-                Err(format!("Expression evaluation not implemented: {}", expression))
+                Err(format!(
+                    "Expression evaluation not implemented: {}",
+                    expression
+                ))
             }
         }
     }
@@ -400,14 +412,31 @@ impl ComparisonOperator {
         match (self, left, right) {
             (ComparisonOperator::Equal, l, r) => Ok(l == r),
             (ComparisonOperator::NotEqual, l, r) => Ok(l != r),
-            (ComparisonOperator::GreaterThan, FactValue::Number(l), FactValue::Number(r)) => Ok(l > r),
-            (ComparisonOperator::GreaterThanOrEqual, FactValue::Number(l), FactValue::Number(r)) => Ok(l >= r),
+            (ComparisonOperator::GreaterThan, FactValue::Number(l), FactValue::Number(r)) => {
+                Ok(l > r)
+            }
+            (
+                ComparisonOperator::GreaterThanOrEqual,
+                FactValue::Number(l),
+                FactValue::Number(r),
+            ) => Ok(l >= r),
             (ComparisonOperator::LessThan, FactValue::Number(l), FactValue::Number(r)) => Ok(l < r),
-            (ComparisonOperator::LessThanOrEqual, FactValue::Number(l), FactValue::Number(r)) => Ok(l <= r),
-            (ComparisonOperator::Contains, FactValue::Text(l), FactValue::Text(r)) => Ok(l.contains(r)),
-            (ComparisonOperator::StartsWith, FactValue::Text(l), FactValue::Text(r)) => Ok(l.starts_with(r)),
-            (ComparisonOperator::EndsWith, FactValue::Text(l), FactValue::Text(r)) => Ok(l.ends_with(r)),
-            _ => Err(format!("Invalid comparison: {:?} {:?} {:?}", left, self, right)),
+            (ComparisonOperator::LessThanOrEqual, FactValue::Number(l), FactValue::Number(r)) => {
+                Ok(l <= r)
+            }
+            (ComparisonOperator::Contains, FactValue::Text(l), FactValue::Text(r)) => {
+                Ok(l.contains(r))
+            }
+            (ComparisonOperator::StartsWith, FactValue::Text(l), FactValue::Text(r)) => {
+                Ok(l.starts_with(r))
+            }
+            (ComparisonOperator::EndsWith, FactValue::Text(l), FactValue::Text(r)) => {
+                Ok(l.ends_with(r))
+            }
+            _ => Err(format!(
+                "Invalid comparison: {:?} {:?} {:?}",
+                left, self, right
+            )),
         }
     }
 }
@@ -437,9 +466,14 @@ impl GraphPattern {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PatternType {
     /// Node with specific properties
-    Node { properties: HashMap<String, FactValue> },
+    Node {
+        properties: HashMap<String, FactValue>,
+    },
     /// Path between nodes
-    Path { min_length: usize, max_length: usize },
+    Path {
+        min_length: usize,
+        max_length: usize,
+    },
     /// Subgraph structure
     Subgraph { nodes: usize, edges: usize },
 }
@@ -480,11 +514,14 @@ impl FactSet {
     pub fn add_fact(&mut self, concept: ConceptId, fact_type: String, value: FactValue) {
         let key = (concept, fact_type);
         self.facts.insert(key.clone(), value);
-        self.metadata.insert(key, FactMetadata {
-            timestamp: std::time::SystemTime::now(),
-            source: FactSource::Direct,
-            confidence: 1.0,
-        });
+        self.metadata.insert(
+            key,
+            FactMetadata {
+                timestamp: std::time::SystemTime::now(),
+                source: FactSource::Direct,
+                confidence: 1.0,
+            },
+        );
     }
 
     pub fn get_fact(&self, concept: ConceptId, fact_type: &str) -> Option<FactValue> {

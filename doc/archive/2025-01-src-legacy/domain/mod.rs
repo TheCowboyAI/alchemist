@@ -89,9 +89,9 @@ pub mod prelude {
 
     // Re-export commands
     pub use super::commands::{
-        Command, GraphCommand, NodeCommand, EdgeCommand, WorkflowCommand,
-        DomainCommand, UpdateNodePositions, UpdateGraphSelection,
-        RecognizeGraphModel, ApplyGraphMorphism, MorphismType
+        ApplyGraphMorphism, Command, DomainCommand, EdgeCommand, GraphCommand, MorphismType,
+        NodeCommand, RecognizeGraphModel, UpdateGraphSelection, UpdateNodePositions,
+        WorkflowCommand,
     };
 
     // Re-export content types
@@ -99,15 +99,14 @@ pub mod prelude {
 
     // Re-export events
     pub use super::events::{
-        DomainEvent, GraphEvent, NodeEvent, EdgeEvent,
-        ChainedEvent, EventChain
+        ChainedEvent, DomainEvent, EdgeEvent, EventChain, GraphEvent, NodeEvent,
     };
 
     // Re-export workflow events specifically
     pub use super::events::workflow::{
-        WorkflowCreated, StepAdded, StepsConnected, WorkflowValidated,
-        WorkflowStarted, StepCompleted, WorkflowPaused, WorkflowResumed,
-        WorkflowCompleted, WorkflowFailed, ValidationResult
+        StepAdded, StepCompleted, StepsConnected, ValidationResult, WorkflowCompleted,
+        WorkflowCreated, WorkflowFailed, WorkflowPaused, WorkflowResumed, WorkflowStarted,
+        WorkflowValidated,
     };
 
     // Re-export value objects

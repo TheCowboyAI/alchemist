@@ -1,7 +1,7 @@
+use crate::domain::events::{DomainEvent, EdgeEvent, NodeEvent};
+use crate::domain::value_objects::{GraphId, NodeId, Position3D, SubgraphId};
+use crate::presentation::components::{GraphEdge, GraphNode, SubgraphMember};
 use bevy::prelude::*;
-use crate::domain::value_objects::{NodeId, Position3D, GraphId, SubgraphId};
-use crate::domain::events::{DomainEvent, NodeEvent, EdgeEvent};
-use crate::presentation::components::{GraphNode, GraphEdge, SubgraphMember};
 use std::collections::HashMap;
 use uuid;
 
@@ -13,7 +13,14 @@ pub fn handle_node_added(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in events.read() {
-        if let DomainEvent::Node(NodeEvent::NodeAdded { graph_id, node_id, position, metadata, .. }) = event {
+        if let DomainEvent::Node(NodeEvent::NodeAdded {
+            graph_id,
+            node_id,
+            position,
+            metadata,
+            ..
+        }) = event
+        {
             spawn_node(
                 &mut commands,
                 &mut meshes,
@@ -53,7 +60,14 @@ pub fn handle_edge_added(
     nodes: Query<(Entity, &GraphNode)>,
 ) {
     for event in events.read() {
-        if let DomainEvent::Edge(EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) = event {
+        if let DomainEvent::Edge(EdgeEvent::EdgeConnected {
+            graph_id,
+            edge_id,
+            source,
+            target,
+            ..
+        }) = event
+        {
             // Find source and target entities
             let mut source_entity = None;
             let mut target_entity = None;
@@ -118,10 +132,7 @@ fn spawn_node(
     let color = Color::srgb(0.2, 0.6, 0.8);
 
     let mut entity_commands = commands.spawn((
-        GraphNode {
-            node_id,
-            graph_id,
-        },
+        GraphNode { node_id, graph_id },
         crate::presentation::systems::subgraph_drag_drop::Draggable::default(),
         Mesh3d(meshes.add(Sphere::new(5.0))),
         MeshMaterial3d(materials.add(StandardMaterial {
@@ -143,7 +154,8 @@ fn spawn_node(
                 let subgraph_id = SubgraphId::from_uuid(uuid);
 
                 // Get the subgraph origin
-                let subgraph_origin = metadata.get("subgraph_origin")
+                let subgraph_origin = metadata
+                    .get("subgraph_origin")
                     .and_then(|origin_value| {
                         if let Some(origin_str) = origin_value.as_str() {
                             let parts: Vec<&str> = origin_str.split(',').collect();
@@ -160,7 +172,11 @@ fn spawn_node(
                             None
                         }
                     })
-                    .unwrap_or(Position3D { x: 0.0, y: 0.0, z: 0.0 });
+                    .unwrap_or(Position3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    });
 
                 // Calculate relative position
                 let relative_position = Position3D {

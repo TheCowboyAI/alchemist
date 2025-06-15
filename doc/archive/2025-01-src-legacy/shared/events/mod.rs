@@ -4,7 +4,7 @@
 //! Each context will define its own specific events, but they all share this
 //! common foundation for event sourcing and NATS integration.
 
-use crate::shared::types::{Timestamp, Result};
+use crate::shared::types::{Result, Timestamp};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -127,7 +127,11 @@ pub trait EventStore: Send + Sync {
     async fn append_events(&self, events: Vec<Box<dyn DomainEvent>>) -> Result<()>;
 
     /// Load events for an aggregate
-    async fn load_events(&self, aggregate_id: &str, from_version: u64) -> Result<Vec<serde_json::Value>>;
+    async fn load_events(
+        &self,
+        aggregate_id: &str,
+        from_version: u64,
+    ) -> Result<Vec<serde_json::Value>>;
 
     /// Subscribe to events of a specific type
     async fn subscribe(&self, event_type: &str) -> Result<Box<dyn EventSubscription>>;
@@ -154,32 +158,31 @@ mod tests {
         data: String,
     }
 
-            impl DomainEvent for TestEvent {
-            fn aggregate_id(&self) -> String {
-                self.aggregate_id.clone()
-            }
-
-            fn event_type(&self) -> &'static str {
-                "test_event"
-            }
-
-            fn metadata(&self) -> &EventMetadata {
-                &self.metadata
-            }
-
-            fn to_json(&self) -> Result<serde_json::Value> {
-                serde_json::to_value(self).map_err(|e| Error::Serialization(e))
-            }
-
-            fn clone_box(&self) -> Box<dyn DomainEvent> {
-                Box::new(self.clone())
-            }
+    impl DomainEvent for TestEvent {
+        fn aggregate_id(&self) -> String {
+            self.aggregate_id.clone()
         }
+
+        fn event_type(&self) -> &'static str {
+            "test_event"
+        }
+
+        fn metadata(&self) -> &EventMetadata {
+            &self.metadata
+        }
+
+        fn to_json(&self) -> Result<serde_json::Value> {
+            serde_json::to_value(self).map_err(|e| Error::Serialization(e))
+        }
+
+        fn clone_box(&self) -> Box<dyn DomainEvent> {
+            Box::new(self.clone())
+        }
+    }
 
     #[test]
     fn test_event_metadata_creation() {
-        let metadata = EventMetadata::new()
-            .with_actor("test_user".to_string());
+        let metadata = EventMetadata::new().with_actor("test_user".to_string());
 
         assert!(metadata.actor.is_some());
         assert_eq!(metadata.actor.unwrap(), "test_user");

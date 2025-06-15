@@ -4,8 +4,8 @@
 //! They represent relationships between nodes.
 
 use crate::shared::types::{EdgeId, NodeId};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 /// Edge data within a graph
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

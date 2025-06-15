@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use crate::domain::value_objects::{SubgraphId, NodeId, Position3D, GraphId};
-use crate::domain::commands::{Command, SubgraphCommand};
-use crate::presentation::components::{GraphNode, SubgraphMember, SubgraphOrigin};
 use crate::application::CommandEvent;
+use crate::domain::commands::{Command, SubgraphCommand};
+use crate::domain::value_objects::{GraphId, NodeId, Position3D, SubgraphId};
+use crate::presentation::components::{GraphNode, SubgraphMember, SubgraphOrigin};
+use bevy::prelude::*;
 use std::collections::HashSet;
 
 /// Resource for tracking drag and drop state
@@ -85,7 +85,13 @@ pub fn handle_drag_start(
     keyboard: Res<ButtonInput<KeyCode>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     windows: Query<&Window>,
-    draggables: Query<(Entity, &GraphNode, &Transform, &Draggable, Option<&SubgraphMember>)>,
+    draggables: Query<(
+        Entity,
+        &GraphNode,
+        &Transform,
+        &Draggable,
+        Option<&SubgraphMember>,
+    )>,
 ) {
     // Check for drag initiation (left mouse + shift key)
     if mouse_button.just_pressed(MouseButton::Left) && keyboard.pressed(KeyCode::ShiftLeft) {
@@ -135,7 +141,8 @@ pub fn handle_drag_start(
                                 start_position: transform.translation,
                                 current_position: transform.translation,
                                 offset,
-                                from_subgraph: member.and_then(|m| m.subgraph_ids.iter().next().copied()),
+                                from_subgraph: member
+                                    .and_then(|m| m.subgraph_ids.iter().next().copied()),
                             });
                         }
                     }
@@ -166,7 +173,8 @@ pub fn update_drag(
                             let dragging_info = state.dragging.as_ref().unwrap();
 
                             // Project onto XZ plane (Y = current height)
-                            let t = (dragging_info.current_position.y - ray.origin.y) / ray.direction.y;
+                            let t =
+                                (dragging_info.current_position.y - ray.origin.y) / ray.direction.y;
                             let hit_point = ray.origin + ray.direction.as_vec3() * t;
 
                             // Apply offset
@@ -174,7 +182,9 @@ pub fn update_drag(
 
                             // Apply constraints
                             let mut constrained_position = new_position;
-                            if let Ok((mut transform, draggable)) = dragged_nodes.get_mut(dragging_info.entity) {
+                            if let Ok((mut transform, draggable)) =
+                                dragged_nodes.get_mut(dragging_info.entity)
+                            {
                                 constrained_position = apply_drag_constraints(
                                     new_position,
                                     &draggable.drag_constraints,
@@ -189,17 +199,18 @@ pub fn update_drag(
                             let mut new_hover_zone = None;
 
                             for (origin, zone_transform, drop_zone) in drop_zones.iter() {
-                                let distance = constrained_position.distance(zone_transform.translation);
+                                let distance =
+                                    constrained_position.distance(zone_transform.translation);
                                 let radius = 2.0; // Drop zone radius
 
                                 let is_valid = match &drop_zone.accepts {
                                     DropAcceptance::All => true,
-                                    DropAcceptance::FromSubgraphs(allowed) => {
-                                        dragging_info.from_subgraph.map_or(false, |id| allowed.contains(&id))
-                                    }
-                                    DropAcceptance::NotFromSubgraphs(forbidden) => {
-                                        dragging_info.from_subgraph.map_or(true, |id| !forbidden.contains(&id))
-                                    }
+                                    DropAcceptance::FromSubgraphs(allowed) => dragging_info
+                                        .from_subgraph
+                                        .map_or(false, |id| allowed.contains(&id)),
+                                    DropAcceptance::NotFromSubgraphs(forbidden) => dragging_info
+                                        .from_subgraph
+                                        .map_or(true, |id| !forbidden.contains(&id)),
                                     DropAcceptance::Custom(_) => true, // TODO: Implement custom logic
                                 };
 
@@ -243,7 +254,9 @@ pub fn handle_drop(
             // Check if dropped on a valid zone
             if let Some(target_subgraph) = state.hover_zone {
                 // Calculate relative position within the target subgraph
-                let zone_info = state.drop_zones.iter()
+                let zone_info = state
+                    .drop_zones
+                    .iter()
                     .find(|z| z.subgraph_id == target_subgraph);
 
                 let relative_pos = if let Some(zone) = zone_info {
@@ -262,26 +275,22 @@ pub fn handle_drop(
 
                 // Generate move command
                 events.send(CommandEvent {
-                    command: Command::Subgraph(
-                        SubgraphCommand::MoveNodeBetweenSubgraphs {
-                            graph_id: GraphId::new(), // TODO: Get actual graph ID
-                            node_id: dragging.node_id,
-                            from_subgraph: dragging.from_subgraph.unwrap(),
-                            to_subgraph: target_subgraph,
-                            new_relative_position: relative_pos,
-                        }
-                    ),
+                    command: Command::Subgraph(SubgraphCommand::MoveNodeBetweenSubgraphs {
+                        graph_id: GraphId::new(), // TODO: Get actual graph ID
+                        node_id: dragging.node_id,
+                        from_subgraph: dragging.from_subgraph.unwrap(),
+                        to_subgraph: target_subgraph,
+                        new_relative_position: relative_pos,
+                    }),
                 });
             } else if dragging.from_subgraph.is_some() {
                 // Dropped outside any zone - remove from subgraph
                 events.send(CommandEvent {
-                    command: Command::Subgraph(
-                        SubgraphCommand::RemoveNodeFromSubgraph {
-                            graph_id: GraphId::new(), // TODO: Get actual graph ID
-                            subgraph_id: dragging.from_subgraph.unwrap(),
-                            node_id: dragging.node_id,
-                        }
-                    ),
+                    command: Command::Subgraph(SubgraphCommand::RemoveNodeFromSubgraph {
+                        graph_id: GraphId::new(), // TODO: Get actual graph ID
+                        subgraph_id: dragging.from_subgraph.unwrap(),
+                        node_id: dragging.node_id,
+                    }),
                 });
             }
 
@@ -293,10 +302,7 @@ pub fn handle_drop(
 }
 
 /// Visualize drop zones
-pub fn visualize_drop_zones(
-    state: Res<DragDropState>,
-    mut gizmos: Gizmos,
-) {
+pub fn visualize_drop_zones(state: Res<DragDropState>, mut gizmos: Gizmos) {
     if state.dragging.is_some() {
         for zone in &state.drop_zones {
             let color = if Some(zone.subgraph_id) == state.hover_zone {
@@ -324,16 +330,10 @@ pub fn visualize_drop_zones(
                 let angle1 = (i as f32 / segments as f32) * std::f32::consts::TAU;
                 let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
 
-                let p1 = zone.center + Vec3::new(
-                    angle1.cos() * zone.radius,
-                    0.0,
-                    angle1.sin() * zone.radius,
-                );
-                let p2 = zone.center + Vec3::new(
-                    angle2.cos() * zone.radius,
-                    0.0,
-                    angle2.sin() * zone.radius,
-                );
+                let p1 = zone.center
+                    + Vec3::new(angle1.cos() * zone.radius, 0.0, angle1.sin() * zone.radius);
+                let p2 = zone.center
+                    + Vec3::new(angle2.cos() * zone.radius, 0.0, angle2.sin() * zone.radius);
 
                 gizmos.line(p1, p2, color);
                 gizmos.line(p1 + Vec3::Y * 0.5, p2 + Vec3::Y * 0.5, color);
@@ -360,13 +360,23 @@ fn apply_drag_constraints(
     match constraints {
         DragConstraints::None => position,
 
-        DragConstraints::AxisAligned { axes } => {
-            Vec3::new(
-                if axes.x > 0.0 { position.x } else { start_position.x },
-                if axes.y > 0.0 { position.y } else { start_position.y },
-                if axes.z > 0.0 { position.z } else { start_position.z },
-            )
-        }
+        DragConstraints::AxisAligned { axes } => Vec3::new(
+            if axes.x > 0.0 {
+                position.x
+            } else {
+                start_position.x
+            },
+            if axes.y > 0.0 {
+                position.y
+            } else {
+                start_position.y
+            },
+            if axes.z > 0.0 {
+                position.z
+            } else {
+                start_position.z
+            },
+        ),
 
         DragConstraints::WithinRadius { center, radius } => {
             let offset = position - *center;
@@ -377,9 +387,7 @@ fn apply_drag_constraints(
             }
         }
 
-        DragConstraints::WithinBounds { min, max } => {
-            position.clamp(*min, *max)
-        }
+        DragConstraints::WithinBounds { min, max } => position.clamp(*min, *max),
     }
 }
 
@@ -395,19 +403,21 @@ pub fn create_drag_ghost(
         if state.is_changed() && dragging.entity != Entity::PLACEHOLDER {
             if let Ok(transform) = nodes.get(dragging.entity) {
                 // Create semi-transparent ghost
-                let ghost = commands.spawn((
-                    Mesh3d(meshes.add(Sphere::new(0.5).mesh())),
-                    MeshMaterial3d(materials.add(StandardMaterial {
-                        base_color: Color::srgb(1.0, 1.0, 1.0).with_alpha(0.3),
-                        alpha_mode: AlphaMode::Blend,
-                        ..default()
-                    })),
-                    Transform::from_translation(transform.translation),
-                    DragGhost {
-                        original_entity: dragging.entity,
-                        offset: dragging.offset,
-                    },
-                )).id();
+                let ghost = commands
+                    .spawn((
+                        Mesh3d(meshes.add(Sphere::new(0.5).mesh())),
+                        MeshMaterial3d(materials.add(StandardMaterial {
+                            base_color: Color::srgb(1.0, 1.0, 1.0).with_alpha(0.3),
+                            alpha_mode: AlphaMode::Blend,
+                            ..default()
+                        })),
+                        Transform::from_translation(transform.translation),
+                        DragGhost {
+                            original_entity: dragging.entity,
+                            offset: dragging.offset,
+                        },
+                    ))
+                    .id();
             }
         }
     }
@@ -431,20 +441,17 @@ pub struct SubgraphDragDropPlugin;
 
 impl Plugin for SubgraphDragDropPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<DragDropState>()
-            .add_systems(
-                Update,
-                (
-                    handle_drag_start,
-                    update_drag,
-                    handle_drop,
-                    visualize_drop_zones,
-                    create_drag_ghost,
-                    cleanup_drag_ghosts,
-                )
-                    .chain(),
-            );
+        app.init_resource::<DragDropState>().add_systems(
+            Update,
+            (
+                handle_drag_start,
+                update_drag,
+                handle_drop,
+                visualize_drop_zones,
+                create_drag_ghost,
+                cleanup_drag_ghosts,
+            )
+                .chain(),
+        );
     }
 }
-

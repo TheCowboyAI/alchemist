@@ -2,15 +2,15 @@
 //!
 //! These tests verify system resilience and error recovery capabilities.
 
-use ia::domain::events::DomainEvent;
-use ia::domain::value_objects::{GraphId, NodeId, Position3D, GraphMetadata};
-use ia::domain::commands::GraphCommand;
-use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
-use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
 use super::fixtures::*;
+use ia::application::command_handlers::{CommandHandler, GraphCommandHandler};
+use ia::domain::commands::GraphCommand;
+use ia::domain::events::DomainEvent;
+use ia::domain::value_objects::{GraphId, GraphMetadata, NodeId, Position3D};
+use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use std::collections::HashMap;
 
 #[tokio::test]
 #[ignore = "requires running NATS server"]
@@ -20,19 +20,19 @@ async fn test_event_store_recovery_after_failure() -> Result<(), Box<dyn std::er
 
     // Create initial events
     let graph_id = GraphId::new();
-    let events = vec![
-        DomainEvent::GraphCreated {
-            id: graph_id,
-            metadata: GraphMetadata {
-                name: "recovery-test".to_string(),
-                ..Default::default()
-            },
-            timestamp: std::time::SystemTime::now(),
+    let events = vec![DomainEvent::GraphCreated {
+        id: graph_id,
+        metadata: GraphMetadata {
+            name: "recovery-test".to_string(),
+            ..Default::default()
         },
-    ];
+        timestamp: std::time::SystemTime::now(),
+    }];
 
     // Store events
-    event_store.append_events(graph_id.to_string(), events).await?;
+    event_store
+        .append_events(graph_id.to_string(), events)
+        .await?;
 
     // Simulate failure by creating new event store instance
     let event_store2 = Arc::new(DistributedEventStore::new(jetstream).await?);
@@ -85,7 +85,11 @@ async fn test_concurrent_modification_handling() -> Result<(), Box<dyn std::erro
                 graph_id: graph_id_clone,
                 node_id: node_id1,
                 content: format!("node-a-{}", i),
-                position: Position3D { x: i as f32, y: 0.0, z: 0.0 },
+                position: Position3D {
+                    x: i as f32,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 metadata: Default::default(),
             };
 
@@ -93,7 +97,11 @@ async fn test_concurrent_modification_handling() -> Result<(), Box<dyn std::erro
                 graph_id: graph_id_clone,
                 node_id: node_id2,
                 content: format!("node-b-{}", i),
-                position: Position3D { x: i as f32, y: 1.0, z: 0.0 },
+                position: Position3D {
+                    x: i as f32,
+                    y: 1.0,
+                    z: 0.0,
+                },
                 metadata: Default::default(),
             };
 
@@ -155,14 +163,12 @@ async fn test_event_deduplication() -> Result<(), Box<dyn std::error::Error>> {
 
     // Publish same event multiple times with same ID
     for _ in 0..3 {
-        let headers = async_nats::HeaderMap::new()
-            .insert("Nats-Msg-Id", msg_id);
+        let headers = async_nats::HeaderMap::new().insert("Nats-Msg-Id", msg_id);
 
-        jetstream.publish_with_headers(
-            "dedup.test.event",
-            headers,
-            payload.clone().into()
-        ).await?.await?;
+        jetstream
+            .publish_with_headers("dedup.test.event", headers, payload.clone().into())
+            .await?
+            .await?;
     }
 
     // Check stream stats - should only have 1 message
@@ -200,7 +206,11 @@ async fn test_partial_failure_rollback() -> Result<(), Box<dyn std::error::Error
             graph_id,
             node_id: *node_id,
             content: format!("node-{}", i),
-            position: Position3D { x: i as f32, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: i as f32,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         };
 
@@ -224,7 +234,8 @@ async fn test_partial_failure_rollback() -> Result<(), Box<dyn std::error::Error
     assert!(events.len() >= 7);
 
     // Verify CID chain integrity after all operations
-    let chain_events: Vec<_> = events.iter()
+    let chain_events: Vec<_> = events
+        .iter()
         .map(|e| e.as_chained_event())
         .collect::<Result<Vec<_>, _>>()?;
 
@@ -260,7 +271,9 @@ async fn test_event_replay_after_crash() -> Result<(), Box<dyn std::error::Error
         },
     ];
 
-    event_store.append_events(graph_id.to_string(), events).await?;
+    event_store
+        .append_events(graph_id.to_string(), events)
+        .await?;
 
     // Simulate crash and recovery
     drop(event_store);
@@ -282,10 +295,9 @@ async fn test_event_replay_after_crash() -> Result<(), Box<dyn std::error::Error
         timestamp: std::time::SystemTime::now(),
     };
 
-    new_event_store.append_events(
-        graph_id.to_string(),
-        vec![post_crash_event]
-    ).await?;
+    new_event_store
+        .append_events(graph_id.to_string(), vec![post_crash_event])
+        .await?;
 
     // Verify complete chain
     let final_events = new_event_store.get_events(graph_id.to_string()).await?;

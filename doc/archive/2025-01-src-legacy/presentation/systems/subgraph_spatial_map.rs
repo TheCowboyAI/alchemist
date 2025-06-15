@@ -1,7 +1,7 @@
+use crate::domain::value_objects::{Position3D, SubgraphId};
+use crate::presentation::components::{GraphNode, SubgraphMember};
 use bevy::prelude::*;
 use std::collections::HashMap;
-use crate::presentation::components::{GraphNode, SubgraphMember};
-use crate::domain::value_objects::{Position3D, SubgraphId};
 
 /// Component for subgraph root entities that act as transform parents
 #[derive(Component)]
@@ -50,18 +50,20 @@ pub fn build_subgraph_hierarchy(
     for (subgraph_id, node_list) in subgraph_nodes {
         let root_entity = spatial_map.roots.entry(subgraph_id).or_insert_with(|| {
             // Create a new root entity for this subgraph
-            let root = commands.spawn((
-                SubgraphRoot {
-                    subgraph_id,
-                    name: format!("Subgraph_{}", subgraph_id),
-                },
-                Transform::default(),
-                GlobalTransform::default(),
-                Visibility::default(),
-                InheritedVisibility::default(),
-                ViewVisibility::default(),
-                Name::new(format!("SubgraphRoot_{}", subgraph_id)),
-            )).id();
+            let root = commands
+                .spawn((
+                    SubgraphRoot {
+                        subgraph_id,
+                        name: format!("Subgraph_{}", subgraph_id),
+                    },
+                    Transform::default(),
+                    GlobalTransform::default(),
+                    Visibility::default(),
+                    InheritedVisibility::default(),
+                    ViewVisibility::default(),
+                    Name::new(format!("SubgraphRoot_{}", subgraph_id)),
+                ))
+                .id();
 
             // Optionally add a visual indicator for the subgraph origin
             commands.entity(root).with_children(|parent| {
@@ -85,13 +87,13 @@ pub fn build_subgraph_hierarchy(
             commands.entity(*root_entity).add_child(node_entity);
 
             // Update the node's transform to be relative to the subgraph root
-            commands.entity(node_entity).insert(
-                Transform::from_translation(Vec3::new(
+            commands
+                .entity(node_entity)
+                .insert(Transform::from_translation(Vec3::new(
                     relative_pos.x,
                     relative_pos.y,
                     relative_pos.z,
-                ))
-            );
+                )));
         }
     }
 }
@@ -128,7 +130,9 @@ pub fn update_subgraph_spatial_index(
     roots: Query<(&SubgraphRoot, &Transform), Changed<Transform>>,
 ) {
     for (root, transform) in roots.iter() {
-        spatial_map.spatial_index.insert(root.subgraph_id, *transform);
+        spatial_map
+            .spatial_index
+            .insert(root.subgraph_id, *transform);
     }
 }
 
@@ -137,12 +141,14 @@ pub struct SubgraphSpatialMapPlugin;
 
 impl Plugin for SubgraphSpatialMapPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<SubgraphSpatialMap>()
-            .add_systems(Update, (
+        app.init_resource::<SubgraphSpatialMap>().add_systems(
+            Update,
+            (
                 build_subgraph_hierarchy,
                 move_subgraph_system,
                 update_subgraph_spatial_index,
-            ).chain());
+            )
+                .chain(),
+        );
     }
 }

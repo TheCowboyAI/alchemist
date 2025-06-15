@@ -4,21 +4,21 @@
 //! like Neo4j, JSON files, n8n workflows, Paperless-NGx, SearXNG, and email.
 
 use async_trait::async_trait;
+use futures::stream::Stream;
 use serde::{Deserialize, Serialize};
+use std::pin::Pin;
 use std::time::Duration;
 use thiserror::Error;
-use futures::stream::Stream;
-use std::pin::Pin;
 
-use crate::domain::events::DomainEvent;
 use crate::domain::commands::DomainCommand;
+use crate::domain::events::DomainEvent;
 
-pub mod neo4j;
+pub mod email;
 pub mod json;
 pub mod n8n;
+pub mod neo4j;
 pub mod paperless;
 pub mod searxng;
-pub mod email;
 
 /// Error types for projection operations
 #[derive(Debug, Error)]
@@ -68,7 +68,9 @@ pub trait ExternalProjection: Send + Sync {
     type Connection: Send + Sync;
 
     /// Create a new instance with configuration
-    fn new(config: Self::Config) -> Self where Self: Sized;
+    fn new(config: Self::Config) -> Self
+    where
+        Self: Sized;
 
     /// Establish connection to the external system
     async fn connect(&self) -> Result<Self::Connection, ProjectionError>;
@@ -235,16 +237,15 @@ pub trait IngestHandler: Send + Sync {
     type Config: Send + Sync;
 
     /// Create a new handler instance
-    fn new(config: Self::Config) -> Self where Self: Sized;
+    fn new(config: Self::Config) -> Self
+    where
+        Self: Sized;
 
     /// Subscribe to the external system's event stream
     async fn subscribe(&self) -> Result<EventStream<Self::Event>, IngestError>;
 
     /// Transform an external event into domain commands
-    async fn transform_event(
-        &self,
-        event: Self::Event,
-    ) -> Result<Vec<DomainCommand>, IngestError>;
+    async fn transform_event(&self, event: Self::Event) -> Result<Vec<DomainCommand>, IngestError>;
 
     /// Handle ingestion errors
     async fn handle_error(&self, error: IngestError) -> ErrorRecovery {

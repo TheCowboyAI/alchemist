@@ -3,7 +3,7 @@
 //! This test verifies that our integration test setup is working correctly
 //! before running more complex tests.
 
-use cim_domain::{DomainResult, NodeId, EdgeId};
+use cim_domain::{DomainResult, EdgeId, NodeId};
 
 #[tokio::test]
 async fn test_basic_domain_types() -> DomainResult<()> {
@@ -21,13 +21,11 @@ async fn test_basic_domain_types() -> DomainResult<()> {
 #[tokio::test]
 async fn test_async_runtime() -> DomainResult<()> {
     // Test that async runtime is working
-    let result = tokio::time::timeout(
-        std::time::Duration::from_secs(1),
-        async {
-            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
-            42
-        }
-    ).await;
+    let result = tokio::time::timeout(std::time::Duration::from_secs(1), async {
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        42
+    })
+    .await;
 
     assert_eq!(result?, 42);
     Ok(())

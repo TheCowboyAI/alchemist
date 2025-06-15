@@ -1,13 +1,13 @@
 //! Event-driven animation system for graph visualization
 
 use bevy::prelude::*;
-use tracing::info;
 use std::time::Duration;
+use tracing::info;
 
-use crate::presentation::components::{GraphNode, GraphEdge, AnimationProgress};
-use crate::domain::value_objects::{NodeId, EdgeId, GraphId};
-use super::nats_replay::{NatsGraphEvent, RecordedEvent, StartNatsReplay};
 use super::force_layout::ForceNode;
+use super::nats_replay::{NatsGraphEvent, RecordedEvent, StartNatsReplay};
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId};
+use crate::presentation::components::{AnimationProgress, GraphEdge, GraphNode};
 
 /// Event to schedule a command for future execution
 #[derive(Event)]
@@ -75,7 +75,11 @@ pub fn execute_graph_commands(
 ) {
     for event in events.read() {
         match &event.0 {
-            GraphCommand::SpawnNode { node_id, position, label } => {
+            GraphCommand::SpawnNode {
+                node_id,
+                position,
+                label,
+            } => {
                 info!("Spawning node: {} at {:?}", label, position);
 
                 // Record as NATS event
@@ -93,8 +97,7 @@ pub fn execute_graph_commands(
                         perceptual_roughness: 0.2,
                         ..default()
                     })),
-                    Transform::from_translation(*position)
-                        .with_scale(Vec3::ZERO), // Start at zero scale
+                    Transform::from_translation(*position).with_scale(Vec3::ZERO), // Start at zero scale
                     GraphNode {
                         node_id: *node_id,
                         graph_id: GraphId::new(),
@@ -105,7 +108,11 @@ pub fn execute_graph_commands(
                 ));
             }
 
-            GraphCommand::SpawnEdge { edge_id, source, target } => {
+            GraphCommand::SpawnEdge {
+                edge_id,
+                source,
+                target,
+            } => {
                 info!("Spawning edge from {:?} to {:?}", source, target);
 
                 // Record as NATS event (need to get node IDs)
@@ -135,7 +142,9 @@ pub fn execute_graph_commands(
                     progress: *progress,
                 }));
 
-                commands.entity(*entity).insert(AnimationProgress(*progress));
+                commands
+                    .entity(*entity)
+                    .insert(AnimationProgress(*progress));
             }
         }
     }
@@ -155,12 +164,15 @@ pub fn handle_scheduled_commands(
 }
 
 // Type alias to reduce complexity
-type AnimatedNodeQuery<'w, 's> = Query<'w, 's, (&'static AnimationProgress, &'static mut Transform), (With<GraphNode>, Without<GraphEdge>)>;
+type AnimatedNodeQuery<'w, 's> = Query<
+    'w,
+    's,
+    (&'static AnimationProgress, &'static mut Transform),
+    (With<GraphNode>, Without<GraphEdge>),
+>;
 
 /// System to animate nodes and edges based on AnimationProgress
-pub fn animate_graph_elements(
-    mut nodes: AnimatedNodeQuery,
-) {
+pub fn animate_graph_elements(mut nodes: AnimatedNodeQuery) {
     for (progress, mut transform) in nodes.iter_mut() {
         if progress.0 < 1.0 {
             // Smooth ease-out animation
@@ -228,7 +240,10 @@ mod tests {
         for i in 1..=100 {
             let t = i as f32 / 100.0;
             let value = ease_out_cubic(t);
-            assert!(value > prev, "ease_out_cubic should be monotonically increasing");
+            assert!(
+                value > prev,
+                "ease_out_cubic should be monotonically increasing"
+            );
             prev = value;
         }
     }
@@ -274,7 +289,10 @@ mod tests {
 
         // Check event was sent
         let events = app.world().resource::<Events<ExecuteGraphCommand>>();
-        assert!(events.len() > 0, "At least one event should have been sent after timer finished");
+        assert!(
+            events.len() > 0,
+            "At least one event should have been sent after timer finished"
+        );
     }
 
     #[test]
@@ -315,14 +333,17 @@ mod tests {
         app.add_plugins(MinimalPlugins);
 
         // Create node with animation progress
-        let node = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_scale(Vec3::ZERO),
-            AnimationProgress(0.5),
-        )).id();
+        let node = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_scale(Vec3::ZERO),
+                AnimationProgress(0.5),
+            ))
+            .id();
 
         // Add system
         app.add_systems(Update, animate_graph_elements);
@@ -361,7 +382,11 @@ mod tests {
 
         // Check progress was updated to 0.2
         let progress = app.world().get::<AnimationProgress>(entity).unwrap();
-        assert!((progress.0 - 0.2).abs() < 0.001, "Expected progress 0.2, got {}", progress.0);
+        assert!(
+            (progress.0 - 0.2).abs() < 0.001,
+            "Expected progress 0.2, got {}",
+            progress.0
+        );
 
         // Run multiple updates to reach 1.0
         for _ in 0..4 {
@@ -388,16 +413,19 @@ mod tests {
         app.add_systems(Update, execute_graph_commands);
 
         // Send spawn node command
-        app.world_mut().send_event(ExecuteGraphCommand(GraphCommand::SpawnNode {
-            node_id: NodeId::new(),
-            position: Vec3::new(1.0, 2.0, 3.0),
-            label: "Test Node".to_string(),
-        }));
+        app.world_mut()
+            .send_event(ExecuteGraphCommand(GraphCommand::SpawnNode {
+                node_id: NodeId::new(),
+                position: Vec3::new(1.0, 2.0, 3.0),
+                label: "Test Node".to_string(),
+            }));
 
         app.update();
 
         // Check that node was spawned
-        let mut query = app.world_mut().query::<(&GraphNode, &Transform, &AnimationProgress)>();
+        let mut query = app
+            .world_mut()
+            .query::<(&GraphNode, &Transform, &AnimationProgress)>();
         let node_count = query.iter(app.world()).count();
         assert_eq!(node_count, 1);
 
@@ -419,31 +447,38 @@ mod tests {
         app.add_event::<ExecuteGraphCommand>();
 
         // Spawn source and target nodes first
-        let source = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.0, 0.0, 0.0),
-        )).id();
+        let source = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.0, 0.0, 0.0),
+            ))
+            .id();
 
-        let target = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(1.0, 0.0, 0.0),
-        )).id();
+        let target = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(1.0, 0.0, 0.0),
+            ))
+            .id();
 
         // Add system
         app.add_systems(Update, execute_graph_commands);
 
         // Send spawn edge command
-        app.world_mut().send_event(ExecuteGraphCommand(GraphCommand::SpawnEdge {
-            edge_id: EdgeId::new(),
-            source,
-            target,
-        }));
+        app.world_mut()
+            .send_event(ExecuteGraphCommand(GraphCommand::SpawnEdge {
+                edge_id: EdgeId::new(),
+                source,
+                target,
+            }));
 
         app.update();
 
@@ -469,7 +504,9 @@ mod tests {
         app.add_systems(Update, handle_nats_replay_input);
 
         // Simulate N key press
-        app.world_mut().resource_mut::<ButtonInput<KeyCode>>().press(KeyCode::KeyN);
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::KeyN);
 
         // Run update
         app.update();
@@ -479,7 +516,9 @@ mod tests {
         assert_eq!(events.len(), 1);
 
         // Clear and press again - should only trigger on just_pressed
-        app.world_mut().resource_mut::<ButtonInput<KeyCode>>().clear();
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .clear();
         app.update();
 
         // Events should still be 1 (no new events)

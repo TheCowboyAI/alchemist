@@ -3,12 +3,12 @@
 //! Commands represent user intent and are processed by the aggregate.
 //! Each command implements the Command trait for dependency injection.
 
-use crate::shared::types::{GraphId, NodeId, EdgeId, Result};
-use crate::shared::events::{EventMetadata, DomainEvent};
-use crate::contexts::graph::domain::context_graph::{ContextGraph, Command};
-use crate::contexts::graph::domain::events::{GraphEvent, NodeAdded, EdgeAdded};
+use crate::contexts::graph::domain::context_graph::{Command, ContextGraph};
+use crate::contexts::graph::domain::events::{EdgeAdded, GraphEvent, NodeAdded};
+use crate::shared::events::{DomainEvent, EventMetadata};
+use crate::shared::types::{EdgeId, GraphId, NodeId, Result};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 /// Create a new graph command
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,7 +42,7 @@ impl Command for AddNode {
         // Validate graph ID matches
         if graph.id() != self.graph_id {
             return Err(crate::shared::types::Error::InvalidOperation(
-                "Graph ID mismatch".to_string()
+                "Graph ID mismatch".to_string(),
             ));
         }
 
@@ -78,7 +78,7 @@ impl Command for ConnectNodes {
         // Validate graph ID matches
         if graph.id() != self.graph_id {
             return Err(crate::shared::types::Error::InvalidOperation(
-                "Graph ID mismatch".to_string()
+                "Graph ID mismatch".to_string(),
             ));
         }
 
@@ -88,7 +88,7 @@ impl Command for ConnectNodes {
             self.source,
             self.target,
             self.edge_type.clone(),
-            self.metadata.clone()
+            self.metadata.clone(),
         )?;
 
         // Create event
@@ -121,7 +121,9 @@ pub trait GraphFactory: Send + Sync {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::contexts::graph::domain::context_graph::{DefaultInvariantValidator, DefaultPositionCalculator};
+    use crate::contexts::graph::domain::context_graph::{
+        DefaultInvariantValidator, DefaultPositionCalculator,
+    };
 
     #[test]
     fn test_add_node_command() {
@@ -138,7 +140,8 @@ mod tests {
             root_id,
             Box::new(DefaultInvariantValidator),
             Box::new(DefaultPositionCalculator),
-        ).unwrap();
+        )
+        .unwrap();
 
         // Create and execute command
         let node_id = NodeId::new();
@@ -171,14 +174,19 @@ mod tests {
             root_id,
             Box::new(DefaultInvariantValidator),
             Box::new(DefaultPositionCalculator),
-        ).unwrap();
+        )
+        .unwrap();
 
         // Add two nodes first
         let node1 = NodeId::new();
         let node2 = NodeId::new();
 
-        graph.add_node(node1, "Node1".to_string(), HashMap::new()).unwrap();
-        graph.add_node(node2, "Node2".to_string(), HashMap::new()).unwrap();
+        graph
+            .add_node(node1, "Node1".to_string(), HashMap::new())
+            .unwrap();
+        graph
+            .add_node(node2, "Node2".to_string(), HashMap::new())
+            .unwrap();
 
         // Connect them
         let edge_id = EdgeId::new();

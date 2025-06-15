@@ -3,17 +3,18 @@
 //! These tests require a running NATS server with JetStream enabled.
 //! Run with: nats-server -js
 
-use ia::infrastructure::object_store::{NatsObjectStore, ContentBucket, ContentStorageService};
-use ia::domain::content_types::GraphContent;
-use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata};
 use async_nats::jetstream;
 use cid::Cid;
 use cim_ipld::TypedContent;
+use ia::domain::content_types::GraphContent;
+use ia::domain::value_objects::{EdgeId, GraphId, GraphMetadata, NodeId, Position3D};
+use ia::infrastructure::object_store::{ContentBucket, ContentStorageService, NatsObjectStore};
 use std::sync::Arc;
 use std::time::Duration;
 
 /// Helper to connect to NATS for testing
-async fn connect_nats() -> Result<(async_nats::Client, jetstream::Context), Box<dyn std::error::Error>> {
+async fn connect_nats()
+-> Result<(async_nats::Client, jetstream::Context), Box<dyn std::error::Error>> {
     let client = async_nats::connect("nats://localhost:4222").await?;
     let jetstream = jetstream::new(client.clone());
     Ok((client, jetstream))
@@ -22,7 +23,11 @@ async fn connect_nats() -> Result<(async_nats::Client, jetstream::Context), Box<
 /// Helper to create a unique test bucket name
 #[allow(dead_code)]
 fn test_bucket_name(base: &str) -> String {
-    format!("test-{}-{}", base, uuid::Uuid::new_v4().to_string().split('-').next().unwrap())
+    format!(
+        "test-{}-{}",
+        base,
+        uuid::Uuid::new_v4().to_string().split('-').next().unwrap()
+    )
 }
 
 #[tokio::test]
@@ -52,7 +57,11 @@ async fn test_store_and_retrieve_graph() -> Result<(), Box<dyn std::error::Error
     assert_eq!(retrieved.metadata.name, graph.metadata.name);
 
     // Check existence
-    assert!(object_store.exists(&cid, GraphContent::CONTENT_TYPE.codec()).await?);
+    assert!(
+        object_store
+            .exists(&cid, GraphContent::CONTENT_TYPE.codec())
+            .await?
+    );
 
     Ok(())
 }
@@ -74,9 +83,9 @@ async fn test_content_storage_service() -> Result<(), Box<dyn std::error::Error>
     let object_store = Arc::new(NatsObjectStore::new(jetstream, 1024).await?);
     let storage_service = ContentStorageService::new(
         object_store,
-        10,  // Small cache for testing
+        10, // Small cache for testing
         Duration::from_secs(60),
-        1024 * 1024,  // 1MB cache size
+        1024 * 1024, // 1MB cache size
     );
 
     // NOTE: EdgeIPLDContent has been removed - this test needs updating
@@ -134,10 +143,7 @@ async fn test_bucket_management() -> Result<(), Box<dyn std::error::Error>> {
             name: format!("graph-{i}"),
             ..Default::default()
         };
-        let graph = GraphContent::new(
-            GraphId::new(),
-            metadata,
-        );
+        let graph = GraphContent::new(GraphId::new(), metadata);
         object_store.put(&graph).await?;
     }
 
@@ -171,7 +177,9 @@ async fn test_bucket_management() -> Result<(), Box<dyn std::error::Error>> {
 
 /// Helper function to clean up test buckets
 #[allow(dead_code)]
-async fn cleanup_test_buckets(jetstream: &jetstream::Context) -> Result<(), Box<dyn std::error::Error>> {
+async fn cleanup_test_buckets(
+    jetstream: &jetstream::Context,
+) -> Result<(), Box<dyn std::error::Error>> {
     // For now, just clean up known buckets
     // async-nats 0.41 doesn't have a simple way to list all object stores
     let buckets = vec![

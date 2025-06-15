@@ -1,6 +1,6 @@
 //! Content storage service with deduplication and caching
 
-use super::{NatsObjectStore, ObjectStoreError, Result, ContentBucket, ObjectInfo};
+use super::{ContentBucket, NatsObjectStore, ObjectInfo, ObjectStoreError, Result};
 use cid::Cid;
 use cim_ipld::TypedContent;
 use lru::LruCache;
@@ -50,11 +50,16 @@ impl ContentStorageService {
     /// Store content with deduplication
     pub async fn store<T: TypedContent>(&self, content: &T) -> Result<Cid> {
         // Calculate CID for deduplication
-        let cid = content.calculate_cid()
+        let cid = content
+            .calculate_cid()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
 
         // Check if already exists
-        if self.object_store.exists(&cid, T::CONTENT_TYPE.codec()).await? {
+        if self
+            .object_store
+            .exists(&cid, T::CONTENT_TYPE.codec())
+            .await?
+        {
             debug!("Content already exists: {}", cid);
             return Ok(cid);
         }
@@ -63,11 +68,16 @@ impl ContentStorageService {
         self.object_store.put(content).await?;
 
         // Cache the content
-        let data = content.to_bytes()
+        let data = content
+            .to_bytes()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
         self.cache_content(cid, data, T::CONTENT_TYPE.codec()).await;
 
-        info!("Stored content: {} (type: {})", cid, T::CONTENT_TYPE.codec());
+        info!(
+            "Stored content: {} (type: {})",
+            cid,
+            T::CONTENT_TYPE.codec()
+        );
         Ok(cid)
     }
 
@@ -86,9 +96,11 @@ impl ContentStorageService {
         let content = self.object_store.get::<T>(cid).await?;
 
         // Cache for future use
-        let data = content.to_bytes()
+        let data = content
+            .to_bytes()
             .map_err(|e| ObjectStoreError::Serialization(e.to_string()))?;
-        self.cache_content(*cid, data, T::CONTENT_TYPE.codec()).await;
+        self.cache_content(*cid, data, T::CONTENT_TYPE.codec())
+            .await;
 
         Ok(content)
     }

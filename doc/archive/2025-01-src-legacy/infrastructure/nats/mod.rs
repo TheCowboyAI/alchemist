@@ -18,8 +18,6 @@ pub use client::NatsClient;
 pub use config::{NatsConfig, SecurityConfig};
 pub use error::Result;
 
-
-
 /// Initialize NATS connection with default configuration for localhost
 pub async fn connect_localhost() -> Result<Client> {
     let config = NatsConfig::localhost();
@@ -76,7 +74,9 @@ pub async fn connect_with_config(config: &NatsConfig) -> Result<Client> {
         }
     }
 
-    let client = options.connect(&config.url).await
+    let client = options
+        .connect(&config.url)
+        .await
         .map_err(|e| NatsError::Connection(format!("Failed to connect: {}", e)))?;
 
     info!("Successfully connected to NATS");

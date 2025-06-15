@@ -1,13 +1,13 @@
 //! Core concept graph types
 
-use std::collections::HashMap;
-use std::fmt;
+use petgraph::graph::{EdgeIndex, Graph, NodeIndex};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
+use std::fmt;
 use uuid::Uuid;
-use petgraph::graph::{Graph, NodeIndex, EdgeIndex};
 
-use super::{QualityDimension, CategoryType, GraphMorphism};
+use super::{CategoryType, GraphMorphism, QualityDimension};
 
 /// Unique identifier for a concept
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -111,7 +111,12 @@ impl ConceptGraph {
     }
 
     /// Add an edge between nodes
-    pub fn add_edge(&mut self, source: NodeIndex, target: NodeIndex, edge: ConceptEdge) -> EdgeIndex {
+    pub fn add_edge(
+        &mut self,
+        source: NodeIndex,
+        target: NodeIndex,
+        edge: ConceptEdge,
+    ) -> EdgeIndex {
         self.structure.add_edge(source, target, edge)
     }
 
@@ -172,9 +177,15 @@ impl ConceptNode {
     /// Get the node's quality position
     pub fn quality_position(&self) -> &super::ConceptualPoint {
         match self {
-            ConceptNode::Atom { quality_position, .. } => quality_position,
-            ConceptNode::Composite { quality_position, .. } => quality_position,
-            ConceptNode::Function { quality_position, .. } => quality_position,
+            ConceptNode::Atom {
+                quality_position, ..
+            } => quality_position,
+            ConceptNode::Composite {
+                quality_position, ..
+            } => quality_position,
+            ConceptNode::Function {
+                quality_position, ..
+            } => quality_position,
         }
     }
 }
@@ -201,15 +212,9 @@ pub enum FunctionImpl {
     /// Built-in function
     BuiltIn(String),
     /// User-defined function
-    UserDefined {
-        name: String,
-        body: String,
-    },
+    UserDefined { name: String, body: String },
     /// External function reference
-    External {
-        module: String,
-        function: String,
-    },
+    External { module: String, function: String },
 }
 
 /// Edges in a concept graph

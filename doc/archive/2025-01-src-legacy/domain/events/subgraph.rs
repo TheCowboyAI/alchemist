@@ -1,7 +1,7 @@
 //! Subgraph-related domain events
 
+use crate::domain::value_objects::{GraphId, NodeId, Position3D, SubgraphId};
 use serde::{Deserialize, Serialize};
-use crate::domain::value_objects::{GraphId, SubgraphId, NodeId, Position3D};
 
 /// Events related to subgraph operations
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

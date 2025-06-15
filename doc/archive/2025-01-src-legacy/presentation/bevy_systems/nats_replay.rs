@@ -1,16 +1,16 @@
 //! NATS-based event replay system for testing connectivity
 
-use bevy::prelude::*;
-use tracing::{info, error, debug};
 use async_nats::Client;
+use bevy::prelude::*;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tracing::{debug, error, info};
 
-use crate::presentation::components::{GraphNode, GraphEdge, AnimationProgress};
-use crate::domain::value_objects::{NodeId, EdgeId, GraphId};
 use super::force_layout::ForceNode;
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId};
+use crate::presentation::components::{AnimationProgress, GraphEdge, GraphNode};
 
 /// NATS event replay subject
 const REPLAY_SUBJECT: &str = "graph.replay.events";
@@ -49,14 +49,21 @@ impl NatsClient {
         })
     }
 
-    pub async fn publish(&self, subject: &str, event: &NatsGraphEvent) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn publish(
+        &self,
+        subject: &str,
+        event: &NatsGraphEvent,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let payload = serde_json::to_vec(event)?;
         let client = self.client.lock().await;
         client.publish(subject.to_string(), payload.into()).await?;
         Ok(())
     }
 
-    pub async fn subscribe(&self, subject: &str) -> Result<async_nats::Subscriber, Box<dyn std::error::Error>> {
+    pub async fn subscribe(
+        &self,
+        subject: &str,
+    ) -> Result<async_nats::Subscriber, Box<dyn std::error::Error>> {
         let client = self.client.lock().await;
         Ok(client.subscribe(subject.to_string()).await?)
     }
@@ -90,9 +97,7 @@ pub fn publish_events_to_nats(
         info!("Starting NATS event replay");
 
         // Collect all recorded events
-        let events: Vec<_> = recorded_events.iter()
-            .map(|e| e.0.clone())
-            .collect();
+        let events: Vec<_> = recorded_events.iter().map(|e| e.0.clone()).collect();
 
         let events_count = events.len();
         let nats = nats_client.clone();
@@ -201,11 +206,16 @@ pub fn process_nats_events(
 ) {
     for event in events.read() {
         match &event.0 {
-            NatsGraphEvent::NodeAdded { node_id, position, label } => {
+            NatsGraphEvent::NodeAdded {
+                node_id,
+                position,
+                label,
+            } => {
                 info!("Processing NodeAdded from NATS: {}", node_id);
 
                 // Check if node already exists
-                let exists = existing_nodes.iter()
+                let exists = existing_nodes
+                    .iter()
                     .any(|(_, node)| node.node_id.to_string() == *node_id);
 
                 if !exists {
@@ -231,7 +241,11 @@ pub fn process_nats_events(
                 }
             }
 
-            NatsGraphEvent::EdgeAdded { edge_id, source_id, target_id } => {
+            NatsGraphEvent::EdgeAdded {
+                edge_id,
+                source_id,
+                target_id,
+            } => {
                 info!("Processing EdgeAdded from NATS: {}", edge_id);
 
                 // Find source and target entities
@@ -262,8 +276,15 @@ pub fn process_nats_events(
                 }
             }
 
-            NatsGraphEvent::AnimationProgress { entity_type, entity_id, progress } => {
-                debug!("Animation progress from NATS: {} {} = {}", entity_type, entity_id, progress);
+            NatsGraphEvent::AnimationProgress {
+                entity_type,
+                entity_id,
+                progress,
+            } => {
+                debug!(
+                    "Animation progress from NATS: {} {} = {}",
+                    entity_type, entity_id, progress
+                );
                 // Could update animation progress here if needed
             }
         }
@@ -273,7 +294,10 @@ pub fn process_nats_events(
             state.events_received += 1;
             if state.events_received >= state.events_sent {
                 state.is_replaying = false;
-                info!("NATS replay complete: {} events processed", state.events_received);
+                info!(
+                    "NATS replay complete: {} events processed",
+                    state.events_received
+                );
             }
         }
     }
@@ -301,7 +325,8 @@ impl Plugin for NatsReplayPlugin {
         // Create NATS client
         let runtime = tokio::runtime::Runtime::new().expect("Failed to create runtime");
         let nats_client = runtime.block_on(async {
-            NatsClient::new("nats://localhost:4222").await
+            NatsClient::new("nats://localhost:4222")
+                .await
                 .expect("Failed to connect to NATS")
         });
 
@@ -310,10 +335,14 @@ impl Plugin for NatsReplayPlugin {
             .add_event::<StartNatsReplay>()
             .add_event::<NatsEventReceived>()
             .add_systems(Startup, subscribe_to_nats_events)
-            .add_systems(Update, (
-                publish_events_to_nats,
-                poll_nats_events,
-                process_nats_events,
-            ).chain());
+            .add_systems(
+                Update,
+                (
+                    publish_events_to_nats,
+                    poll_nats_events,
+                    process_nats_events,
+                )
+                    .chain(),
+            );
     }
 }

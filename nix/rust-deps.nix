@@ -37,7 +37,7 @@ with pkgs; [
   systemd
   stdenv.cc.cc.lib
   zlib
-  
+
   # SSL/TLS support
   openssl
 ]

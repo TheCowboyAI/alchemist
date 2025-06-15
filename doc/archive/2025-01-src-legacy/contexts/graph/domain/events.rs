@@ -3,10 +3,10 @@
 //! Events represent things that have happened in the domain.
 //! They are immutable and used for event sourcing.
 
-use crate::shared::types::{GraphId, NodeId, EdgeId};
-use crate::shared::events::{EventMetadata, DomainEvent};
+use crate::shared::events::{DomainEvent, EventMetadata};
+use crate::shared::types::{EdgeId, GraphId, NodeId};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 /// Macro to implement DomainEvent trait with common functionality
 macro_rules! impl_domain_event {
@@ -25,7 +25,8 @@ macro_rules! impl_domain_event {
             }
 
             fn to_json(&self) -> crate::shared::types::Result<serde_json::Value> {
-                serde_json::to_value(self).map_err(|e| crate::shared::types::Error::Serialization(e))
+                serde_json::to_value(self)
+                    .map_err(|e| crate::shared::types::Error::Serialization(e))
             }
 
             fn clone_box(&self) -> Box<dyn DomainEvent> {
@@ -51,7 +52,11 @@ pub struct GraphCreated {
     pub event_metadata: EventMetadata,
 }
 
-impl_domain_event!(GraphCreated, |e: &GraphCreated| e.graph_id.to_string(), "graph.created");
+impl_domain_event!(
+    GraphCreated,
+    |e: &GraphCreated| e.graph_id.to_string(),
+    "graph.created"
+);
 
 impl GraphEvent for GraphCreated {
     fn graph_id(&self) -> GraphId {
@@ -69,7 +74,11 @@ pub struct NodeAdded {
     pub event_metadata: EventMetadata,
 }
 
-impl_domain_event!(NodeAdded, |e: &NodeAdded| e.graph_id.to_string(), "graph.node_added");
+impl_domain_event!(
+    NodeAdded,
+    |e: &NodeAdded| e.graph_id.to_string(),
+    "graph.node_added"
+);
 
 impl GraphEvent for NodeAdded {
     fn graph_id(&self) -> GraphId {
@@ -89,7 +98,11 @@ pub struct EdgeAdded {
     pub event_metadata: EventMetadata,
 }
 
-impl_domain_event!(EdgeAdded, |e: &EdgeAdded| e.graph_id.to_string(), "graph.edge_added");
+impl_domain_event!(
+    EdgeAdded,
+    |e: &EdgeAdded| e.graph_id.to_string(),
+    "graph.edge_added"
+);
 
 impl GraphEvent for EdgeAdded {
     fn graph_id(&self) -> GraphId {
@@ -105,7 +118,11 @@ pub struct NodeRemoved {
     pub event_metadata: EventMetadata,
 }
 
-impl_domain_event!(NodeRemoved, |e: &NodeRemoved| e.graph_id.to_string(), "graph.node_removed");
+impl_domain_event!(
+    NodeRemoved,
+    |e: &NodeRemoved| e.graph_id.to_string(),
+    "graph.node_removed"
+);
 
 impl GraphEvent for NodeRemoved {
     fn graph_id(&self) -> GraphId {
@@ -121,7 +138,11 @@ pub struct EdgeRemoved {
     pub event_metadata: EventMetadata,
 }
 
-impl_domain_event!(EdgeRemoved, |e: &EdgeRemoved| e.graph_id.to_string(), "graph.edge_removed");
+impl_domain_event!(
+    EdgeRemoved,
+    |e: &EdgeRemoved| e.graph_id.to_string(),
+    "graph.edge_removed"
+);
 
 impl GraphEvent for EdgeRemoved {
     fn graph_id(&self) -> GraphId {
@@ -164,7 +185,10 @@ mod tests {
         };
 
         assert_eq!(event.event_type(), "graph.node_added");
-        assert_eq!(event.subject(), format!("events.graph.node_added.{}", graph_id));
+        assert_eq!(
+            event.subject(),
+            format!("events.graph.node_added.{}", graph_id)
+        );
     }
 
     #[test]
@@ -172,10 +196,11 @@ mod tests {
         let event = GraphCreated {
             graph_id: GraphId::new(),
             name: "Test Graph".to_string(),
-            context_type: crate::contexts::graph::domain::context_graph::ContextType::BoundedContext {
-                name: "Test".to_string(),
-                domain: "Testing".to_string(),
-            },
+            context_type:
+                crate::contexts::graph::domain::context_graph::ContextType::BoundedContext {
+                    name: "Test".to_string(),
+                    domain: "Testing".to_string(),
+                },
             context_root: NodeId::new(),
             event_metadata: EventMetadata::new(),
         };

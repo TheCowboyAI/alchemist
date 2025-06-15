@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::domain::conceptual_graph::{
-    ConceptGraph, ConceptId, ContextBridgeId, ContextMappingType,
-    TranslationDirection, TranslationRule
+    ConceptGraph, ConceptId, ContextBridgeId, ContextMappingType, TranslationDirection,
+    TranslationRule,
 };
 
 /// Commands for managing context bridges
@@ -44,9 +44,7 @@ pub enum ContextBridgeCommand {
     },
 
     /// Delete a context bridge
-    DeleteBridge {
-        bridge_id: ContextBridgeId,
-    },
+    DeleteBridge { bridge_id: ContextBridgeId },
 }
 
 impl ContextBridgeCommand {

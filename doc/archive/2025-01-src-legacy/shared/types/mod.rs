@@ -7,7 +7,7 @@
 use serde::{Deserialize, Serialize};
 
 // Re-export the base types from graph-composition
-pub use graph_composition::{GraphId, NodeId, EdgeId};
+pub use graph_composition::{EdgeId, GraphId, NodeId};
 
 /// 3D position used for visualization (not domain logic!)
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -23,7 +23,11 @@ impl Position3D {
     }
 
     pub fn zero() -> Self {
-        Self { x: 0.0, y: 0.0, z: 0.0 }
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
     }
 }
 

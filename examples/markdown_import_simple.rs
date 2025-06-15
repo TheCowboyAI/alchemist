@@ -6,12 +6,14 @@ use bevy::prelude::*;
 use ia::{
     application::CommandEvent,
     domain::{
-        commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+        commands::{
+            Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior,
+        },
         value_objects::{GraphId, Position3D},
     },
     presentation::{
-        plugins::GraphEditorPlugin,
         components::{GraphContainer, GraphNode},
+        plugins::GraphEditorPlugin,
     },
 };
 use std::collections::HashMap;
@@ -35,10 +37,7 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut event_writer: EventWriter<CommandEvent>,
-) {
+fn setup(mut commands: Commands, mut event_writer: EventWriter<CommandEvent>) {
     // Camera
     commands.spawn((
         Camera3d::default(),
@@ -76,7 +75,10 @@ fn handle_markdown_import(
 ) {
     // Add debug logging for any key press
     if keyboard.get_just_pressed().len() > 0 {
-        info!("Keys pressed: {:?}", keyboard.get_just_pressed().collect::<Vec<_>>());
+        info!(
+            "Keys pressed: {:?}",
+            keyboard.get_just_pressed().collect::<Vec<_>>()
+        );
     }
 
     if keyboard.just_pressed(KeyCode::KeyM) {
@@ -94,7 +96,11 @@ fn handle_markdown_import(
                     options: ImportOptions {
                         merge_behavior: MergeBehavior::MergePreferImported,
                         id_prefix: Some("core".to_string()),
-                        position_offset: Some(Position3D { x: 0.0, y: 0.0, z: 0.0 }),
+                        position_offset: Some(Position3D {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 0.0,
+                        }),
                         mapping: None,
                         validate: true,
                         max_nodes: Some(1000),
@@ -112,7 +118,10 @@ fn handle_markdown_import(
             let ddd_files = [
                 ("assets/models/KECO_DDD_Core_Model.md", "core"),
                 ("assets/models/KECO_DDD_LoanOriginationContext.md", "loan"),
-                ("assets/models/KECO_DDD_UnderwritingContext.md", "underwriting"),
+                (
+                    "assets/models/KECO_DDD_UnderwritingContext.md",
+                    "underwriting",
+                ),
                 ("assets/models/KECO_DDD_DocumentContext.md", "document"),
                 ("assets/models/KECO_DDD_ClosingContext.md", "closing"),
             ];
@@ -135,7 +144,11 @@ fn handle_markdown_import(
                     options: ImportOptions {
                         merge_behavior: MergeBehavior::MergePreferImported,
                         id_prefix: Some(format!("{}_{}", prefix, *file_index)),
-                        position_offset: Some(Position3D { x: offset_x, y: 0.0, z: 0.0 }),
+                        position_offset: Some(Position3D {
+                            x: offset_x,
+                            y: 0.0,
+                            z: 0.0,
+                        }),
                         mapping: None,
                         validate: true,
                         max_nodes: Some(1000),

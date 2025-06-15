@@ -16,13 +16,13 @@
 //!     A --> F[Concurrency Scaling]
 //! ```
 
-use crate::fixtures::{TestEventStore, create_test_graph, create_large_graph};
-use cim_domain::{DomainResult, GraphId, NodeId, DomainEvent};
+use crate::fixtures::{TestEventStore, create_large_graph, create_test_graph};
+use cim_domain::{DomainEvent, DomainResult, GraphId, NodeId};
 use cim_domain_graph::{
-    GraphAggregate, GraphDomainEvent, NodeType, Position3D,
-    GraphSummaryProjection, NodeListProjection, Projection,
+    GraphAggregate, GraphDomainEvent, GraphSummaryProjection, NodeListProjection, NodeType,
+    Position3D, Projection,
 };
-use criterion::{black_box, Criterion, BenchmarkId};
+use criterion::{BenchmarkId, Criterion, black_box};
 use std::time::{Duration, Instant};
 
 /// Benchmark event processing throughput
@@ -48,15 +48,21 @@ async fn bench_event_processing_throughput() -> DomainResult<()> {
 
         results.push((batch_size, throughput));
 
-        println!("Batch size: {}, Throughput: {:.2} events/sec", batch_size, throughput);
+        println!(
+            "Batch size: {}, Throughput: {:.2} events/sec",
+            batch_size, throughput
+        );
     }
 
     // Assert minimum performance
     let min_throughput = 1000.0; // events per second
     for (_, throughput) in &results {
-        assert!(*throughput >= min_throughput,
+        assert!(
+            *throughput >= min_throughput,
             "Event processing throughput {:.2} below minimum {}",
-            throughput, min_throughput);
+            throughput,
+            min_throughput
+        );
     }
 
     Ok(())
@@ -78,7 +84,11 @@ async fn bench_query_performance_large_dataset() -> DomainResult<()> {
             let event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
                 graph_id,
                 node_id: NodeId::new(),
-                node_type: if i % 2 == 0 { NodeType::Concept } else { NodeType::Data },
+                node_type: if i % 2 == 0 {
+                    NodeType::Concept
+                } else {
+                    NodeType::Data
+                },
                 position: Position3D::default(),
                 conceptual_point: Default::default(),
                 metadata: Default::default(),
@@ -90,7 +100,13 @@ async fn bench_query_performance_large_dataset() -> DomainResult<()> {
         let queries = vec![
             ("find_all", QueryType::FindAll),
             ("find_by_type", QueryType::FindByType(NodeType::Concept)),
-            ("find_with_pagination", QueryType::Paginated { offset: 0, limit: 100 }),
+            (
+                "find_with_pagination",
+                QueryType::Paginated {
+                    offset: 0,
+                    limit: 100,
+                },
+            ),
         ];
 
         for (name, query_type) in queries {
@@ -98,31 +114,45 @@ async fn bench_query_performance_large_dataset() -> DomainResult<()> {
 
             let result = match query_type {
                 QueryType::FindAll => projection.get_all_nodes(&graph_id)?,
-                QueryType::FindByType(node_type) => projection.find_by_type(&graph_id, node_type)?,
-                QueryType::Paginated { offset, limit } => projection.get_paginated(&graph_id, offset, limit)?,
+                QueryType::FindByType(node_type) => {
+                    projection.find_by_type(&graph_id, node_type)?
+                }
+                QueryType::Paginated { offset, limit } => {
+                    projection.get_paginated(&graph_id, offset, limit)?
+                }
             };
 
             let duration = start.elapsed();
 
             results.push((size, name, duration, result.len()));
 
-            println!("Dataset: {}, Query: {}, Duration: {:?}, Results: {}",
-                size, name, duration, result.len());
+            println!(
+                "Dataset: {}, Query: {}, Duration: {:?}, Results: {}",
+                size,
+                name,
+                duration,
+                result.len()
+            );
         }
     }
 
     // Assert query performance scales sub-linearly
     for (size, query, duration, _) in &results {
         let max_duration_ms = match query {
-            &"find_all" => size / 100, // 10μs per node
+            &"find_all" => size / 100,     // 10μs per node
             &"find_by_type" => size / 200, // 5μs per node
             &"find_with_pagination" => 10, // Constant time
             _ => 1000,
         };
 
-        assert!(duration.as_millis() <= max_duration_ms as u128,
+        assert!(
+            duration.as_millis() <= max_duration_ms as u128,
             "Query {} on {} nodes took {:?}, expected < {}ms",
-            query, size, duration, max_duration_ms);
+            query,
+            size,
+            duration,
+            max_duration_ms
+        );
     }
 
     Ok(())
@@ -162,7 +192,10 @@ async fn bench_projection_update_latency() -> DomainResult<()> {
 
         latencies.push((event_type, avg_latency, p99_latency));
 
-        println!("Event: {}, Avg: {:?}, P99: {:?}", event_type, avg_latency, p99_latency);
+        println!(
+            "Event: {}, Avg: {:?}, P99: {:?}",
+            event_type, avg_latency, p99_latency
+        );
     }
 
     // Assert latency requirements
@@ -177,7 +210,7 @@ async fn bench_projection_update_latency() -> DomainResult<()> {
 /// Benchmark memory usage patterns
 #[tokio::test]
 async fn bench_memory_usage_patterns() -> DomainResult<()> {
-    use jemalloc_ctl::{stats, epoch};
+    use jemalloc_ctl::{epoch, stats};
 
     // Test memory usage for different graph sizes
     let graph_sizes = vec![100, 1_000, 10_000];
@@ -207,15 +240,19 @@ async fn bench_memory_usage_patterns() -> DomainResult<()> {
 
         memory_results.push((size, used_memory, bytes_per_node));
 
-        println!("Graph size: {}, Memory: {} bytes, Per node: {} bytes",
-            size, used_memory, bytes_per_node);
+        println!(
+            "Graph size: {}, Memory: {} bytes, Per node: {} bytes",
+            size, used_memory, bytes_per_node
+        );
     }
 
     // Assert memory efficiency
     for (_, _, bytes_per_node) in &memory_results {
-        assert!(*bytes_per_node < 1024,
+        assert!(
+            *bytes_per_node < 1024,
             "Memory usage per node ({} bytes) exceeds 1KB limit",
-            bytes_per_node);
+            bytes_per_node
+        );
     }
 
     Ok(())
@@ -224,8 +261,8 @@ async fn bench_memory_usage_patterns() -> DomainResult<()> {
 /// Benchmark concurrent operation scaling
 #[tokio::test]
 async fn bench_concurrent_operation_scaling() -> DomainResult<()> {
-    use tokio::task;
     use std::sync::Arc;
+    use tokio::task;
 
     let thread_counts = vec![1, 2, 4, 8, 16];
     let operations_per_thread = 1000;
@@ -237,24 +274,26 @@ async fn bench_concurrent_operation_scaling() -> DomainResult<()> {
         let start = Instant::now();
 
         // Spawn concurrent tasks
-        let handles: Vec<_> = (0..thread_count).map(|thread_id| {
-            let store = event_store.clone();
+        let handles: Vec<_> = (0..thread_count)
+            .map(|thread_id| {
+                let store = event_store.clone();
 
-            task::spawn(async move {
-                for i in 0..operations_per_thread {
-                    let event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
-                        graph_id: GraphId::new(),
-                        node_id: NodeId::new(),
-                        node_type: NodeType::Concept,
-                        position: Position3D::default(),
-                        conceptual_point: Default::default(),
-                        metadata: Default::default(),
-                    });
+                task::spawn(async move {
+                    for i in 0..operations_per_thread {
+                        let event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                            graph_id: GraphId::new(),
+                            node_id: NodeId::new(),
+                            node_type: NodeType::Concept,
+                            position: Position3D::default(),
+                            conceptual_point: Default::default(),
+                            metadata: Default::default(),
+                        });
 
-                    store.append(event).await.unwrap();
-                }
+                        store.append(event).await.unwrap();
+                    }
+                })
             })
-        }).collect();
+            .collect();
 
         // Wait for all tasks
         for handle in handles {
@@ -267,8 +306,10 @@ async fn bench_concurrent_operation_scaling() -> DomainResult<()> {
 
         scaling_results.push((thread_count, ops_per_sec, duration));
 
-        println!("Threads: {}, Ops/sec: {:.2}, Duration: {:?}",
-            thread_count, ops_per_sec, duration);
+        println!(
+            "Threads: {}, Ops/sec: {:.2}, Duration: {:?}",
+            thread_count, ops_per_sec, duration
+        );
     }
 
     // Verify scaling efficiency
@@ -276,9 +317,13 @@ async fn bench_concurrent_operation_scaling() -> DomainResult<()> {
 
     for (threads, ops_per_sec, _) in &scaling_results[1..] {
         let expected_ops = single_thread_ops * (*threads as f64) * 0.7; // 70% scaling efficiency
-        assert!(*ops_per_sec >= expected_ops,
+        assert!(
+            *ops_per_sec >= expected_ops,
             "Scaling efficiency for {} threads ({:.2} ops/sec) below 70% ({:.2} expected)",
-            threads, ops_per_sec, expected_ops);
+            threads,
+            ops_per_sec,
+            expected_ops
+        );
     }
 
     Ok(())
@@ -314,8 +359,10 @@ async fn bench_graph_traversal_performance() -> DomainResult<()> {
 
             traversal_results.push((structure_name, algo_name, duration, visited));
 
-            println!("Structure: {}, Algorithm: {}, Duration: {:?}, Visited: {}",
-                structure_name, algo_name, duration, visited);
+            println!(
+                "Structure: {}, Algorithm: {}, Duration: {:?}, Visited: {}",
+                structure_name, algo_name, duration, visited
+            );
         }
     }
 
@@ -329,9 +376,14 @@ async fn bench_graph_traversal_performance() -> DomainResult<()> {
             _ => 100,
         };
 
-        assert!(duration.as_millis() <= max_duration_ms as u128,
+        assert!(
+            duration.as_millis() <= max_duration_ms as u128,
             "Traversal {} on {} took {:?}, expected < {}ms",
-            algo, structure, duration, max_duration_ms);
+            algo,
+            structure,
+            duration,
+            max_duration_ms
+        );
     }
 
     Ok(())
@@ -367,15 +419,19 @@ async fn bench_event_replay_performance() -> DomainResult<()> {
 
         replay_results.push((count, duration, events_per_sec));
 
-        println!("Events: {}, Duration: {:?}, Rate: {:.2} events/sec",
-            count, duration, events_per_sec);
+        println!(
+            "Events: {}, Duration: {:?}, Rate: {:.2} events/sec",
+            count, duration, events_per_sec
+        );
     }
 
     // Assert replay performance
     for (_, _, rate) in &replay_results {
-        assert!(*rate >= 10_000.0,
+        assert!(
+            *rate >= 10_000.0,
             "Event replay rate ({:.2} events/sec) below minimum 10,000",
-            rate);
+            rate
+        );
     }
 
     Ok(())
@@ -391,16 +447,22 @@ enum QueryType {
 
 fn generate_test_events(count: usize) -> Vec<DomainEvent> {
     let graph_id = GraphId::new();
-    (0..count).map(|i| {
-        DomainEvent::Graph(GraphDomainEvent::NodeAdded {
-            graph_id,
-            node_id: NodeId::new(),
-            node_type: if i % 2 == 0 { NodeType::Concept } else { NodeType::Data },
-            position: Position3D::default(),
-            conceptual_point: Default::default(),
-            metadata: Default::default(),
+    (0..count)
+        .map(|i| {
+            DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                graph_id,
+                node_id: NodeId::new(),
+                node_type: if i % 2 == 0 {
+                    NodeType::Concept
+                } else {
+                    NodeType::Data
+                },
+                position: Position3D::default(),
+                conceptual_point: Default::default(),
+                metadata: Default::default(),
+            })
         })
-    }).collect()
+        .collect()
 }
 
 fn create_node_added_event() -> Box<dyn DomainEvent> {
@@ -446,18 +508,26 @@ fn create_linear_graph(size: usize) -> GraphAggregate {
 
     for i in 0..size {
         let node_id = NodeId::new();
-        graph.handle_command(cim_domain_graph::GraphCommand::AddNode {
-            node_type: NodeType::Concept,
-            position: Position3D { x: i as f32, y: 0.0, z: 0.0 },
-            metadata: Default::default(),
-        }).unwrap();
+        graph
+            .handle_command(cim_domain_graph::GraphCommand::AddNode {
+                node_type: NodeType::Concept,
+                position: Position3D {
+                    x: i as f32,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                metadata: Default::default(),
+            })
+            .unwrap();
 
         if let Some(prev) = prev_node {
-            graph.handle_command(cim_domain_graph::GraphCommand::ConnectNodes {
-                source: prev,
-                target: node_id,
-                edge_type: cim_domain_graph::EdgeType::Sequence,
-            }).unwrap();
+            graph
+                .handle_command(cim_domain_graph::GraphCommand::ConnectNodes {
+                    source: prev,
+                    target: node_id,
+                    edge_type: cim_domain_graph::EdgeType::Sequence,
+                })
+                .unwrap();
         }
 
         prev_node = Some(node_id);
@@ -481,18 +551,24 @@ fn create_tree_graph(depth: usize, branching_factor: usize) -> GraphAggregate {
 
         for _ in 0..branching_factor {
             let node_id = NodeId::new();
-            graph.handle_command(cim_domain_graph::GraphCommand::AddNode {
-                node_type: NodeType::Concept,
-                position: Position3D::default(),
-                metadata: Default::default(),
-            }).unwrap();
+            graph
+                .handle_command(cim_domain_graph::GraphCommand::AddNode {
+                    node_type: NodeType::Concept,
+                    position: Position3D::default(),
+                    metadata: Default::default(),
+                })
+                .unwrap();
 
             if let Some(parent_id) = parent {
-                graph.handle_command(cim_domain_graph::GraphCommand::ConnectNodes {
-                    source: parent_id,
-                    target: node_id,
-                    edge_type: cim_domain_graph::EdgeType::Hierarchy { level: depth as u32 },
-                }).unwrap();
+                graph
+                    .handle_command(cim_domain_graph::GraphCommand::ConnectNodes {
+                        source: parent_id,
+                        target: node_id,
+                        edge_type: cim_domain_graph::EdgeType::Hierarchy {
+                            level: depth as u32,
+                        },
+                    })
+                    .unwrap();
             }
 
             add_node_recursive(graph, Some(node_id), depth - 1, branching_factor);
@@ -500,11 +576,13 @@ fn create_tree_graph(depth: usize, branching_factor: usize) -> GraphAggregate {
     }
 
     let root = NodeId::new();
-    graph.handle_command(cim_domain_graph::GraphCommand::AddNode {
-        node_type: NodeType::Concept,
-        position: Position3D::default(),
-        metadata: Default::default(),
-    }).unwrap();
+    graph
+        .handle_command(cim_domain_graph::GraphCommand::AddNode {
+            node_type: NodeType::Concept,
+            position: Position3D::default(),
+            metadata: Default::default(),
+        })
+        .unwrap();
 
     add_node_recursive(&mut graph, Some(root), depth, branching_factor);
 
@@ -518,24 +596,28 @@ fn create_dense_graph(size: usize) -> GraphAggregate {
     // Create nodes
     for _ in 0..size {
         let node_id = NodeId::new();
-        graph.handle_command(cim_domain_graph::GraphCommand::AddNode {
-            node_type: NodeType::Concept,
-            position: Position3D::default(),
-            metadata: Default::default(),
-        }).unwrap();
+        graph
+            .handle_command(cim_domain_graph::GraphCommand::AddNode {
+                node_type: NodeType::Concept,
+                position: Position3D::default(),
+                metadata: Default::default(),
+            })
+            .unwrap();
         nodes.push(node_id);
     }
 
     // Connect every node to every other node
     for i in 0..nodes.len() {
         for j in (i + 1)..nodes.len() {
-            graph.handle_command(cim_domain_graph::GraphCommand::ConnectNodes {
-                source: nodes[i],
-                target: nodes[j],
-                edge_type: cim_domain_graph::EdgeType::Association {
-                    relation_type: "connected".to_string()
-                },
-            }).unwrap();
+            graph
+                .handle_command(cim_domain_graph::GraphCommand::ConnectNodes {
+                    source: nodes[i],
+                    target: nodes[j],
+                    edge_type: cim_domain_graph::EdgeType::Association {
+                        relation_type: "connected".to_string(),
+                    },
+                })
+                .unwrap();
         }
     }
 

@@ -1,13 +1,13 @@
 //! Test import functionality without Bevy
 
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions},
-    events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource},
+    events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
     services::{GraphImportService, ImportFormat, graph_import::ImportedGraph},
-    value_objects::{GraphId, NodeId, EdgeId},
+    value_objects::{EdgeId, GraphId, NodeId},
 };
 use std::collections::HashMap;
-use tracing::{info, Level};
+use tracing::{Level, info};
 use tracing_subscriber::FmtSubscriber;
 
 fn main() {
@@ -15,8 +15,7 @@ fn main() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
         .finish();
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     info!("Starting import test application");
 
@@ -49,10 +48,11 @@ fn test_domain_import() {
 
             // Log node details
             for node in &imported_graph.nodes {
-                info!("  Node: {} at ({}, {}, {})",
-                    node.id, node.position.x, node.position.y, node.position.z);
-                if let Some(caption) = node.properties.get("caption")
-                    .and_then(|v| v.as_str()) {
+                info!(
+                    "  Node: {} at ({}, {}, {})",
+                    node.id, node.position.x, node.position.y, node.position.z
+                );
+                if let Some(caption) = node.properties.get("caption").and_then(|v| v.as_str()) {
                     info!("    Caption: {}", caption);
                 }
                 info!("    Type: {}", node.node_type);
@@ -61,8 +61,10 @@ fn test_domain_import() {
 
             // Log edge details
             for edge in &imported_graph.edges {
-                info!("  Edge: {} -> {} ({})",
-                    edge.source, edge.target, edge.edge_type);
+                info!(
+                    "  Edge: {} -> {} ({})",
+                    edge.source, edge.target, edge.edge_type
+                );
             }
         }
         Err(e) => {
@@ -92,7 +94,12 @@ fn test_command_import() {
 
     // Process the command (simulating what the handler would do)
     match command {
-        Command::Graph(GraphCommand::ImportGraph { graph_id, source, format, options }) => {
+        Command::Graph(GraphCommand::ImportGraph {
+            graph_id,
+            source,
+            format,
+            options,
+        }) => {
             // First emit the import requested event
             events.push(DomainEvent::Graph(GraphEvent::GraphImportRequested {
                 graph_id,
@@ -103,9 +110,7 @@ fn test_command_import() {
 
             // Load the content
             let content = match &source {
-                ImportSource::File { path } => {
-                    std::fs::read_to_string(path).ok()
-                }
+                ImportSource::File { path } => std::fs::read_to_string(path).ok(),
                 ImportSource::InlineContent { content } => Some(content.clone()),
                 _ => None,
             };
@@ -124,7 +129,8 @@ fn test_command_import() {
                     _ => ImportFormat::ArrowsApp,
                 };
 
-                match import_service.import_from_content(&content, format, options.mapping.as_ref()) {
+                match import_service.import_from_content(&content, format, options.mapping.as_ref())
+                {
                     Ok(imported_graph) => {
                         info!("Import successful, generating events...");
 
@@ -153,8 +159,8 @@ fn test_command_import() {
                         for edge in imported_graph.edges {
                             // Look up the actual NodeIds from our mapping
                             if let (Some(&source_id), Some(&target_id)) =
-                                (node_id_map.get(&edge.source), node_id_map.get(&edge.target)) {
-
+                                (node_id_map.get(&edge.source), node_id_map.get(&edge.target))
+                            {
                                 events.push(DomainEvent::Edge(EdgeEvent::EdgeConnected {
                                     graph_id,
                                     edge_id: EdgeId::new(),
@@ -184,19 +190,33 @@ fn test_command_import() {
             DomainEvent::Graph(GraphEvent::GraphImportRequested { .. }) => {
                 info!("  - GraphImportRequested");
             }
-            DomainEvent::Node(NodeEvent::NodeAdded { node_id, position, .. }) => {
+            DomainEvent::Node(NodeEvent::NodeAdded {
+                node_id, position, ..
+            }) => {
                 node_count += 1;
-                info!("  - NodeAdded: {} at ({}, {}, {})",
-                    node_id, position.x, position.y, position.z);
+                info!(
+                    "  - NodeAdded: {} at ({}, {}, {})",
+                    node_id, position.x, position.y, position.z
+                );
             }
-            DomainEvent::Edge(EdgeEvent::EdgeConnected { source, target, relationship, .. }) => {
+            DomainEvent::Edge(EdgeEvent::EdgeConnected {
+                source,
+                target,
+                relationship,
+                ..
+            }) => {
                 edge_count += 1;
-                info!("  - EdgeConnected: {} -> {} ({})",
-                    source, target, relationship);
+                info!(
+                    "  - EdgeConnected: {} -> {} ({})",
+                    source, target, relationship
+                );
             }
             _ => {}
         }
     }
 
-    info!("\nSummary: {} nodes, {} edges imported", node_count, edge_count);
+    info!(
+        "\nSummary: {} nodes, {} edges imported",
+        node_count, edge_count
+    );
 }

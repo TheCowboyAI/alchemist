@@ -91,7 +91,10 @@ pub enum DimensionType {
 impl DimensionType {
     /// Check if the dimension type supports continuous values
     pub fn is_continuous(&self) -> bool {
-        matches!(self, Self::Continuous | Self::Interval | Self::Ratio | Self::Circular)
+        matches!(
+            self,
+            Self::Continuous | Self::Interval | Self::Ratio | Self::Circular
+        )
     }
 
     /// Check if the dimension type is discrete
@@ -173,7 +176,8 @@ impl ConceptualPoint {
     /// Calculate distance to another point given quality dimensions
     pub fn distance_to(&self, other: &ConceptualPoint, dimensions: &[QualityDimension]) -> f64 {
         if self.coordinates.len() != other.coordinates.len()
-            || self.coordinates.len() != dimensions.len() {
+            || self.coordinates.len() != dimensions.len()
+        {
             return f64::INFINITY;
         }
 
@@ -181,7 +185,9 @@ impl ConceptualPoint {
 
         for i in 0..self.coordinates.len() {
             let dim = &dimensions[i];
-            let dist = dim.metric.distance(self.coordinates[i], other.coordinates[i]);
+            let dist = dim
+                .metric
+                .distance(self.coordinates[i], other.coordinates[i]);
 
             match dim.metric {
                 DistanceMetric::Euclidean => sum += (dist * dim.weight).powi(2),
@@ -262,10 +268,8 @@ mod tests {
     #[test]
     fn test_weighted_distance() {
         let dimensions = vec![
-            QualityDimension::new("x", DimensionType::Continuous, 0.0..10.0)
-                .with_weight(2.0),
-            QualityDimension::new("y", DimensionType::Continuous, 0.0..10.0)
-                .with_weight(1.0),
+            QualityDimension::new("x", DimensionType::Continuous, 0.0..10.0).with_weight(2.0),
+            QualityDimension::new("y", DimensionType::Continuous, 0.0..10.0).with_weight(1.0),
         ];
 
         let p1 = ConceptualPoint::new(vec![0.0, 0.0]);

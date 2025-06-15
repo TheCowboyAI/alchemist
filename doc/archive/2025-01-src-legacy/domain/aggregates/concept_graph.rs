@@ -1,6 +1,6 @@
 use crate::domain::{
     events::DomainEvent,
-    value_objects::{GraphId, NodeId, EdgeId, Position3D, RelatedBy},
+    value_objects::{EdgeId, GraphId, NodeId, Position3D, RelatedBy},
 };
 use cim_ipld::types::{Cid, ContentType};
 use serde::{Deserialize, Serialize};
@@ -100,7 +100,11 @@ impl ConceptGraph {
     /// Add an atomic node
     pub fn add_atom(&mut self, value: serde_json::Value, position: Position3D) -> NodeId {
         let id = NodeId::new();
-        let node = ConceptNode::Atom { id, value, position };
+        let node = ConceptNode::Atom {
+            id,
+            value,
+            position,
+        };
         self.nodes.insert(id, node);
         id
     }
@@ -111,14 +115,19 @@ impl ConceptGraph {
         let node = ConceptNode::Graph {
             id,
             graph: Box::new(graph),
-            position
+            position,
         };
         self.nodes.insert(id, node);
         id
     }
 
     /// Connect two nodes
-    pub fn connect(&mut self, source: NodeId, target: NodeId, relationship: RelatedBy) -> Result<EdgeId, ConceptGraphError> {
+    pub fn connect(
+        &mut self,
+        source: NodeId,
+        target: NodeId,
+        relationship: RelatedBy,
+    ) -> Result<EdgeId, ConceptGraphError> {
         // Verify nodes exist
         if !self.nodes.contains_key(&source) {
             return Err(ConceptGraphError::NodeNotFound(source));
@@ -191,25 +200,34 @@ impl ConceptGraph {
 
         // Create buyer graph (Party from party domain)
         let mut buyer = ConceptGraph::new();
-        buyer.add_atom(serde_json::json!({
-            "name": "Acme Corp",
-            "type": "Organization"
-        }), Position3D::default());
+        buyer.add_atom(
+            serde_json::json!({
+                "name": "Acme Corp",
+                "type": "Organization"
+            }),
+            Position3D::default(),
+        );
 
         // Create seller graph (Party from party domain)
         let mut seller = ConceptGraph::new();
-        seller.add_atom(serde_json::json!({
-            "name": "Widgets Inc",
-            "type": "Organization"
-        }), Position3D::default());
+        seller.add_atom(
+            serde_json::json!({
+                "name": "Widgets Inc",
+                "type": "Organization"
+            }),
+            Position3D::default(),
+        );
 
         // Create line items graph
         let mut line_items = ConceptGraph::new();
-        let item1 = line_items.add_atom(serde_json::json!({
-            "product": "Widget A",
-            "quantity": 10,
-            "price": 9.99
-        }), Position3D::default());
+        let item1 = line_items.add_atom(
+            serde_json::json!({
+                "product": "Widget A",
+                "quantity": 10,
+                "price": 9.99
+            }),
+            Position3D::default(),
+        );
 
         // Add these as nodes in the invoice
         let buyer_id = invoice.add_graph(buyer, Position3D::new(0.0, 0.0, 0.0).unwrap());
@@ -217,8 +235,12 @@ impl ConceptGraph {
         let items_id = invoice.add_graph(line_items, Position3D::new(5.0, 5.0, 0.0).unwrap());
 
         // Connect them
-        invoice.connect(buyer_id, items_id, RelatedBy::Contains).unwrap();
-        invoice.connect(seller_id, items_id, RelatedBy::Produces).unwrap();
+        invoice
+            .connect(buyer_id, items_id, RelatedBy::Contains)
+            .unwrap();
+        invoice
+            .connect(seller_id, items_id, RelatedBy::Produces)
+            .unwrap();
 
         invoice
     }

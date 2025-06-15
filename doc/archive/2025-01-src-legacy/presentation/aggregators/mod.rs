@@ -12,8 +12,8 @@ pub use drag::DragAggregator;
 pub use layout::LayoutAggregator;
 pub use selection::SelectionAggregator;
 
-use bevy::prelude::*;
 use crate::domain::commands::DomainCommand;
+use bevy::prelude::*;
 
 /// Trait for all event aggregators
 pub trait EventAggregator: Send + Sync + 'static {
@@ -41,9 +41,9 @@ pub struct AggregatorManager {
 impl AggregatorManager {
     /// Check if any aggregator has pending changes
     pub fn has_pending_changes(&self) -> bool {
-        self.drag.has_pending_changes() ||
-        self.layout.has_pending_changes() ||
-        self.selection.has_pending_changes()
+        self.drag.has_pending_changes()
+            || self.layout.has_pending_changes()
+            || self.selection.has_pending_changes()
     }
 
     /// Complete all aggregations and return domain commands

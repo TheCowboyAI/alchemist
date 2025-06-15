@@ -3,9 +3,9 @@
 //! These events capture user input but don't immediately translate to
 //! domain state changes. They are aggregated and converted when appropriate.
 
-use bevy::prelude::*;
-use crate::domain::value_objects::{NodeId, EdgeId, GraphId};
 use super::PresentationEvent;
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId};
+use bevy::prelude::*;
 
 /// Mouse hover state changes
 #[derive(Event, Clone, Debug)]
@@ -90,10 +90,21 @@ pub struct PreviewStateChanged {
 
 #[derive(Clone, Debug)]
 pub enum PreviewType {
-    EdgeConnection { source: NodeId, target_position: Vec3 },
-    NodeCreation { position: Vec3, node_type: String },
-    Deletion { entities: Vec<Entity> },
-    Morphism { graph_id: GraphId, morphism_type: String },
+    EdgeConnection {
+        source: NodeId,
+        target_position: Vec3,
+    },
+    NodeCreation {
+        position: Vec3,
+        node_type: String,
+    },
+    Deletion {
+        entities: Vec<Entity>,
+    },
+    Morphism {
+        graph_id: GraphId,
+        morphism_type: String,
+    },
 }
 
 impl PresentationEvent for PreviewStateChanged {

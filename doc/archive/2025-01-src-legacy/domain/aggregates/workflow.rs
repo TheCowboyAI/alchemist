@@ -3,22 +3,22 @@
 //! Implements a state machine for workflow execution with transactional guarantees.
 //! Workflows represent business processes that can be designed, validated, and executed.
 
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::domain::{
+    DomainError,
     commands::workflow::*,
     events::{
         DomainEvent,
         workflow::{
-            WorkflowEvent, WorkflowCreated, StepAdded, StepsConnected, WorkflowValidated,
-            WorkflowStarted, StepCompleted, WorkflowPaused, WorkflowResumed,
-            WorkflowCompleted, WorkflowFailed, ValidationResult,
+            StepAdded, StepCompleted, StepsConnected, ValidationResult, WorkflowCompleted,
+            WorkflowCreated, WorkflowEvent, WorkflowFailed, WorkflowPaused, WorkflowResumed,
+            WorkflowStarted, WorkflowValidated,
         },
     },
-    value_objects::{WorkflowId, StepId, EdgeId, UserId, NodeId},
-    DomainError,
+    value_objects::{EdgeId, NodeId, StepId, UserId, WorkflowId},
 };
 
 /// Workflow state machine states
@@ -98,32 +98,19 @@ pub enum StepType {
     UserTask,
 
     /// Automated service task
-    ServiceTask {
-        service: String,
-        operation: String,
-    },
+    ServiceTask { service: String, operation: String },
 
     /// Decision point with conditions
-    Decision {
-        conditions: Vec<DecisionCondition>,
-    },
+    Decision { conditions: Vec<DecisionCondition> },
 
     /// Parallel execution gateway
-    ParallelGateway {
-        branches: Vec<StepId>,
-    },
+    ParallelGateway { branches: Vec<StepId> },
 
     /// Wait for external event
-    EventWait {
-        event_type: String,
-        timeout_ms: u64,
-    },
+    EventWait { event_type: String, timeout_ms: u64 },
 
     /// Script execution
-    Script {
-        language: String,
-        code: String,
-    },
+    Script { language: String, code: String },
 }
 
 /// Input for a workflow step
@@ -157,10 +144,7 @@ pub enum DataSource {
     WorkflowInput(String),
 
     /// External data source
-    External {
-        source: String,
-        query: String,
-    },
+    External { source: String, query: String },
 }
 
 /// Decision condition for branching
@@ -265,7 +249,13 @@ impl Workflow {
             (WorkflowState::Paused { .. }, WorkflowState::Failed { .. }) => true,
 
             // From Failed (with recovery point)
-            (WorkflowState::Failed { recovery_point: Some(_), .. }, WorkflowState::Running { .. }) => true,
+            (
+                WorkflowState::Failed {
+                    recovery_point: Some(_),
+                    ..
+                },
+                WorkflowState::Running { .. },
+            ) => true,
 
             // All other transitions are invalid
             _ => false,
@@ -273,7 +263,10 @@ impl Workflow {
     }
 
     /// Handle workflow commands
-    pub fn handle_command(&mut self, command: WorkflowCommand) -> Result<Vec<DomainEvent>, DomainError> {
+    pub fn handle_command(
+        &mut self,
+        command: WorkflowCommand,
+    ) -> Result<Vec<DomainEvent>, DomainError> {
         match command {
             WorkflowCommand::CreateWorkflow(cmd) => self.handle_create_workflow(cmd),
             WorkflowCommand::AddStep(cmd) => self.handle_add_step(cmd),
@@ -308,7 +301,10 @@ impl Workflow {
 
     // Command handlers
 
-    fn handle_create_workflow(&mut self, cmd: CreateWorkflow) -> Result<Vec<DomainEvent>, DomainError> {
+    fn handle_create_workflow(
+        &mut self,
+        cmd: CreateWorkflow,
+    ) -> Result<Vec<DomainEvent>, DomainError> {
         if self.version > 0 {
             return Err(DomainError::AggregateAlreadyExists);
         }
@@ -324,18 +320,25 @@ impl Workflow {
 
         self.apply_workflow_created(&event)?;
 
-        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowCreated(event))])
+        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowCreated(
+            event,
+        ))])
     }
 
     fn handle_add_step(&mut self, cmd: AddStep) -> Result<Vec<DomainEvent>, DomainError> {
         // Can only add steps in Designed state
         if !matches!(self.state, WorkflowState::Designed) {
-            return Err(DomainError::InvalidState("Can only add steps to workflows in Designed state".into()));
+            return Err(DomainError::InvalidState(
+                "Can only add steps to workflows in Designed state".into(),
+            ));
         }
 
         // Check for duplicate step ID
         if self.steps.contains_key(&cmd.step.id) {
-            return Err(DomainError::DuplicateEntity(format!("Step {} already exists", cmd.step.id)));
+            return Err(DomainError::DuplicateEntity(format!(
+                "Step {} already exists",
+                cmd.step.id
+            )));
         }
 
         let event = StepAdded {
@@ -351,23 +354,34 @@ impl Workflow {
     fn handle_connect_steps(&mut self, cmd: ConnectSteps) -> Result<Vec<DomainEvent>, DomainError> {
         // Can only connect steps in Designed state
         if !matches!(self.state, WorkflowState::Designed) {
-            return Err(DomainError::InvalidState("Can only connect steps in Designed state".into()));
+            return Err(DomainError::InvalidState(
+                "Can only connect steps in Designed state".into(),
+            ));
         }
 
         // Validate both steps exist
         if !self.steps.contains_key(&cmd.from_step) {
-            return Err(DomainError::EntityNotFound(format!("Step {} not found", cmd.from_step)));
+            return Err(DomainError::EntityNotFound(format!(
+                "Step {} not found",
+                cmd.from_step
+            )));
         }
         if !self.steps.contains_key(&cmd.to_step) {
-            return Err(DomainError::EntityNotFound(format!("Step {} not found", cmd.to_step)));
+            return Err(DomainError::EntityNotFound(format!(
+                "Step {} not found",
+                cmd.to_step
+            )));
         }
 
         // Check for duplicate transition
-        let duplicate = self.transitions.iter().any(|t| {
-            t.from_step == cmd.from_step && t.to_step == cmd.to_step
-        });
+        let duplicate = self
+            .transitions
+            .iter()
+            .any(|t| t.from_step == cmd.from_step && t.to_step == cmd.to_step);
         if duplicate {
-            return Err(DomainError::DuplicateEntity("Transition already exists".into()));
+            return Err(DomainError::DuplicateEntity(
+                "Transition already exists".into(),
+            ));
         }
 
         let event = StepsConnected {
@@ -380,13 +394,20 @@ impl Workflow {
 
         self.apply_steps_connected(&event)?;
 
-        Ok(vec![DomainEvent::Workflow(WorkflowEvent::StepsConnected(event))])
+        Ok(vec![DomainEvent::Workflow(WorkflowEvent::StepsConnected(
+            event,
+        ))])
     }
 
-    fn handle_validate_workflow(&mut self, cmd: ValidateWorkflow) -> Result<Vec<DomainEvent>, DomainError> {
+    fn handle_validate_workflow(
+        &mut self,
+        cmd: ValidateWorkflow,
+    ) -> Result<Vec<DomainEvent>, DomainError> {
         // Can only validate from Designed state
         if !matches!(self.state, WorkflowState::Designed) {
-            return Err(DomainError::InvalidState("Can only validate workflows in Designed state".into()));
+            return Err(DomainError::InvalidState(
+                "Can only validate workflows in Designed state".into(),
+            ));
         }
 
         // Validation rules
@@ -395,11 +416,15 @@ impl Workflow {
         }
 
         if self.start_step.is_none() {
-            return Err(DomainError::ValidationError("Workflow has no start step".into()));
+            return Err(DomainError::ValidationError(
+                "Workflow has no start step".into(),
+            ));
         }
 
         if self.end_steps.is_empty() {
-            return Err(DomainError::ValidationError("Workflow has no end steps".into()));
+            return Err(DomainError::ValidationError(
+                "Workflow has no end steps".into(),
+            ));
         }
 
         // TODO: Add more validation (reachability, cycles, etc.)
@@ -417,16 +442,24 @@ impl Workflow {
 
         self.apply_workflow_validated(&event)?;
 
-        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowValidated(event))])
+        Ok(vec![DomainEvent::Workflow(
+            WorkflowEvent::WorkflowValidated(event),
+        )])
     }
 
-    fn handle_start_workflow(&mut self, cmd: StartWorkflow) -> Result<Vec<DomainEvent>, DomainError> {
+    fn handle_start_workflow(
+        &mut self,
+        cmd: StartWorkflow,
+    ) -> Result<Vec<DomainEvent>, DomainError> {
         // Can only start from Ready state
         if !matches!(self.state, WorkflowState::Ready { .. }) {
-            return Err(DomainError::InvalidState("Can only start workflows in Ready state".into()));
+            return Err(DomainError::InvalidState(
+                "Can only start workflows in Ready state".into(),
+            ));
         }
 
-        let start_step = self.start_step
+        let start_step = self
+            .start_step
             .ok_or_else(|| DomainError::ValidationError("No start step defined".into()))?;
 
         let event = WorkflowStarted {
@@ -440,18 +473,25 @@ impl Workflow {
 
         self.apply_workflow_started(&event)?;
 
-        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowStarted(event))])
+        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowStarted(
+            event,
+        ))])
     }
 
     fn handle_complete_step(&mut self, cmd: CompleteStep) -> Result<Vec<DomainEvent>, DomainError> {
         // Can only complete steps when Running
         if !matches!(self.state, WorkflowState::Running { .. }) {
-            return Err(DomainError::InvalidState("Can only complete steps when workflow is Running".into()));
+            return Err(DomainError::InvalidState(
+                "Can only complete steps when workflow is Running".into(),
+            ));
         }
 
         // Verify step exists
         if !self.steps.contains_key(&cmd.step_id) {
-            return Err(DomainError::EntityNotFound(format!("Step {} not found", cmd.step_id)));
+            return Err(DomainError::EntityNotFound(format!(
+                "Step {} not found",
+                cmd.step_id
+            )));
         }
 
         // TODO: Verify this is the current step or a parallel step
@@ -467,20 +507,27 @@ impl Workflow {
         self.apply_step_completed(&event)?;
 
         // Check if workflow is complete
-        let mut events = vec![DomainEvent::Workflow(WorkflowEvent::StepCompleted(event.clone()))];
+        let mut events = vec![DomainEvent::Workflow(WorkflowEvent::StepCompleted(
+            event.clone(),
+        ))];
 
-        if let WorkflowState::Running { completed_steps, .. } = &self.state {
+        if let WorkflowState::Running {
+            completed_steps, ..
+        } = &self.state
+        {
             // Check if all paths lead to end steps and all are completed
-            let all_complete = self.end_steps.iter().all(|end_step| {
-                completed_steps.contains(end_step)
-            });
+            let all_complete = self
+                .end_steps
+                .iter()
+                .all(|end_step| completed_steps.contains(end_step));
 
             if all_complete {
                 let completion_event = WorkflowCompleted {
                     workflow_id: self.id,
                     completed_at: Utc::now(),
                     result: WorkflowResult {
-                        outputs: self.execution_context
+                        outputs: self
+                            .execution_context
                             .as_ref()
                             .map(|ctx| ctx.variables.clone())
                             .unwrap_or_default(),
@@ -494,18 +541,27 @@ impl Workflow {
                 };
 
                 self.apply_workflow_completed(&completion_event)?;
-                events.push(DomainEvent::Workflow(WorkflowEvent::WorkflowCompleted(completion_event)));
+                events.push(DomainEvent::Workflow(WorkflowEvent::WorkflowCompleted(
+                    completion_event,
+                )));
             }
         }
 
         Ok(events)
     }
 
-    fn handle_pause_workflow(&mut self, cmd: PauseWorkflow) -> Result<Vec<DomainEvent>, DomainError> {
+    fn handle_pause_workflow(
+        &mut self,
+        cmd: PauseWorkflow,
+    ) -> Result<Vec<DomainEvent>, DomainError> {
         // Can only pause when Running
         let current_step = match &self.state {
             WorkflowState::Running { current_step, .. } => *current_step,
-            _ => return Err(DomainError::InvalidState("Can only pause running workflows".into())),
+            _ => {
+                return Err(DomainError::InvalidState(
+                    "Can only pause running workflows".into(),
+                ));
+            }
         };
 
         let event = WorkflowPaused {
@@ -518,14 +574,23 @@ impl Workflow {
 
         self.apply_workflow_paused(&event)?;
 
-        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowPaused(event))])
+        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowPaused(
+            event,
+        ))])
     }
 
-    fn handle_resume_workflow(&mut self, cmd: ResumeWorkflow) -> Result<Vec<DomainEvent>, DomainError> {
+    fn handle_resume_workflow(
+        &mut self,
+        cmd: ResumeWorkflow,
+    ) -> Result<Vec<DomainEvent>, DomainError> {
         // Can only resume when Paused
         let resume_point = match &self.state {
             WorkflowState::Paused { resume_point, .. } => *resume_point,
-            _ => return Err(DomainError::InvalidState("Can only resume paused workflows".into())),
+            _ => {
+                return Err(DomainError::InvalidState(
+                    "Can only resume paused workflows".into(),
+                ));
+            }
         };
 
         let event = WorkflowResumed {
@@ -537,7 +602,9 @@ impl Workflow {
 
         self.apply_workflow_resumed(&event)?;
 
-        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowResumed(event))])
+        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowResumed(
+            event,
+        ))])
     }
 
     fn handle_fail_workflow(&mut self, cmd: FailWorkflow) -> Result<Vec<DomainEvent>, DomainError> {
@@ -545,7 +612,11 @@ impl Workflow {
         let failed_step = match &self.state {
             WorkflowState::Running { current_step, .. } => *current_step,
             WorkflowState::Paused { resume_point, .. } => *resume_point,
-            _ => return Err(DomainError::InvalidState("Can only fail running or paused workflows".into())),
+            _ => {
+                return Err(DomainError::InvalidState(
+                    "Can only fail running or paused workflows".into(),
+                ));
+            }
         };
 
         let event = WorkflowFailed {
@@ -558,7 +629,9 @@ impl Workflow {
 
         self.apply_workflow_failed(&event)?;
 
-        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowFailed(event))])
+        Ok(vec![DomainEvent::Workflow(WorkflowEvent::WorkflowFailed(
+            event,
+        ))])
     }
 
     // Event application methods
@@ -627,7 +700,12 @@ impl Workflow {
     }
 
     fn apply_step_completed(&mut self, event: &StepCompleted) -> Result<(), DomainError> {
-        if let WorkflowState::Running { current_step, completed_steps, started_at } = &mut self.state {
+        if let WorkflowState::Running {
+            current_step,
+            completed_steps,
+            started_at,
+        } = &mut self.state
+        {
             // Add to completed steps
             completed_steps.push(event.step_id);
 
@@ -638,7 +716,8 @@ impl Workflow {
 
             // Store step outputs
             if let Some(ctx) = &mut self.execution_context {
-                ctx.step_outputs.insert(event.step_id, event.outputs.clone());
+                ctx.step_outputs
+                    .insert(event.step_id, event.outputs.clone());
             }
 
             // Update state with new values
@@ -669,9 +748,7 @@ impl Workflow {
         let completed_steps = if let WorkflowState::Paused { .. } = &self.state {
             self.execution_context
                 .as_ref()
-                .map(|ctx| {
-                    ctx.step_outputs.keys().cloned().collect()
-                })
+                .map(|ctx| ctx.step_outputs.keys().cloned().collect())
                 .unwrap_or_default()
         } else {
             vec![]
@@ -747,10 +824,15 @@ mod tests {
             tags: vec!["test".to_string()],
         };
 
-        let events = workflow.handle_command(WorkflowCommand::CreateWorkflow(cmd)).unwrap();
+        let events = workflow
+            .handle_command(WorkflowCommand::CreateWorkflow(cmd))
+            .unwrap();
 
         assert_eq!(events.len(), 1);
-        assert!(matches!(events[0], DomainEvent::Workflow(WorkflowEvent::WorkflowCreated(_))));
+        assert!(matches!(
+            events[0],
+            DomainEvent::Workflow(WorkflowEvent::WorkflowCreated(_))
+        ));
         assert_eq!(workflow.version, 1);
     }
 
@@ -783,7 +865,9 @@ mod tests {
             step: step.clone(),
         };
 
-        let events = workflow.handle_command(WorkflowCommand::AddStep(cmd)).unwrap();
+        let events = workflow
+            .handle_command(WorkflowCommand::AddStep(cmd))
+            .unwrap();
 
         assert_eq!(events.len(), 1);
         assert!(workflow.steps.contains_key(&step.id));
@@ -809,7 +893,9 @@ mod tests {
             validated_by: UserId::new(),
         };
 
-        let events = workflow.handle_command(WorkflowCommand::ValidateWorkflow(cmd)).unwrap();
+        let events = workflow
+            .handle_command(WorkflowCommand::ValidateWorkflow(cmd))
+            .unwrap();
 
         assert_eq!(events.len(), 1);
         assert!(matches!(workflow.state, WorkflowState::Ready { .. }));
@@ -825,10 +911,12 @@ mod tests {
         let step = create_test_step("Step 1");
 
         // Add step first time
-        workflow.handle_command(WorkflowCommand::AddStep(AddStep {
-            workflow_id: workflow.id.clone(),
-            step: step.clone(),
-        })).unwrap();
+        workflow
+            .handle_command(WorkflowCommand::AddStep(AddStep {
+                workflow_id: workflow.id.clone(),
+                step: step.clone(),
+            }))
+            .unwrap();
 
         // Try to add same step again
         let result = workflow.handle_command(WorkflowCommand::AddStep(AddStep {
@@ -838,7 +926,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::DuplicateEntity(_)) => {},
+            Err(DomainError::DuplicateEntity(_)) => {}
             _ => panic!("Expected DuplicateEntity error"),
         }
     }
@@ -852,15 +940,19 @@ mod tests {
         let step1 = create_test_step("Step 1");
         let step2 = create_test_step("Step 2");
 
-        workflow.handle_command(WorkflowCommand::AddStep(AddStep {
-            workflow_id: workflow.id.clone(),
-            step: step1.clone(),
-        })).unwrap();
+        workflow
+            .handle_command(WorkflowCommand::AddStep(AddStep {
+                workflow_id: workflow.id.clone(),
+                step: step1.clone(),
+            }))
+            .unwrap();
 
-        workflow.handle_command(WorkflowCommand::AddStep(AddStep {
-            workflow_id: workflow.id.clone(),
-            step: step2.clone(),
-        })).unwrap();
+        workflow
+            .handle_command(WorkflowCommand::AddStep(AddStep {
+                workflow_id: workflow.id.clone(),
+                step: step2.clone(),
+            }))
+            .unwrap();
 
         // Connect steps
         let result = workflow.handle_command(WorkflowCommand::ConnectSteps(ConnectSteps {
@@ -883,10 +975,12 @@ mod tests {
         workflow.version = 1;
 
         let step1 = create_test_step("Step 1");
-        workflow.handle_command(WorkflowCommand::AddStep(AddStep {
-            workflow_id: workflow.id.clone(),
-            step: step1.clone(),
-        })).unwrap();
+        workflow
+            .handle_command(WorkflowCommand::AddStep(AddStep {
+                workflow_id: workflow.id.clone(),
+                step: step1.clone(),
+            }))
+            .unwrap();
 
         // Try to connect to non-existent step
         let result = workflow.handle_command(WorkflowCommand::ConnectSteps(ConnectSteps {
@@ -899,7 +993,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::EntityNotFound(_)) => {},
+            Err(DomainError::EntityNotFound(_)) => {}
             _ => panic!("Expected EntityNotFound error"),
         }
     }
@@ -913,24 +1007,30 @@ mod tests {
         let step1 = create_test_step("Step 1");
         let step2 = create_test_step("Step 2");
 
-        workflow.handle_command(WorkflowCommand::AddStep(AddStep {
-            workflow_id: workflow.id.clone(),
-            step: step1.clone(),
-        })).unwrap();
+        workflow
+            .handle_command(WorkflowCommand::AddStep(AddStep {
+                workflow_id: workflow.id.clone(),
+                step: step1.clone(),
+            }))
+            .unwrap();
 
-        workflow.handle_command(WorkflowCommand::AddStep(AddStep {
-            workflow_id: workflow.id.clone(),
-            step: step2.clone(),
-        })).unwrap();
+        workflow
+            .handle_command(WorkflowCommand::AddStep(AddStep {
+                workflow_id: workflow.id.clone(),
+                step: step2.clone(),
+            }))
+            .unwrap();
 
         // Connect steps first time
-        workflow.handle_command(WorkflowCommand::ConnectSteps(ConnectSteps {
-            workflow_id: workflow.id.clone(),
-            from_step: step1.id,
-            to_step: step2.id,
-            edge_id: EdgeId::new(),
-            condition: None,
-        })).unwrap();
+        workflow
+            .handle_command(WorkflowCommand::ConnectSteps(ConnectSteps {
+                workflow_id: workflow.id.clone(),
+                from_step: step1.id,
+                to_step: step2.id,
+                edge_id: EdgeId::new(),
+                condition: None,
+            }))
+            .unwrap();
 
         // Try to connect same steps again
         let result = workflow.handle_command(WorkflowCommand::ConnectSteps(ConnectSteps {
@@ -943,7 +1043,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::DuplicateEntity(_)) => {},
+            Err(DomainError::DuplicateEntity(_)) => {}
             _ => panic!("Expected DuplicateEntity error"),
         }
     }
@@ -961,7 +1061,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::ValidationError(_)) => {},
+            Err(DomainError::ValidationError(_)) => {}
             _ => panic!("Expected ValidationError"),
         }
     }
@@ -983,7 +1083,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::ValidationError(msg)) if msg.contains("no start step") => {},
+            Err(DomainError::ValidationError(msg)) if msg.contains("no start step") => {}
             _ => panic!("Expected ValidationError about no start step"),
         }
     }
@@ -1006,7 +1106,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::ValidationError(msg)) if msg.contains("no end steps") => {},
+            Err(DomainError::ValidationError(msg)) if msg.contains("no end steps") => {}
             _ => panic!("Expected ValidationError about no end steps"),
         }
     }
@@ -1054,7 +1154,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::InvalidState(_)) => {},
+            Err(DomainError::InvalidState(_)) => {}
             _ => panic!("Expected InvalidState error"),
         }
     }
@@ -1097,7 +1197,12 @@ mod tests {
         assert!(result.is_ok());
 
         // Check state updated
-        if let WorkflowState::Running { current_step, completed_steps, .. } = &workflow.state {
+        if let WorkflowState::Running {
+            current_step,
+            completed_steps,
+            ..
+        } = &workflow.state
+        {
             assert_eq!(*current_step, step2.id);
             assert!(completed_steps.contains(&step1.id));
         } else {
@@ -1126,7 +1231,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::EntityNotFound(_)) => {},
+            Err(DomainError::EntityNotFound(_)) => {}
             _ => panic!("Expected EntityNotFound error"),
         }
     }
@@ -1168,8 +1273,14 @@ mod tests {
         // Should generate two events: StepCompleted and WorkflowCompleted
         let events = result.unwrap();
         assert_eq!(events.len(), 2);
-        assert!(matches!(events[0], DomainEvent::Workflow(WorkflowEvent::StepCompleted(_))));
-        assert!(matches!(events[1], DomainEvent::Workflow(WorkflowEvent::WorkflowCompleted(_))));
+        assert!(matches!(
+            events[0],
+            DomainEvent::Workflow(WorkflowEvent::StepCompleted(_))
+        ));
+        assert!(matches!(
+            events[1],
+            DomainEvent::Workflow(WorkflowEvent::WorkflowCompleted(_))
+        ));
 
         // Check final state
         assert!(matches!(workflow.state, WorkflowState::Completed { .. }));
@@ -1217,7 +1328,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::InvalidState(_)) => {},
+            Err(DomainError::InvalidState(_)) => {}
             _ => panic!("Expected InvalidState error"),
         }
     }
@@ -1277,7 +1388,10 @@ mod tests {
 
         assert!(result.is_ok());
 
-        if let WorkflowState::Failed { failed_step, error, .. } = &workflow.state {
+        if let WorkflowState::Failed {
+            failed_step, error, ..
+        } = &workflow.state
+        {
             assert_eq!(*failed_step, step);
             assert_eq!(error, "Test error");
         } else {
@@ -1335,7 +1449,7 @@ mod tests {
 
         assert!(result.is_err());
         match result {
-            Err(DomainError::InvalidState(_)) => {},
+            Err(DomainError::InvalidState(_)) => {}
             _ => panic!("Expected InvalidState error"),
         }
     }
@@ -1376,12 +1490,10 @@ mod tests {
             id: StepId::new(),
             name: "Decision".to_string(),
             step_type: StepType::Decision {
-                conditions: vec![
-                    DecisionCondition {
-                        expression: "amount > 1000".to_string(),
-                        target_step: StepId::new(),
-                    },
-                ],
+                conditions: vec![DecisionCondition {
+                    expression: "amount > 1000".to_string(),
+                    target_step: StepId::new(),
+                }],
             },
             node_id: NodeId::new(),
             inputs: vec![],
@@ -1392,7 +1504,10 @@ mod tests {
 
         // Verify they can be created
         assert!(matches!(user_task.step_type, StepType::UserTask));
-        assert!(matches!(service_task.step_type, StepType::ServiceTask { .. }));
+        assert!(matches!(
+            service_task.step_type,
+            StepType::ServiceTask { .. }
+        ));
         assert!(matches!(decision.step_type, StepType::Decision { .. }));
     }
 }

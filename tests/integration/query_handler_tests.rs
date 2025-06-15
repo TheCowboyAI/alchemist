@@ -14,12 +14,11 @@
 //!     D --> E[Query Result]
 //! ```
 
-use crate::fixtures::{TestEventStore, create_test_graph, assertions::*};
-use cim_domain::{DomainResult, GraphId, NodeId, DomainEvent};
+use crate::fixtures::{TestEventStore, assertions::*, create_test_graph};
+use cim_domain::{DomainEvent, DomainResult, GraphId, NodeId};
 use cim_domain_graph::{
-    GraphAggregate, GraphDomainEvent, NodeType, StepType, Position3D,
-    GraphSummaryProjection, NodeListProjection, EdgeListProjection,
-    Projection, GraphQuery, QueryHandler,
+    EdgeListProjection, GraphAggregate, GraphDomainEvent, GraphQuery, GraphSummaryProjection,
+    NodeListProjection, NodeType, Position3D, Projection, QueryHandler, StepType,
 };
 use std::collections::HashMap;
 
@@ -33,13 +32,19 @@ async fn test_find_nodes_by_type_query() -> DomainResult<()> {
     // Add nodes of different types
     let events = vec![
         create_node_added_event(graph_id, NodeType::Concept),
-        create_node_added_event(graph_id, NodeType::WorkflowStep {
-            step_type: StepType::Process
-        }),
+        create_node_added_event(
+            graph_id,
+            NodeType::WorkflowStep {
+                step_type: StepType::Process,
+            },
+        ),
         create_node_added_event(graph_id, NodeType::Concept),
-        create_node_added_event(graph_id, NodeType::Decision {
-            criteria: Default::default()
-        }),
+        create_node_added_event(
+            graph_id,
+            NodeType::Decision {
+                criteria: Default::default(),
+            },
+        ),
     ];
 
     for event in events {
@@ -58,7 +63,11 @@ async fn test_find_nodes_by_type_query() -> DomainResult<()> {
     match result {
         cim_domain_graph::QueryResult::NodeList(nodes) => {
             assert_eq!(nodes.len(), 2, "Should find 2 concept nodes");
-            assert!(nodes.iter().all(|n| matches!(n.node_type, NodeType::Concept)));
+            assert!(
+                nodes
+                    .iter()
+                    .all(|n| matches!(n.node_type, NodeType::Concept))
+            );
         }
         _ => panic!("Expected NodeList result"),
     }
@@ -150,10 +159,7 @@ async fn test_find_connected_nodes_query() -> DomainResult<()> {
     }
 
     // Create edges: A -> B -> C
-    let edges = vec![
-        (node_a, node_b),
-        (node_b, node_c),
-    ];
+    let edges = vec![(node_a, node_b), (node_b, node_c)];
 
     for (source, target) in edges {
         let event = DomainEvent::Graph(GraphDomainEvent::EdgeConnected {
@@ -243,7 +249,11 @@ async fn test_query_performance_large_dataset() -> DomainResult<()> {
         let event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
             graph_id,
             node_id: NodeId::new(),
-            node_type: if i % 2 == 0 { NodeType::Concept } else { NodeType::Data },
+            node_type: if i % 2 == 0 {
+                NodeType::Concept
+            } else {
+                NodeType::Data
+            },
             position: Position3D::default(),
             conceptual_point: Default::default(),
             metadata: Default::default(),
@@ -266,7 +276,10 @@ async fn test_query_performance_large_dataset() -> DomainResult<()> {
     match result {
         cim_domain_graph::QueryResult::NodeList(nodes) => {
             assert_eq!(nodes.len(), 5_000, "Should find 5,000 concept nodes");
-            assert!(duration.as_millis() < 100, "Query should complete within 100ms");
+            assert!(
+                duration.as_millis() < 100,
+                "Query should complete within 100ms"
+            );
         }
         _ => panic!("Expected NodeList result"),
     }
@@ -277,8 +290,8 @@ async fn test_query_performance_large_dataset() -> DomainResult<()> {
 /// Test concurrent queries don't interfere
 #[tokio::test]
 async fn test_concurrent_queries() -> DomainResult<()> {
-    use tokio::task;
     use std::sync::Arc;
+    use tokio::task;
 
     // Arrange - Shared projection
     let projection = Arc::new(tokio::sync::RwLock::new(NodeListProjection::new()));
@@ -291,21 +304,23 @@ async fn test_concurrent_queries() -> DomainResult<()> {
     }
 
     // Act - Run multiple queries concurrently
-    let handles: Vec<_> = (0..10).map(|_| {
-        let proj = projection.clone();
-        let gid = graph_id;
+    let handles: Vec<_> = (0..10)
+        .map(|_| {
+            let proj = projection.clone();
+            let gid = graph_id;
 
-        task::spawn(async move {
-            let query = GraphQuery::ListNodes {
-                graph_id: gid,
-                offset: 0,
-                limit: 10,
-            };
+            task::spawn(async move {
+                let query = GraphQuery::ListNodes {
+                    graph_id: gid,
+                    offset: 0,
+                    limit: 10,
+                };
 
-            let projection_read = proj.read().await;
-            QueryHandler::handle_query(query, &*projection_read)
+                let projection_read = proj.read().await;
+                QueryHandler::handle_query(query, &*projection_read)
+            })
         })
-    }).collect();
+        .collect();
 
     // Wait for all queries
     let mut results = Vec::new();
@@ -338,7 +353,10 @@ async fn test_complex_filter_query() -> DomainResult<()> {
     for i in 0..20 {
         let mut metadata = HashMap::new();
         metadata.insert("priority".to_string(), (i % 3).to_string());
-        metadata.insert("status".to_string(), if i < 10 { "active" } else { "inactive" }.to_string());
+        metadata.insert(
+            "status".to_string(),
+            if i < 10 { "active" } else { "inactive" }.to_string(),
+        );
 
         let event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
             graph_id,

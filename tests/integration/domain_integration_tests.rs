@@ -27,21 +27,33 @@ async fn test_graph_workflow_integration() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Start,
             },
-            position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: cim_domain_graph::Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         },
         GraphCommand::AddNode {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Process,
             },
-            position: cim_domain_graph::Position3D { x: 5.0, y: 0.0, z: 0.0 },
+            position: cim_domain_graph::Position3D {
+                x: 5.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         },
         GraphCommand::AddNode {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::End,
             },
-            position: cim_domain_graph::Position3D { x: 10.0, y: 0.0, z: 0.0 },
+            position: cim_domain_graph::Position3D {
+                x: 10.0,
+                y: 0.0,
+                z: 0.0,
+            },
             metadata: Default::default(),
         },
     ];
@@ -94,10 +106,17 @@ async fn test_location_in_graph() -> DomainResult<()> {
         node_type: NodeType::Integration {
             system: "LocationSystem".to_string(),
         },
-        position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: cim_domain_graph::Position3D {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
         metadata: {
             let mut meta = std::collections::HashMap::new();
-            meta.insert("location_id".to_string(), serde_json::json!(location_id.to_string()));
+            meta.insert(
+                "location_id".to_string(),
+                serde_json::json!(location_id.to_string()),
+            );
             meta.insert("location_type".to_string(), serde_json::json!("Facility"));
             meta
         },
@@ -119,7 +138,7 @@ async fn test_location_in_graph() -> DomainResult<()> {
 
 #[tokio::test]
 async fn test_policy_enforcement_across_domains() -> DomainResult<()> {
-    use cim_domain_policy::{PolicyAggregate, PolicyCommand, PolicyType, PolicyRule};
+    use cim_domain_policy::{PolicyAggregate, PolicyCommand, PolicyRule, PolicyType};
 
     // Arrange - Create a policy for graph modifications
     let policy_id = cim_domain::NodeId::new();
@@ -157,7 +176,11 @@ async fn test_policy_enforcement_across_domains() -> DomainResult<()> {
                 node_type: NodeType::WorkflowStep {
                     step_type: StepType::Process,
                 },
-                position: cim_domain_graph::Position3D { x: i as f32, y: 0.0, z: 0.0 },
+                position: cim_domain_graph::Position3D {
+                    x: i as f32,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 metadata: Default::default(),
             })?;
 
@@ -197,10 +220,17 @@ async fn test_document_attached_to_graph_node() -> DomainResult<()> {
         node_type: NodeType::Integration {
             system: "DocumentSystem".to_string(),
         },
-        position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: cim_domain_graph::Position3D {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
         metadata: {
             let mut meta = std::collections::HashMap::new();
-            meta.insert("document_id".to_string(), serde_json::json!(document_id.to_string()));
+            meta.insert(
+                "document_id".to_string(),
+                serde_json::json!(document_id.to_string()),
+            );
             meta.insert("document_type".to_string(), serde_json::json!("Diagram"));
             meta
         },
@@ -222,9 +252,9 @@ async fn test_document_attached_to_graph_node() -> DomainResult<()> {
 
 #[tokio::test]
 async fn test_agent_person_organization_hierarchy() -> DomainResult<()> {
-    use cim_domain_agent::{Agent, AgentType, AgentStatus};
-    use cim_domain_person::{Person};
+    use cim_domain_agent::{Agent, AgentStatus, AgentType};
     use cim_domain_organization::{Organization, OrganizationType};
+    use cim_domain_person::Person;
 
     // Arrange - Create organizational hierarchy
     let org_id = cim_domain::NodeId::new();
@@ -235,11 +265,7 @@ async fn test_agent_person_organization_hierarchy() -> DomainResult<()> {
     );
 
     let person_id = cim_domain::NodeId::new();
-    let person = Person::new(
-        person_id,
-        "Alice".to_string(),
-        "Smith".to_string(),
-    );
+    let person = Person::new(person_id, "Alice".to_string(), "Smith".to_string());
 
     let agent_id = cim_domain::NodeId::new();
     let agent = Agent::new(
@@ -260,11 +286,18 @@ async fn test_agent_person_organization_hierarchy() -> DomainResult<()> {
         node_type: NodeType::Concept {
             embedding: cim_domain_graph::ConceptEmbedding::default(),
         },
-        position: cim_domain_graph::Position3D { x: 0.0, y: 10.0, z: 0.0 },
+        position: cim_domain_graph::Position3D {
+            x: 0.0,
+            y: 10.0,
+            z: 0.0,
+        },
         metadata: {
             let mut meta = std::collections::HashMap::new();
             meta.insert("entity_type".to_string(), serde_json::json!("Organization"));
-            meta.insert("entity_id".to_string(), serde_json::json!(org_id.to_string()));
+            meta.insert(
+                "entity_id".to_string(),
+                serde_json::json!(org_id.to_string()),
+            );
             meta
         },
     })?;
@@ -273,11 +306,18 @@ async fn test_agent_person_organization_hierarchy() -> DomainResult<()> {
         node_type: NodeType::Concept {
             embedding: cim_domain_graph::ConceptEmbedding::default(),
         },
-        position: cim_domain_graph::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: cim_domain_graph::Position3D {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
         metadata: {
             let mut meta = std::collections::HashMap::new();
             meta.insert("entity_type".to_string(), serde_json::json!("Person"));
-            meta.insert("entity_id".to_string(), serde_json::json!(person_id.to_string()));
+            meta.insert(
+                "entity_id".to_string(),
+                serde_json::json!(person_id.to_string()),
+            );
             meta
         },
     })?;
@@ -286,11 +326,18 @@ async fn test_agent_person_organization_hierarchy() -> DomainResult<()> {
         node_type: NodeType::Concept {
             embedding: cim_domain_graph::ConceptEmbedding::default(),
         },
-        position: cim_domain_graph::Position3D { x: 0.0, y: -10.0, z: 0.0 },
+        position: cim_domain_graph::Position3D {
+            x: 0.0,
+            y: -10.0,
+            z: 0.0,
+        },
         metadata: {
             let mut meta = std::collections::HashMap::new();
             meta.insert("entity_type".to_string(), serde_json::json!("Agent"));
-            meta.insert("entity_id".to_string(), serde_json::json!(agent_id.to_string()));
+            meta.insert(
+                "entity_id".to_string(),
+                serde_json::json!(agent_id.to_string()),
+            );
             meta
         },
     })?;

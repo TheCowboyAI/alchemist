@@ -16,13 +16,17 @@ impl Plugin for WorkflowVisualizationPlugin {
         // Initialize the WorkflowEvent
         app.add_event::<WorkflowEvent>();
 
-        app.add_systems(Update, (
-            visualize_workflow_steps,
-            visualize_workflow_transitions,
-            animate_workflow_tokens,
-            update_step_states,
-            apply_workflow_layout,
-        ).chain());
+        app.add_systems(
+            Update,
+            (
+                visualize_workflow_steps,
+                visualize_workflow_transitions,
+                animate_workflow_tokens,
+                update_step_states,
+                apply_workflow_layout,
+            )
+                .chain(),
+        );
     }
 }
 
@@ -64,18 +68,14 @@ fn create_step_mesh_and_material(
 ) -> (Handle<Mesh>, Handle<StandardMaterial>) {
     // Create mesh based on step type
     let mesh = match step_type {
-        StepType::Start | StepType::End => {
-            meshes.add(Circle::new(props.scale * 0.5))
-        }
+        StepType::Start | StepType::End => meshes.add(Circle::new(props.scale * 0.5)),
         StepType::Decision { .. } => {
             meshes.add(RegularPolygon::new(props.scale * 0.6, 4)) // Diamond
         }
         StepType::ParallelGateway { .. } => {
             meshes.add(RegularPolygon::new(props.scale * 0.5, 6)) // Hexagon
         }
-        _ => {
-            meshes.add(Rectangle::new(props.scale * 1.2, props.scale * 0.8))
-        }
+        _ => meshes.add(Rectangle::new(props.scale * 1.2, props.scale * 0.8)),
     };
 
     // Create material based on state
@@ -151,13 +151,7 @@ pub fn visualize_workflow_transitions(
 }
 
 /// Draw a dashed line
-fn draw_dashed_line(
-    gizmos: &mut Gizmos,
-    from: Vec3,
-    to: Vec3,
-    color: Color,
-    dash_length: f32,
-) {
+fn draw_dashed_line(gizmos: &mut Gizmos, from: Vec3, to: Vec3, color: Color, dash_length: f32) {
     let direction = (to - from).normalize();
     let distance = from.distance(to);
     let num_dashes = (distance / (dash_length * 2.0)) as i32;
@@ -172,12 +166,7 @@ fn draw_dashed_line(
 }
 
 /// Draw a curved line
-fn draw_curved_line(
-    gizmos: &mut Gizmos,
-    from: Vec3,
-    to: Vec3,
-    color: Color,
-) {
+fn draw_curved_line(gizmos: &mut Gizmos, from: Vec3, to: Vec3, color: Color) {
     let mid = (from + to) * 0.5;
     let offset = Vec3::new(0.0, 0.5, 0.0);
     let control = mid + offset;
@@ -205,12 +194,7 @@ fn bezier_point(p0: Vec3, p1: Vec3, p2: Vec3, t: f32) -> Vec3 {
 }
 
 /// Draw an arrowhead
-fn draw_arrowhead(
-    gizmos: &mut Gizmos,
-    from: Vec3,
-    to: Vec3,
-    color: Color,
-) {
+fn draw_arrowhead(gizmos: &mut Gizmos, from: Vec3, to: Vec3, color: Color) {
     let direction = (to - from).normalize();
     let arrow_size = 0.2;
     let arrow_angle = 0.5;
@@ -306,14 +290,18 @@ pub fn update_step_states(
 
 /// System to apply workflow layout algorithms
 pub fn apply_workflow_layout(
-    mut step_query: Query<(Entity, &WorkflowStepVisual, &mut Transform), Changed<WorkflowStepVisual>>,
+    mut step_query: Query<
+        (Entity, &WorkflowStepVisual, &mut Transform),
+        Changed<WorkflowStepVisual>,
+    >,
     _workflow_query: Query<(Entity, &WorkflowVisual)>,
 ) {
     // For now, apply a simple layout to all steps
     // TODO: Implement proper workflow-step relationships
 
     // Collect all steps first to avoid borrow checker issues
-    let all_steps: Vec<(Entity, StepType)> = step_query.iter()
+    let all_steps: Vec<(Entity, StepType)> = step_query
+        .iter()
         .map(|(entity, step_visual, _)| (entity, step_visual.step_type.clone()))
         .collect();
 
@@ -331,7 +319,10 @@ pub fn apply_workflow_layout(
 
 /// Apply hierarchical layout to workflow steps
 fn apply_hierarchical_layout(
-    step_query: &mut Query<(Entity, &WorkflowStepVisual, &mut Transform), Changed<WorkflowStepVisual>>,
+    step_query: &mut Query<
+        (Entity, &WorkflowStepVisual, &mut Transform),
+        Changed<WorkflowStepVisual>,
+    >,
     steps: &[(Entity, &WorkflowStepVisual)],
     spacing: f32,
     level_gap: f32,
@@ -366,7 +357,10 @@ fn apply_hierarchical_layout(
 
 /// Apply horizontal layout to workflow steps
 fn apply_horizontal_layout(
-    step_query: &mut Query<(Entity, &WorkflowStepVisual, &mut Transform), Changed<WorkflowStepVisual>>,
+    step_query: &mut Query<
+        (Entity, &WorkflowStepVisual, &mut Transform),
+        Changed<WorkflowStepVisual>,
+    >,
     steps: &[(Entity, &WorkflowStepVisual)],
     spacing: f32,
 ) {
@@ -381,7 +375,10 @@ fn apply_horizontal_layout(
 
 /// Apply circular layout to workflow steps
 fn apply_circular_layout(
-    step_query: &mut Query<(Entity, &WorkflowStepVisual, &mut Transform), Changed<WorkflowStepVisual>>,
+    step_query: &mut Query<
+        (Entity, &WorkflowStepVisual, &mut Transform),
+        Changed<WorkflowStepVisual>,
+    >,
     steps: &[(Entity, &WorkflowStepVisual)],
     radius: f32,
 ) {
@@ -438,10 +435,7 @@ fn calculate_hierarchical_layout(
 }
 
 /// Calculate horizontal layout positions
-fn calculate_horizontal_layout(
-    children: &Children,
-    spacing: f32,
-) -> HashMap<Entity, Vec3> {
+fn calculate_horizontal_layout(children: &Children, spacing: f32) -> HashMap<Entity, Vec3> {
     let mut positions = HashMap::new();
 
     for (idx, child) in children.iter().enumerate() {
@@ -453,10 +447,7 @@ fn calculate_horizontal_layout(
 }
 
 /// Calculate circular layout positions
-fn calculate_circular_layout(
-    children: &Children,
-    radius: f32,
-) -> HashMap<Entity, Vec3> {
+fn calculate_circular_layout(children: &Children, radius: f32) -> HashMap<Entity, Vec3> {
     let mut positions = HashMap::new();
     let count = children.len() as f32;
 
@@ -480,15 +471,16 @@ pub fn layout_workflow_steps(
 
         // Collect step positions based on layout algorithm
         let positions = match layout {
-            WorkflowLayout::Hierarchical { spacing: node_spacing, level_gap: layer_spacing } => {
+            WorkflowLayout::Hierarchical {
+                spacing: node_spacing,
+                level_gap: layer_spacing,
+            } => {
                 calculate_hierarchical_layout(children, &step_query, *layer_spacing, *node_spacing)
             }
             WorkflowLayout::Horizontal { spacing } => {
                 calculate_horizontal_layout(children, *spacing)
             }
-            WorkflowLayout::Circular { radius } => {
-                calculate_circular_layout(children, *radius)
-            }
+            WorkflowLayout::Circular { radius } => calculate_circular_layout(children, *radius),
             WorkflowLayout::ForceDirected { .. } => {
                 // Force-directed layout would be more complex
                 HashMap::new()

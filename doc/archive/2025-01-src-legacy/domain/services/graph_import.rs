@@ -1,7 +1,7 @@
 use crate::domain::{
-    commands::{GraphCommand, WorkflowCommand, ImportSource, ImportOptions},
-    value_objects::{GraphId, NodeId, EdgeId, Position3D, WorkflowId, StepId, UserId},
     DomainError,
+    commands::{GraphCommand, ImportOptions, ImportSource, WorkflowCommand},
+    value_objects::{EdgeId, GraphId, NodeId, Position3D, StepId, UserId, WorkflowId},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -20,7 +20,7 @@ pub enum ImportFormat {
     Dot,
     ProgressJson,
     VocabularyJson,
-    RssAtom,  // RSS/Atom feeds (EventStore format)
+    RssAtom, // RSS/Atom feeds (EventStore format)
 }
 
 /// Imported graph data structure
@@ -330,7 +330,8 @@ impl ImportMapping {
 
     /// Apply field mapping
     pub fn map_field(&self, field: &str) -> String {
-        self.field_mappings.get(field)
+        self.field_mappings
+            .get(field)
             .cloned()
             .unwrap_or_else(|| field.to_string())
     }
@@ -346,14 +347,16 @@ impl ImportMapping {
 
     /// Map relationship type
     pub fn map_relationship(&self, rel_type: &str) -> String {
-        self.relationship_mappings.get(rel_type)
+        self.relationship_mappings
+            .get(rel_type)
             .cloned()
             .unwrap_or_else(|| rel_type.to_lowercase())
     }
 
     /// Map node type
     pub fn map_node_type(&self, node_type: &str) -> String {
-        self.node_type_mappings.get(node_type)
+        self.node_type_mappings
+            .get(node_type)
             .cloned()
             .unwrap_or_else(|| node_type.to_string())
     }
@@ -398,7 +401,8 @@ impl ValueTransform {
             ValueTransform::ExtractNumber => {
                 if let serde_json::Value::String(s) = &value {
                     // Extract first number from string
-                    let numbers: String = s.chars()
+                    let numbers: String = s
+                        .chars()
                         .filter(|c| c.is_numeric() || *c == '.' || *c == '-')
                         .collect();
                     if let Ok(num) = numbers.parse::<f64>() {
@@ -444,9 +448,7 @@ impl MathOperation {
             MathOperation::Multiply(n) => value * n,
             MathOperation::Power(n) => value.powf(*n),
             MathOperation::Logarithm => value.ln(),
-            MathOperation::Normalize { min, max } => {
-                (value - min) / (max - min)
-            }
+            MathOperation::Normalize { min, max } => (value - min) / (max - min),
         }
     }
 }
@@ -578,7 +580,10 @@ impl GraphImportService {
         mapping: Option<&ImportMapping>,
     ) -> Result<ImportedGraph, DomainError> {
         eprintln!("import_from_content: format = {:?}", format);
-        eprintln!("import_from_content: first 100 chars = {}", &content.chars().take(100).collect::<String>());
+        eprintln!(
+            "import_from_content: first 100 chars = {}",
+            &content.chars().take(100).collect::<String>()
+        );
 
         // Use provided mapping or default
         let mapping = mapping.cloned().unwrap_or_default();
@@ -587,12 +592,12 @@ impl GraphImportService {
             ImportFormat::ArrowsApp => {
                 eprintln!("import_from_content: calling import_arrows_app");
                 self.import_arrows_app(content, &mapping)?
-            },
+            }
             ImportFormat::Cypher => self.import_cypher(content, &mapping)?,
             ImportFormat::Mermaid => {
                 eprintln!("import_from_content: calling import_mermaid");
                 self.import_mermaid(content)?
-            },
+            }
             ImportFormat::Dot => self.import_dot(content, &mapping)?,
             ImportFormat::ProgressJson => self.import_progress_json(content, &mapping)?,
             ImportFormat::VocabularyJson => self.import_vocabulary_json(content, &mapping)?,
@@ -616,7 +621,7 @@ impl GraphImportService {
         // In a real implementation, use reqwest or similar
         // For now, return a placeholder
         Err(DomainError::ValidationFailed(
-            "URL fetching not yet implemented".to_string()
+            "URL fetching not yet implemented".to_string(),
         ))
     }
 
@@ -646,17 +651,22 @@ impl GraphImportService {
             .arg(repo_url)
             .arg(&temp_dir)
             .output()
-            .map_err(|e| DomainError::ValidationFailed(format!("Failed to clone repository: {e}")))?;
+            .map_err(|e| {
+                DomainError::ValidationFailed(format!("Failed to clone repository: {e}"))
+            })?;
 
         if !clone_result.status.success() {
             let error = String::from_utf8_lossy(&clone_result.stderr);
-            return Err(DomainError::ValidationFailed(format!("Git clone failed: {error}")));
+            return Err(DomainError::ValidationFailed(format!(
+                "Git clone failed: {error}"
+            )));
         }
 
         // Read the file
         let file_path = temp_dir.join(file_path);
-        let content = std::fs::read_to_string(&file_path)
-            .map_err(|e| DomainError::ValidationFailed(format!("Failed to read file from repository: {e}")))?;
+        let content = std::fs::read_to_string(&file_path).map_err(|e| {
+            DomainError::ValidationFailed(format!("Failed to read file from repository: {e}"))
+        })?;
 
         // Clean up temp directory
         let _ = std::fs::remove_dir_all(&temp_dir);
@@ -675,11 +685,15 @@ impl GraphImportService {
             .args(["eval", "--raw"])
             .arg(format!("{flake_ref}#{output}"))
             .output()
-            .map_err(|e| DomainError::ValidationFailed(format!("Failed to evaluate Nix flake: {e}")))?;
+            .map_err(|e| {
+                DomainError::ValidationFailed(format!("Failed to evaluate Nix flake: {e}"))
+            })?;
 
         if !eval_result.status.success() {
             let error = String::from_utf8_lossy(&eval_result.stderr);
-            return Err(DomainError::ValidationFailed(format!("Nix evaluation failed: {error}")));
+            return Err(DomainError::ValidationFailed(format!(
+                "Nix evaluation failed: {error}"
+            )));
         }
 
         Ok(String::from_utf8_lossy(&eval_result.stdout).to_string())
@@ -726,7 +740,8 @@ impl GraphImportService {
             .map_err(|e| DomainError::ValidationFailed(format!("Failed to read directory: {e}")))?;
 
         for entry in entries {
-            let entry = entry.map_err(|e| DomainError::ValidationFailed(format!("Failed to read entry: {e}")))?;
+            let entry = entry
+                .map_err(|e| DomainError::ValidationFailed(format!("Failed to read entry: {e}")))?;
             let path = entry.path();
 
             if path.is_file() && self.is_supported_file(&path, &format) {
@@ -739,7 +754,8 @@ impl GraphImportService {
                     path.to_str().unwrap(),
                     format.clone(),
                     recursive,
-                )).await?;
+                ))
+                .await?;
                 graphs.extend(sub_graphs);
             }
         }
@@ -752,7 +768,10 @@ impl GraphImportService {
         let extension = path.extension().and_then(|e| e.to_str());
 
         match (format, extension) {
-            (ImportFormat::ArrowsApp | ImportFormat::ProgressJson | ImportFormat::VocabularyJson, Some("json")) => true,
+            (
+                ImportFormat::ArrowsApp | ImportFormat::ProgressJson | ImportFormat::VocabularyJson,
+                Some("json"),
+            ) => true,
             (ImportFormat::Cypher, Some("cypher") | Some("cql")) => true,
             (ImportFormat::Mermaid, Some("mmd") | Some("mermaid") | Some("md")) => true,
             (ImportFormat::Dot, Some("dot") | Some("gv")) => true,
@@ -770,16 +789,22 @@ impl GraphImportService {
             .args(["eval", "--json"])
             .arg(format!("{flake_ref}#graphs"))
             .output()
-            .map_err(|e| DomainError::ValidationFailed(format!("Failed to list graphs from flake: {e}")))?;
+            .map_err(|e| {
+                DomainError::ValidationFailed(format!("Failed to list graphs from flake: {e}"))
+            })?;
 
         if !list_result.status.success() {
             let error = String::from_utf8_lossy(&list_result.stderr);
-            return Err(DomainError::ValidationFailed(format!("Failed to list graphs: {error}")));
+            return Err(DomainError::ValidationFailed(format!(
+                "Failed to list graphs: {error}"
+            )));
         }
 
         // Parse the list of available graphs
-        let graphs_list: HashMap<String, serde_json::Value> = serde_json::from_slice(&list_result.stdout)
-            .map_err(|e| DomainError::ValidationFailed(format!("Failed to parse graphs list: {e}")))?;
+        let graphs_list: HashMap<String, serde_json::Value> =
+            serde_json::from_slice(&list_result.stdout).map_err(|e| {
+                DomainError::ValidationFailed(format!("Failed to parse graphs list: {e}"))
+            })?;
 
         let mut imported_graphs = Vec::new();
 
@@ -789,7 +814,9 @@ impl GraphImportService {
                 .args(["eval", "--json"])
                 .arg(format!("{flake_ref}#graphs.{name}"))
                 .output()
-                .map_err(|e| DomainError::ValidationFailed(format!("Failed to evaluate graph {name}: {e}")))?;
+                .map_err(|e| {
+                    DomainError::ValidationFailed(format!("Failed to evaluate graph {name}: {e}"))
+                })?;
 
             if graph_result.status.success() {
                 let content = String::from_utf8_lossy(&graph_result.stdout);
@@ -799,8 +826,12 @@ impl GraphImportService {
 
                 if let Ok(mut graph) = self.import_from_content(&content, format, None) {
                     // Add flake metadata
-                    graph.metadata.insert("nix_flake_ref".to_string(), serde_json::json!(flake_ref));
-                    graph.metadata.insert("nix_graph_name".to_string(), serde_json::json!(name));
+                    graph
+                        .metadata
+                        .insert("nix_flake_ref".to_string(), serde_json::json!(flake_ref));
+                    graph
+                        .metadata
+                        .insert("nix_graph_name".to_string(), serde_json::json!(name));
                     imported_graphs.push(graph);
                 }
             }
@@ -818,7 +849,10 @@ impl GraphImportService {
             if content.contains("\"nodes\"") && content.contains("\"relationships\"") {
                 return ImportFormat::ArrowsApp;
             }
-            if content.contains("\"metadata\"") && content.contains("\"nodes\"") && content.contains("\"edges\"") {
+            if content.contains("\"metadata\"")
+                && content.contains("\"nodes\"")
+                && content.contains("\"edges\"")
+            {
                 return ImportFormat::ProgressJson;
             }
             if content.contains("\"categories\"") && content.contains("\"terms\"") {
@@ -827,7 +861,10 @@ impl GraphImportService {
         }
 
         // Check for XML formats (RSS/Atom)
-        if trimmed.starts_with("<?xml") || trimmed.starts_with("<feed") || trimmed.starts_with("<rss") {
+        if trimmed.starts_with("<?xml")
+            || trimmed.starts_with("<feed")
+            || trimmed.starts_with("<rss")
+        {
             if content.contains("<feed") && content.contains("xmlns") {
                 return ImportFormat::RssAtom;
             }
@@ -842,12 +879,17 @@ impl GraphImportService {
         }
 
         // Check for Mermaid
-        if content.contains("graph") || content.contains("flowchart") || content.contains("stateDiagram") {
+        if content.contains("graph")
+            || content.contains("flowchart")
+            || content.contains("stateDiagram")
+        {
             return ImportFormat::Mermaid;
         }
 
         // Check for DOT
-        if content.contains("digraph") || (content.contains("graph") && content.contains("{") && content.contains("}")) {
+        if content.contains("digraph")
+            || (content.contains("graph") && content.contains("{") && content.contains("}"))
+        {
             return ImportFormat::Dot;
         }
 
@@ -869,10 +911,14 @@ impl GraphImportService {
             .map_err(|e| DomainError::ValidationFailed(format!("Failed to find git root: {e}")))?;
 
         if !repo_root.status.success() {
-            return Err(DomainError::ValidationFailed("Not in a git repository".to_string()));
+            return Err(DomainError::ValidationFailed(
+                "Not in a git repository".to_string(),
+            ));
         }
 
-        let root_path = String::from_utf8_lossy(&repo_root.stdout).trim().to_string();
+        let root_path = String::from_utf8_lossy(&repo_root.stdout)
+            .trim()
+            .to_string();
 
         // Find files matching patterns
         for pattern in patterns {
@@ -891,15 +937,23 @@ impl GraphImportService {
                         if let Ok(content) = self.read_file_content(full_path.to_str().unwrap()) {
                             let format = self.detect_format(&content);
 
-                            if let Ok(mut graph) = self.import_from_content(&content, format, None) {
+                            if let Ok(mut graph) = self.import_from_content(&content, format, None)
+                            {
                                 // Add git metadata
-                                graph.metadata.insert("git_path".to_string(), serde_json::json!(file_path));
-                                graph.metadata.insert("git_root".to_string(), serde_json::json!(root_path));
+                                graph
+                                    .metadata
+                                    .insert("git_path".to_string(), serde_json::json!(file_path));
+                                graph
+                                    .metadata
+                                    .insert("git_root".to_string(), serde_json::json!(root_path));
 
                                 // Use filename as graph name if not set
                                 if graph.metadata.get("name").is_none() {
                                     if let Some(filename) = Path::new(file_path).file_stem() {
-                                        graph.metadata.insert("name".to_string(), serde_json::json!(filename.to_string_lossy()));
+                                        graph.metadata.insert(
+                                            "name".to_string(),
+                                            serde_json::json!(filename.to_string_lossy()),
+                                        );
                                     }
                                 }
 
@@ -922,8 +976,12 @@ impl GraphImportService {
     ) -> Result<ImportedGraph, DomainError> {
         match format {
             ImportFormat::ArrowsApp => self.import_arrows_app(content, &ImportMapping::default()),
-            ImportFormat::ProgressJson => self.import_progress_json(content, &ImportMapping::default()),
-            ImportFormat::VocabularyJson => self.import_vocabulary_json(content, &ImportMapping::default()),
+            ImportFormat::ProgressJson => {
+                self.import_progress_json(content, &ImportMapping::default())
+            }
+            ImportFormat::VocabularyJson => {
+                self.import_vocabulary_json(content, &ImportMapping::default())
+            }
             _ => Err(DomainError::ValidationFailed(
                 "JSON import not supported for this format".to_string(),
             )),
@@ -940,24 +998,25 @@ impl GraphImportService {
             ImportFormat::Cypher => self.import_cypher(content, &ImportMapping::default()),
             ImportFormat::Mermaid => self.import_mermaid(content),
             ImportFormat::Dot => self.import_dot(content, &ImportMapping::default()),
-            _ => Err(DomainError::ValidationFailed(
-                format!("Text import not supported for format: {:?}", format)
-            ))
+            _ => Err(DomainError::ValidationFailed(format!(
+                "Text import not supported for format: {:?}",
+                format
+            ))),
         }
     }
 
     /// Convert imported graph to domain commands
     pub fn to_graph_commands(&self, imported: &ImportedGraph) -> Vec<GraphCommand> {
-        let mut commands = vec![
-            GraphCommand::CreateGraph {
-                id: GraphId::new(),
-                name: imported.metadata.get("name")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("Imported graph")
-                    .to_string(),
-                metadata: imported.metadata.clone(),
-            },
-        ];
+        let mut commands = vec![GraphCommand::CreateGraph {
+            id: GraphId::new(),
+            name: imported
+                .metadata
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("Imported graph")
+                .to_string(),
+            metadata: imported.metadata.clone(),
+        }];
 
         // Add nodes
         for node in &imported.nodes {
@@ -994,7 +1053,10 @@ impl GraphImportService {
     pub fn to_workflow_commands(&self, imported: &ImportedGraph) -> Option<Vec<WorkflowCommand>> {
         // Check if this is a workflow graph
         let is_workflow = imported.nodes.iter().any(|n| {
-            matches!(n.node_type.as_str(), "WorkflowStep" | "Decision" | "Start" | "End" | "FlowchartNode")
+            matches!(
+                n.node_type.as_str(),
+                "WorkflowStep" | "Decision" | "Start" | "End" | "FlowchartNode"
+            )
         });
 
         if !is_workflow {
@@ -1002,21 +1064,25 @@ impl GraphImportService {
         }
 
         let workflow_id = WorkflowId::new();
-        let mut commands = vec![
-            WorkflowCommand::CreateWorkflow(crate::domain::commands::workflow::CreateWorkflow {
+        let mut commands = vec![WorkflowCommand::CreateWorkflow(
+            crate::domain::commands::workflow::CreateWorkflow {
                 workflow_id,
-                name: imported.metadata.get("name")
+                name: imported
+                    .metadata
+                    .get("name")
                     .and_then(|v| v.as_str())
                     .unwrap_or("Imported workflow")
                     .to_string(),
-                description: imported.metadata.get("description")
+                description: imported
+                    .metadata
+                    .get("description")
                     .and_then(|v| v.as_str())
                     .unwrap_or("Imported workflow")
                     .to_string(),
                 created_by: UserId::new(), // Would need to pass this in
                 tags: vec!["imported".to_string()],
-            }),
-        ];
+            },
+        )];
 
         // Map node IDs to step IDs
         let mut step_map = HashMap::new();
@@ -1027,9 +1093,9 @@ impl GraphImportService {
             step_map.insert(node.id.clone(), step_id);
 
             let step_type = match node.node_type.as_str() {
-                "Decision" => crate::domain::aggregates::workflow::StepType::Decision {
-                    conditions: vec![],
-                },
+                "Decision" => {
+                    crate::domain::aggregates::workflow::StepType::Decision { conditions: vec![] }
+                }
                 "Start" | "End" => crate::domain::aggregates::workflow::StepType::UserTask,
                 _ => crate::domain::aggregates::workflow::StepType::ServiceTask {
                     service: "default".to_string(),
@@ -1048,28 +1114,31 @@ impl GraphImportService {
                 retry_policy: None,
             };
 
-            commands.push(WorkflowCommand::AddStep(crate::domain::commands::workflow::AddStep {
-                workflow_id,
-                step,
-            }));
+            commands.push(WorkflowCommand::AddStep(
+                crate::domain::commands::workflow::AddStep { workflow_id, step },
+            ));
         }
 
         // Connect steps based on edges
         for edge in &imported.edges {
             if let (Some(&source_step), Some(&target_step)) =
-                (step_map.get(&edge.source), step_map.get(&edge.target)) {
-
-                let condition = edge.properties.get("condition")
+                (step_map.get(&edge.source), step_map.get(&edge.target))
+            {
+                let condition = edge
+                    .properties
+                    .get("condition")
                     .and_then(|v| v.as_str())
                     .map(|s| s.to_string());
 
-                commands.push(WorkflowCommand::ConnectSteps(crate::domain::commands::workflow::ConnectSteps {
-                    workflow_id,
-                    from_step: source_step,
-                    to_step: target_step,
-                    edge_id: EdgeId::new(),
-                    condition,
-                }));
+                commands.push(WorkflowCommand::ConnectSteps(
+                    crate::domain::commands::workflow::ConnectSteps {
+                        workflow_id,
+                        from_step: source_step,
+                        to_step: target_step,
+                        edge_id: EdgeId::new(),
+                        condition,
+                    },
+                ));
             }
         }
 
@@ -1077,7 +1146,11 @@ impl GraphImportService {
     }
 
     /// Import from Arrows.app JSON format
-    fn import_arrows_app(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_arrows_app(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         let arrows_data: ArrowsAppJson = serde_json::from_str(content)
             .map_err(|e| DomainError::ValidationFailed(format!("Invalid Arrows.app JSON: {e}")))?;
 
@@ -1098,19 +1171,26 @@ impl GraphImportService {
             // Handle caption specially
             if let Some(caption) = arrow_node.caption {
                 let caption_key = mapping.map_field("caption");
-                let caption_value = mapping.transform_value(&caption_key, serde_json::json!(caption));
+                let caption_value =
+                    mapping.transform_value(&caption_key, serde_json::json!(caption));
                 properties.insert(caption_key, caption_value);
             }
 
             nodes.push(ImportedNode {
                 id: arrow_node.id,
-                label: properties.get(&mapping.map_field("caption"))
+                label: properties
+                    .get(&mapping.map_field("caption"))
                     .or_else(|| properties.get(&mapping.map_field("name")))
                     .or_else(|| properties.get(&mapping.map_field("label")))
                     .and_then(|v| v.as_str())
                     .unwrap_or("Node")
                     .to_string(),
-                node_type: mapping.map_node_type(arrow_node.style.get("node-type").unwrap_or(&"default".to_string())),
+                node_type: mapping.map_node_type(
+                    arrow_node
+                        .style
+                        .get("node-type")
+                        .unwrap_or(&"default".to_string()),
+                ),
                 position: Position3D {
                     x: arrow_node.position.x,
                     y: arrow_node.position.y,
@@ -1148,7 +1228,11 @@ impl GraphImportService {
     }
 
     /// Import from progress.json format
-    fn import_progress_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_progress_json(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         let progress_data: ProgressJson = serde_json::from_str(content)
             .map_err(|e| DomainError::ValidationFailed(format!("Invalid progress.json: {e}")))?;
 
@@ -1188,16 +1272,29 @@ impl GraphImportService {
             edges,
             metadata: {
                 let mut map = HashMap::new();
-                map.insert("name".to_string(), serde_json::json!(progress_data.metadata.name));
-                map.insert("description".to_string(), serde_json::json!(progress_data.metadata.description));
-                map.insert("version".to_string(), serde_json::json!(progress_data.metadata.version));
+                map.insert(
+                    "name".to_string(),
+                    serde_json::json!(progress_data.metadata.name),
+                );
+                map.insert(
+                    "description".to_string(),
+                    serde_json::json!(progress_data.metadata.description),
+                );
+                map.insert(
+                    "version".to_string(),
+                    serde_json::json!(progress_data.metadata.version),
+                );
                 map
             },
         })
     }
 
     /// Import from vocabulary.json format
-    fn import_vocabulary_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_vocabulary_json(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         let vocab_data: VocabularyJson = serde_json::from_str(content)
             .map_err(|e| DomainError::ValidationFailed(format!("Invalid vocabulary.json: {e}")))?;
 
@@ -1322,16 +1419,29 @@ impl GraphImportService {
             edges,
             metadata: {
                 let mut map = HashMap::new();
-                map.insert("name".to_string(), serde_json::json!(vocab_data.metadata.name));
-                map.insert("description".to_string(), serde_json::json!(vocab_data.metadata.description));
-                map.insert("version".to_string(), serde_json::json!(vocab_data.metadata.version));
+                map.insert(
+                    "name".to_string(),
+                    serde_json::json!(vocab_data.metadata.name),
+                );
+                map.insert(
+                    "description".to_string(),
+                    serde_json::json!(vocab_data.metadata.description),
+                );
+                map.insert(
+                    "version".to_string(),
+                    serde_json::json!(vocab_data.metadata.version),
+                );
                 map
             },
         })
     }
 
     /// Import from Cypher query language
-    fn import_cypher(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_cypher(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         // Basic Cypher parser - in production, use a proper parser
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
@@ -1350,7 +1460,9 @@ impl GraphImportService {
                     nodes.push(ImportedNode {
                         id: format!("cypher-node-{node_counter}"),
                         node_type: node_match.label,
-                        label: node_match.properties.get("name")
+                        label: node_match
+                            .properties
+                            .get("name")
                             .and_then(|v| v.as_str())
                             .unwrap_or("Node")
                             .to_string(),
@@ -1385,7 +1497,10 @@ impl GraphImportService {
             edges,
             metadata: {
                 let mut map = HashMap::new();
-                map.insert("name".to_string(), serde_json::json!("Imported from Cypher"));
+                map.insert(
+                    "name".to_string(),
+                    serde_json::json!("Imported from Cypher"),
+                );
                 map
             },
         })
@@ -1398,7 +1513,7 @@ impl GraphImportService {
         // Test Purpose: Validates that Mermaid diagrams are correctly parsed into ImportedGraph
         // Expected Behavior: Nodes and edges are created from Mermaid syntax
 
-        use pulldown_cmark::{Parser, Event, Tag, TagEnd, CodeBlockKind};
+        use pulldown_cmark::{CodeBlockKind, Event, Parser, Tag, TagEnd};
 
         // First, check if this is markdown with mermaid code blocks
         let parser = Parser::new(mermaid_content);
@@ -1461,9 +1576,8 @@ impl GraphImportService {
                 match self.parse_mermaid_diagram(diagram) {
                     Ok(mut subgraph) => {
                         // Track which nodes belong to this subgraph
-                        let node_ids: Vec<String> = subgraph.nodes.iter()
-                            .map(|n| n.id.clone())
-                            .collect();
+                        let node_ids: Vec<String> =
+                            subgraph.nodes.iter().map(|n| n.id.clone()).collect();
 
                         // Add subgraph prefix to node IDs to avoid conflicts
                         let prefix = format!("sg{}_", idx);
@@ -1487,13 +1601,20 @@ impl GraphImportService {
                         for node in &mut subgraph.nodes {
                             node.id = format!("{}{}", prefix, node.id);
                             // Add subgraph metadata
-                            node.properties.insert("subgraph".to_string(), serde_json::json!(subgraph_name.clone()));
-                            node.properties.insert("subgraph_id".to_string(), serde_json::json!(idx));
-                            node.properties.insert("subgraph_origin".to_string(), serde_json::json!({
-                                "x": subgraph_origin.x,
-                                "y": subgraph_origin.y,
-                                "z": subgraph_origin.z
-                            }));
+                            node.properties.insert(
+                                "subgraph".to_string(),
+                                serde_json::json!(subgraph_name.clone()),
+                            );
+                            node.properties
+                                .insert("subgraph_id".to_string(), serde_json::json!(idx));
+                            node.properties.insert(
+                                "subgraph_origin".to_string(),
+                                serde_json::json!({
+                                    "x": subgraph_origin.x,
+                                    "y": subgraph_origin.y,
+                                    "z": subgraph_origin.z
+                                }),
+                            );
 
                             // Apply subgraph origin offset to position entire subgraph
                             node.position.x += subgraph_origin.x;
@@ -1506,8 +1627,12 @@ impl GraphImportService {
                             edge.source = format!("{}{}", prefix, edge.source);
                             edge.target = format!("{}{}", prefix, edge.target);
                             // Add subgraph metadata
-                            edge.properties.insert("subgraph".to_string(), serde_json::json!(subgraph_name.clone()));
-                            edge.properties.insert("subgraph_id".to_string(), serde_json::json!(idx));
+                            edge.properties.insert(
+                                "subgraph".to_string(),
+                                serde_json::json!(subgraph_name.clone()),
+                            );
+                            edge.properties
+                                .insert("subgraph_id".to_string(), serde_json::json!(idx));
                         }
 
                         // Store subgraph information
@@ -1529,11 +1654,16 @@ impl GraphImportService {
             }
 
             if all_nodes.is_empty() {
-                return Err(DomainError::ValidationError("No valid nodes found in any Mermaid diagram".to_string()));
+                return Err(DomainError::ValidationError(
+                    "No valid nodes found in any Mermaid diagram".to_string(),
+                ));
             }
 
             metadata.insert("subgraphs".to_string(), serde_json::json!(subgraph_info));
-            metadata.insert("subgraph_count".to_string(), serde_json::json!(mermaid_blocks.len()));
+            metadata.insert(
+                "subgraph_count".to_string(),
+                serde_json::json!(mermaid_blocks.len()),
+            );
 
             // Create the combined graph - no need for additional layout since we already offset
             Ok(ImportedGraph {
@@ -1549,7 +1679,8 @@ impl GraphImportService {
 
     fn parse_mermaid_diagram(&self, diagram: &str) -> Result<ImportedGraph, DomainError> {
         // Detect diagram type from the first non-comment line
-        let lines: Vec<&str> = diagram.lines()
+        let lines: Vec<&str> = diagram
+            .lines()
             .map(|line| line.trim())
             .filter(|line| !line.is_empty() && !line.starts_with("%%"))
             .collect();
@@ -1588,7 +1719,9 @@ impl GraphImportService {
                 // self.apply_mermaid_layout(&mut imported.nodes, &imported.edges)?;
                 Ok(imported)
             }
-            _ => Err(DomainError::ValidationError("Unsupported Mermaid diagram type".to_string())),
+            _ => Err(DomainError::ValidationError(
+                "Unsupported Mermaid diagram type".to_string(),
+            )),
         }
     }
 
@@ -1694,7 +1827,10 @@ impl GraphImportService {
                         edge_type: "extends".to_string(),
                         properties: {
                             let mut props = HashMap::new();
-                            props.insert("relationship_type".to_string(), serde_json::json!("extends"));
+                            props.insert(
+                                "relationship_type".to_string(),
+                                serde_json::json!("extends"),
+                            );
                             props
                         },
                     });
@@ -1715,7 +1851,10 @@ impl GraphImportService {
                         edge_type: "composition".to_string(),
                         properties: {
                             let mut props = HashMap::new();
-                            props.insert("relationship_type".to_string(), serde_json::json!("composition"));
+                            props.insert(
+                                "relationship_type".to_string(),
+                                serde_json::json!("composition"),
+                            );
                             props
                         },
                     });
@@ -1736,7 +1875,10 @@ impl GraphImportService {
                         edge_type: "aggregation".to_string(),
                         properties: {
                             let mut props = HashMap::new();
-                            props.insert("relationship_type".to_string(), serde_json::json!("aggregation"));
+                            props.insert(
+                                "relationship_type".to_string(),
+                                serde_json::json!("aggregation"),
+                            );
                             props
                         },
                     });
@@ -1757,7 +1899,10 @@ impl GraphImportService {
                         edge_type: "association".to_string(),
                         properties: {
                             let mut props = HashMap::new();
-                            props.insert("relationship_type".to_string(), serde_json::json!("association"));
+                            props.insert(
+                                "relationship_type".to_string(),
+                                serde_json::json!("association"),
+                            );
                             props
                         },
                     });
@@ -1794,10 +1939,13 @@ impl GraphImportService {
             edges,
             metadata: {
                 let mut meta = HashMap::new();
-                meta.insert("diagram_type".to_string(), serde_json::json!("classDiagram"));
+                meta.insert(
+                    "diagram_type".to_string(),
+                    serde_json::json!("classDiagram"),
+                );
                 meta.insert("layout".to_string(), serde_json::json!("card"));
                 meta
-            }
+            },
         })
     }
 
@@ -1814,19 +1962,23 @@ impl GraphImportService {
 
         // Analyze relationships
         for edge in edges {
-            let rel_type = edge.properties.get("relationship_type")
+            let rel_type = edge
+                .properties
+                .get("relationship_type")
                 .and_then(|v| v.as_str())
                 .unwrap_or(&edge.edge_type);
 
             match rel_type {
                 "extends" | "implements" | "inherits" => {
-                    inheritance_tree.entry(edge.target.clone())
+                    inheritance_tree
+                        .entry(edge.target.clone())
                         .or_insert_with(Vec::new)
                         .push(edge.source.clone());
                     root_nodes.remove(&edge.source);
                 }
                 "association" | "uses" | "depends" => {
-                    associations.entry(edge.source.clone())
+                    associations
+                        .entry(edge.source.clone())
                         .or_insert_with(Vec::new)
                         .push(edge.target.clone());
                 }
@@ -1856,11 +2008,14 @@ impl GraphImportService {
             let offset_x = (i % 3) as f32 * 5.0;
             let offset_y = (i % 2) as f32 * 3.0;
 
-            node_positions.insert(root_id.clone(), Position3D {
-                x: current_x + offset_x,
-                y: current_y + offset_y,
-                z: 0.0,
-            });
+            node_positions.insert(
+                root_id.clone(),
+                Position3D {
+                    x: current_x + offset_x,
+                    y: current_y + offset_y,
+                    z: 0.0,
+                },
+            );
             positioned_nodes.insert(root_id.clone());
 
             current_x += card_width + horizontal_spacing;
@@ -1892,11 +2047,14 @@ impl GraphImportService {
                         let child_x = start_x + (i as f32 * (card_width + horizontal_spacing));
                         let child_y = parent_pos.y - (card_height + vertical_spacing);
 
-                        node_positions.insert(child_id.clone(), Position3D {
-                            x: child_x,
-                            y: child_y,
-                            z: 0.0,
-                        });
+                        node_positions.insert(
+                            child_id.clone(),
+                            Position3D {
+                                x: child_x,
+                                y: child_y,
+                                z: 0.0,
+                            },
+                        );
                         positioned_nodes.insert(child_id.clone());
                     }
                 }
@@ -1904,20 +2062,25 @@ impl GraphImportService {
         }
 
         // Layout associated classes to the right
-        let mut association_x = node_positions.values()
+        let mut association_x = node_positions
+            .values()
             .map(|p| p.x)
             .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap_or(0.0) + group_spacing;
+            .unwrap_or(0.0)
+            + group_spacing;
 
         for (source_id, targets) in &associations {
             if let Some(source_pos) = node_positions.get(source_id).cloned() {
                 for (i, target_id) in targets.iter().enumerate() {
                     if !positioned_nodes.contains(target_id) {
-                        node_positions.insert(target_id.clone(), Position3D {
-                            x: association_x,
-                            y: source_pos.y - (i as f32 * (card_height + horizontal_spacing)),
-                            z: 0.0,
-                        });
+                        node_positions.insert(
+                            target_id.clone(),
+                            Position3D {
+                                x: association_x,
+                                y: source_pos.y - (i as f32 * (card_height + horizontal_spacing)),
+                                z: 0.0,
+                            },
+                        );
                         positioned_nodes.insert(target_id.clone());
                         association_x += card_width + horizontal_spacing;
                     }
@@ -1927,18 +2090,23 @@ impl GraphImportService {
 
         // Position any remaining nodes
         let mut remaining_x = 0.0;
-        let remaining_y = node_positions.values()
+        let remaining_y = node_positions
+            .values()
             .map(|p| p.y)
             .min_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap_or(0.0) - group_spacing;
+            .unwrap_or(0.0)
+            - group_spacing;
 
         for node in nodes {
             if !positioned_nodes.contains(&node.id) {
-                node_positions.insert(node.id.clone(), Position3D {
-                    x: remaining_x,
-                    y: remaining_y,
-                    z: 0.0,
-                });
+                node_positions.insert(
+                    node.id.clone(),
+                    Position3D {
+                        x: remaining_x,
+                        y: remaining_y,
+                        z: 0.0,
+                    },
+                );
                 remaining_x += card_width + horizontal_spacing;
 
                 if remaining_x > (card_width + horizontal_spacing) * 4.0 {
@@ -1972,18 +2140,25 @@ impl GraphImportService {
     }
 
     /// Parse Mermaid flowchart/graph/digraph (refactored from old parser)
-    fn parse_flowchart_graph(&self, lines: &[&str], _diagram_type: &str, _direction: &str) -> Result<ImportedGraph, DomainError> {
+    fn parse_flowchart_graph(
+        &self,
+        lines: &[&str],
+        _diagram_type: &str,
+        _direction: &str,
+    ) -> Result<ImportedGraph, DomainError> {
         use nom::{
             IResult,
             branch::alt,
             bytes::complete::{tag, take_until, take_while1},
             character::complete::{char, multispace0},
             combinator::{opt, recognize},
-            sequence::{tuple, delimited, terminated},
+            sequence::{delimited, terminated, tuple},
         };
 
         fn node_id(input: &str) -> IResult<&str, &str> {
-            recognize(take_while1(|c: char| c.is_alphanumeric() || c == '_' || c == '-'))(input)
+            recognize(take_while1(|c: char| {
+                c.is_alphanumeric() || c == '_' || c == '-'
+            }))(input)
         }
         fn node_label(input: &str) -> IResult<&str, &str> {
             alt((
@@ -1996,13 +2171,20 @@ impl GraphImportService {
             tuple((node_id, opt(node_label)))(input)
         }
         fn arrow(input: &str) -> IResult<&str, &str> {
-            alt((tag("-->"), tag("->"), tag("---"), tag("-.->"), tag("==>"), tag("--")))(input)
+            alt((
+                tag("-->"),
+                tag("->"),
+                tag("---"),
+                tag("-.->"),
+                tag("==>"),
+                tag("--"),
+            ))(input)
         }
         fn edge(input: &str) -> IResult<&str, ((&str, Option<&str>), (&str, Option<&str>))> {
             tuple((
                 terminated(node_with_label, multispace0),
                 terminated(arrow, multispace0),
-                node_with_label
+                node_with_label,
             ))(input)
             .map(|(rest, (source, _, target))| (rest, (source, target)))
         }
@@ -2012,7 +2194,15 @@ impl GraphImportService {
         let mut node_counter = 0;
         let mut subgraph_stack = Vec::new();
         let mut current_subgraph = None;
-        let start_index = if !lines.is_empty() && (lines[0].starts_with("graph") || lines[0].starts_with("flowchart") || lines[0].starts_with("digraph")) { 1 } else { 0 };
+        let start_index = if !lines.is_empty()
+            && (lines[0].starts_with("graph")
+                || lines[0].starts_with("flowchart")
+                || lines[0].starts_with("digraph"))
+        {
+            1
+        } else {
+            0
+        };
         for line in &lines[start_index..] {
             if line.starts_with("subgraph") {
                 if let Some(name_start) = line.find('[') {
@@ -2036,13 +2226,20 @@ impl GraphImportService {
                     if let Some(ref sg) = current_subgraph {
                         properties.insert("subgraph".to_string(), serde_json::json!(sg));
                     }
-                    nodes.insert(source_id.to_string(), ImportedNode {
-                        id: source_id.to_string(),
-                        node_type: "Node".to_string(),
-                        label,
-                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
-                        properties,
-                    });
+                    nodes.insert(
+                        source_id.to_string(),
+                        ImportedNode {
+                            id: source_id.to_string(),
+                            node_type: "Node".to_string(),
+                            label,
+                            position: Position3D {
+                                x: 0.0,
+                                y: 0.0,
+                                z: 0.0,
+                            },
+                            properties,
+                        },
+                    );
                     node_counter += 1;
                 }
                 if !nodes.contains_key(target_id) {
@@ -2051,13 +2248,20 @@ impl GraphImportService {
                     if let Some(ref sg) = current_subgraph {
                         properties.insert("subgraph".to_string(), serde_json::json!(sg));
                     }
-                    nodes.insert(target_id.to_string(), ImportedNode {
-                        id: target_id.to_string(),
-                        node_type: "Node".to_string(),
-                        label,
-                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
-                        properties,
-                    });
+                    nodes.insert(
+                        target_id.to_string(),
+                        ImportedNode {
+                            id: target_id.to_string(),
+                            node_type: "Node".to_string(),
+                            label,
+                            position: Position3D {
+                                x: 0.0,
+                                y: 0.0,
+                                z: 0.0,
+                            },
+                            properties,
+                        },
+                    );
                     node_counter += 1;
                 }
                 edges.push(ImportedEdge {
@@ -2074,19 +2278,28 @@ impl GraphImportService {
                     if let Some(ref sg) = current_subgraph {
                         properties.insert("subgraph".to_string(), serde_json::json!(sg));
                     }
-                    nodes.insert(node_id_str.to_string(), ImportedNode {
-                        id: node_id_str.to_string(),
-                        node_type: "Node".to_string(),
-                        label,
-                        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
-                        properties,
-                    });
+                    nodes.insert(
+                        node_id_str.to_string(),
+                        ImportedNode {
+                            id: node_id_str.to_string(),
+                            node_type: "Node".to_string(),
+                            label,
+                            position: Position3D {
+                                x: 0.0,
+                                y: 0.0,
+                                z: 0.0,
+                            },
+                            properties,
+                        },
+                    );
                     node_counter += 1;
                 }
             }
         }
         if nodes.is_empty() {
-            return Err(DomainError::ValidationError("No valid nodes found in Mermaid diagram".to_string()));
+            return Err(DomainError::ValidationError(
+                "No valid nodes found in Mermaid diagram".to_string(),
+            ));
         }
 
         // Create nodes with simple grid positions
@@ -2113,22 +2326,32 @@ impl GraphImportService {
             });
         }
 
-        Ok(ImportedGraph { nodes: node_vec, edges, metadata: HashMap::new() })
+        Ok(ImportedGraph {
+            nodes: node_vec,
+            edges,
+            metadata: HashMap::new(),
+        })
     }
 
     /// Import from DOT/Graphviz format
-    fn import_dot(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_dot(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
         let mut node_map = HashMap::new();
 
         // Basic DOT parser - in production, use a proper parser
-        let lines: Vec<&str> = content.lines()
+        let lines: Vec<&str> = content
+            .lines()
             .map(|l| l.trim())
             .filter(|l| !l.is_empty())
             .collect();
 
-        let graph_name = lines.first()
+        let graph_name = lines
+            .first()
             .and_then(|l| {
                 if l.starts_with("digraph") || l.starts_with("graph") {
                     l.split_whitespace().nth(1)
@@ -2138,7 +2361,8 @@ impl GraphImportService {
             })
             .unwrap_or("graph");
 
-        let is_directed = lines.first()
+        let is_directed = lines
+            .first()
             .map(|l| l.starts_with("digraph"))
             .unwrap_or(false);
 
@@ -2168,7 +2392,8 @@ impl GraphImportService {
 
             // Parse edge definitions: a -> b or a -- b
             if let Some(edge_match) = extract_dot_edge(line, is_directed) {
-                let source_id = node_map.get(&edge_match.source)
+                let source_id = node_map
+                    .get(&edge_match.source)
                     .cloned()
                     .unwrap_or_else(|| {
                         let id = format!("dot-{}", edge_match.source);
@@ -2187,7 +2412,8 @@ impl GraphImportService {
                         id
                     });
 
-                let target_id = node_map.get(&edge_match.target)
+                let target_id = node_map
+                    .get(&edge_match.target)
                     .cloned()
                     .unwrap_or_else(|| {
                         let id = format!("dot-{}", edge_match.target);
@@ -2210,7 +2436,12 @@ impl GraphImportService {
                     id: format!("edge-{source_id}-{target_id}"),
                     source: source_id,
                     target: target_id,
-                    edge_type: if is_directed { "directed" } else { "undirected" }.to_string(),
+                    edge_type: if is_directed {
+                        "directed"
+                    } else {
+                        "undirected"
+                    }
+                    .to_string(),
                     properties: edge_match.attributes,
                 });
             }
@@ -2224,8 +2455,14 @@ impl GraphImportService {
             edges,
             metadata: {
                 let mut map = HashMap::new();
-                map.insert("name".to_string(), serde_json::json!(format!("Imported from DOT: {}", graph_name)));
-                map.insert("graph_type".to_string(), serde_json::json!(if is_directed { "digraph" } else { "graph" }));
+                map.insert(
+                    "name".to_string(),
+                    serde_json::json!(format!("Imported from DOT: {}", graph_name)),
+                );
+                map.insert(
+                    "graph_type".to_string(),
+                    serde_json::json!(if is_directed { "digraph" } else { "graph" }),
+                );
                 map.insert("original_name".to_string(), serde_json::json!(graph_name));
                 map
             },
@@ -2233,7 +2470,11 @@ impl GraphImportService {
     }
 
     /// Import from RSS/Atom feed
-    fn import_rss_atom(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_rss_atom(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         // Try to parse as Atom first (EventStore format)
         if content.contains("<feed") && content.contains("xmlns") {
             return self.import_atom_feed(content, mapping);
@@ -2244,29 +2485,38 @@ impl GraphImportService {
             return self.import_rss_feed(content, mapping);
         }
 
-        Err(DomainError::ValidationFailed("Content is not a valid RSS or Atom feed".to_string()))
+        Err(DomainError::ValidationFailed(
+            "Content is not a valid RSS or Atom feed".to_string(),
+        ))
     }
 
     /// Import from Atom feed (EventStore format)
-    fn import_atom_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_atom_feed(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         // For EventStore Atom feeds, we'll use quick-xml for parsing
         // For now, we'll use a simplified approach
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
 
         // Extract feed title
-        let title = extract_xml_value(content, "title")
-            .unwrap_or_else(|| "Imported Atom Feed".to_string());
+        let title =
+            extract_xml_value(content, "title").unwrap_or_else(|| "Imported Atom Feed".to_string());
 
         // Create a root node for the feed/stream
-        let feed_id = extract_xml_value(content, "id")
-            .unwrap_or_else(|| "atom-feed".to_string());
+        let feed_id = extract_xml_value(content, "id").unwrap_or_else(|| "atom-feed".to_string());
 
         nodes.push(ImportedNode {
             id: format!("feed-{}", sanitize_id(&feed_id)),
             node_type: "EventStream".to_string(),
             label: title.clone(),
-            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             properties: {
                 let mut props = HashMap::new();
                 if let Some(updated) = extract_xml_value(content, "updated") {
@@ -2281,15 +2531,14 @@ impl GraphImportService {
         let mut y_offset = 100.0;
 
         for (i, entry) in entries.iter().enumerate() {
-            let entry_id = extract_xml_value(entry, "id")
-                .unwrap_or_else(|| format!("entry-{i}"));
-            let entry_title = extract_xml_value(entry, "title")
-                .unwrap_or_else(|| "Event".to_string());
+            let entry_id = extract_xml_value(entry, "id").unwrap_or_else(|| format!("entry-{i}"));
+            let entry_title =
+                extract_xml_value(entry, "title").unwrap_or_else(|| "Event".to_string());
 
             // Extract EventStore specific fields
             let event_type = extract_xml_value(entry, "eventType");
-            let event_number = extract_xml_value(entry, "eventNumber")
-                .and_then(|n| n.parse::<i64>().ok());
+            let event_number =
+                extract_xml_value(entry, "eventNumber").and_then(|n| n.parse::<i64>().ok());
             let stream_id = extract_xml_value(entry, "streamId");
 
             // Extract content
@@ -2326,7 +2575,9 @@ impl GraphImportService {
                     if let Some(content) = content_value {
                         // Try to parse as JSON if it's marked as JSON
                         if entry.contains("isJson=\"true\"") {
-                            if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(&content) {
+                            if let Ok(json_value) =
+                                serde_json::from_str::<serde_json::Value>(&content)
+                            {
                                 props.insert("data".to_string(), json_value);
                             } else {
                                 props.insert("content".to_string(), serde_json::json!(content));
@@ -2356,10 +2607,16 @@ impl GraphImportService {
 
             // If this is not the first event, connect to previous event
             if i > 0 {
-                let prev_id = format!("event-{}", sanitize_id(entries[i-1]
-                    .split("<id>").nth(1)
-                    .and_then(|s| s.split("</id>").next())
-                    .unwrap_or(&format!("entry-{}", i-1))));
+                let prev_id = format!(
+                    "event-{}",
+                    sanitize_id(
+                        entries[i - 1]
+                            .split("<id>")
+                            .nth(1)
+                            .and_then(|s| s.split("</id>").next())
+                            .unwrap_or(&format!("entry-{}", i - 1))
+                    )
+                );
 
                 edges.push(ImportedEdge {
                     id: format!("edge-sequence-{i}"),
@@ -2387,13 +2644,17 @@ impl GraphImportService {
     }
 
     /// Import from RSS 2.0 feed
-    fn import_rss_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
+    fn import_rss_feed(
+        &self,
+        content: &str,
+        mapping: &ImportMapping,
+    ) -> Result<ImportedGraph, DomainError> {
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
 
         // Extract channel information
-        let channel_title = extract_xml_value(content, "title")
-            .unwrap_or_else(|| "RSS Feed".to_string());
+        let channel_title =
+            extract_xml_value(content, "title").unwrap_or_else(|| "RSS Feed".to_string());
         let channel_desc = extract_xml_value(content, "description");
         let channel_link = extract_xml_value(content, "link");
 
@@ -2403,7 +2664,11 @@ impl GraphImportService {
             id: channel_id.to_string(),
             node_type: "RSSChannel".to_string(),
             label: channel_title.clone(),
-            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             properties: {
                 let mut props = HashMap::new();
                 if let Some(desc) = channel_desc {
@@ -2424,10 +2689,9 @@ impl GraphImportService {
         let mut y_offset = 100.0;
 
         for (i, item) in items.iter().enumerate() {
-            let item_title = extract_xml_value(item, "title")
-                .unwrap_or_else(|| format!("Item {}", i + 1));
-            let item_guid = extract_xml_value(item, "guid")
-                .unwrap_or_else(|| format!("item-{i}"));
+            let item_title =
+                extract_xml_value(item, "title").unwrap_or_else(|| format!("Item {}", i + 1));
+            let item_guid = extract_xml_value(item, "guid").unwrap_or_else(|| format!("item-{i}"));
 
             let node_id = format!("item-{}", sanitize_id(&item_guid));
 
@@ -2501,18 +2765,12 @@ impl GraphImportService {
             LayoutAlgorithm::ForceDirected => {
                 self.apply_force_directed_layout(graph, &config.parameters)
             }
-            LayoutAlgorithm::Circular => {
-                self.apply_circular_layout(graph, &config.parameters)
-            }
+            LayoutAlgorithm::Circular => self.apply_circular_layout(graph, &config.parameters),
             LayoutAlgorithm::Hierarchical => {
                 self.apply_hierarchical_layout(graph, &config.parameters)
             }
-            LayoutAlgorithm::Grid => {
-                self.apply_grid_layout(graph, &config.parameters)
-            }
-            LayoutAlgorithm::Random => {
-                self.apply_random_layout(graph, &config.parameters)
-            }
+            LayoutAlgorithm::Grid => self.apply_grid_layout(graph, &config.parameters),
+            LayoutAlgorithm::Random => self.apply_random_layout(graph, &config.parameters),
             LayoutAlgorithm::PropertyBased { property } => {
                 self.apply_property_based_layout(graph, property, &config.parameters)
             }
@@ -2653,7 +2911,9 @@ impl GraphImportService {
         let mut visited: HashSet<String> = HashSet::new();
 
         // Find root nodes (no incoming edges)
-        let mut root_nodes: Vec<String> = graph.nodes.iter()
+        let mut root_nodes: Vec<String> = graph
+            .nodes
+            .iter()
             .map(|n| n.id.clone())
             .filter(|id| !graph.edges.iter().any(|e| &e.target == id))
             .collect();
@@ -2688,7 +2948,10 @@ impl GraphImportService {
         // Group nodes by level
         let mut level_groups: HashMap<u32, Vec<String>> = HashMap::new();
         for (node_id, level) in &levels {
-            level_groups.entry(*level).or_default().push(node_id.clone());
+            level_groups
+                .entry(*level)
+                .or_default()
+                .push(node_id.clone());
         }
 
         // Position nodes
@@ -2696,11 +2959,13 @@ impl GraphImportService {
         for node in &mut graph.nodes {
             if let Some(&level) = levels.get(&node.id) {
                 let nodes_at_level = level_groups.get(&level).map(|v| v.len()).unwrap_or(1);
-                let index_at_level = level_groups.get(&level)
+                let index_at_level = level_groups
+                    .get(&level)
                     .and_then(|v| v.iter().position(|id| id == &node.id))
                     .unwrap_or(0);
 
-                let x = (index_at_level as f32 - (nodes_at_level as f32 - 1.0) / 2.0) * params.spacing;
+                let x =
+                    (index_at_level as f32 - (nodes_at_level as f32 - 1.0) / 2.0) * params.spacing;
                 let y = -(level as f32) * params.spacing;
 
                 node.position = Position3D { x, y, z: 0.0 };
@@ -2788,8 +3053,14 @@ impl GraphImportService {
         }
 
         // Normalize property values
-        let min_val = property_values.iter().map(|(_, v)| *v).fold(f32::INFINITY, f32::min);
-        let max_val = property_values.iter().map(|(_, v)| *v).fold(f32::NEG_INFINITY, f32::max);
+        let min_val = property_values
+            .iter()
+            .map(|(_, v)| *v)
+            .fold(f32::INFINITY, f32::min);
+        let max_val = property_values
+            .iter()
+            .map(|(_, v)| *v)
+            .fold(f32::NEG_INFINITY, f32::max);
         let range = max_val - min_val;
 
         if range > 0.0 {
@@ -2906,7 +3177,9 @@ fn extract_mermaid_edge(line: &str) -> Option<MermaidEdge> {
             // Check for label: A -->|Label| B
             let (target, label) = if let Some(label_start) = rest.find('|') {
                 if let Some(label_end) = rest[label_start + 1..].find('|') {
-                    let label = rest[label_start + 1..label_start + 1 + label_end].trim().to_string();
+                    let label = rest[label_start + 1..label_start + 1 + label_end]
+                        .trim()
+                        .to_string();
                     let target = rest[label_start + label_end + 2..].trim();
                     (target, Some(label))
                 } else {
@@ -2941,7 +3214,8 @@ fn extract_dot_node(line: &str) -> Option<DotNode> {
             if attr_part.contains("label=") {
                 if let Some(label_start) = attr_part.find("\"") {
                     if let Some(label_end) = attr_part[label_start + 1..].find("\"") {
-                        let label = attr_part[label_start + 1..label_start + 1 + label_end].to_string();
+                        let label =
+                            attr_part[label_start + 1..label_start + 1 + label_end].to_string();
                         return Some(DotNode {
                             id,
                             label: Some(label),
@@ -3033,7 +3307,8 @@ fn extract_xml_value(xml: &str, tag: &str) -> Option<String> {
     xml.find(&start_tag)
         .and_then(|start| {
             let content_start = start + start_tag.len();
-            xml[content_start..].find(&end_tag)
+            xml[content_start..]
+                .find(&end_tag)
                 .map(|end| xml[content_start..content_start + end].to_string())
         })
         .map(|s| s.trim().to_string())
@@ -3090,7 +3365,11 @@ fn extract_xml_content(xml: &str, tag: &str) -> Option<String> {
             let end_tag = format!("</{tag}>");
 
             if let Some(end_pos) = xml[content_start..].find(&end_tag) {
-                return Some(xml[content_start..content_start + end_pos].trim().to_string());
+                return Some(
+                    xml[content_start..content_start + end_pos]
+                        .trim()
+                        .to_string(),
+                );
             }
         }
     }
@@ -3100,7 +3379,13 @@ fn extract_xml_content(xml: &str, tag: &str) -> Option<String> {
 
 fn sanitize_id(id: &str) -> String {
     id.chars()
-        .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -3193,9 +3478,7 @@ graph TD
         assert_eq!(graph.edges.len(), 3); // A->B, B->C, B->D
 
         // Verify nodes have correct labels
-        let node_labels: Vec<_> = graph.nodes.iter()
-            .map(|n| &n.label)
-            .collect();
+        let node_labels: Vec<_> = graph.nodes.iter().map(|n| &n.label).collect();
         assert!(node_labels.contains(&&"Start".to_string()));
         assert!(node_labels.contains(&&"Decision".to_string()));
         assert!(node_labels.contains(&&"Option 1".to_string()));

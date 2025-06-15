@@ -1,7 +1,7 @@
 //! Force-directed layout system for graph visualization
 
+use crate::presentation::components::{GraphEdge, GraphNode};
 use bevy::prelude::*;
-use crate::presentation::components::{GraphNode, GraphEdge};
 
 /// Settings for force-directed layout
 #[derive(Resource)]
@@ -69,7 +69,8 @@ pub fn apply_force_directed_layout(
             if *other_entity != entity {
                 let diff = transform.translation - *other_pos;
                 let distance = diff.length().max(0.1);
-                let repulsion = diff.normalize() * (settings.repulsion_strength / (distance * distance));
+                let repulsion =
+                    diff.normalize() * (settings.repulsion_strength / (distance * distance));
                 total_force += repulsion;
             }
         }
@@ -84,12 +85,15 @@ pub fn apply_force_directed_layout(
                 };
 
                 // Find other node position
-                if let Some((_, other_pos)) = node_positions.iter().find(|(e, _)| *e == other_entity) {
+                if let Some((_, other_pos)) =
+                    node_positions.iter().find(|(e, _)| *e == other_entity)
+                {
                     let diff = *other_pos - transform.translation;
                     let distance = diff.length();
                     if distance > 0.0 {
                         let displacement = distance - settings.spring_length;
-                        let spring_force = diff.normalize() * (displacement * settings.spring_strength);
+                        let spring_force =
+                            diff.normalize() * (displacement * settings.spring_strength);
                         total_force += spring_force;
                     }
                 }
@@ -110,7 +114,7 @@ pub fn apply_force_directed_layout(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::value_objects::{NodeId, GraphId};
+    use crate::domain::value_objects::{GraphId, NodeId};
     use std::time::Duration;
 
     #[test]
@@ -145,23 +149,29 @@ mod tests {
         app.insert_resource(Time::<()>::default());
 
         // Add test entities
-        let node1 = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            ForceNode::default(),
-        )).id();
+        let node1 = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                ForceNode::default(),
+            ))
+            .id();
 
-        let node2 = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(1.0, 0.0, 0.0),
-            ForceNode::default(),
-        )).id();
+        let node2 = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(1.0, 0.0, 0.0),
+                ForceNode::default(),
+            ))
+            .id();
 
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
@@ -189,30 +199,38 @@ mod tests {
         app.insert_resource(Time::<()>::default());
 
         // Add two nodes close together
-        let node1 = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            ForceNode::default(),
-        )).id();
+        let node1 = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                ForceNode::default(),
+            ))
+            .id();
 
-        let node2 = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.5, 0.0, 0.0),
-            ForceNode::default(),
-        )).id();
+        let node2 = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.5, 0.0, 0.0),
+                ForceNode::default(),
+            ))
+            .id();
 
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
 
         // Advance time and update the app to ensure time delta is available
         app.update(); // First update to initialize systems
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016)); // ~60 FPS
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(Duration::from_secs_f32(0.016)); // ~60 FPS
 
         // Run update with time delta
         app.update();
@@ -222,9 +240,17 @@ mod tests {
         let transform2 = app.world().get::<Transform>(node2).unwrap();
 
         // Node 1 should move left (negative X)
-        assert!(transform1.translation.x < 0.0, "Node 1 should move left, but is at {}", transform1.translation.x);
+        assert!(
+            transform1.translation.x < 0.0,
+            "Node 1 should move left, but is at {}",
+            transform1.translation.x
+        );
         // Node 2 should move right (positive X)
-        assert!(transform2.translation.x > 0.5, "Node 2 should move right, but is at {}", transform2.translation.x);
+        assert!(
+            transform2.translation.x > 0.5,
+            "Node 2 should move right, but is at {}",
+            transform2.translation.x
+        );
         // Y should remain 0
         assert_eq!(transform1.translation.y, 0.0);
         assert_eq!(transform2.translation.y, 0.0);
@@ -238,7 +264,7 @@ mod tests {
         // Add settings with strong spring force
         app.insert_resource(ForceLayoutSettings {
             repulsion_strength: 0.0, // Disable repulsion for this test
-            spring_strength: 10.0,    // Increased from 1.0 for more noticeable effect
+            spring_strength: 10.0,   // Increased from 1.0 for more noticeable effect
             spring_length: 2.0,
             damping: 0.9,
             enabled: true,
@@ -248,23 +274,29 @@ mod tests {
         app.insert_resource(Time::<()>::default());
 
         // Add two connected nodes far apart
-        let node1 = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            ForceNode::default(),
-        )).id();
+        let node1 = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                ForceNode::default(),
+            ))
+            .id();
 
-        let node2 = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(5.0, 0.0, 0.0),
-            ForceNode::default(),
-        )).id();
+        let node2 = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(5.0, 0.0, 0.0),
+                ForceNode::default(),
+            ))
+            .id();
 
         // Add edge between nodes
         app.world_mut().spawn(GraphEdge {
@@ -279,7 +311,9 @@ mod tests {
 
         // Advance time and update
         app.update(); // First update to initialize
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(Duration::from_secs_f32(0.016));
 
         // Run update with time delta
         app.update();
@@ -289,13 +323,23 @@ mod tests {
         let force2 = app.world().get::<ForceNode>(node2).unwrap();
 
         // Node 1 should have positive X velocity (moving right toward node 2)
-        assert!(force1.velocity.x > 0.0, "Node 1 should have positive X velocity, but has {}", force1.velocity.x);
+        assert!(
+            force1.velocity.x > 0.0,
+            "Node 1 should have positive X velocity, but has {}",
+            force1.velocity.x
+        );
         // Node 2 should have negative X velocity (moving left toward node 1)
-        assert!(force2.velocity.x < 0.0, "Node 2 should have negative X velocity, but has {}", force2.velocity.x);
+        assert!(
+            force2.velocity.x < 0.0,
+            "Node 2 should have negative X velocity, but has {}",
+            force2.velocity.x
+        );
 
         // Velocities should be equal in magnitude but opposite in direction
-        assert!((force1.velocity.x + force2.velocity.x).abs() < 0.0001,
-            "Velocities should be equal and opposite");
+        assert!(
+            (force1.velocity.x + force2.velocity.x).abs() < 0.0001,
+            "Velocities should be equal and opposite"
+        );
     }
 
     #[test]
@@ -308,20 +352,25 @@ mod tests {
 
         // Add time
         app.insert_resource(Time::<()>::default());
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(Duration::from_secs_f32(0.016));
 
         // Add node with initial velocity
-        let node = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            ForceNode {
-                velocity: Vec3::new(10.0, 0.0, 0.0),
-                mass: 1.0,
-            },
-        )).id();
+        let node = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                ForceNode {
+                    velocity: Vec3::new(10.0, 0.0, 0.0),
+                    mass: 1.0,
+                },
+            ))
+            .id();
 
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
@@ -348,36 +397,44 @@ mod tests {
 
         // Add two nodes with different masses at the same position
         // They will repel each other, and the lighter one should move more
-        let light_node = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.0, 0.0, 0.0),
-            ForceNode {
-                velocity: Vec3::ZERO,
-                mass: 1.0,
-            },
-        )).id();
+        let light_node = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                ForceNode {
+                    velocity: Vec3::ZERO,
+                    mass: 1.0,
+                },
+            ))
+            .id();
 
-        let heavy_node = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.1, 0.0, 0.0), // Slightly offset to create repulsion
-            ForceNode {
-                velocity: Vec3::ZERO,
-                mass: 10.0,
-            },
-        )).id();
+        let heavy_node = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.1, 0.0, 0.0), // Slightly offset to create repulsion
+                ForceNode {
+                    velocity: Vec3::ZERO,
+                    mass: 10.0,
+                },
+            ))
+            .id();
 
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
 
         // Advance time and update
         app.update(); // First update to initialize
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(Duration::from_secs_f32(0.016));
 
         // Run update with time delta
         app.update();
@@ -391,9 +448,12 @@ mod tests {
         let heavy_displacement = (heavy_transform.translation.x - 0.1).abs();
 
         // Light node should have moved more
-        assert!(light_displacement > heavy_displacement,
+        assert!(
+            light_displacement > heavy_displacement,
             "Light node displacement ({}) should be greater than heavy node displacement ({})",
-            light_displacement, heavy_displacement);
+            light_displacement,
+            heavy_displacement
+        );
     }
 
     #[test]
@@ -408,39 +468,52 @@ mod tests {
         app.insert_resource(Time::<()>::default());
 
         // Add node with Y displacement
-        let node = app.world_mut().spawn((
-            GraphNode {
-                node_id: NodeId::new(),
-                graph_id: GraphId::new(),
-            },
-            Transform::from_xyz(0.0, 5.0, 0.0), // Y = 5.0
-            ForceNode {
-                velocity: Vec3::new(0.0, 10.0, 0.0), // Y velocity
-                mass: 1.0,
-            },
-        )).id();
+        let node = app
+            .world_mut()
+            .spawn((
+                GraphNode {
+                    node_id: NodeId::new(),
+                    graph_id: GraphId::new(),
+                },
+                Transform::from_xyz(0.0, 5.0, 0.0), // Y = 5.0
+                ForceNode {
+                    velocity: Vec3::new(0.0, 10.0, 0.0), // Y velocity
+                    mass: 1.0,
+                },
+            ))
+            .id();
 
         // Add system
         app.add_systems(Update, apply_force_directed_layout);
 
         // Advance time and update
         app.update(); // First update to initialize
-        app.world_mut().resource_mut::<Time>().advance_by(Duration::from_secs_f32(0.016));
+        app.world_mut()
+            .resource_mut::<Time>()
+            .advance_by(Duration::from_secs_f32(0.016));
 
         // Run update with time delta
         app.update();
 
         // Y should NOT be reset to 0 anymore - it should have moved based on velocity
         let transform = app.world().get::<Transform>(node).unwrap();
-        assert_ne!(transform.translation.y, 0.0, "Y position should not be constrained to 0");
+        assert_ne!(
+            transform.translation.y, 0.0,
+            "Y position should not be constrained to 0"
+        );
 
         // With initial Y=5.0 and velocity Y=10.0, after one frame with damping (0.9) and delta (0.016)
         // Expected: 5.0 + (10.0 * 0.9 * 0.016) = 5.0 + 0.144 = 5.144
-        assert!(transform.translation.y > 5.0, "Y position should have increased due to velocity");
+        assert!(
+            transform.translation.y > 5.0,
+            "Y position should have increased due to velocity"
+        );
 
         // Also check that velocity was damped
         let force_node = app.world().get::<ForceNode>(node).unwrap();
-        assert!(force_node.velocity.y < 10.0 && force_node.velocity.y > 0.0,
-            "Y velocity should be damped but still positive");
+        assert!(
+            force_node.velocity.y < 10.0 && force_node.velocity.y > 0.0,
+            "Y velocity should be damped but still positive"
+        );
     }
 }

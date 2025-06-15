@@ -3,15 +3,11 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     events::DomainEvent,
     value_objects::{GraphId, Position3D},
 };
-use ia::presentation::{
-    components::GraphNode,
-    plugins::GraphEditorPlugin,
-    systems::ImportPlugin,
-};
+use ia::presentation::{components::GraphNode, plugins::GraphEditorPlugin, systems::ImportPlugin};
 use std::time::Duration;
 use tracing::info;
 
@@ -35,17 +31,12 @@ fn main() {
             ImportPlugin,
         ))
         .add_systems(Startup, trigger_import_after_delay)
-        .add_systems(Update, (
-            monitor_import_progress,
-            check_nodes_created,
-        ))
+        .add_systems(Update, (monitor_import_progress, check_nodes_created))
         .run();
 }
 
 /// Trigger import after a short delay to ensure systems are initialized
-fn trigger_import_after_delay(
-    mut commands: Commands,
-) {
+fn trigger_import_after_delay(mut commands: Commands) {
     // Schedule import command to run after 1 second
     commands.spawn(ImportTimer {
         timer: Timer::new(Duration::from_secs(1), TimerMode::Once),

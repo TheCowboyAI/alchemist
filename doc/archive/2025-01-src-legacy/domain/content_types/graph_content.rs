@@ -55,10 +55,7 @@ impl GraphContent {
 
     /// Add an edge to the graph
     pub fn add_edge(&mut self, source: String, target: String) {
-        self.edges
-            .entry(source)
-            .or_default()
-            .push(target);
+        self.edges.entry(source).or_default().push(target);
     }
 
     /// Set the conceptual position

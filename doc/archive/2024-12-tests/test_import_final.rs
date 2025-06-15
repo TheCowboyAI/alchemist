@@ -7,8 +7,8 @@ use ia::domain::{
     events::DomainEvent,
     value_objects::GraphId,
 };
-use ia::presentation::plugins::GraphEditorPlugin;
 use ia::presentation::components::GraphNode;
+use ia::presentation::plugins::GraphEditorPlugin;
 use std::collections::HashMap;
 
 fn main() {
@@ -60,7 +60,8 @@ fn count_nodes(
     if keyboard.just_pressed(KeyCode::KeyC) {
         println!("\n=== NODE COUNT ===");
         let total = nodes.iter().count();
-        let visible = nodes.iter()
+        let visible = nodes
+            .iter()
             .filter(|(_, _, transform, vis)| {
                 transform.scale.length() > 0.01 && matches!(vis, Visibility::Visible)
             })
@@ -72,10 +73,9 @@ fn count_nodes(
         for (entity, node, transform, vis) in nodes.iter() {
             println!("\nEntity {:?}:", entity);
             println!("  Node ID: {:?}", node.node_id);
-            println!("  Position: ({:.2}, {:.2}, {:.2})",
-                transform.translation.x,
-                transform.translation.y,
-                transform.translation.z
+            println!(
+                "  Position: ({:.2}, {:.2}, {:.2})",
+                transform.translation.x, transform.translation.y, transform.translation.z
             );
             println!("  Scale: {:.2}", transform.scale.x);
             println!("  Visibility: {:?}", vis);

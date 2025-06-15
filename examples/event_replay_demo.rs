@@ -7,20 +7,17 @@
 //! 4. Time travel to historical states
 //! 5. CID verification for consistency
 
+use chrono::{DateTime, Duration, Utc};
+use cim_ipld::types::ContentType;
+use colored::*;
 use ia::domain::{
     aggregates::content_graph::NodeContent,
     events::{
         DomainEvent,
-        content_graph::{ContentGraphCreated, ContentAdded, RelationshipEstablished},
+        content_graph::{ContentAdded, ContentGraphCreated, RelationshipEstablished},
     },
-    value_objects::{
-        AggregateId, NodeId, EdgeId, GraphId,
-        Position3D, RelatedBy,
-    },
+    value_objects::{AggregateId, EdgeId, GraphId, NodeId, Position3D, RelatedBy},
 };
-use cim_ipld::types::ContentType;
-use chrono::{DateTime, Utc, Duration};
-use colored::*;
 use serde_json::json;
 use std::collections::HashMap;
 use std::time::SystemTime;
@@ -64,17 +61,11 @@ impl DemoEventStore {
     }
 
     fn get_up_to_time(&self, time: DateTime<Utc>) -> Vec<&EventRecord> {
-        self.events
-            .iter()
-            .filter(|e| e.timestamp <= time)
-            .collect()
+        self.events.iter().filter(|e| e.timestamp <= time).collect()
     }
 
     fn get_up_to_sequence(&self, seq: u64) -> Vec<&EventRecord> {
-        self.events
-            .iter()
-            .filter(|e| e.sequence <= seq)
-            .collect()
+        self.events.iter().filter(|e| e.sequence <= seq).collect()
     }
 }
 
@@ -105,7 +96,10 @@ fn main() {
     let graph_id = GraphId::new();
     let aggregate_id = AggregateId::from(graph_id.0);
 
-    println!("{}", "1. Collaboration Pattern - Multiple Contributors".bright_yellow());
+    println!(
+        "{}",
+        "1. Collaboration Pattern - Multiple Contributors".bright_yellow()
+    );
     println!("   Subject: events.collaboration.document.keco");
     println!();
 
@@ -116,7 +110,8 @@ fn main() {
     println!("{}", "Collaboration Events:".bright_green());
     let collab_events = event_store.get_by_subject_pattern("events.collaboration.document.keco");
     for (i, event) in collab_events.iter().enumerate() {
-        println!("  {}. [{}] {} by {}",
+        println!(
+            "  {}. [{}] {} by {}",
             i + 1,
             event.timestamp.format("%H:%M:%S"),
             format_event_type(&event.event).bright_blue(),
@@ -126,7 +121,10 @@ fn main() {
     println!();
 
     // Now show aggregate pattern
-    println!("{}", "2. Aggregate Pattern - Single Source of Truth".bright_yellow());
+    println!(
+        "{}",
+        "2. Aggregate Pattern - Single Source of Truth".bright_yellow()
+    );
     println!("   Subject: events.aggregate.contentgraph.{}", aggregate_id);
     println!();
 
@@ -134,9 +132,11 @@ fn main() {
 
     // Show aggregate events
     println!("{}", "Aggregate Events:".bright_green());
-    let agg_events = event_store.get_by_subject_pattern(&format!("events.aggregate.contentgraph.{}", aggregate_id));
+    let agg_events = event_store
+        .get_by_subject_pattern(&format!("events.aggregate.contentgraph.{}", aggregate_id));
     for (i, event) in agg_events.iter().enumerate() {
-        println!("  {}. [Seq: {}] {}",
+        println!(
+            "  {}. [Seq: {}] {}",
             i + 1,
             event.sequence,
             format_event_type(&event.event).bright_blue()
@@ -149,30 +149,39 @@ fn main() {
     println!();
 
     // Replay all events
-    println!("{}", "a) Full Replay - Rebuild Complete State".bright_green());
+    println!(
+        "{}",
+        "a) Full Replay - Rebuild Complete State".bright_green()
+    );
     let final_state = replay_all_events(&event_store);
     let final_cid = calculate_state_cid(&final_state);
     println!("   Final CID: {}", final_cid.bright_cyan());
-    println!("   Nodes: {}, Edges: {}",
-        final_state.node_count,
-        final_state.edge_count
+    println!(
+        "   Nodes: {}, Edges: {}",
+        final_state.node_count, final_state.edge_count
     );
     println!();
 
     // Time travel
-    println!("{}", "b) Time Travel - State at Specific Time".bright_green());
+    println!(
+        "{}",
+        "b) Time Travel - State at Specific Time".bright_green()
+    );
     let time_point = Utc::now() - Duration::seconds(5);
     let historical_state = replay_up_to_time(&event_store, time_point);
     let historical_cid = calculate_state_cid(&historical_state);
     println!("   Historical CID: {}", historical_cid.bright_cyan());
-    println!("   Nodes: {}, Edges: {}",
-        historical_state.node_count,
-        historical_state.edge_count
+    println!(
+        "   Nodes: {}, Edges: {}",
+        historical_state.node_count, historical_state.edge_count
     );
     println!();
 
     // Selective replay
-    println!("{}", "c) Selective Replay - Only Collaboration Events".bright_green());
+    println!(
+        "{}",
+        "c) Selective Replay - Only Collaboration Events".bright_green()
+    );
     let collab_only = replay_by_subject(&event_store, "events.collaboration");
     let collab_cid = calculate_state_cid(&collab_only);
     println!("   Collaboration CID: {}", collab_cid.bright_cyan());
@@ -197,7 +206,9 @@ fn main() {
     println!("{}", "5. Event Statistics".bright_yellow());
     let mut event_counts: HashMap<String, usize> = HashMap::new();
     for event in &event_store.events {
-        *event_counts.entry(format_event_type(&event.event)).or_insert(0) += 1;
+        *event_counts
+            .entry(format_event_type(&event.event))
+            .or_insert(0) += 1;
     }
 
     for (event_type, count) in event_counts {
@@ -210,7 +221,8 @@ fn main() {
     let snapshot_point = 3;
     let snapshot = replay_up_to_sequence(&event_store, snapshot_point);
     let snapshot_cid = calculate_state_cid(&snapshot);
-    println!("   Snapshot at sequence {}: CID = {}",
+    println!(
+        "   Snapshot at sequence {}: CID = {}",
         snapshot_point,
         snapshot_cid.bright_cyan()
     );
@@ -218,7 +230,8 @@ fn main() {
     // Continue from snapshot
     let final_from_snapshot = replay_from_sequence(&event_store, snapshot.clone(), snapshot_point);
     let final_from_snapshot_cid = calculate_state_cid(&final_from_snapshot);
-    println!("   Final from snapshot: CID = {}",
+    println!(
+        "   Final from snapshot: CID = {}",
         final_from_snapshot_cid.bright_cyan()
     );
 
@@ -235,7 +248,11 @@ fn main() {
     println!("   - Subject patterns enable selective event filtering");
 }
 
-fn simulate_collaboration_events(store: &mut DemoEventStore, _aggregate_id: &AggregateId, graph_id: &GraphId) {
+fn simulate_collaboration_events(
+    store: &mut DemoEventStore,
+    _aggregate_id: &AggregateId,
+    graph_id: &GraphId,
+) {
     // Alice creates the graph
     store.append(
         "events.collaboration.document.keco".to_string(),
@@ -304,7 +321,11 @@ fn simulate_collaboration_events(store: &mut DemoEventStore, _aggregate_id: &Agg
     );
 }
 
-fn simulate_aggregate_events(store: &mut DemoEventStore, aggregate_id: &AggregateId, graph_id: &GraphId) {
+fn simulate_aggregate_events(
+    store: &mut DemoEventStore,
+    aggregate_id: &AggregateId,
+    graph_id: &GraphId,
+) {
     let subject = format!("events.aggregate.contentgraph.{}", aggregate_id);
 
     // System events for the aggregate
@@ -381,7 +402,11 @@ fn replay_up_to_sequence(store: &DemoEventStore, seq: u64) -> GraphState {
     state
 }
 
-fn replay_from_sequence(store: &DemoEventStore, mut state: GraphState, from_seq: u64) -> GraphState {
+fn replay_from_sequence(
+    store: &DemoEventStore,
+    mut state: GraphState,
+    from_seq: u64,
+) -> GraphState {
     for event_record in &store.events {
         if event_record.sequence > from_seq {
             apply_event_to_state(&mut state, &event_record.event);

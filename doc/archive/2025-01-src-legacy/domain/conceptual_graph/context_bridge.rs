@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::fmt;
 use uuid::Uuid;
 
-use crate::domain::conceptual_graph::concept::{ConceptId, ConceptGraph};
+use crate::domain::conceptual_graph::concept::{ConceptGraph, ConceptId};
 
 /// Unique identifier for a context bridge
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -72,16 +72,13 @@ impl ContextBridge {
         direction: TranslationDirection,
     ) -> Result<ConceptGraph, String> {
         // Find applicable rules
-        let applicable_rules: Vec<_> = self.translation_rules
+        let applicable_rules: Vec<_> = self
+            .translation_rules
             .iter()
-            .filter(|rule| {
-                match direction {
-                    TranslationDirection::Forward => {
-                        rule.source_pattern.matches(concept)
-                    }
-                    TranslationDirection::Backward => {
-                        rule.bidirectional && rule.target_pattern.matches(concept)
-                    }
+            .filter(|rule| match direction {
+                TranslationDirection::Forward => rule.source_pattern.matches(concept),
+                TranslationDirection::Backward => {
+                    rule.bidirectional && rule.target_pattern.matches(concept)
                 }
             })
             .collect();
@@ -110,7 +107,10 @@ impl ContextBridge {
                     Err("Concept not in shared kernel".to_string())
                 }
             }
-            ContextMappingType::CustomerSupplier { upstream, downstream } => {
+            ContextMappingType::CustomerSupplier {
+                upstream,
+                downstream,
+            } => {
                 // Customer-supplier - translate based on direction
                 match direction {
                     TranslationDirection::Forward => {
@@ -129,7 +129,10 @@ impl ContextBridge {
                     }
                 }
             }
-            ContextMappingType::Conformist { upstream, downstream } => {
+            ContextMappingType::Conformist {
+                upstream,
+                downstream,
+            } => {
                 // Conformist - downstream conforms to upstream
                 if direction == TranslationDirection::Forward && &self.source_context == upstream {
                     Ok(concept.clone()) // Pass through unchanged
@@ -137,19 +140,31 @@ impl ContextBridge {
                     Err("Conformist only allows forward translation from upstream".to_string())
                 }
             }
-            ContextMappingType::AntiCorruptionLayer { internal_context, external_context } => {
+            ContextMappingType::AntiCorruptionLayer {
+                internal_context,
+                external_context,
+            } => {
                 // Anti-corruption layer - apply translation rules
                 self.apply_translation_rules(concept, direction)
             }
-            ContextMappingType::OpenHostService { host, service_interface } => {
+            ContextMappingType::OpenHostService {
+                host,
+                service_interface,
+            } => {
                 // Open host service - translate according to published interface
                 self.apply_translation_rules(concept, direction)
             }
-            ContextMappingType::Partnership { context_a, context_b } => {
+            ContextMappingType::Partnership {
+                context_a,
+                context_b,
+            } => {
                 // Partnership - bidirectional translation
                 self.apply_translation_rules(concept, direction)
             }
-            ContextMappingType::PublishedLanguage { publisher, language_spec } => {
+            ContextMappingType::PublishedLanguage {
+                publisher,
+                language_spec,
+            } => {
                 // Published language - translate according to spec
                 self.apply_translation_rules(concept, direction)
             }
@@ -162,8 +177,12 @@ impl ContextBridge {
             ContextMappingType::SharedKernel { .. } => "Shared kernel with common concepts",
             ContextMappingType::CustomerSupplier { .. } => "Customer-supplier relationship",
             ContextMappingType::Conformist { .. } => "Conformist - downstream follows upstream",
-            ContextMappingType::AntiCorruptionLayer { .. } => "Anti-corruption layer for translation",
-            ContextMappingType::OpenHostService { .. } => "Open host service with published interface",
+            ContextMappingType::AntiCorruptionLayer { .. } => {
+                "Anti-corruption layer for translation"
+            }
+            ContextMappingType::OpenHostService { .. } => {
+                "Open host service with published interface"
+            }
             ContextMappingType::Partnership { .. } => "Partnership with mutual influence",
             ContextMappingType::PublishedLanguage { .. } => "Published language specification",
         }
@@ -192,9 +211,7 @@ pub enum ContextMappingType {
     },
 
     /// Shared Kernel: Shared subset of domain model
-    SharedKernel {
-        shared_concepts: Vec<ConceptId>,
-    },
+    SharedKernel { shared_concepts: Vec<ConceptId> },
 
     /// Partnership: Mutual dependency between contexts
     Partnership {
@@ -434,19 +451,13 @@ pub enum ConceptTransformation {
     Identity,
 
     /// Rename concept
-    Rename {
-        new_name: String,
-    },
+    Rename { new_name: String },
 
     /// Map attributes
-    AttributeMapping {
-        mappings: HashMap<String, String>,
-    },
+    AttributeMapping { mappings: HashMap<String, String> },
 
     /// Filter attributes
-    FilterAttributes {
-        keep: Vec<String>,
-    },
+    FilterAttributes { keep: Vec<String> },
 
     /// Add attributes with default values
     AddAttributes {

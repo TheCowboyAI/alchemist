@@ -3,12 +3,12 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     events::DomainEvent,
     value_objects::{GraphId, Position3D},
 };
-use ia::presentation::plugins::GraphEditorPlugin;
 use ia::presentation::components::{GraphContainer, GraphNode};
+use ia::presentation::plugins::GraphEditorPlugin;
 use std::collections::HashMap;
 
 fn main() {
@@ -66,7 +66,11 @@ fn trigger_import(
                     options: ImportOptions {
                         merge_behavior: MergeBehavior::MergePreferImported,
                         id_prefix: Some("test".to_string()),
-                        position_offset: Some(Position3D { x: 5.0, y: 0.0, z: 0.0 }),
+                        position_offset: Some(Position3D {
+                            x: 5.0,
+                            y: 0.0,
+                            z: 0.0,
+                        }),
                         mapping: None,
                         validate: true,
                         max_nodes: Some(1000),
@@ -99,10 +103,7 @@ fn log_events(mut events: EventReader<EventNotification>) {
     }
 }
 
-fn monitor_nodes(
-    nodes: Query<(&GraphNode, &Transform)>,
-    mut last_count: Local<usize>,
-) {
+fn monitor_nodes(nodes: Query<(&GraphNode, &Transform)>, mut last_count: Local<usize>) {
     let current_count = nodes.iter().count();
     if current_count != *last_count {
         println!("\nNODE COUNT CHANGED: {} -> {}", *last_count, current_count);
@@ -110,7 +111,8 @@ fn monitor_nodes(
         if current_count > 0 {
             println!("Current nodes:");
             for (node, transform) in nodes.iter() {
-                println!("  - Node: {:?} at position ({:.2}, {:.2}, {:.2})",
+                println!(
+                    "  - Node: {:?} at position ({:.2}, {:.2}, {:.2})",
                     node.node_id,
                     transform.translation.x,
                     transform.translation.y,
@@ -119,9 +121,8 @@ fn monitor_nodes(
             }
 
             // Check if all nodes belong to the same graph
-            let graph_ids: std::collections::HashSet<_> = nodes.iter()
-                .map(|(node, _)| node.graph_id)
-                .collect();
+            let graph_ids: std::collections::HashSet<_> =
+                nodes.iter().map(|(node, _)| node.graph_id).collect();
 
             if graph_ids.len() == 1 {
                 println!("✓ All nodes belong to the same graph!");

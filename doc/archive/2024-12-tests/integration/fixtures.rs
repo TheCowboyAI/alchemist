@@ -1,16 +1,16 @@
 //! Test fixtures and helpers for integration tests
 
-use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata};
-use ia::domain::commands::{GraphCommand, NodeCommand, EdgeCommand, Command};
-use ia::domain::events::{GraphEvent, NodeEvent, EdgeEvent};
-use ia::domain::content_types::GraphContent;
-use ia::infrastructure::nats::NatsConfig;
 use async_nats::jetstream;
+use futures::StreamExt;
+use ia::domain::commands::{Command, EdgeCommand, GraphCommand, NodeCommand};
+use ia::domain::content_types::GraphContent;
+use ia::domain::events::{EdgeEvent, GraphEvent, NodeEvent};
+use ia::domain::value_objects::{EdgeId, GraphId, GraphMetadata, NodeId, Position3D};
+use ia::infrastructure::nats::NatsConfig;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
-use std::collections::HashMap;
-use futures::StreamExt;
 
 /// Test NATS configuration
 pub fn test_nats_config() -> NatsConfig {
@@ -22,7 +22,8 @@ pub fn test_nats_config() -> NatsConfig {
 }
 
 /// Helper to connect to NATS for testing
-pub async fn connect_test_nats() -> Result<(async_nats::Client, jetstream::Context), Box<dyn std::error::Error>> {
+pub async fn connect_test_nats()
+-> Result<(async_nats::Client, jetstream::Context), Box<dyn std::error::Error>> {
     let client = async_nats::connect("nats://localhost:4222").await?;
     let jetstream = jetstream::new(client.clone());
     Ok((client, jetstream))
@@ -64,15 +65,13 @@ impl TestData {
 
     /// Create a sequence of graph commands
     pub fn create_graph_commands(graph_id: GraphId) -> Vec<GraphCommand> {
-        vec![
-            GraphCommand::CreateGraph {
-                id: graph_id,
-                metadata: GraphMetadata {
-                    name: "command-test-graph".to_string(),
-                    ..Default::default()
-                },
+        vec![GraphCommand::CreateGraph {
+            id: graph_id,
+            metadata: GraphMetadata {
+                name: "command-test-graph".to_string(),
+                ..Default::default()
             },
-        ]
+        }]
     }
 
     /// Create a sequence of node commands
@@ -93,10 +92,7 @@ impl TestData {
     }
 
     /// Create edge commands to connect nodes
-    pub fn create_edge_commands(
-        graph_id: GraphId,
-        node_ids: &[NodeId],
-    ) -> Vec<EdgeCommand> {
+    pub fn create_edge_commands(graph_id: GraphId, node_ids: &[NodeId]) -> Vec<EdgeCommand> {
         let mut commands = Vec::new();
         for i in 0..node_ids.len() - 1 {
             commands.push(EdgeCommand::ConnectNodes {
@@ -163,7 +159,10 @@ impl TestEventStream {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let payload = serde_json::to_vec(event)?;
         self.jetstream
-            .publish(format!("test.{}.{}", self.stream_name, subject), payload.into())
+            .publish(
+                format!("test.{}.{}", self.stream_name, subject),
+                payload.into(),
+            )
             .await?
             .await?;
         Ok(())
@@ -173,13 +172,17 @@ impl TestEventStream {
     pub async fn create_consumer(
         &self,
         consumer_name: &str,
-    ) -> Result<jetstream::consumer::Consumer<jetstream::consumer::pull::Config>, Box<dyn std::error::Error>> {
+    ) -> Result<
+        jetstream::consumer::Consumer<jetstream::consumer::pull::Config>,
+        Box<dyn std::error::Error>,
+    > {
         let config = jetstream::consumer::pull::Config {
             name: Some(consumer_name.to_string()),
             ..Default::default()
         };
 
-        let consumer = self.jetstream
+        let consumer = self
+            .jetstream
             .get_stream(&self.stream_name)
             .await?
             .create_consumer(config)
@@ -204,12 +207,7 @@ impl TestAssertions {
         consumer: &mut jetstream::consumer::Consumer<jetstream::consumer::pull::Config>,
         timeout: Duration,
     ) -> Result<E, Box<dyn std::error::Error>> {
-        let messages = consumer
-            .messages()
-            .await?
-            .take(1)
-            .collect::<Vec<_>>()
-            .await;
+        let messages = consumer.messages().await?.take(1).collect::<Vec<_>>().await;
 
         if messages.is_empty() {
             return Err("No messages received within timeout".into());
@@ -223,7 +221,9 @@ impl TestAssertions {
     }
 
     /// Assert CID chain integrity
-    pub fn assert_cid_chain_valid(events: &[ia::domain::events::cid_chain::ChainedEvent]) -> Result<(), String> {
+    pub fn assert_cid_chain_valid(
+        events: &[ia::domain::events::cid_chain::ChainedEvent],
+    ) -> Result<(), String> {
         for (i, event) in events.iter().enumerate() {
             if i > 0 {
                 let expected_previous = &events[i - 1].event_cid;
@@ -278,9 +278,7 @@ macro_rules! integration_test {
             // Check if NATS is running
             match connect_test_nats().await {
                 Ok((client, jetstream)) => {
-                    let result = async {
-                        $body(client, jetstream).await
-                    }.await;
+                    let result = async { $body(client, jetstream).await }.await;
 
                     // Cleanup happens automatically when variables go out of scope
                     result

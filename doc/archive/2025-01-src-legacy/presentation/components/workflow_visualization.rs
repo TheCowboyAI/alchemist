@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::domain::value_objects::{WorkflowId, StepId};
+use crate::domain::value_objects::{StepId, WorkflowId};
 
 /// Visual representation of a workflow
 #[derive(Component, Debug, Clone)]
@@ -156,30 +156,19 @@ pub enum StepType {
     },
 
     /// System task
-    SystemTask {
-        service: String,
-        operation: String,
-    },
+    SystemTask { service: String, operation: String },
 
     /// Decision point
-    Decision {
-        condition: String,
-    },
+    Decision { condition: String },
 
     /// Parallel gateway
-    ParallelGateway {
-        join_type: JoinType,
-    },
+    ParallelGateway { join_type: JoinType },
 
     /// Timer event
-    Timer {
-        duration: f32,
-    },
+    Timer { duration: f32 },
 
     /// Sub-workflow
-    SubWorkflow {
-        workflow_id: WorkflowId,
-    },
+    SubWorkflow { workflow_id: WorkflowId },
 }
 
 /// Join types for parallel gateways
@@ -200,32 +189,19 @@ pub enum StepState {
     Pending,
 
     /// Currently executing
-    Active {
-        started_at: f32,
-        progress: f32,
-    },
+    Active { started_at: f32, progress: f32 },
 
     /// Completed successfully
-    Completed {
-        duration: f32,
-    },
+    Completed { duration: f32 },
 
     /// Failed execution
-    Failed {
-        error: String,
-        retry_count: u32,
-    },
+    Failed { error: String, retry_count: u32 },
 
     /// Skipped due to conditions
-    Skipped {
-        reason: String,
-    },
+    Skipped { reason: String },
 
     /// Waiting for input
-    Waiting {
-        since: f32,
-        timeout: Option<f32>,
-    },
+    Waiting { since: f32, timeout: Option<f32> },
 }
 
 /// Visual properties for workflow steps
@@ -291,17 +267,13 @@ pub enum TransitionType {
     },
 
     /// Error handling flow
-    ErrorHandler {
-        error_types: Vec<String>,
-    },
+    ErrorHandler { error_types: Vec<String> },
 
     /// Compensation flow
     Compensation,
 
     /// Loop back
-    Loop {
-        max_iterations: Option<u32>,
-    },
+    Loop { max_iterations: Option<u32> },
 }
 
 /// Visual state of transitions
@@ -314,15 +286,10 @@ pub enum TransitionState {
     Available,
 
     /// Currently executing
-    Active {
-        tokens: u32,
-        speed: f32,
-    },
+    Active { tokens: u32, speed: f32 },
 
     /// Blocked by conditions
-    Blocked {
-        reason: String,
-    },
+    Blocked { reason: String },
 }
 
 /// Workflow execution token for visualization
@@ -445,10 +412,19 @@ pub struct ExecutionEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ExecutionEventType {
     StepStarted,
-    StepCompleted { duration: f32 },
-    StepFailed { error: String },
-    TransitionTaken { to_step: StepId },
-    VariableUpdated { name: String, value: serde_json::Value },
+    StepCompleted {
+        duration: f32,
+    },
+    StepFailed {
+        error: String,
+    },
+    TransitionTaken {
+        to_step: StepId,
+    },
+    VariableUpdated {
+        name: String,
+        value: serde_json::Value,
+    },
 }
 
 #[cfg(test)]
@@ -485,9 +461,7 @@ mod tests {
         };
 
         // Complete the step
-        state = StepState::Completed {
-            duration: 5.0,
-        };
+        state = StepState::Completed { duration: 5.0 };
 
         match state {
             StepState::Completed { duration } => assert_eq!(duration, 5.0),

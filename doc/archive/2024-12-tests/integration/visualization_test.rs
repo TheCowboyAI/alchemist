@@ -1,16 +1,16 @@
 //! Integration tests for visualization systems with ConceptGraph data
 
 use alchemist::domain::conceptual_graph::{
-    ConceptGraph, ConceptNode, ConceptEdge, ConceptType, ConceptRelationship,
-    ConceptualPoint, QualityDimension, DimensionType, NodeId,
+    ConceptEdge, ConceptGraph, ConceptNode, ConceptRelationship, ConceptType, ConceptualPoint,
+    DimensionType, NodeId, QualityDimension,
 };
 use alchemist::presentation::components::conceptual_visualization::{
-    ConceptualNodeVisual, ConceptualEdgeVisual, ConceptualSpaceVisual,
-    QualityDimensionAxis, DraggableNode, SelectableGraph,
+    ConceptualEdgeVisual, ConceptualNodeVisual, ConceptualSpaceVisual, DraggableNode,
+    QualityDimensionAxis, SelectableGraph,
 };
 use alchemist::presentation::plugins::GraphEditorPlugin;
-use bevy::prelude::*;
 use bevy::app::AppExit;
+use bevy::prelude::*;
 use std::time::Duration;
 
 /// Test that conceptual nodes are properly visualized in 3D space
@@ -28,9 +28,21 @@ fn test_conceptual_node_visualization() {
 
     // Add quality dimensions
     graph = graph
-        .with_dimension(QualityDimension::new("abstraction", DimensionType::Continuous, 0.0..1.0))
-        .with_dimension(QualityDimension::new("complexity", DimensionType::Continuous, 0.0..1.0))
-        .with_dimension(QualityDimension::new("stability", DimensionType::Continuous, 0.0..1.0));
+        .with_dimension(QualityDimension::new(
+            "abstraction",
+            DimensionType::Continuous,
+            0.0..1.0,
+        ))
+        .with_dimension(QualityDimension::new(
+            "complexity",
+            DimensionType::Continuous,
+            0.0..1.0,
+        ))
+        .with_dimension(QualityDimension::new(
+            "stability",
+            DimensionType::Continuous,
+            0.0..1.0,
+        ));
 
     // Add nodes with different positions in conceptual space
     let node1 = ConceptNode::Atom {
@@ -69,7 +81,9 @@ fn test_conceptual_node_visualization() {
     app.update();
 
     // Verify nodes were created with proper visual components
-    let mut node_query = app.world_mut().query::<(&ConceptualNodeVisual, &Transform)>();
+    let mut node_query = app
+        .world_mut()
+        .query::<(&ConceptualNodeVisual, &Transform)>();
     let nodes: Vec<_> = node_query.iter(&app.world()).collect();
 
     assert_eq!(nodes.len(), 2, "Should have created 2 visual nodes");
@@ -93,32 +107,37 @@ fn test_node_interaction() {
     app.add_plugins(GraphEditorPlugin);
 
     // Create a draggable node
-    let node_entity = app.world_mut().spawn((
-        ConceptualNodeVisual {
-            node_id: NodeId::new(),
-            concept_type: ConceptType::Entity,
-            quality_dimensions: vec![0.5, 0.5, 0.5],
-            visual_style: Default::default(),
-        },
-        Transform::from_xyz(0.0, 0.0, 0.0),
-        GlobalTransform::default(),
-        DraggableNode {
-            is_dragging: false,
-            drag_offset: Vec3::ZERO,
+    let node_entity = app
+        .world_mut()
+        .spawn((
+            ConceptualNodeVisual {
+                node_id: NodeId::new(),
+                concept_type: ConceptType::Entity,
+                quality_dimensions: vec![0.5, 0.5, 0.5],
+                visual_style: Default::default(),
+            },
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            GlobalTransform::default(),
+            DraggableNode {
+                is_dragging: false,
+                drag_offset: Vec3::ZERO,
+                constraints: Default::default(),
+                snap_to_grid: false,
+                grid_size: 1.0,
+            },
+        ))
+        .id();
+
+    // Simulate a drag start
+    app.world_mut()
+        .entity_mut(node_entity)
+        .insert(DraggableNode {
+            is_dragging: true,
+            drag_offset: Vec3::new(0.1, 0.1, 0.0),
             constraints: Default::default(),
             snap_to_grid: false,
             grid_size: 1.0,
-        },
-    )).id();
-
-    // Simulate a drag start
-    app.world_mut().entity_mut(node_entity).insert(DraggableNode {
-        is_dragging: true,
-        drag_offset: Vec3::new(0.1, 0.1, 0.0),
-        constraints: Default::default(),
-        snap_to_grid: false,
-        grid_size: 1.0,
-    });
+        });
 
     app.update();
 
@@ -138,39 +157,43 @@ fn test_edge_visualization() {
     let node1_id = NodeId::new();
     let node2_id = NodeId::new();
 
-    let node1 = app.world_mut().spawn((
-        ConceptualNodeVisual {
-            node_id: node1_id,
-            concept_type: ConceptType::Entity,
-            quality_dimensions: vec![0.2, 0.3, 0.8],
-            visual_style: Default::default(),
-        },
-        Transform::from_xyz(-5.0, 0.0, 0.0),
-        GlobalTransform::default(),
-    )).id();
+    let node1 = app
+        .world_mut()
+        .spawn((
+            ConceptualNodeVisual {
+                node_id: node1_id,
+                concept_type: ConceptType::Entity,
+                quality_dimensions: vec![0.2, 0.3, 0.8],
+                visual_style: Default::default(),
+            },
+            Transform::from_xyz(-5.0, 0.0, 0.0),
+            GlobalTransform::default(),
+        ))
+        .id();
 
-    let node2 = app.world_mut().spawn((
-        ConceptualNodeVisual {
-            node_id: node2_id,
-            concept_type: ConceptType::ValueObject,
-            quality_dimensions: vec![0.7, 0.5, 0.6],
-            visual_style: Default::default(),
-        },
-        Transform::from_xyz(5.0, 0.0, 0.0),
-        GlobalTransform::default(),
-    )).id();
+    let node2 = app
+        .world_mut()
+        .spawn((
+            ConceptualNodeVisual {
+                node_id: node2_id,
+                concept_type: ConceptType::ValueObject,
+                quality_dimensions: vec![0.7, 0.5, 0.6],
+                visual_style: Default::default(),
+            },
+            Transform::from_xyz(5.0, 0.0, 0.0),
+            GlobalTransform::default(),
+        ))
+        .id();
 
     // Create edge between them
-    app.world_mut().spawn((
-        ConceptualEdgeVisual {
-            edge_id: Default::default(),
-            source_node: node1_id,
-            target_node: node2_id,
-            relationship: ConceptRelationship::DependsOn,
-            visual_style: Default::default(),
-            animation: Default::default(),
-        },
-    ));
+    app.world_mut().spawn((ConceptualEdgeVisual {
+        edge_id: Default::default(),
+        source_node: node1_id,
+        target_node: node2_id,
+        relationship: ConceptRelationship::DependsOn,
+        visual_style: Default::default(),
+        animation: Default::default(),
+    },));
 
     app.update();
 
@@ -223,31 +246,41 @@ fn test_graph_selection() {
     app.add_plugins(GraphEditorPlugin);
 
     // Create a selectable graph
-    let graph_entity = app.world_mut().spawn((
-        ConceptGraph::new("TestGraph"),
-        SelectableGraph {
-            selected_nodes: Default::default(),
-            selected_edges: Default::default(),
-            selection_mode: Default::default(),
-            multi_select_key: Default::default(),
-        },
-    )).id();
+    let graph_entity = app
+        .world_mut()
+        .spawn((
+            ConceptGraph::new("TestGraph"),
+            SelectableGraph {
+                selected_nodes: Default::default(),
+                selected_edges: Default::default(),
+                selection_mode: Default::default(),
+                multi_select_key: Default::default(),
+            },
+        ))
+        .id();
 
     // Create some nodes
-    let node1 = app.world_mut().spawn((
-        ConceptualNodeVisual {
-            node_id: NodeId::new(),
-            concept_type: ConceptType::Entity,
-            quality_dimensions: vec![0.5, 0.5, 0.5],
-            visual_style: Default::default(),
-        },
-        Transform::default(),
-        GlobalTransform::default(),
-    )).id();
+    let node1 = app
+        .world_mut()
+        .spawn((
+            ConceptualNodeVisual {
+                node_id: NodeId::new(),
+                concept_type: ConceptType::Entity,
+                quality_dimensions: vec![0.5, 0.5, 0.5],
+                visual_style: Default::default(),
+            },
+            Transform::default(),
+            GlobalTransform::default(),
+        ))
+        .id();
 
     // Select the node
-    app.world_mut().entity_mut(graph_entity).get_mut::<SelectableGraph>().unwrap()
-        .selected_nodes.insert(node1);
+    app.world_mut()
+        .entity_mut(graph_entity)
+        .get_mut::<SelectableGraph>()
+        .unwrap()
+        .selected_nodes
+        .insert(node1);
 
     app.update();
 

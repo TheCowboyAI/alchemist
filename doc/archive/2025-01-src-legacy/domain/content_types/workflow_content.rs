@@ -108,7 +108,8 @@ impl WorkflowContent {
 
     /// Get next steps from a given step
     pub fn get_next_steps(&self, step_id: &str) -> Vec<&WorkflowStep> {
-        let next_ids: Vec<&str> = self.transitions
+        let next_ids: Vec<&str> = self
+            .transitions
             .iter()
             .filter(|t| t.from == step_id)
             .map(|t| t.to.as_str())
@@ -131,10 +132,16 @@ impl WorkflowContent {
         let step_ids: Vec<&str> = self.steps.iter().map(|s| s.id.as_str()).collect();
         for transition in &self.transitions {
             if !step_ids.contains(&transition.from.as_str()) {
-                return Err(format!("Transition references unknown source step: {}", transition.from));
+                return Err(format!(
+                    "Transition references unknown source step: {}",
+                    transition.from
+                ));
             }
             if !step_ids.contains(&transition.to.as_str()) {
-                return Err(format!("Transition references unknown target step: {}", transition.to));
+                return Err(format!(
+                    "Transition references unknown target step: {}",
+                    transition.to
+                ));
             }
         }
 

@@ -3,9 +3,9 @@
 //! Force-directed layouts and other algorithms generate many position updates
 //! that are aggregated before being sent to the domain.
 
-use bevy::prelude::*;
-use crate::domain::value_objects::NodeId;
 use super::PresentationEvent;
+use crate::domain::value_objects::NodeId;
+use bevy::prelude::*;
 
 /// Force-directed layout iteration
 #[derive(Event, Clone, Debug)]

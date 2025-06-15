@@ -1,18 +1,17 @@
 //! Basic test to verify subgraph operations work
 
-use ia::domain::{
-    value_objects::{
-        GraphId, SubgraphId, NodeId, EdgeId, Position3D,
-        SubgraphState, CollapseStrategy, LayoutStrategy,
-        SubgraphStatistics, SubgraphAnalysis, SuggestedOperation,
-    },
-    events::SubgraphOperationEvent,
-    commands::SubgraphOperationCommand,
-    services::{SubgraphAnalyzer, SubgraphLayoutCalculator},
-};
-use std::collections::{HashMap, HashSet};
-use petgraph::graph::Graph;
 use chrono::Utc;
+use ia::domain::{
+    commands::SubgraphOperationCommand,
+    events::SubgraphOperationEvent,
+    services::{SubgraphAnalyzer, SubgraphLayoutCalculator},
+    value_objects::{
+        CollapseStrategy, EdgeId, GraphId, LayoutStrategy, NodeId, Position3D, SubgraphAnalysis,
+        SubgraphId, SubgraphState, SubgraphStatistics, SuggestedOperation,
+    },
+};
+use petgraph::graph::Graph;
+use std::collections::{HashMap, HashSet};
 
 fn main() {
     println!("=== Basic Subgraph Operations Test ===\n");
@@ -48,7 +47,10 @@ fn main() {
     };
     println!("   ✓ Created SubgraphCollapsed event");
     println!("   ✓ Event graph_id: {}", event.graph_id());
-    println!("   ✓ Event primary_subgraph_id: {:?}", event.primary_subgraph_id());
+    println!(
+        "   ✓ Event primary_subgraph_id: {:?}",
+        event.primary_subgraph_id()
+    );
 
     // Test 3: Commands
     println!("\n3. Testing Commands:");
@@ -88,17 +90,22 @@ fn main() {
     // Test layout calculator
     let layout_calc = SubgraphLayoutCalculator::new();
     let mut positions = HashMap::new();
-    positions.insert(*graph.node_weight(n1).unwrap(), Position3D::new(0.0, 0.0, 0.0));
-    positions.insert(*graph.node_weight(n2).unwrap(), Position3D::new(10.0, 0.0, 0.0));
-
-    let collapsed_pos = layout_calc.calculate_collapsed_position(
-        &positions,
-        &CollapseStrategy::Centroid,
-        None,
+    positions.insert(
+        *graph.node_weight(n1).unwrap(),
+        Position3D::new(0.0, 0.0, 0.0),
     );
+    positions.insert(
+        *graph.node_weight(n2).unwrap(),
+        Position3D::new(10.0, 0.0, 0.0),
+    );
+
+    let collapsed_pos =
+        layout_calc.calculate_collapsed_position(&positions, &CollapseStrategy::Centroid, None);
     println!("   ✓ SubgraphLayoutCalculator calculated collapse position");
-    println!("     - Position: ({:.2}, {:.2}, {:.2})",
-        collapsed_pos.x, collapsed_pos.y, collapsed_pos.z);
+    println!(
+        "     - Position: ({:.2}, {:.2}, {:.2})",
+        collapsed_pos.x, collapsed_pos.y, collapsed_pos.z
+    );
 
     println!("\n✅ All basic tests passed!");
 }

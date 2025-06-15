@@ -4,10 +4,13 @@
 //! Based on Peter Gärdenfors' conceptual spaces theory.
 
 use crate::domain::{
-    commands::conceptual_space::{ConceptualSpaceCommand, CreateConceptualSpace, AddQualityDimension, MapConcept, DefineRegion, CalculateSimilarity, UpdateMetric},
-    events::{conceptual_space::*, DomainEvent},
+    commands::conceptual_space::{
+        AddQualityDimension, CalculateSimilarity, ConceptualSpaceCommand, CreateConceptualSpace,
+        DefineRegion, MapConcept, UpdateMetric,
+    },
+    conceptual_graph::{ConceptId, ConceptualPoint, DistanceMetric, QualityDimension},
+    events::{DomainEvent, conceptual_space::*},
     value_objects::{ConceptualSpaceId, DimensionId, RegionId, UserId},
-    conceptual_graph::{QualityDimension, DistanceMetric, ConceptualPoint, ConceptId},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -90,24 +93,14 @@ impl ConceptualSpace {
         command: ConceptualSpaceCommand,
     ) -> Result<Vec<DomainEvent>, ConceptualSpaceError> {
         match command {
-            ConceptualSpaceCommand::CreateConceptualSpace(cmd) => {
-                self.handle_create_space(cmd)
-            }
-            ConceptualSpaceCommand::AddQualityDimension(cmd) => {
-                self.handle_add_dimension(cmd)
-            }
-            ConceptualSpaceCommand::MapConcept(cmd) => {
-                self.handle_map_concept(cmd)
-            }
-            ConceptualSpaceCommand::DefineRegion(cmd) => {
-                self.handle_define_region(cmd)
-            }
+            ConceptualSpaceCommand::CreateConceptualSpace(cmd) => self.handle_create_space(cmd),
+            ConceptualSpaceCommand::AddQualityDimension(cmd) => self.handle_add_dimension(cmd),
+            ConceptualSpaceCommand::MapConcept(cmd) => self.handle_map_concept(cmd),
+            ConceptualSpaceCommand::DefineRegion(cmd) => self.handle_define_region(cmd),
             ConceptualSpaceCommand::CalculateSimilarity(cmd) => {
                 self.handle_calculate_similarity(cmd)
             }
-            ConceptualSpaceCommand::UpdateMetric(cmd) => {
-                self.handle_update_metric(cmd)
-            }
+            ConceptualSpaceCommand::UpdateMetric(cmd) => self.handle_update_metric(cmd),
         }
     }
 
@@ -130,8 +123,14 @@ impl ConceptualSpace {
         cmd: AddQualityDimension,
     ) -> Result<Vec<DomainEvent>, ConceptualSpaceError> {
         // Check if dimension already exists
-        if self.dimensions.values().any(|d| d.name == cmd.dimension.name) {
-            return Err(ConceptualSpaceError::DimensionAlreadyExists(cmd.dimension.name));
+        if self
+            .dimensions
+            .values()
+            .any(|d| d.name == cmd.dimension.name)
+        {
+            return Err(ConceptualSpaceError::DimensionAlreadyExists(
+                cmd.dimension.name,
+            ));
         }
 
         let event = QualityDimensionAdded {
@@ -203,9 +202,13 @@ impl ConceptualSpace {
         cmd: CalculateSimilarity,
     ) -> Result<Vec<DomainEvent>, ConceptualSpaceError> {
         // Get concept positions
-        let pos1 = self.concept_positions.get(&cmd.concept1)
+        let pos1 = self
+            .concept_positions
+            .get(&cmd.concept1)
             .ok_or(ConceptualSpaceError::ConceptNotFound(cmd.concept1))?;
-        let pos2 = self.concept_positions.get(&cmd.concept2)
+        let pos2 = self
+            .concept_positions
+            .get(&cmd.concept2)
             .ok_or(ConceptualSpaceError::ConceptNotFound(cmd.concept2))?;
 
         // Calculate similarity based on distance
@@ -250,31 +253,39 @@ impl ConceptualSpace {
 
         let distance = match &self.metric {
             DistanceMetric::Euclidean => {
-                let sum: f64 = pos1.coordinates.iter()
+                let sum: f64 = pos1
+                    .coordinates
+                    .iter()
                     .zip(&pos2.coordinates)
                     .map(|(a, b)| (a - b).powi(2))
                     .sum();
                 sum.sqrt() as f32
             }
-            DistanceMetric::Manhattan => {
-                pos1.coordinates.iter()
-                    .zip(&pos2.coordinates)
-                    .map(|(a, b)| (a - b).abs())
-                    .sum::<f64>() as f32
-            }
+            DistanceMetric::Manhattan => pos1
+                .coordinates
+                .iter()
+                .zip(&pos2.coordinates)
+                .map(|(a, b)| (a - b).abs())
+                .sum::<f64>() as f32,
             DistanceMetric::Cosine => {
                 // Implement cosine similarity
-                let dot_product: f64 = pos1.coordinates.iter()
+                let dot_product: f64 = pos1
+                    .coordinates
+                    .iter()
                     .zip(&pos2.coordinates)
                     .map(|(a, b)| a * b)
                     .sum();
 
-                let magnitude1: f64 = pos1.coordinates.iter()
+                let magnitude1: f64 = pos1
+                    .coordinates
+                    .iter()
                     .map(|a| a.powi(2))
                     .sum::<f64>()
                     .sqrt();
 
-                let magnitude2: f64 = pos2.coordinates.iter()
+                let magnitude2: f64 = pos2
+                    .coordinates
+                    .iter()
                     .map(|b| b.powi(2))
                     .sum::<f64>()
                     .sqrt();
@@ -288,7 +299,9 @@ impl ConceptualSpace {
             }
             DistanceMetric::Custom(_) => {
                 // Default to Euclidean for custom metrics
-                let sum: f64 = pos1.coordinates.iter()
+                let sum: f64 = pos1
+                    .coordinates
+                    .iter()
                     .zip(&pos2.coordinates)
                     .map(|(a, b)| (a - b).powi(2))
                     .sum();
@@ -312,15 +325,19 @@ impl ConceptualSpace {
                 self.dimensions.insert(e.dimension_id, e.dimension.clone());
             }
             DomainEvent::ConceptMapped(e) => {
-                self.concept_positions.insert(e.concept_id, e.position.clone());
+                self.concept_positions
+                    .insert(e.concept_id, e.position.clone());
             }
             DomainEvent::RegionDefined(e) => {
-                self.regions.insert(e.region_id, ConvexRegion {
-                    id: e.region_id,
-                    name: e.name.clone(),
-                    prototype: e.prototype.clone(),
-                    member_concepts: e.member_concepts.clone(),
-                });
+                self.regions.insert(
+                    e.region_id,
+                    ConvexRegion {
+                        id: e.region_id,
+                        name: e.name.clone(),
+                        prototype: e.prototype.clone(),
+                        member_concepts: e.member_concepts.clone(),
+                    },
+                );
             }
             DomainEvent::SimilarityCalculated(_) => {
                 // Similarity calculation is informational, no state change
@@ -362,7 +379,9 @@ mod tests {
             created_by: space.created_by,
         };
 
-        let events = space.handle_command(ConceptualSpaceCommand::CreateConceptualSpace(cmd)).unwrap();
+        let events = space
+            .handle_command(ConceptualSpaceCommand::CreateConceptualSpace(cmd))
+            .unwrap();
         assert_eq!(events.len(), 1);
         assert!(matches!(events[0], DomainEvent::ConceptualSpaceCreated(_)));
     }
@@ -384,7 +403,9 @@ mod tests {
             dimension,
         };
 
-        let events = space.handle_command(ConceptualSpaceCommand::AddQualityDimension(cmd)).unwrap();
+        let events = space
+            .handle_command(ConceptualSpaceCommand::AddQualityDimension(cmd))
+            .unwrap();
         assert_eq!(events.len(), 1);
         assert!(matches!(events[0], DomainEvent::QualityDimensionAdded(_)));
         assert_eq!(space.dimensions.len(), 1);
@@ -412,7 +433,9 @@ mod tests {
             position,
         };
 
-        let events = space.handle_command(ConceptualSpaceCommand::MapConcept(cmd)).unwrap();
+        let events = space
+            .handle_command(ConceptualSpaceCommand::MapConcept(cmd))
+            .unwrap();
         assert_eq!(events.len(), 1);
         assert!(matches!(events[0], DomainEvent::ConceptMapped(_)));
     }
@@ -433,8 +456,18 @@ mod tests {
         let concept1 = ConceptId(Uuid::new_v4());
         let concept2 = ConceptId(Uuid::new_v4());
 
-        space.concept_positions.insert(concept1, ConceptualPoint { coordinates: vec![0.0] });
-        space.concept_positions.insert(concept2, ConceptualPoint { coordinates: vec![10.0] });
+        space.concept_positions.insert(
+            concept1,
+            ConceptualPoint {
+                coordinates: vec![0.0],
+            },
+        );
+        space.concept_positions.insert(
+            concept2,
+            ConceptualPoint {
+                coordinates: vec![10.0],
+            },
+        );
 
         let cmd = CalculateSimilarity {
             space_id: space.id,
@@ -442,7 +475,9 @@ mod tests {
             concept2,
         };
 
-        let events = space.handle_command(ConceptualSpaceCommand::CalculateSimilarity(cmd)).unwrap();
+        let events = space
+            .handle_command(ConceptualSpaceCommand::CalculateSimilarity(cmd))
+            .unwrap();
         assert_eq!(events.len(), 1);
         assert!(matches!(events[0], DomainEvent::SimilarityCalculated(_)));
     }

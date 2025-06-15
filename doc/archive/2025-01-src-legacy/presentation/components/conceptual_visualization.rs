@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid;
 
-use crate::domain::conceptual_graph::{QualityDimension, ConceptualPoint};
-use crate::domain::value_objects::{NodeId, EdgeId, GraphId};
+use crate::domain::conceptual_graph::{ConceptualPoint, QualityDimension};
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId};
 
 /// Visual representation of a concept node in 3D space
 #[derive(Component, Debug, Clone)]

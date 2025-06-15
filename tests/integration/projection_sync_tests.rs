@@ -17,12 +17,11 @@
 //!     E --> H[Read Model C]
 //! ```
 
-use crate::fixtures::{TestNatsServer, TestEventStore, create_test_graph, assertions::*};
-use cim_domain::{DomainResult, GraphId, NodeId, DomainEvent};
+use crate::fixtures::{TestEventStore, TestNatsServer, assertions::*, create_test_graph};
+use cim_domain::{DomainEvent, DomainResult, GraphId, NodeId};
 use cim_domain_graph::{
-    GraphAggregate, GraphDomainEvent, NodeType, Position3D,
-    GraphSummaryProjection, NodeListProjection, EdgeListProjection,
-    Projection, ProjectionSync,
+    EdgeListProjection, GraphAggregate, GraphDomainEvent, GraphSummaryProjection,
+    NodeListProjection, NodeType, Position3D, Projection, ProjectionSync,
 };
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -41,9 +40,12 @@ async fn test_multiple_projections_sync() -> DomainResult<()> {
 
     // Subscribe projections to events
     let sync = ProjectionSync::new(event_store.clone());
-    sync.subscribe_projection("summary", summary_projection.clone()).await?;
-    sync.subscribe_projection("node_list", node_list_projection.clone()).await?;
-    sync.subscribe_projection("edge_list", edge_list_projection.clone()).await?;
+    sync.subscribe_projection("summary", summary_projection.clone())
+        .await?;
+    sync.subscribe_projection("node_list", node_list_projection.clone())
+        .await?;
+    sync.subscribe_projection("edge_list", edge_list_projection.clone())
+        .await?;
 
     // Act - Generate events
     let graph_id = GraphId::new();
@@ -127,7 +129,8 @@ async fn test_projection_recovery_after_failure() -> DomainResult<()> {
     let sync = ProjectionSync::new(event_store.clone());
 
     // Subscribe with replay from beginning
-    sync.subscribe_projection_with_replay("node_list", projection.clone(), 0).await?;
+    sync.subscribe_projection_with_replay("node_list", projection.clone(), 0)
+        .await?;
 
     // Wait for replay to complete
     tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
@@ -161,7 +164,9 @@ async fn test_projection_checkpoint_resume() -> DomainResult<()> {
     // First projection processes some events
     let projection1 = Arc::new(RwLock::new(NodeListProjection::new()));
     let sync1 = ProjectionSync::new(event_store.clone());
-    sync1.subscribe_projection("node_list", projection1.clone()).await?;
+    sync1
+        .subscribe_projection("node_list", projection1.clone())
+        .await?;
 
     // Publish events
     for i in 0..5 {
@@ -185,7 +190,9 @@ async fn test_projection_checkpoint_resume() -> DomainResult<()> {
     // Act - Start new projection from checkpoint
     let projection2 = Arc::new(RwLock::new(NodeListProjection::new()));
     let sync2 = ProjectionSync::new(event_store.clone());
-    sync2.subscribe_projection_from_checkpoint("node_list", projection2.clone(), checkpoint).await?;
+    sync2
+        .subscribe_projection_from_checkpoint("node_list", projection2.clone(), checkpoint)
+        .await?;
 
     // Wait for processing
     tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
@@ -210,51 +217,54 @@ async fn test_concurrent_event_processing() -> DomainResult<()> {
     let projection = Arc::new(RwLock::new(GraphSummaryProjection::new()));
 
     let sync = ProjectionSync::new(event_store.clone());
-    sync.subscribe_projection("summary", projection.clone()).await?;
+    sync.subscribe_projection("summary", projection.clone())
+        .await?;
 
     // Act - Publish many events concurrently
-    let handles: Vec<_> = (0..10).map(|i| {
-        let store = event_store.clone();
-        let graph_id = GraphId::new();
+    let handles: Vec<_> = (0..10)
+        .map(|i| {
+            let store = event_store.clone();
+            let graph_id = GraphId::new();
 
-        tokio::spawn(async move {
-            // Each task creates a graph with nodes and edges
-            let node1 = NodeId::new();
-            let node2 = NodeId::new();
+            tokio::spawn(async move {
+                // Each task creates a graph with nodes and edges
+                let node1 = NodeId::new();
+                let node2 = NodeId::new();
 
-            let events = vec![
-                DomainEvent::Graph(GraphDomainEvent::NodeAdded {
-                    graph_id,
-                    node_id: node1,
-                    node_type: NodeType::Concept,
-                    position: Position3D::default(),
-                    conceptual_point: Default::default(),
-                    metadata: Default::default(),
-                }),
-                DomainEvent::Graph(GraphDomainEvent::NodeAdded {
-                    graph_id,
-                    node_id: node2,
-                    node_type: NodeType::Concept,
-                    position: Position3D::default(),
-                    conceptual_point: Default::default(),
-                    metadata: Default::default(),
-                }),
-                DomainEvent::Graph(GraphDomainEvent::EdgeConnected {
-                    graph_id,
-                    edge_id: cim_domain::EdgeId::new(),
-                    source: node1,
-                    target: node2,
-                    relationship: cim_domain_graph::EdgeRelationship::default(),
-                }),
-            ];
+                let events = vec![
+                    DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                        graph_id,
+                        node_id: node1,
+                        node_type: NodeType::Concept,
+                        position: Position3D::default(),
+                        conceptual_point: Default::default(),
+                        metadata: Default::default(),
+                    }),
+                    DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                        graph_id,
+                        node_id: node2,
+                        node_type: NodeType::Concept,
+                        position: Position3D::default(),
+                        conceptual_point: Default::default(),
+                        metadata: Default::default(),
+                    }),
+                    DomainEvent::Graph(GraphDomainEvent::EdgeConnected {
+                        graph_id,
+                        edge_id: cim_domain::EdgeId::new(),
+                        source: node1,
+                        target: node2,
+                        relationship: cim_domain_graph::EdgeRelationship::default(),
+                    }),
+                ];
 
-            for event in events {
-                store.append(event).await?;
-            }
+                for event in events {
+                    store.append(event).await?;
+                }
 
-            Ok::<GraphId, cim_domain::DomainError>(graph_id)
+                Ok::<GraphId, cim_domain::DomainError>(graph_id)
+            })
         })
-    }).collect();
+        .collect();
 
     // Wait for all tasks
     let mut graph_ids = Vec::new();
@@ -289,7 +299,8 @@ async fn test_projection_lag_monitoring() -> DomainResult<()> {
     // Create slow projection that simulates processing delay
     let projection = Arc::new(RwLock::new(SlowProjection::new(50))); // 50ms delay per event
     let sync = ProjectionSync::new(event_store.clone());
-    sync.subscribe_projection("slow", projection.clone()).await?;
+    sync.subscribe_projection("slow", projection.clone())
+        .await?;
 
     // Act - Publish events rapidly
     let graph_id = GraphId::new();
@@ -325,21 +336,18 @@ async fn test_projection_error_handling() -> DomainResult<()> {
     // Create projection that fails on certain events
     let projection = Arc::new(RwLock::new(FailingProjection::new()));
     let sync = ProjectionSync::new(event_store.clone());
-    sync.subscribe_projection_with_error_handler(
-        "failing",
-        projection.clone(),
-        |error, event| {
-            // Log error and continue
-            eprintln!("Projection error: {} for event: {:?}", error, event);
-            Ok(())
-        }
-    ).await?;
+    sync.subscribe_projection_with_error_handler("failing", projection.clone(), |error, event| {
+        // Log error and continue
+        eprintln!("Projection error: {} for event: {:?}", error, event);
+        Ok(())
+    })
+    .await?;
 
     // Act - Publish mix of good and bad events
     let graph_id = GraphId::new();
     let events = vec![
         create_node_added_event(graph_id, NodeId::new()), // Good
-        create_failing_event(graph_id),                    // Bad
+        create_failing_event(graph_id),                   // Bad
         create_node_added_event(graph_id, NodeId::new()), // Good
     ];
 
@@ -416,7 +424,7 @@ impl Projection for FailingProjection {
             if metadata.contains_key("fail") {
                 self.failed.push(event.clone());
                 return Err(cim_domain::DomainError::ValidationError(
-                    "Simulated projection failure".to_string()
+                    "Simulated projection failure".to_string(),
                 ));
             }
         }

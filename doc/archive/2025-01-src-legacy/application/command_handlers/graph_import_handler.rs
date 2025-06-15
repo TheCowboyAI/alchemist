@@ -1,9 +1,9 @@
 use crate::domain::{
-    commands::{ImportSource, ImportOptions},
-    events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent},
-    services::GraphImportService,
-    value_objects::{GraphId, NodeId, EdgeId},
     DomainError,
+    commands::{ImportOptions, ImportSource},
+    events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent},
+    services::GraphImportService,
+    value_objects::{EdgeId, GraphId, NodeId},
 };
 use tracing::info;
 
@@ -24,25 +24,38 @@ impl GraphImportHandler {
         // Import based on source
         let imported_graphs = match source.clone() {
             ImportSource::File { path } => {
-                let content = std::fs::read_to_string(&path)
-                    .map_err(|e| DomainError::ValidationFailed(format!("Failed to read file: {e}")))?;
+                let content = std::fs::read_to_string(&path).map_err(|e| {
+                    DomainError::ValidationFailed(format!("Failed to read file: {e}"))
+                })?;
 
                 let format = import_service.detect_format(&content);
-                vec![import_service.import_from_content(&content, format, options.mapping.as_ref())?]
+                vec![import_service.import_from_content(
+                    &content,
+                    format,
+                    options.mapping.as_ref(),
+                )?]
             }
             ImportSource::Url { url } => {
                 // TODO: Implement URL fetching
-                return Err(DomainError::ValidationFailed("URL import not yet implemented".to_string()));
+                return Err(DomainError::ValidationFailed(
+                    "URL import not yet implemented".to_string(),
+                ));
             }
             ImportSource::GitRepository { url, branch, path } => {
-                self.import_from_git_repo(&url, branch.as_deref(), &path, &options).await?
+                self.import_from_git_repo(&url, branch.as_deref(), &path, &options)
+                    .await?
             }
             ImportSource::NixFlake { flake_ref, output } => {
-                self.import_from_nix_flake(&flake_ref, &output, &options).await?
+                self.import_from_nix_flake(&flake_ref, &output, &options)
+                    .await?
             }
             ImportSource::InlineContent { content } => {
                 let format = import_service.detect_format(&content);
-                vec![import_service.import_from_content(&content, format, options.mapping.as_ref())?]
+                vec![import_service.import_from_content(
+                    &content,
+                    format,
+                    options.mapping.as_ref(),
+                )?]
             }
         };
 
@@ -92,8 +105,14 @@ impl GraphImportHandler {
         // Add import completed event
         events.push(DomainEvent::Graph(GraphEvent::GraphImportCompleted {
             graph_id,
-            imported_nodes: events.iter().filter(|e| matches!(e, DomainEvent::Node(_))).count(),
-            imported_edges: events.iter().filter(|e| matches!(e, DomainEvent::Edge(_))).count(),
+            imported_nodes: events
+                .iter()
+                .filter(|e| matches!(e, DomainEvent::Node(_)))
+                .count(),
+            imported_edges: events
+                .iter()
+                .filter(|e| matches!(e, DomainEvent::Edge(_)))
+                .count(),
             source,
         }));
 
@@ -109,7 +128,10 @@ impl GraphImportHandler {
     ) -> Result<Vec<crate::domain::services::graph_import::ImportedGraph>, DomainError> {
         // TODO: Implement git repository cloning and import
         // For now, return empty vector
-        info!("Git repository import requested: {} (branch: {:?}, path: {})", repo_url, branch, path);
+        info!(
+            "Git repository import requested: {} (branch: {:?}, path: {})",
+            repo_url, branch, path
+        );
         Ok(Vec::new())
     }
 
@@ -121,7 +143,10 @@ impl GraphImportHandler {
     ) -> Result<Vec<crate::domain::services::graph_import::ImportedGraph>, DomainError> {
         // TODO: Implement nix flake evaluation and import
         // For now, return empty vector
-        info!("Nix flake import requested: {} (output: {})", flake_ref, output);
+        info!(
+            "Nix flake import requested: {} (output: {})",
+            flake_ref, output
+        );
         Ok(Vec::new())
     }
 }
@@ -130,8 +155,8 @@ impl GraphImportHandler {
 mod tests {
     use super::*;
     use crate::domain::{
-        commands::{Command, GraphCommand, ImportSource, ImportOptions},
         commands::graph_commands::MergeBehavior,
+        commands::{Command, GraphCommand, ImportOptions, ImportSource},
         events::{DomainEvent, GraphEvent},
         value_objects::GraphId,
     };
@@ -172,9 +197,13 @@ mod tests {
                 graph_id: event_graph_id,
                 source: _,
                 format: _,
-                options: _
-            })) = result {
-                assert_eq!(event_graph_id, graph_id, "Event should have correct graph ID");
+                options: _,
+            })) = result
+            {
+                assert_eq!(
+                    event_graph_id, graph_id,
+                    "Event should have correct graph ID"
+                );
             } else {
                 panic!("Expected GraphImportRequested event");
             }
@@ -199,6 +228,9 @@ mod tests {
 
         // For now, this test passes to document the architecture
         // The actual processing happens in the presentation layer's process_graph_import_requests system
-        assert!(true, "GraphImportRequested events are processed by the presentation layer");
+        assert!(
+            true,
+            "GraphImportRequested events are processed by the presentation layer"
+        );
     }
 }

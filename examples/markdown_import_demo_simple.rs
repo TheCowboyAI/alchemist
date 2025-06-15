@@ -15,8 +15,8 @@ use ia::{
         value_objects::{GraphId, NodeId},
     },
     presentation::{
+        components::{GraphContainer, GraphEdge, GraphNode},
         plugins::GraphEditorPlugin,
-        components::{GraphContainer, GraphNode, GraphEdge},
     },
 };
 use std::collections::HashMap;
@@ -34,20 +34,20 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(GraphEditorPlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, (
-            handle_markdown_import,
-            handle_clear,
-            display_stats,
-            simple_camera_controls,
-            debug_node_positions,
-        ))
+        .add_systems(
+            Update,
+            (
+                handle_markdown_import,
+                handle_clear,
+                display_stats,
+                simple_camera_controls,
+                debug_node_positions,
+            ),
+        )
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut event_writer: EventWriter<CommandEvent>,
-) {
+fn setup(mut commands: Commands, mut event_writer: EventWriter<CommandEvent>) {
     // Camera - positioned further back to see the full graph
     commands.spawn((
         Camera3d::default(),
@@ -121,7 +121,7 @@ fn handle_clear(
 
             event_writer.write(CommandEvent {
                 command: Command::Graph(GraphCommand::ClearGraph {
-                    graph_id: container.graph_id
+                    graph_id: container.graph_id,
                 }),
             });
 
@@ -130,11 +130,7 @@ fn handle_clear(
     }
 }
 
-fn display_stats(
-    nodes: Query<&GraphNode>,
-    edges: Query<&GraphEdge>,
-    time: Res<Time>,
-) {
+fn display_stats(nodes: Query<&GraphNode>, edges: Query<&GraphEdge>, time: Res<Time>) {
     if time.elapsed_secs() as u32 % 5 == 0 && time.delta_secs() > 0.0 {
         let node_count = nodes.iter().count();
         let edge_count = edges.iter().count();
@@ -189,15 +185,19 @@ fn debug_node_positions(
         for (node, transform) in nodes.iter() {
             // For now, just group by Y position to see if they're in layers
             let y_group = format!("Y={:.0}", transform.translation.y);
-            nodes_by_subgraph.entry(y_group).or_insert_with(Vec::new)
+            nodes_by_subgraph
+                .entry(y_group)
+                .or_insert_with(Vec::new)
                 .push((node.node_id, transform.translation));
         }
 
         for (group, positions) in nodes_by_subgraph.iter() {
             println!("\n{}: {} nodes", group, positions.len());
             for (node_id, pos) in positions {
-                println!("  Node {:?}: ({:.1}, {:.1}, {:.1})",
-                    node_id, pos.x, pos.y, pos.z);
+                println!(
+                    "  Node {:?}: ({:.1}, {:.1}, {:.1})",
+                    node_id, pos.x, pos.y, pos.z
+                );
             }
         }
 

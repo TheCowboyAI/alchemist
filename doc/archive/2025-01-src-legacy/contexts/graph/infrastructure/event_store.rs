@@ -3,8 +3,8 @@
 //! This module provides the event store implementation for the graph context,
 //! integrating with NATS JetStream for persistence.
 
+use crate::shared::events::{DomainEvent, EventStore, EventSubscription};
 use crate::shared::types::Result;
-use crate::shared::events::{EventStore, EventSubscription, DomainEvent};
 use async_trait::async_trait;
 
 /// Graph-specific event store implementation
@@ -19,7 +19,11 @@ impl EventStore for GraphEventStore {
         Ok(())
     }
 
-    async fn load_events(&self, aggregate_id: &str, from_version: u64) -> Result<Vec<serde_json::Value>> {
+    async fn load_events(
+        &self,
+        aggregate_id: &str,
+        from_version: u64,
+    ) -> Result<Vec<serde_json::Value>> {
         // TODO: Implement with NATS
         Ok(vec![])
     }

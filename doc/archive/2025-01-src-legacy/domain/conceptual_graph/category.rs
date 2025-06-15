@@ -21,9 +21,7 @@ pub enum CategoryType {
     Profunctor,
 
     /// Enriched Category - categories with additional structure
-    Enriched {
-        enrichment: EnrichmentType,
-    },
+    Enriched { enrichment: EnrichmentType },
 
     /// Topos - categories with logic and computation
     Topos,
@@ -38,9 +36,7 @@ pub enum CategoryType {
     Functor,
 
     /// Slice Category - objects over a fixed object
-    Slice {
-        base_object: String,
-    },
+    Slice { base_object: String },
 }
 
 impl Default for CategoryType {

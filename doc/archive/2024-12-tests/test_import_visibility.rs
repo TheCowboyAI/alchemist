@@ -3,12 +3,12 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     events::DomainEvent,
     value_objects::{GraphId, Position3D},
 };
-use ia::presentation::plugins::GraphEditorPlugin;
 use ia::presentation::components::{GraphContainer, GraphNode};
+use ia::presentation::plugins::GraphEditorPlugin;
 use std::collections::HashMap;
 
 fn main() {
@@ -58,8 +58,14 @@ fn monitor_nodes(
             println!("    - Graph ID: {:?}", node.graph_id);
 
             if let Some(t) = transform {
-                println!("    - Position: ({:.2}, {:.2}, {:.2})", t.translation.x, t.translation.y, t.translation.z);
-                println!("    - Scale: ({:.2}, {:.2}, {:.2})", t.scale.x, t.scale.y, t.scale.z);
+                println!(
+                    "    - Position: ({:.2}, {:.2}, {:.2})",
+                    t.translation.x, t.translation.y, t.translation.z
+                );
+                println!(
+                    "    - Scale: ({:.2}, {:.2}, {:.2})",
+                    t.scale.x, t.scale.y, t.scale.z
+                );
             } else {
                 println!("    - NO TRANSFORM!");
             }
@@ -82,10 +88,15 @@ fn check_visibility(
     if keyboard.just_pressed(KeyCode::KeyV) {
         println!("\n[VISIBILITY CHECK]");
         for (entity, transform) in transforms.iter() {
-            println!("Entity {:?}: pos=({:.2}, {:.2}, {:.2}), scale=({:.2}, {:.2}, {:.2})",
+            println!(
+                "Entity {:?}: pos=({:.2}, {:.2}, {:.2}), scale=({:.2}, {:.2}, {:.2})",
                 entity,
-                transform.translation.x, transform.translation.y, transform.translation.z,
-                transform.scale.x, transform.scale.y, transform.scale.z
+                transform.translation.x,
+                transform.translation.y,
+                transform.translation.z,
+                transform.scale.x,
+                transform.scale.y,
+                transform.scale.z
             );
         }
     }

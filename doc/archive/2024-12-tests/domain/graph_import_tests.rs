@@ -3,7 +3,7 @@
 
 use ia::domain::{
     aggregates::Graph,
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     events::{DomainEvent, GraphEvent},
     services::{GraphImportService, ImportResult},
     value_objects::{GraphId, NodeId, Position3D},
@@ -199,7 +199,7 @@ fn test_import_result_to_events_conversion() {
     // The GraphImportService returns an ImportResult
     // But there's no system that converts this to domain events
 
-        let import_result = ImportResult {
+    let import_result = ImportResult {
         nodes: vec![],
         edges: vec![],
         warnings: vec![],

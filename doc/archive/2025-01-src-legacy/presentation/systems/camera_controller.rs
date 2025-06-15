@@ -2,10 +2,10 @@
 //!
 //! Provides orbit camera controls for navigating the 3D graph view.
 
+use crate::presentation::components::OrbitCamera;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use tracing::info;
-use crate::presentation::components::OrbitCamera;
 
 /// Updates the camera transform based on orbit parameters
 pub fn update_orbit_camera(mut cameras: Query<(&mut Transform, &OrbitCamera)>) {

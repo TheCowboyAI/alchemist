@@ -1,7 +1,7 @@
 //! CID chain integrity tests
 
-use cim_domain::{DomainResult, DomainError};
 use cim_domain::infrastructure::{ChainedEvent, EventChain};
+use cim_domain::{DomainError, DomainResult};
 
 #[tokio::test]
 async fn test_cid_chain_creation() -> DomainResult<()> {
@@ -19,7 +19,10 @@ async fn test_cid_chain_creation() -> DomainResult<()> {
     let event3 = chain.add_event(event3_data)?;
 
     // Assert - Verify chain integrity
-    assert!(event1.previous_cid.is_none(), "First event should have no previous CID");
+    assert!(
+        event1.previous_cid.is_none(),
+        "First event should have no previous CID"
+    );
     assert_eq!(event2.previous_cid, Some(event1.event_cid.clone()));
     assert_eq!(event3.previous_cid, Some(event2.event_cid.clone()));
 
@@ -118,7 +121,7 @@ async fn test_cid_determinism() -> DomainResult<()> {
 
 #[tokio::test]
 async fn test_event_chain_with_domain_events() -> DomainResult<()> {
-    use cim_domain_graph::{GraphDomainEvent, NodeType, StepType, Position3D, ConceptualPoint};
+    use cim_domain_graph::{ConceptualPoint, GraphDomainEvent, NodeType, Position3D, StepType};
 
     // Arrange
     let mut chain = EventChain::new();
@@ -138,7 +141,11 @@ async fn test_event_chain_with_domain_events() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::Start,
             },
-            position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
             conceptual_point: ConceptualPoint::default(),
             metadata: Default::default(),
         }),
@@ -148,7 +155,11 @@ async fn test_event_chain_with_domain_events() -> DomainResult<()> {
             node_type: NodeType::WorkflowStep {
                 step_type: StepType::End,
             },
-            position: Position3D { x: 10.0, y: 0.0, z: 0.0 },
+            position: Position3D {
+                x: 10.0,
+                y: 0.0,
+                z: 0.0,
+            },
             conceptual_point: ConceptualPoint::default(),
             metadata: Default::default(),
         }),
@@ -157,8 +168,8 @@ async fn test_event_chain_with_domain_events() -> DomainResult<()> {
     // Act - Add events to chain
     let mut chained_events = Vec::new();
     for event in events {
-        let serialized = serde_json::to_vec(&event)
-            .map_err(|e| DomainError::Serialization(e.to_string()))?;
+        let serialized =
+            serde_json::to_vec(&event).map_err(|e| DomainError::Serialization(e.to_string()))?;
         let chained = chain.add_event(&serialized)?;
         chained_events.push(chained);
     }
@@ -169,8 +180,14 @@ async fn test_event_chain_with_domain_events() -> DomainResult<()> {
 
     // Verify sequence
     assert!(chained_events[0].previous_cid.is_none());
-    assert_eq!(chained_events[1].previous_cid, Some(chained_events[0].event_cid.clone()));
-    assert_eq!(chained_events[2].previous_cid, Some(chained_events[1].event_cid.clone()));
+    assert_eq!(
+        chained_events[1].previous_cid,
+        Some(chained_events[0].event_cid.clone())
+    );
+    assert_eq!(
+        chained_events[2].previous_cid,
+        Some(chained_events[1].event_cid.clone())
+    );
 
     Ok(())
 }
@@ -195,8 +212,14 @@ async fn test_parallel_chain_branches() -> DomainResult<()> {
     let branch_b_event = branch_b.add_event(b"Branch B event")?;
 
     // Assert - Both branches should reference common ancestor
-    assert_eq!(branch_a_event.previous_cid, Some(common_event.event_cid.clone()));
-    assert_eq!(branch_b_event.previous_cid, Some(common_event.event_cid.clone()));
+    assert_eq!(
+        branch_a_event.previous_cid,
+        Some(common_event.event_cid.clone())
+    );
+    assert_eq!(
+        branch_b_event.previous_cid,
+        Some(common_event.event_cid.clone())
+    );
 
     // But branches should have different CIDs
     assert_ne!(branch_a_event.event_cid, branch_b_event.event_cid);

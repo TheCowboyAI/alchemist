@@ -8,7 +8,7 @@ use crate::domain::value_objects::{GraphId, GraphMetadata};
 use async_trait::async_trait;
 use bevy::prelude::*;
 use std::collections::HashMap;
-use std::time::{SystemTime, Instant};
+use std::time::{Instant, SystemTime};
 
 /// Summary information about a graph
 #[derive(Debug, Clone)]
@@ -54,8 +54,8 @@ impl Projection for GraphSummaryProjection {
     type Event = DomainEvent;
     type Error = ProjectionError;
 
-        async fn handle_event(&mut self, event: Self::Event, sequence: u64) -> Result<(), Self::Error> {
-        use crate::domain::events::{NodeEvent, EdgeEvent};
+    async fn handle_event(&mut self, event: Self::Event, sequence: u64) -> Result<(), Self::Error> {
+        use crate::domain::events::{EdgeEvent, NodeEvent};
         let timestamp = SystemTime::now(); // Events don't carry timestamps in current structure
 
         match event {
@@ -222,7 +222,7 @@ mod tests {
         let mut projection = GraphSummaryProjection::new();
         let graph_id = GraphId::new();
 
-                // Create graph
+        // Create graph
         let create_event = DomainEvent::Graph(GraphEvent::GraphCreated {
             id: graph_id,
             metadata: GraphMetadata::new("Test Graph".to_string()),

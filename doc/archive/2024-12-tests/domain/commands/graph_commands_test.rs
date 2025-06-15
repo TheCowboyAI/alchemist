@@ -1,9 +1,6 @@
 //! Graph Command Tests
 
-use ia::domain::{
-    commands::graph_commands::GraphCommand,
-    value_objects::GraphId,
-};
+use ia::domain::{commands::graph_commands::GraphCommand, value_objects::GraphId};
 
 #[test]
 fn test_create_graph_command() {
@@ -14,7 +11,7 @@ fn test_create_graph_command() {
     // When
     let command = GraphCommand::CreateGraph {
         id,
-        name: name.clone()
+        name: name.clone(),
     };
 
     // Then
@@ -22,7 +19,10 @@ fn test_create_graph_command() {
     assert_eq!(command.graph_id(), id);
 
     match command {
-        GraphCommand::CreateGraph { id: cmd_id, name: cmd_name } => {
+        GraphCommand::CreateGraph {
+            id: cmd_id,
+            name: cmd_name,
+        } => {
             assert_eq!(cmd_id, id);
             assert_eq!(cmd_name, name);
         }
@@ -52,7 +52,7 @@ fn test_rename_graph_command() {
     // When
     let command = GraphCommand::RenameGraph {
         id,
-        new_name: new_name.clone()
+        new_name: new_name.clone(),
     };
 
     // Then
@@ -60,7 +60,10 @@ fn test_rename_graph_command() {
     assert_eq!(command.graph_id(), id);
 
     match command {
-        GraphCommand::RenameGraph { id: cmd_id, new_name: cmd_name } => {
+        GraphCommand::RenameGraph {
+            id: cmd_id,
+            new_name: cmd_name,
+        } => {
             assert_eq!(cmd_id, id);
             assert_eq!(cmd_name, new_name);
         }
@@ -77,7 +80,7 @@ fn test_tag_graph_command() {
     // When
     let command = GraphCommand::TagGraph {
         id,
-        tag: tag.clone()
+        tag: tag.clone(),
     };
 
     // Then
@@ -85,7 +88,10 @@ fn test_tag_graph_command() {
     assert_eq!(command.graph_id(), id);
 
     match command {
-        GraphCommand::TagGraph { id: cmd_id, tag: cmd_tag } => {
+        GraphCommand::TagGraph {
+            id: cmd_id,
+            tag: cmd_tag,
+        } => {
             assert_eq!(cmd_id, id);
             assert_eq!(cmd_tag, tag);
         }
@@ -102,7 +108,7 @@ fn test_untag_graph_command() {
     // When
     let command = GraphCommand::UntagGraph {
         id,
-        tag: tag.clone()
+        tag: tag.clone(),
     };
 
     // Then
@@ -110,7 +116,10 @@ fn test_untag_graph_command() {
     assert_eq!(command.graph_id(), id);
 
     match command {
-        GraphCommand::UntagGraph { id: cmd_id, tag: cmd_tag } => {
+        GraphCommand::UntagGraph {
+            id: cmd_id,
+            tag: cmd_tag,
+        } => {
             assert_eq!(cmd_id, id);
             assert_eq!(cmd_tag, tag);
         }
@@ -124,7 +133,7 @@ fn test_command_serialization() {
     let id = GraphId::new();
     let command = GraphCommand::CreateGraph {
         id,
-        name: "Serializable Graph".to_string()
+        name: "Serializable Graph".to_string(),
     };
 
     // When
@@ -141,11 +150,23 @@ fn test_all_commands_have_graph_id() {
     // Given
     let id = GraphId::new();
     let commands = vec![
-        GraphCommand::CreateGraph { id, name: "Test".to_string() },
+        GraphCommand::CreateGraph {
+            id,
+            name: "Test".to_string(),
+        },
         GraphCommand::DeleteGraph { id },
-        GraphCommand::RenameGraph { id, new_name: "New".to_string() },
-        GraphCommand::TagGraph { id, tag: "tag".to_string() },
-        GraphCommand::UntagGraph { id, tag: "tag".to_string() },
+        GraphCommand::RenameGraph {
+            id,
+            new_name: "New".to_string(),
+        },
+        GraphCommand::TagGraph {
+            id,
+            tag: "tag".to_string(),
+        },
+        GraphCommand::UntagGraph {
+            id,
+            tag: "tag".to_string(),
+        },
     ];
 
     // When/Then
@@ -159,17 +180,27 @@ fn test_command_type_strings_are_unique() {
     // Given
     let id = GraphId::new();
     let commands = vec![
-        GraphCommand::CreateGraph { id, name: "Test".to_string() },
+        GraphCommand::CreateGraph {
+            id,
+            name: "Test".to_string(),
+        },
         GraphCommand::DeleteGraph { id },
-        GraphCommand::RenameGraph { id, new_name: "New".to_string() },
-        GraphCommand::TagGraph { id, tag: "tag".to_string() },
-        GraphCommand::UntagGraph { id, tag: "tag".to_string() },
+        GraphCommand::RenameGraph {
+            id,
+            new_name: "New".to_string(),
+        },
+        GraphCommand::TagGraph {
+            id,
+            tag: "tag".to_string(),
+        },
+        GraphCommand::UntagGraph {
+            id,
+            tag: "tag".to_string(),
+        },
     ];
 
     // When
-    let command_types: Vec<&str> = commands.iter()
-        .map(|cmd| cmd.command_type())
-        .collect();
+    let command_types: Vec<&str> = commands.iter().map(|cmd| cmd.command_type()).collect();
 
     // Then - all command types should be unique
     let unique_types: std::collections::HashSet<&str> = command_types.iter().cloned().collect();

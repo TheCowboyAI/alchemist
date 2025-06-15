@@ -96,11 +96,8 @@ impl EventSequencer {
         aggregate_sequence: u64,
     ) -> Result<Vec<DomainEvent>, String> {
         // Process at aggregate level first
-        let aggregate_ready = self.process_aggregate_sequence(
-            event.aggregate_id(),
-            &event,
-            aggregate_sequence,
-        )?;
+        let aggregate_ready =
+            self.process_aggregate_sequence(event.aggregate_id(), &event, aggregate_sequence)?;
 
         if !aggregate_ready {
             // Event is out of order for this aggregate
@@ -117,14 +114,18 @@ impl EventSequencer {
         event: &DomainEvent,
         sequence: u64,
     ) -> Result<bool, String> {
-        let mut buffers = self.aggregate_buffers.write()
+        let mut buffers = self
+            .aggregate_buffers
+            .write()
             .map_err(|e| format!("Failed to acquire buffer lock: {}", e))?;
 
-        let buffer = buffers.entry(aggregate_id).or_insert_with(|| AggregateBuffer {
-            next_sequence: 1,
-            pending: BTreeMap::new(),
-            last_processed: std::time::Instant::now(),
-        });
+        let buffer = buffers
+            .entry(aggregate_id)
+            .or_insert_with(|| AggregateBuffer {
+                next_sequence: 1,
+                pending: BTreeMap::new(),
+                last_processed: std::time::Instant::now(),
+            });
 
         if sequence == buffer.next_sequence {
             // This is the expected sequence
@@ -133,22 +134,31 @@ impl EventSequencer {
             Ok(true)
         } else if sequence < buffer.next_sequence {
             // Duplicate or old event
-            warn!("Received old sequence {} (expected {})", sequence, buffer.next_sequence);
+            warn!(
+                "Received old sequence {} (expected {})",
+                sequence, buffer.next_sequence
+            );
             Ok(false)
         } else {
             // Out of order - buffer it
             let gap = sequence - buffer.next_sequence;
             if gap > self.config.max_sequence_gap {
-                error!("Sequence gap too large: {} (max {})", gap, self.config.max_sequence_gap);
+                error!(
+                    "Sequence gap too large: {} (max {})",
+                    gap, self.config.max_sequence_gap
+                );
                 return Err("Sequence gap too large".to_string());
             }
 
-            buffer.pending.insert(sequence, BufferedEvent {
-                event: event.clone(),
+            buffer.pending.insert(
                 sequence,
-                aggregate_sequence: sequence,
-                received_at: std::time::Instant::now(),
-            });
+                BufferedEvent {
+                    event: event.clone(),
+                    sequence,
+                    aggregate_sequence: sequence,
+                    received_at: std::time::Instant::now(),
+                },
+            );
 
             Ok(false)
         }
@@ -159,7 +169,9 @@ impl EventSequencer {
         event: DomainEvent,
         sequence: u64,
     ) -> Result<Vec<DomainEvent>, String> {
-        let mut buffer = self.global_buffer.write()
+        let mut buffer = self
+            .global_buffer
+            .write()
             .map_err(|e| format!("Failed to acquire global buffer lock: {}", e))?;
 
         let mut ready_events = Vec::new();
@@ -182,12 +194,15 @@ impl EventSequencer {
             }
         } else if sequence > buffer.next_sequence {
             // Buffer for later
-            buffer.pending.insert(sequence, BufferedEvent {
-                event,
+            buffer.pending.insert(
                 sequence,
-                aggregate_sequence: 0, // Not used at global level
-                received_at: std::time::Instant::now(),
-            });
+                BufferedEvent {
+                    event,
+                    sequence,
+                    aggregate_sequence: 0, // Not used at global level
+                    received_at: std::time::Instant::now(),
+                },
+            );
         }
         // Ignore if sequence < next_sequence (duplicate)
 
@@ -220,14 +235,18 @@ impl EventSequencer {
             let timeout = self.config.sequence_timeout;
 
             // Find timed-out sequences
-            let timed_out: Vec<_> = buffer.pending
+            let timed_out: Vec<_> = buffer
+                .pending
                 .iter()
                 .filter(|(_, event)| now.duration_since(event.received_at) > timeout)
                 .map(|(seq, _)| *seq)
                 .collect();
 
             if !timed_out.is_empty() {
-                warn!("Found {} timed-out sequences, forcing progression", timed_out.len());
+                warn!(
+                    "Found {} timed-out sequences, forcing progression",
+                    timed_out.len()
+                );
 
                 // Skip to the first timed-out sequence
                 if let Some(&first_timeout) = timed_out.first() {
@@ -248,21 +267,33 @@ impl EventSequencer {
 
     /// Get statistics about buffered events
     pub fn get_stats(&self) -> SequencerStats {
-        let aggregate_stats = self.aggregate_buffers.read()
+        let aggregate_stats = self
+            .aggregate_buffers
+            .read()
             .ok()
             .map(|buffers| {
-                buffers.iter()
-                    .map(|(id, buffer)| (id.clone(), AggregateStats {
-                        next_sequence: buffer.next_sequence,
-                        pending_count: buffer.pending.len(),
-                        oldest_pending: buffer.pending.first_key_value()
-                            .map(|(seq, _)| *seq),
-                    }))
+                buffers
+                    .iter()
+                    .map(|(id, buffer)| {
+                        (
+                            id.clone(),
+                            AggregateStats {
+                                next_sequence: buffer.next_sequence,
+                                pending_count: buffer.pending.len(),
+                                oldest_pending: buffer
+                                    .pending
+                                    .first_key_value()
+                                    .map(|(seq, _)| *seq),
+                            },
+                        )
+                    })
                     .collect()
             })
             .unwrap_or_default();
 
-        let global_stats = self.global_buffer.read()
+        let global_stats = self
+            .global_buffer
+            .read()
             .ok()
             .map(|buffer| GlobalStats {
                 next_sequence: buffer.next_sequence,

@@ -3,11 +3,9 @@
 //! Visualizes relationships and mappings between different bounded contexts
 //! in the conceptual graph system.
 
-use bevy::prelude::*;
-use crate::presentation::components::{
-    ConceptualSpaceVisual, ContextBridgeComponent,
-};
 use crate::domain::conceptual_graph::ContextMappingType;
+use crate::presentation::components::{ConceptualSpaceVisual, ContextBridgeComponent};
+use bevy::prelude::*;
 
 /// Visual representation of a context bridge
 #[derive(Component, Debug, Clone)]
@@ -235,11 +233,18 @@ fn draw_bridge_gizmos(gizmos: &mut Gizmos, bridge: &ContextBridgeVisual) {
             draw_dotted_line(gizmos, start, end, bridge.visual_style.color, 20);
         }
         BridgePattern::Wave => {
-            draw_wave_line(gizmos, start, end, bridge.visual_style.color, bridge.animation_state.progress);
+            draw_wave_line(
+                gizmos,
+                start,
+                end,
+                bridge.visual_style.color,
+                bridge.animation_state.progress,
+            );
         }
         BridgePattern::Pulse => {
-            let pulse_color = bridge.visual_style.color
-                .with_alpha(0.5 + 0.5 * (bridge.animation_state.progress * std::f32::consts::TAU).sin());
+            let pulse_color = bridge.visual_style.color.with_alpha(
+                0.5 + 0.5 * (bridge.animation_state.progress * std::f32::consts::TAU).sin(),
+            );
             gizmos.line(start, end, pulse_color);
         }
     }
@@ -272,12 +277,12 @@ fn draw_mapping_indicator(
             gizmos.circle(
                 Isometry3d::new(mid_point - perpendicular * 0.3, rotation),
                 0.2,
-                Color::srgb(0.8, 0.8, 0.3)
+                Color::srgb(0.8, 0.8, 0.3),
             );
             gizmos.circle(
                 Isometry3d::new(mid_point + perpendicular * 0.3, rotation),
                 0.2,
-                Color::srgb(0.8, 0.8, 0.3)
+                Color::srgb(0.8, 0.8, 0.3),
             );
         }
         ContextMappingType::CustomerSupplier { .. } => {
@@ -291,7 +296,7 @@ fn draw_mapping_indicator(
             gizmos.circle(
                 Isometry3d::new(end - direction * 0.5, rotation),
                 0.1,
-                Color::srgb(0.8, 0.3, 0.3)
+                Color::srgb(0.8, 0.3, 0.3),
             );
         }
         ContextMappingType::AntiCorruptionLayer { .. } => {
@@ -311,7 +316,7 @@ fn draw_mapping_indicator(
             gizmos.rect(
                 Isometry3d::new(mid_point, Quat::from_rotation_arc(Vec3::Z, direction)),
                 Vec2::new(0.3, 0.2),
-                Color::srgb(0.7, 0.5, 0.3)
+                Color::srgb(0.7, 0.5, 0.3),
             );
         }
         ContextMappingType::Partnership { .. } => {
@@ -352,8 +357,10 @@ fn draw_wave_line(gizmos: &mut Gizmos, start: Vec3, end: Vec3, color: Color, pro
         let t1 = i as f32 / segments as f32;
         let t2 = (i + 1) as f32 / segments as f32;
 
-        let wave1 = (t1 * std::f32::consts::TAU * 4.0 + progress * std::f32::consts::TAU).sin() * 0.1;
-        let wave2 = (t2 * std::f32::consts::TAU * 4.0 + progress * std::f32::consts::TAU).sin() * 0.1;
+        let wave1 =
+            (t1 * std::f32::consts::TAU * 4.0 + progress * std::f32::consts::TAU).sin() * 0.1;
+        let wave2 =
+            (t2 * std::f32::consts::TAU * 4.0 + progress * std::f32::consts::TAU).sin() * 0.1;
 
         let p1 = start.lerp(end, t1) + perpendicular * wave1;
         let p2 = start.lerp(end, t2) + perpendicular * wave2;
@@ -370,8 +377,16 @@ fn draw_arrow(gizmos: &mut Gizmos, start: Vec3, end: Vec3, color: Color) {
     let perpendicular = direction.cross(Vec3::Y).normalize();
     let arrow_size = 0.2;
 
-    gizmos.line(end, end - direction * arrow_size + perpendicular * arrow_size * 0.5, color);
-    gizmos.line(end, end - direction * arrow_size - perpendicular * arrow_size * 0.5, color);
+    gizmos.line(
+        end,
+        end - direction * arrow_size + perpendicular * arrow_size * 0.5,
+        color,
+    );
+    gizmos.line(
+        end,
+        end - direction * arrow_size - perpendicular * arrow_size * 0.5,
+        color,
+    );
 }
 
 /// Helper function to draw shield symbol
@@ -491,12 +506,6 @@ pub struct ContextBridgeVisualizationPlugin;
 
 impl Plugin for ContextBridgeVisualizationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                visualize_context_bridges,
-                animate_context_bridges,
-            ),
-        );
+        app.add_systems(Update, (visualize_context_bridges, animate_context_bridges));
     }
 }

@@ -3,17 +3,17 @@
 //! Subscribes to domain events and updates projections accordingly.
 //! This is the bridge between the event store and read models.
 
+use crate::application::projections::{GraphSummaryProjection, Projection};
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::event_store::EventStore;
-use crate::application::projections::{Projection, GraphSummaryProjection};
+use anyhow::Result;
 use async_nats::jetstream;
 use bevy::prelude::*;
-use std::sync::Arc;
-use std::collections::HashMap;
-use tokio::sync::RwLock;
 use futures::StreamExt;
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing::{error, warn};
-use anyhow::Result;
 
 /// Manages projection updates from event streams
 pub struct ProjectionHandler {
@@ -38,13 +38,15 @@ impl ProjectionHandler {
     /// Start consuming events and updating projections
     pub async fn start(&mut self, jetstream: jetstream::Context) -> Result<()> {
         // Create or get the events stream
-        let stream = jetstream.get_or_create_stream(jetstream::stream::Config {
-            name: "EVENTS".to_string(),
-            subjects: vec!["events.>".to_string()],
-            retention: jetstream::stream::RetentionPolicy::Limits,
-            storage: jetstream::stream::StorageType::File,
-            ..Default::default()
-        }).await?;
+        let stream = jetstream
+            .get_or_create_stream(jetstream::stream::Config {
+                name: "EVENTS".to_string(),
+                subjects: vec!["events.>".to_string()],
+                retention: jetstream::stream::RetentionPolicy::Limits,
+                storage: jetstream::stream::StorageType::File,
+                ..Default::default()
+            })
+            .await?;
 
         // Create a durable consumer for projections
         let consumer_config = jetstream::consumer::pull::Config {
@@ -82,7 +84,8 @@ impl ProjectionHandler {
 
             // Parse event
             if let Ok(event) = serde_json::from_slice::<DomainEvent>(&message.payload) {
-                let sequence = message.info()
+                let sequence = message
+                    .info()
                     .map_err(|e| anyhow::anyhow!("Failed to get message info: {}", e))?
                     .stream_sequence;
 
@@ -98,12 +101,16 @@ impl ProjectionHandler {
                 // TODO: Update other projections as they are implemented
 
                 // Acknowledge message after successful processing
-                message.ack().await
+                message
+                    .ack()
+                    .await
                     .map_err(|e| anyhow::anyhow!("Failed to acknowledge message: {}", e))?;
             } else {
                 warn!("Failed to parse event from message");
                 // Still acknowledge to avoid reprocessing
-                message.ack().await
+                message
+                    .ack()
+                    .await
                     .map_err(|e| anyhow::anyhow!("Failed to acknowledge message: {}", e))?;
             }
         }
@@ -112,7 +119,11 @@ impl ProjectionHandler {
     }
 
     /// Replay events from a specific sequence number
-    pub async fn replay_from(&mut self, start_sequence: u64, jetstream: jetstream::Context) -> Result<()> {
+    pub async fn replay_from(
+        &mut self,
+        start_sequence: u64,
+        jetstream: jetstream::Context,
+    ) -> Result<()> {
         // Get the events stream
         let stream = jetstream.get_stream("EVENTS").await?;
 
@@ -136,7 +147,8 @@ impl ProjectionHandler {
         // Replay events
         while let Some(message) = messages.next().await {
             let message = message?;
-            let sequence = message.info()
+            let sequence = message
+                .info()
                 .map_err(|e| anyhow::anyhow!("Failed to get message info: {}", e))?
                 .stream_sequence;
 
@@ -203,7 +215,7 @@ fn sync_graph_summary_to_bevy(
 mod tests {
     use super::*;
     use crate::domain::events::GraphEvent;
-    use crate::domain::value_objects::{GraphMetadata, GraphId};
+    use crate::domain::value_objects::{GraphId, GraphMetadata};
 
     #[tokio::test]
     async fn test_projection_handler_updates() {

@@ -3,21 +3,21 @@
 //! These tests verify the complete flow from Bevy commands through NATS
 //! to event store and finally to projection updates.
 
-use ia::domain::aggregates::Graph;
-use ia::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand};
-use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
-use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, EdgeRelationship};
-use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
-use ia::infrastructure::event_bridge::{EventBridge, BridgeCommand};
-use ia::infrastructure::nats::{NatsClient, NatsConfig};
-use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
-use ia::application::projections::{GraphSummaryProjection, Projection, ProjectionHandler};
 use super::fixtures::*;
+use bevy::prelude::*;
+use ia::application::command_handlers::{CommandHandler, GraphCommandHandler};
+use ia::application::projections::{GraphSummaryProjection, Projection, ProjectionHandler};
+use ia::domain::aggregates::Graph;
+use ia::domain::commands::{Command, EdgeCommand, GraphCommand, NodeCommand};
+use ia::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
+use ia::domain::value_objects::{EdgeId, EdgeRelationship, GraphId, NodeId, Position3D};
+use ia::infrastructure::event_bridge::{BridgeCommand, EventBridge};
+use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
+use ia::infrastructure::nats::{NatsClient, NatsConfig};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
-use bevy::prelude::*;
-use std::collections::HashMap;
 
 #[tokio::test]
 #[ignore = "requires running NATS server"]
@@ -30,10 +30,7 @@ async fn test_complete_end_to_end_flow() -> Result<(), Box<dyn std::error::Error
 
     // 2. Setup projections
     let graph_summary = Arc::new(RwLock::new(GraphSummaryProjection::new()));
-    let mut projection_handler = ProjectionHandler::new(
-        event_store.clone(),
-        graph_summary.clone(),
-    );
+    let mut projection_handler = ProjectionHandler::new(event_store.clone(), graph_summary.clone());
 
     // Start projection handler
     projection_handler.start(jetstream.clone()).await?;
@@ -41,7 +38,7 @@ async fn test_complete_end_to_end_flow() -> Result<(), Box<dyn std::error::Error
     // 3. Start event bridge
     event_bridge.start(nats_client.clone()).await?;
 
-        // Test data
+    // Test data
     let graph_id = GraphId::new();
     let node1_id = NodeId::new();
     let node2_id = NodeId::new();
@@ -54,7 +51,7 @@ async fn test_complete_end_to_end_flow() -> Result<(), Box<dyn std::error::Error
         name: "E2E Test Graph".to_string(),
     };
 
-        handler.handle(Command::Graph(create_graph_cmd)).await?;
+    handler.handle(Command::Graph(create_graph_cmd)).await?;
 
     // Wait for processing
     tokio::time::sleep(Duration::from_millis(200)).await;
@@ -62,7 +59,8 @@ async fn test_complete_end_to_end_flow() -> Result<(), Box<dyn std::error::Error
     // 5. Verify projection was updated
     {
         let projection = graph_summary.read().await;
-        let summary = projection.get_summary(&graph_id)
+        let summary = projection
+            .get_summary(&graph_id)
             .expect("Graph should exist in projection");
         assert_eq!(summary.metadata.name, "E2E Test Graph");
         assert_eq!(summary.node_count, 0);
@@ -75,7 +73,11 @@ async fn test_complete_end_to_end_flow() -> Result<(), Box<dyn std::error::Error
         graph_id,
         node_id: node1_id,
         content: "Node 1".to_string(),
-        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+        position: Position3D {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        },
         metadata: Default::default(),
     });
 
@@ -86,7 +88,11 @@ async fn test_complete_end_to_end_flow() -> Result<(), Box<dyn std::error::Error
         graph_id,
         node_id: node2_id,
         content: "Node 2".to_string(),
-        position: Position3D { x: 10.0, y: 0.0, z: 0.0 },
+        position: Position3D {
+            x: 10.0,
+            y: 0.0,
+            z: 0.0,
+        },
         metadata: Default::default(),
     });
 
@@ -148,8 +154,16 @@ async fn test_complete_end_to_end_flow() -> Result<(), Box<dyn std::error::Error
     let remove_events = handler.handle(remove_node_cmd).await?;
 
     // Should have both node and edge removal events
-    assert!(remove_events.iter().any(|e| matches!(e, DomainEvent::Node(NodeEvent::NodeRemoved { .. }))));
-    assert!(remove_events.iter().any(|e| matches!(e, DomainEvent::Edge(EdgeEvent::EdgeRemoved { .. }))));
+    assert!(
+        remove_events
+            .iter()
+            .any(|e| matches!(e, DomainEvent::Node(NodeEvent::NodeRemoved { .. })))
+    );
+    assert!(
+        remove_events
+            .iter()
+            .any(|e| matches!(e, DomainEvent::Edge(EdgeEvent::EdgeRemoved { .. })))
+    );
 
     // Wait for projection update
     tokio::time::sleep(Duration::from_millis(200)).await;
@@ -197,10 +211,7 @@ async fn test_concurrent_graph_operations() -> Result<(), Box<dyn std::error::Er
 
     // Setup projections
     let graph_summary = Arc::new(RwLock::new(GraphSummaryProjection::new()));
-    let mut projection_handler = ProjectionHandler::new(
-        event_store.clone(),
-        graph_summary.clone(),
-    );
+    let mut projection_handler = ProjectionHandler::new(event_store.clone(), graph_summary.clone());
 
     projection_handler.start(jetstream.clone()).await?;
 
@@ -217,7 +228,10 @@ async fn test_concurrent_graph_operations() -> Result<(), Box<dyn std::error::Er
                 name: format!("Concurrent Graph {}", i),
                 metadata: {
                     let mut map = HashMap::new();
-                    map.insert("description".to_string(), serde_json::json!(format!("Graph created concurrently #{}", i)));
+                    map.insert(
+                        "description".to_string(),
+                        serde_json::json!(format!("Graph created concurrently #{}", i)),
+                    );
                     map.insert("tags".to_string(), serde_json::json!(vec!["concurrent"]));
                     map
                 },
@@ -282,10 +296,7 @@ async fn test_error_recovery_and_consistency() -> Result<(), Box<dyn std::error:
 
     // Setup projections
     let graph_summary = Arc::new(RwLock::new(GraphSummaryProjection::new()));
-    let mut projection_handler = ProjectionHandler::new(
-        event_store.clone(),
-        graph_summary.clone(),
-    );
+    let mut projection_handler = ProjectionHandler::new(event_store.clone(), graph_summary.clone());
 
     projection_handler.start(jetstream.clone()).await?;
 
@@ -357,10 +368,7 @@ async fn test_projection_performance() -> Result<(), Box<dyn std::error::Error>>
 
     // Setup projections
     let graph_summary = Arc::new(RwLock::new(GraphSummaryProjection::new()));
-    let mut projection_handler = ProjectionHandler::new(
-        event_store.clone(),
-        graph_summary.clone(),
-    );
+    let mut projection_handler = ProjectionHandler::new(event_store.clone(), graph_summary.clone());
 
     projection_handler.start(jetstream.clone()).await?;
 
@@ -371,7 +379,10 @@ async fn test_projection_performance() -> Result<(), Box<dyn std::error::Error>>
         name: "Performance Test Graph".to_string(),
         metadata: {
             let mut map = HashMap::new();
-            map.insert("description".to_string(), serde_json::json!("Testing projection performance with many nodes"));
+            map.insert(
+                "description".to_string(),
+                serde_json::json!("Testing projection performance with many nodes"),
+            );
             map.insert("tags".to_string(), serde_json::json!(vec!["performance"]));
             map
         },
@@ -400,7 +411,10 @@ async fn test_projection_performance() -> Result<(), Box<dyn std::error::Error>>
     }
 
     let command_duration = start.elapsed();
-    println!("Time to process {} node commands: {:?}", node_count, command_duration);
+    println!(
+        "Time to process {} node commands: {:?}",
+        node_count, command_duration
+    );
 
     // Wait for projections to catch up
     tokio::time::sleep(Duration::from_secs(2)).await;
@@ -418,7 +432,10 @@ async fn test_projection_performance() -> Result<(), Box<dyn std::error::Error>>
     let query_duration = query_start.elapsed();
 
     println!("Time to query projection: {:?}", query_duration);
-    assert!(query_duration < Duration::from_millis(10), "Query should be fast");
+    assert!(
+        query_duration < Duration::from_millis(10),
+        "Query should be fast"
+    );
 
     Ok(())
 }

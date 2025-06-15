@@ -3,9 +3,9 @@
 //! Repositories provide persistence for aggregates, typically by
 //! replaying events from the event store.
 
-use crate::shared::types::{GraphId, Result};
-use crate::contexts::graph::domain::ContextGraph;
 use crate::contexts::graph::application::command_handlers::GraphRepository;
+use crate::contexts::graph::domain::ContextGraph;
+use crate::shared::types::{GraphId, Result};
 use async_trait::async_trait;
 
 /// In-memory graph repository for testing

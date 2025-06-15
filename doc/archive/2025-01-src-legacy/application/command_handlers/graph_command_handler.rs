@@ -4,11 +4,12 @@
 //! and persists events to the event store.
 
 use crate::domain::aggregates::Graph;
-use crate::domain::commands::{Command, GraphCommand, NodeCommand, EdgeCommand, SubgraphCommand, WorkflowCommand};
+use crate::domain::commands::{
+    Command, EdgeCommand, GraphCommand, NodeCommand, SubgraphCommand, WorkflowCommand,
+};
 use crate::domain::events::DomainEvent;
 use crate::infrastructure::event_store::EventStore;
 use std::sync::Arc;
-
 
 /// Command handler error type
 #[derive(Debug, thiserror::Error)]
@@ -51,7 +52,10 @@ impl GraphCommandHandler {
         Self { event_store }
     }
 
-    async fn load_or_create_aggregate(&self, graph_id: crate::domain::value_objects::GraphId) -> Result<Graph, CommandHandlerError> {
+    async fn load_or_create_aggregate(
+        &self,
+        graph_id: crate::domain::value_objects::GraphId,
+    ) -> Result<Graph, CommandHandlerError> {
         // Try to load existing aggregate
         let events = self.event_store.get_events(graph_id.to_string()).await?;
 
@@ -88,22 +92,35 @@ impl CommandHandler for GraphCommandHandler {
             Command::RuleContext(cmd) => self.handle_rule_context_command(cmd).await,
             Command::ConceptualSpace(_) => {
                 // ConceptualSpace commands are handled by their own handler
-                Err(CommandHandlerError::Other("ConceptualSpace commands should be sent to ConceptualSpaceCommandHandler".to_string()))
+                Err(CommandHandlerError::Other(
+                    "ConceptualSpace commands should be sent to ConceptualSpaceCommandHandler"
+                        .to_string(),
+                ))
             }
         }
     }
 }
 
 impl GraphCommandHandler {
-    async fn handle_graph_command(&self, command: GraphCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_graph_command(
+        &self,
+        command: GraphCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         match command {
             GraphCommand::CreateGraph { id, name, metadata } => {
                 // For create, we start with a new aggregate
                 let mut aggregate = Graph::new(id, name.clone(), None);
-                let events = aggregate.handle_command(Command::Graph(GraphCommand::CreateGraph { id, name, metadata }))?;
+                let events =
+                    aggregate.handle_command(Command::Graph(GraphCommand::CreateGraph {
+                        id,
+                        name,
+                        metadata,
+                    }))?;
 
                 // Store events
-                self.event_store.append_events(id.to_string(), events.clone()).await?;
+                self.event_store
+                    .append_events(id.to_string(), events.clone())
+                    .await?;
 
                 Ok(events)
             }
@@ -128,7 +145,9 @@ impl GraphCommandHandler {
                     GraphCommand::CreateConceptualGraph { graph_id, .. } => *graph_id,
                     GraphCommand::AddConceptualNode { graph_id, .. } => *graph_id,
                     GraphCommand::ApplyGraphMorphism { source_graph, .. } => *source_graph,
-                    GraphCommand::ComposeConceptualGraphs { result_graph_id, .. } => *result_graph_id,
+                    GraphCommand::ComposeConceptualGraphs {
+                        result_graph_id, ..
+                    } => *result_graph_id,
                     GraphCommand::CreateGraph { .. } => unreachable!(),
                 };
 
@@ -137,7 +156,9 @@ impl GraphCommandHandler {
 
                 // Store events
                 if !events.is_empty() {
-                    self.event_store.append_events(graph_id.to_string(), events.clone()).await?;
+                    self.event_store
+                        .append_events(graph_id.to_string(), events.clone())
+                        .await?;
                 }
 
                 Ok(events)
@@ -145,7 +166,10 @@ impl GraphCommandHandler {
         }
     }
 
-    async fn handle_node_command(&self, command: NodeCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_node_command(
+        &self,
+        command: NodeCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         let graph_id = match &command {
             NodeCommand::AddNode { graph_id, .. } => *graph_id,
             NodeCommand::RemoveNode { graph_id, .. } => *graph_id,
@@ -160,13 +184,18 @@ impl GraphCommandHandler {
 
         // Store events
         if !events.is_empty() {
-            self.event_store.append_events(graph_id.to_string(), events.clone()).await?;
+            self.event_store
+                .append_events(graph_id.to_string(), events.clone())
+                .await?;
         }
 
         Ok(events)
     }
 
-    async fn handle_edge_command(&self, command: EdgeCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_edge_command(
+        &self,
+        command: EdgeCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         let graph_id = match &command {
             EdgeCommand::ConnectEdge { graph_id, .. } => *graph_id,
             EdgeCommand::DisconnectEdge { graph_id, .. } => *graph_id,
@@ -179,13 +208,18 @@ impl GraphCommandHandler {
 
         // Store events
         if !events.is_empty() {
-            self.event_store.append_events(graph_id.to_string(), events.clone()).await?;
+            self.event_store
+                .append_events(graph_id.to_string(), events.clone())
+                .await?;
         }
 
         Ok(events)
     }
 
-    async fn handle_subgraph_command(&self, command: SubgraphCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_subgraph_command(
+        &self,
+        command: SubgraphCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         let graph_id = match &command {
             SubgraphCommand::CreateSubgraph { graph_id, .. } => *graph_id,
             SubgraphCommand::RemoveSubgraph { graph_id, .. } => *graph_id,
@@ -200,29 +234,51 @@ impl GraphCommandHandler {
 
         // Store events
         if !events.is_empty() {
-            self.event_store.append_events(graph_id.to_string(), events.clone()).await?;
+            self.event_store
+                .append_events(graph_id.to_string(), events.clone())
+                .await?;
         }
 
         Ok(events)
     }
 
-    async fn handle_workflow_command(&self, _command: WorkflowCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_workflow_command(
+        &self,
+        _command: WorkflowCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         // Workflow commands should be handled by WorkflowCommandHandler
-        Err(CommandHandlerError::Other("Workflow commands should be handled by WorkflowCommandHandler".to_string()))
+        Err(CommandHandlerError::Other(
+            "Workflow commands should be handled by WorkflowCommandHandler".to_string(),
+        ))
     }
 
-    async fn handle_context_bridge_command(&self, _command: crate::domain::commands::ContextBridgeCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_context_bridge_command(
+        &self,
+        _command: crate::domain::commands::ContextBridgeCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         // Implementation needed
-        Err(CommandHandlerError::Other("ContextBridge command handling not implemented".to_string()))
+        Err(CommandHandlerError::Other(
+            "ContextBridge command handling not implemented".to_string(),
+        ))
     }
 
-    async fn handle_metric_context_command(&self, _command: crate::domain::commands::MetricContextCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_metric_context_command(
+        &self,
+        _command: crate::domain::commands::MetricContextCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         // Implementation needed
-        Err(CommandHandlerError::Other("MetricContext command handling not implemented".to_string()))
+        Err(CommandHandlerError::Other(
+            "MetricContext command handling not implemented".to_string(),
+        ))
     }
 
-    async fn handle_rule_context_command(&self, _command: crate::domain::commands::RuleContextCommand) -> Result<Vec<DomainEvent>, CommandHandlerError> {
+    async fn handle_rule_context_command(
+        &self,
+        _command: crate::domain::commands::RuleContextCommand,
+    ) -> Result<Vec<DomainEvent>, CommandHandlerError> {
         // Implementation needed
-        Err(CommandHandlerError::Other("RuleContext command handling not implemented".to_string()))
+        Err(CommandHandlerError::Other(
+            "RuleContext command handling not implemented".to_string(),
+        ))
     }
 }

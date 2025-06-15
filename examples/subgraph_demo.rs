@@ -2,26 +2,29 @@
 
 use bevy::prelude::*;
 use ia::domain::{
-    value_objects::{
-        GraphId, SubgraphId, NodeId, EdgeId, Position3D,
-        SubgraphState, CollapseStrategy, LayoutStrategy,
-    },
-    events::SubgraphOperationEvent,
     commands::SubgraphOperationCommand,
+    events::SubgraphOperationEvent,
     services::{SubgraphAnalyzer, SubgraphLayoutCalculator},
+    value_objects::{
+        CollapseStrategy, EdgeId, GraphId, LayoutStrategy, NodeId, Position3D, SubgraphId,
+        SubgraphState,
+    },
 };
-use ia::presentation::components::{GraphNode, GraphEdge, SubgraphMembership};
+use ia::presentation::components::{GraphEdge, GraphNode, SubgraphMembership};
 use std::collections::{HashMap, HashSet};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
-        .add_systems(Update, (
-            handle_keyboard_input,
-            update_subgraph_visuals,
-            animate_transitions,
-        ))
+        .add_systems(
+            Update,
+            (
+                handle_keyboard_input,
+                update_subgraph_visuals,
+                animate_transitions,
+            ),
+        )
         .insert_resource(SubgraphManager::default())
         .run();
 }
@@ -78,15 +81,13 @@ fn setup(
                     base_color: Color::srgb(0.3, 0.7, 1.0),
                     ..default()
                 }),
-                transform: Transform::from_xyz(
-                    -5.0 + i as f32 * 2.0,
-                    0.0,
-                    0.0,
-                ),
+                transform: Transform::from_xyz(-5.0 + i as f32 * 2.0, 0.0, 0.0),
                 ..default()
             },
             GraphNode { node_id },
-            SubgraphMembership { subgraph_id: subgraph1 },
+            SubgraphMembership {
+                subgraph_id: subgraph1,
+            },
         ));
     }
 
@@ -103,30 +104,34 @@ fn setup(
                     base_color: Color::srgb(1.0, 0.7, 0.3),
                     ..default()
                 }),
-                transform: Transform::from_xyz(
-                    2.0 + i as f32 * 2.0,
-                    0.0,
-                    2.0,
-                ),
+                transform: Transform::from_xyz(2.0 + i as f32 * 2.0, 0.0, 2.0),
                 ..default()
             },
             GraphNode { node_id },
-            SubgraphMembership { subgraph_id: subgraph2 },
+            SubgraphMembership {
+                subgraph_id: subgraph2,
+            },
         ));
     }
 
     // Store subgraph info
-    manager.subgraphs.insert(subgraph1, SubgraphInfo {
-        state: SubgraphState::Expanded,
-        nodes: nodes1,
-        color: Color::srgb(0.3, 0.7, 1.0),
-    });
+    manager.subgraphs.insert(
+        subgraph1,
+        SubgraphInfo {
+            state: SubgraphState::Expanded,
+            nodes: nodes1,
+            color: Color::srgb(0.3, 0.7, 1.0),
+        },
+    );
 
-    manager.subgraphs.insert(subgraph2, SubgraphInfo {
-        state: SubgraphState::Expanded,
-        nodes: nodes2,
-        color: Color::srgb(1.0, 0.7, 0.3),
-    });
+    manager.subgraphs.insert(
+        subgraph2,
+        SubgraphInfo {
+            state: SubgraphState::Expanded,
+            nodes: nodes2,
+            color: Color::srgb(1.0, 0.7, 0.3),
+        },
+    );
 
     manager.selected_subgraph = Some(subgraph1);
 
@@ -183,7 +188,11 @@ fn handle_keyboard_input(
                         graph_id: manager.graph_id,
                         subgraph_id,
                         strategy: CollapseStrategy::WeightedCenter,
-                        collapsed_position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
+                        collapsed_position: Position3D {
+                            x: 0.0,
+                            y: 0.0,
+                            z: 0.0,
+                        },
                         timestamp: chrono::Utc::now(),
                     });
                     println!("Collapsed subgraph");
@@ -226,7 +235,11 @@ fn handle_keyboard_input(
 
 fn update_subgraph_visuals(
     manager: Res<SubgraphManager>,
-    mut query: Query<(&SubgraphMembership, &mut Transform, &mut Handle<StandardMaterial>)>,
+    mut query: Query<(
+        &SubgraphMembership,
+        &mut Transform,
+        &mut Handle<StandardMaterial>,
+    )>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for (membership, mut transform, mut material_handle) in query.iter_mut() {
@@ -262,10 +275,7 @@ fn update_subgraph_visuals(
     }
 }
 
-fn animate_transitions(
-    time: Res<Time>,
-    mut manager: ResMut<SubgraphManager>,
-) {
+fn animate_transitions(time: Res<Time>, mut manager: ResMut<SubgraphManager>) {
     let delta = time.delta_seconds();
 
     for (_, info) in manager.subgraphs.iter_mut() {

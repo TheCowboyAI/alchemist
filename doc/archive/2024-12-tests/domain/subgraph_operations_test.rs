@@ -1,20 +1,18 @@
-use ia::domain::{
-    value_objects::{
-        GraphId, SubgraphId, NodeId, EdgeId, Position3D,
-        SubgraphState, CollapseStrategy, LayoutStrategy, LayoutDirection,
-        MergeStrategy, SplitCriteria, ClusteringAlgorithm,
-        SubgraphType, SubgraphStyle, SubgraphMetadata, SubgraphStatistics,
-        SubgraphAnalysis, SuggestedOperation, OptimizationType,
-        Color, BorderStyle, FillPattern, IconType,
-        SubgraphMetadataBuilder,
-    },
-    events::SubgraphOperationEvent,
-    commands::{SubgraphOperationCommand, AnalysisDepth, MergeSubgraphsBuilder},
-    services::{SubgraphAnalyzer, SubgraphLayoutCalculator},
-};
-use std::collections::{HashMap, HashSet};
-use petgraph::graph::Graph;
 use chrono::Utc;
+use ia::domain::{
+    commands::{AnalysisDepth, MergeSubgraphsBuilder, SubgraphOperationCommand},
+    events::SubgraphOperationEvent,
+    services::{SubgraphAnalyzer, SubgraphLayoutCalculator},
+    value_objects::{
+        BorderStyle, ClusteringAlgorithm, CollapseStrategy, Color, EdgeId, FillPattern, GraphId,
+        IconType, LayoutDirection, LayoutStrategy, MergeStrategy, NodeId, OptimizationType,
+        Position3D, SplitCriteria, SubgraphAnalysis, SubgraphId, SubgraphMetadata,
+        SubgraphMetadataBuilder, SubgraphState, SubgraphStatistics, SubgraphStyle, SubgraphType,
+        SuggestedOperation,
+    },
+};
+use petgraph::graph::Graph;
+use std::collections::{HashMap, HashSet};
 
 #[test]
 fn test_subgraph_state_transitions() {
@@ -50,7 +48,10 @@ fn test_subgraph_metadata_builder() {
         .build();
 
     assert_eq!(metadata.name, "Test Module");
-    assert_eq!(metadata.description, Some("A test subgraph module".to_string()));
+    assert_eq!(
+        metadata.description,
+        Some("A test subgraph module".to_string())
+    );
     assert_eq!(metadata.tags.len(), 2);
     assert!(metadata.tags.contains(&"test".to_string()));
     assert!(metadata.tags.contains(&"module".to_string()));
@@ -63,15 +64,30 @@ fn test_subgraph_metadata_builder() {
 #[test]
 fn test_subgraph_style_creation() {
     let style = SubgraphStyle {
-        base_color: Color { r: 0.2, g: 0.4, b: 0.8, a: 1.0 },
+        base_color: Color {
+            r: 0.2,
+            g: 0.4,
+            b: 0.8,
+            a: 1.0,
+        },
         border_style: BorderStyle::Dashed {
             width: 2.0,
             dash_length: 5.0,
-            gap_length: 3.0
+            gap_length: 3.0,
         },
         fill_pattern: FillPattern::Gradient {
-            start_color: Color { r: 0.1, g: 0.2, b: 0.3, a: 1.0 },
-            end_color: Color { r: 0.4, g: 0.5, b: 0.6, a: 1.0 },
+            start_color: Color {
+                r: 0.1,
+                g: 0.2,
+                b: 0.3,
+                a: 1.0,
+            },
+            end_color: Color {
+                r: 0.4,
+                g: 0.5,
+                b: 0.6,
+                a: 1.0,
+            },
             angle: 45.0,
         },
         glow_intensity: 0.5,
@@ -107,7 +123,10 @@ fn test_subgraph_events() {
     let expand_event = SubgraphOperationEvent::SubgraphExpanded {
         graph_id,
         subgraph_id,
-        expansion_layout: LayoutStrategy::Circular { radius: 5.0, start_angle: 0.0 },
+        expansion_layout: LayoutStrategy::Circular {
+            radius: 5.0,
+            start_angle: 0.0,
+        },
         node_positions: vec![(node_ids[0], Position3D::new(0.0, 0.0, 0.0))],
         timestamp: Utc::now(),
     };
@@ -255,11 +274,8 @@ fn test_layout_calculator_centroid() {
     positions.insert(NodeId::new(), Position3D::new(4.0, 0.0, 0.0));
     positions.insert(NodeId::new(), Position3D::new(2.0, 3.0, 0.0));
 
-    let centroid = calculator.calculate_collapsed_position(
-        &positions,
-        &CollapseStrategy::Centroid,
-        None,
-    );
+    let centroid =
+        calculator.calculate_collapsed_position(&positions, &CollapseStrategy::Centroid, None);
 
     assert_eq!(centroid.x, 2.0);
     assert!((centroid.y - 1.0).abs() < 0.01);
@@ -276,7 +292,10 @@ fn test_layout_calculator_circular() {
     let positions = calculator.calculate_expansion_layout(
         &nodes,
         center,
-        &LayoutStrategy::Circular { radius: 5.0, start_angle: 0.0 },
+        &LayoutStrategy::Circular {
+            radius: 5.0,
+            start_angle: 0.0,
+        },
         None,
         None,
     );
@@ -300,7 +319,10 @@ fn test_layout_calculator_grid() {
     let positions = calculator.calculate_expansion_layout(
         &nodes,
         center,
-        &LayoutStrategy::Grid { columns: 3, spacing: 2.0 },
+        &LayoutStrategy::Grid {
+            columns: 3,
+            spacing: 2.0,
+        },
         None,
         None,
     );
@@ -308,12 +330,14 @@ fn test_layout_calculator_grid() {
     assert_eq!(positions.len(), 6);
 
     // Verify grid structure (should be 2 rows x 3 columns)
-    let y_values: HashSet<i32> = positions.values()
+    let y_values: HashSet<i32> = positions
+        .values()
         .map(|p| (p.y / 2.0).round() as i32)
         .collect();
     assert_eq!(y_values.len(), 2); // 2 rows
 
-    let x_values: HashSet<i32> = positions.values()
+    let x_values: HashSet<i32> = positions
+        .values()
         .map(|p| (p.x / 2.0).round() as i32)
         .collect();
     assert_eq!(x_values.len(), 3); // 3 columns
@@ -338,7 +362,8 @@ fn test_layout_calculator_geometric() {
     assert_eq!(positions.len(), 6);
 
     // Verify all nodes are equidistant from center
-    let distances: Vec<f32> = positions.values()
+    let distances: Vec<f32> = positions
+        .values()
         .map(|p| (p.x * p.x + p.y * p.y).sqrt())
         .collect();
 
@@ -426,7 +451,8 @@ fn test_hierarchical_layout() {
     assert_eq!(positions.len(), 9);
 
     // Verify nodes are arranged in layers
-    let y_values: HashSet<i32> = positions.values()
+    let y_values: HashSet<i32> = positions
+        .values()
         .map(|p| (p.y / 5.0).round() as i32)
         .collect();
 

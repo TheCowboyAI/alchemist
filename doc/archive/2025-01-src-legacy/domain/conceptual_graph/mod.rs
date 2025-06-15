@@ -14,25 +14,27 @@ pub mod rule_context;
 
 // Re-export main types
 pub use category::{CategoryType, EnrichmentType};
-pub use composition::{CompositionOperation, GraphComposer, CompositionBuilder};
-pub use concept::{ConceptGraph, ConceptNode, ConceptEdge, ConceptId, ConceptType, ConceptRelationship, NodeId, EdgeId};
+pub use composition::{CompositionBuilder, CompositionOperation, GraphComposer};
+pub use concept::{
+    ConceptEdge, ConceptGraph, ConceptId, ConceptNode, ConceptRelationship, ConceptType, EdgeId,
+    NodeId,
+};
 pub use context_bridge::{
-    ContextBridge, ContextBridgeId, ContextMappingType, TranslationRule,
-    ConceptTransformation, TranslationDirection, InterfaceContract,
-    TranslationGraph, PublishedLanguage
+    ConceptTransformation, ContextBridge, ContextBridgeId, ContextMappingType, InterfaceContract,
+    PublishedLanguage, TranslationDirection, TranslationGraph, TranslationRule,
 };
 pub use metric_context::{
     ConceptCluster, ConsumptionFunction, CostFunction, DelayFunction, DistanceFunction,
     MetricContext, MetricContextId, MetricSpace, MetricType, Path, ProbabilityFunction,
     ResourceType,
 };
-pub use morphism::{GraphMorphism, MorphismType, ProductType, InjectionMap};
-pub use quality_dimension::{QualityDimension, DimensionType, DistanceMetric, ConceptualPoint};
+pub use morphism::{GraphMorphism, InjectionMap, MorphismType, ProductType};
+pub use quality_dimension::{ConceptualPoint, DimensionType, DistanceMetric, QualityDimension};
 pub use rule_context::{
-    RuleContext, RuleContextId, BusinessRule, RuleId, RuleType, Condition, Action,
-    FactSet, FactValue, FactReference, ComparisonOperator, LogicalOperator,
-    NotificationSeverity, RuleEvaluation, ComplianceResult, InferredFacts,
-    ImpactAnalysis, ExportFormat, ValidationResult, FactChange, RuleViolation
+    Action, BusinessRule, ComparisonOperator, ComplianceResult, Condition, ExportFormat,
+    FactChange, FactReference, FactSet, FactValue, ImpactAnalysis, InferredFacts, LogicalOperator,
+    NotificationSeverity, RuleContext, RuleContextId, RuleEvaluation, RuleId, RuleType,
+    RuleViolation, ValidationResult,
 };
 
 #[cfg(test)]
@@ -49,11 +51,7 @@ mod tests {
 
     #[test]
     fn test_quality_dimension() {
-        let dim = QualityDimension::new(
-            "Temperature",
-            DimensionType::Continuous,
-            0.0..100.0,
-        );
+        let dim = QualityDimension::new("Temperature", DimensionType::Continuous, 0.0..100.0);
         assert_eq!(dim.name, "Temperature");
         assert_eq!(dim.range.start, 0.0);
         assert_eq!(dim.range.end, 100.0);

@@ -2,13 +2,12 @@
 //!
 //! Imports Domain-Driven Design models from various formats into ConceptGraph
 
+use crate::domain::DomainError;
 use crate::domain::conceptual_graph::{
-    ConceptGraph, ConceptNode, ConceptEdge, ConceptType, ConceptRelationship,
-    ConceptualPoint, QualityDimension, DimensionType, NodeId, DistanceMetric,
-    EdgeId,
+    ConceptEdge, ConceptGraph, ConceptNode, ConceptRelationship, ConceptType, ConceptualPoint,
+    DimensionType, DistanceMetric, EdgeId, NodeId, QualityDimension,
 };
 use crate::domain::services::graph_import::{ImportedGraph, ImportedNode};
-use crate::domain::DomainError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -153,7 +152,9 @@ impl DomainModelImporter {
         coordinates.push(complexity);
 
         // Coupling dimension (0-1)
-        let coupling = node.properties.get("coupling")
+        let coupling = node
+            .properties
+            .get("coupling")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.5);
         coordinates.push(coupling);
@@ -227,11 +228,7 @@ impl DomainModelImporter {
                     node_indices.insert(value_object.id.clone(), vo_idx);
 
                     // Connect value object to aggregate
-                    graph.add_edge(
-                        idx,
-                        vo_idx,
-                        ConceptEdge::new(ConceptRelationship::PartOf),
-                    );
+                    graph.add_edge(idx, vo_idx, ConceptEdge::new(ConceptRelationship::PartOf));
                 }
             }
 
@@ -307,7 +304,11 @@ impl DomainModelImporter {
     }
 
     /// Create an aggregate node
-    fn create_aggregate_node(&self, aggregate: &Aggregate, base_position: &ConceptualPoint) -> ConceptNode {
+    fn create_aggregate_node(
+        &self,
+        aggregate: &Aggregate,
+        base_position: &ConceptualPoint,
+    ) -> ConceptNode {
         let position = self.adjust_position(base_position, 0.1, 0.1, 0.0);
 
         ConceptNode::Atom {
@@ -316,8 +317,14 @@ impl DomainModelImporter {
             quality_position: position,
             properties: {
                 let mut props = HashMap::new();
-                props.insert("name".to_string(), serde_json::Value::String(aggregate.name.clone()));
-                props.insert("id".to_string(), serde_json::Value::String(aggregate.id.clone()));
+                props.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(aggregate.name.clone()),
+                );
+                props.insert(
+                    "id".to_string(),
+                    serde_json::Value::String(aggregate.id.clone()),
+                );
                 props
             },
         }
@@ -333,15 +340,25 @@ impl DomainModelImporter {
             quality_position: position,
             properties: {
                 let mut props = HashMap::new();
-                props.insert("name".to_string(), serde_json::Value::String(entity.name.clone()));
-                props.insert("id".to_string(), serde_json::Value::String(entity.id.clone()));
+                props.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(entity.name.clone()),
+                );
+                props.insert(
+                    "id".to_string(),
+                    serde_json::Value::String(entity.id.clone()),
+                );
                 props
             },
         }
     }
 
     /// Create a value object node
-    fn create_value_object_node(&self, value_object: &ValueObject, base_position: &ConceptualPoint) -> ConceptNode {
+    fn create_value_object_node(
+        &self,
+        value_object: &ValueObject,
+        base_position: &ConceptualPoint,
+    ) -> ConceptNode {
         let position = self.adjust_position(base_position, -0.1, -0.2, -0.2);
 
         ConceptNode::Atom {
@@ -350,15 +367,25 @@ impl DomainModelImporter {
             quality_position: position,
             properties: {
                 let mut props = HashMap::new();
-                props.insert("name".to_string(), serde_json::Value::String(value_object.name.clone()));
-                props.insert("id".to_string(), serde_json::Value::String(value_object.id.clone()));
+                props.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(value_object.name.clone()),
+                );
+                props.insert(
+                    "id".to_string(),
+                    serde_json::Value::String(value_object.id.clone()),
+                );
                 props
             },
         }
     }
 
     /// Create a service node
-    fn create_service_node(&self, service: &DomainService, base_position: &ConceptualPoint) -> ConceptNode {
+    fn create_service_node(
+        &self,
+        service: &DomainService,
+        base_position: &ConceptualPoint,
+    ) -> ConceptNode {
         let position = self.adjust_position(base_position, 0.0, 0.2, 0.1);
 
         ConceptNode::Atom {
@@ -367,8 +394,14 @@ impl DomainModelImporter {
             quality_position: position,
             properties: {
                 let mut props = HashMap::new();
-                props.insert("name".to_string(), serde_json::Value::String(service.name.clone()));
-                props.insert("id".to_string(), serde_json::Value::String(service.id.clone()));
+                props.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(service.name.clone()),
+                );
+                props.insert(
+                    "id".to_string(),
+                    serde_json::Value::String(service.id.clone()),
+                );
                 props
             },
         }
@@ -384,16 +417,29 @@ impl DomainModelImporter {
             quality_position: position,
             properties: {
                 let mut props = HashMap::new();
-                props.insert("name".to_string(), serde_json::Value::String(policy.name.clone()));
-                props.insert("id".to_string(), serde_json::Value::String(policy.id.clone()));
-                props.insert("rule".to_string(), serde_json::Value::String(policy.rule.clone()));
+                props.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(policy.name.clone()),
+                );
+                props.insert(
+                    "id".to_string(),
+                    serde_json::Value::String(policy.id.clone()),
+                );
+                props.insert(
+                    "rule".to_string(),
+                    serde_json::Value::String(policy.rule.clone()),
+                );
                 props
             },
         }
     }
 
     /// Create an event node
-    fn create_event_node(&self, event: &DomainEvent, base_position: &ConceptualPoint) -> ConceptNode {
+    fn create_event_node(
+        &self,
+        event: &DomainEvent,
+        base_position: &ConceptualPoint,
+    ) -> ConceptNode {
         let position = self.adjust_position(base_position, -0.2, 0.0, -0.2);
 
         ConceptNode::Atom {
@@ -402,15 +448,27 @@ impl DomainModelImporter {
             quality_position: position,
             properties: {
                 let mut props = HashMap::new();
-                props.insert("name".to_string(), serde_json::Value::String(event.name.clone()));
-                props.insert("id".to_string(), serde_json::Value::String(event.id.clone()));
+                props.insert(
+                    "name".to_string(),
+                    serde_json::Value::String(event.name.clone()),
+                );
+                props.insert(
+                    "id".to_string(),
+                    serde_json::Value::String(event.id.clone()),
+                );
                 props
             },
         }
     }
 
     /// Adjust position relative to base position
-    fn adjust_position(&self, base: &ConceptualPoint, d_abstraction: f64, d_complexity: f64, d_coupling: f64) -> ConceptualPoint {
+    fn adjust_position(
+        &self,
+        base: &ConceptualPoint,
+        d_abstraction: f64,
+        d_complexity: f64,
+        d_coupling: f64,
+    ) -> ConceptualPoint {
         let mut coords = base.coordinates.clone();
         if coords.len() >= 3 {
             coords[0] = (coords[0] + d_abstraction).clamp(0.0, 1.0);
@@ -443,7 +501,8 @@ impl DomainModelImporter {
             let line = line.trim();
 
             if line.starts_with("class ") && line.contains("<<Aggregate>>") {
-                let name = line.split_whitespace()
+                let name = line
+                    .split_whitespace()
                     .nth(1)
                     .unwrap_or("Unknown")
                     .trim_end_matches('{')
@@ -545,26 +604,32 @@ mod tests {
                     id: "user".to_string(),
                     node_type: "Entity".to_string(),
                     label: "User".to_string(),
-                    position: crate::domain::value_objects::Position3D { x: 0.0, y: 0.0, z: 0.0 },
+                    position: crate::domain::value_objects::Position3D {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
                     properties: HashMap::new(),
                 },
                 ImportedNode {
                     id: "email".to_string(),
                     node_type: "ValueObject".to_string(),
                     label: "Email".to_string(),
-                    position: crate::domain::value_objects::Position3D { x: 1.0, y: 0.0, z: 0.0 },
+                    position: crate::domain::value_objects::Position3D {
+                        x: 1.0,
+                        y: 0.0,
+                        z: 0.0,
+                    },
                     properties: HashMap::new(),
                 },
             ],
-            edges: vec![
-                ImportedEdge {
-                    id: "user-email".to_string(),
-                    source: "user".to_string(),
-                    target: "email".to_string(),
-                    edge_type: "contains".to_string(),
-                    properties: HashMap::new(),
-                },
-            ],
+            edges: vec![ImportedEdge {
+                id: "user-email".to_string(),
+                source: "user".to_string(),
+                target: "email".to_string(),
+                edge_type: "contains".to_string(),
+                properties: HashMap::new(),
+            }],
             metadata: HashMap::new(),
         };
 

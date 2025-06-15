@@ -186,11 +186,7 @@ pub struct GraphComposition {
 impl GraphComposition {
     /// Create an atomic graph (single node, no edges)
     pub fn atomic(value_type: &str, data: JsonValue) -> Self {
-        let root_node = CompositionNode::new(
-            NodeType::ValueObject,
-            value_type.to_string(),
-            data,
-        );
+        let root_node = CompositionNode::new(NodeType::ValueObject, value_type.to_string(), data);
         let root_id = root_node.id;
 
         let mut nodes = HashMap::new();
@@ -369,11 +365,7 @@ impl GraphComposition {
         result.id = GraphId::new();
 
         // Apply function to all nodes
-        result.nodes = self
-            .nodes
-            .iter()
-            .map(|(id, node)| (*id, f(node)))
-            .collect();
+        result.nodes = self.nodes.iter().map(|(id, node)| (*id, f(node))).collect();
 
         Ok(result)
     }
@@ -416,9 +408,9 @@ impl GraphComposition {
 
     /// Check if the graph has a valid payment node
     pub fn has_valid_payment(&self) -> bool {
-        self.nodes.values().any(|node| {
-            node.label.contains("payment") || node.label.contains("Payment")
-        })
+        self.nodes
+            .values()
+            .any(|node| node.label.contains("payment") || node.label.contains("Payment"))
     }
 
     /// Sequential composition: self then other
@@ -439,11 +431,8 @@ impl GraphComposition {
         // Connect self's leaves to other's root
         let leaves = self.find_leaves();
         for leaf_id in leaves {
-            let edge = CompositionEdge::new(
-                leaf_id,
-                other.composition_root,
-                RelationshipType::Sequence,
-            );
+            let edge =
+                CompositionEdge::new(leaf_id, other.composition_root, RelationshipType::Sequence);
             result.edges.insert(edge.id, edge);
         }
 

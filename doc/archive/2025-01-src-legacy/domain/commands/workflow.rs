@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use crate::domain::{
     aggregates::workflow::WorkflowStep,
-    value_objects::{WorkflowId, StepId, EdgeId, UserId},
+    value_objects::{EdgeId, StepId, UserId, WorkflowId},
 };
 
 /// Commands that can be sent to a workflow aggregate

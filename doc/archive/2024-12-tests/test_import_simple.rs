@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
     events::DomainEvent,
     value_objects::{GraphId, Position3D},
 };
@@ -53,7 +53,11 @@ fn setup(mut commands: EventWriter<CommandEvent>) {
             options: ImportOptions {
                 merge_behavior: MergeBehavior::AlwaysCreate,
                 id_prefix: Some("test".to_string()),
-                position_offset: Some(Position3D { x: 0.0, y: 0.0, z: 0.0 }),
+                position_offset: Some(Position3D {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                }),
                 mapping: None,
                 validate: true,
                 max_nodes: Some(1000),
@@ -83,10 +87,7 @@ fn log_events(mut events: EventReader<EventNotification>) {
     }
 }
 
-fn log_nodes(
-    nodes: Query<&ia::presentation::components::GraphNode>,
-    mut logged: Local<bool>,
-) {
+fn log_nodes(nodes: Query<&ia::presentation::components::GraphNode>, mut logged: Local<bool>) {
     let count = nodes.iter().count();
     if count > 0 && !*logged {
         println!("\nNODES IN SCENE: {}", count);

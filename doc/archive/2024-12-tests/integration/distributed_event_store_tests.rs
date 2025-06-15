@@ -1,13 +1,13 @@
 //! Integration tests for DistributedEventStore
 //! Tests the JetStream-based distributed event store implementation
 
-use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
-use ia::infrastructure::nats::NatsClient;
+use async_nats::jetstream;
 use ia::domain::events::{DomainEvent, GraphEvent};
 use ia::domain::value_objects::GraphId;
-use async_nats::jetstream;
-use std::time::Duration;
+use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
+use ia::infrastructure::nats::NatsClient;
 use std::collections::HashMap;
+use std::time::Duration;
 
 /// Test helper to create a test NATS client
 async fn create_test_nats_client() -> Result<NatsClient, Box<dyn std::error::Error>> {
@@ -20,7 +20,8 @@ async fn create_test_nats_client() -> Result<NatsClient, Box<dyn std::error::Err
             memory_storage: true,
             replicas: 1,
         }),
-    }).await?;
+    })
+    .await?;
 
     Ok(client)
 }
@@ -67,7 +68,9 @@ async fn test_append_and_retrieve_events() -> Result<(), Box<dyn std::error::Err
         }),
     ];
 
-    store.append_events(aggregate_id.clone(), events.clone()).await?;
+    store
+        .append_events(aggregate_id.clone(), events.clone())
+        .await?;
 
     // Retrieve events
     let retrieved = store.get_events(aggregate_id.clone()).await?;

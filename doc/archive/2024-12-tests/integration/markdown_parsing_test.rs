@@ -26,23 +26,24 @@ More text here.
     let import_service = GraphImportService::new();
 
     // Import the markdown content
-    let result = import_service.import_from_content(
-        markdown_content,
-        ImportFormat::Mermaid,
-        None,
-    );
+    let result = import_service.import_from_content(markdown_content, ImportFormat::Mermaid, None);
 
-    assert!(result.is_ok(), "Should successfully parse markdown with Mermaid");
+    assert!(
+        result.is_ok(),
+        "Should successfully parse markdown with Mermaid"
+    );
 
     let graph = result.unwrap();
 
     // Verify nodes were created
-    assert_eq!(graph.nodes.len(), 6, "Should have 6 nodes (A, B, C, D, E, F)");
+    assert_eq!(
+        graph.nodes.len(),
+        6,
+        "Should have 6 nodes (A, B, C, D, E, F)"
+    );
 
     // Verify node labels
-    let node_labels: Vec<&str> = graph.nodes.iter()
-        .map(|n| n.label.as_str())
-        .collect();
+    let node_labels: Vec<&str> = graph.nodes.iter().map(|n| n.label.as_str()).collect();
 
     assert!(node_labels.contains(&"Start"));
     assert!(node_labels.contains(&"Process"));
@@ -79,13 +80,12 @@ graph TB
 
     let import_service = GraphImportService::new();
 
-    let result = import_service.import_from_content(
-        mermaid_content,
-        ImportFormat::Mermaid,
-        None,
-    );
+    let result = import_service.import_from_content(mermaid_content, ImportFormat::Mermaid, None);
 
-    assert!(result.is_ok(), "Should successfully parse Mermaid with subgraphs");
+    assert!(
+        result.is_ok(),
+        "Should successfully parse Mermaid with subgraphs"
+    );
 
     let graph = result.unwrap();
 
@@ -96,7 +96,10 @@ graph TB
     assert_eq!(graph.edges.len(), 5, "Should have 5 edges");
 
     // Verify metadata contains subgraph information
-    assert!(graph.metadata.contains_key("subgraphs"), "Should have subgraph metadata");
+    assert!(
+        graph.metadata.contains_key("subgraphs"),
+        "Should have subgraph metadata"
+    );
 }
 
 #[test]
@@ -105,26 +108,31 @@ fn test_parse_ddd_markdown_file() {
     let file_path = "assets/models/KECO_DDD_Core_Model.md";
 
     if std::path::Path::new(file_path).exists() {
-        let content = std::fs::read_to_string(file_path)
-            .expect("Should read markdown file");
+        let content = std::fs::read_to_string(file_path).expect("Should read markdown file");
 
         let import_service = GraphImportService::new();
 
-        let result = import_service.import_from_content(
-            &content,
-            ImportFormat::Mermaid,
-            None,
-        );
+        let result = import_service.import_from_content(&content, ImportFormat::Mermaid, None);
 
-        assert!(result.is_ok(), "Should successfully parse DDD markdown file");
+        assert!(
+            result.is_ok(),
+            "Should successfully parse DDD markdown file"
+        );
 
         let graph = result.unwrap();
 
         // The file contains multiple Mermaid diagrams
-        assert!(!graph.nodes.is_empty(), "Should have nodes from the diagrams");
-        assert!(!graph.edges.is_empty(), "Should have edges from the diagrams");
+        assert!(
+            !graph.nodes.is_empty(),
+            "Should have nodes from the diagrams"
+        );
+        assert!(
+            !graph.edges.is_empty(),
+            "Should have edges from the diagrams"
+        );
 
-        println!("Parsed {} nodes and {} edges from {}",
+        println!(
+            "Parsed {} nodes and {} edges from {}",
             graph.nodes.len(),
             graph.edges.len(),
             file_path
@@ -154,16 +162,16 @@ graph LR
 
     let import_service = GraphImportService::new();
 
-    let result = import_service.import_from_content(
-        mermaid_content,
-        ImportFormat::Mermaid,
-        None,
-    );
+    let result = import_service.import_from_content(mermaid_content, ImportFormat::Mermaid, None);
 
     assert!(result.is_ok(), "Should parse various node types");
 
     let graph = result.unwrap();
 
-    assert_eq!(graph.nodes.len(), 6, "Should have 6 nodes with different shapes");
+    assert_eq!(
+        graph.nodes.len(),
+        6,
+        "Should have 6 nodes with different shapes"
+    );
     assert_eq!(graph.edges.len(), 5, "Should have 5 edges");
 }

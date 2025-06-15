@@ -1,22 +1,25 @@
 //! Import system for loading graph files
 
-use bevy::prelude::*;
-use tracing::{info, error};
 use crate::application::CommandEvent;
 use crate::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
-    services::{ImportFormat, graph_import::{ImportMapping, LayoutConfig, LayoutAlgorithm}},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource, graph_commands::MergeBehavior},
+    services::{
+        ImportFormat,
+        graph_import::{ImportMapping, LayoutAlgorithm, LayoutConfig},
+    },
     value_objects::{GraphId, Position3D},
 };
-use std::path::Path;
+use bevy::prelude::*;
 use std::collections::HashMap;
+use std::path::Path;
+use tracing::{error, info};
 
 /// Resource to track import state
 #[derive(Resource)]
 pub struct ImportState {
     pub last_imported_path: Option<String>,
     pub default_format: ImportFormat,
-    pub import_count: u32,  // Track number of imports for positioning
+    pub import_count: u32, // Track number of imports for positioning
 }
 
 impl Default for ImportState {
@@ -36,7 +39,10 @@ impl Plugin for ImportPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ImportState>()
             .add_systems(Update, (handle_import_shortcuts, handle_mouse_import))
-            .add_systems(Startup, (log_import_instructions, /* test_direct_import, */));
+            .add_systems(
+                Startup,
+                (log_import_instructions /* test_direct_import, */,),
+            );
     }
 }
 
@@ -51,14 +57,26 @@ fn handle_mouse_import(
     if mouse.just_pressed(MouseButton::Right) {
         eprintln!("Right mouse button clicked - triggering import");
         info!("Right mouse button clicked - triggering import");
-        import_file_to_graph(&mut commands, &graph_query, "examples/data/sample_graph.json", ImportFormat::ArrowsApp, &mut import_state);
+        import_file_to_graph(
+            &mut commands,
+            &graph_query,
+            "examples/data/sample_graph.json",
+            ImportFormat::ArrowsApp,
+            &mut import_state,
+        );
     }
 
     // Middle-click to import Mermaid
     if mouse.just_pressed(MouseButton::Middle) {
         eprintln!("Middle mouse button clicked - importing Mermaid");
         info!("Middle mouse button clicked - importing Mermaid");
-        import_file_to_graph(&mut commands, &graph_query, "examples/data/workflow.mermaid", ImportFormat::Mermaid, &mut import_state);
+        import_file_to_graph(
+            &mut commands,
+            &graph_query,
+            "examples/data/workflow.mermaid",
+            ImportFormat::Mermaid,
+            &mut import_state,
+        );
     }
 }
 
@@ -81,7 +99,7 @@ fn test_direct_import(
         ..default()
     });
 
-        // Create a few test nodes directly with proper visuals
+    // Create a few test nodes directly with proper visuals
     let node1_id = crate::domain::value_objects::NodeId::new();
     commands.spawn((
         crate::presentation::components::GraphNode {
@@ -166,13 +184,25 @@ pub fn handle_import_shortcuts(
     // Ctrl+J to import JSON
     if keyboard.just_pressed(KeyCode::KeyJ) && keyboard.pressed(KeyCode::ControlLeft) {
         info!("Import JSON shortcut triggered (Ctrl+J)");
-        import_file_to_graph(&mut commands, &graph_query, "assets/models/sample_graph.json", ImportFormat::ArrowsApp, &mut import_state);
+        import_file_to_graph(
+            &mut commands,
+            &graph_query,
+            "assets/models/sample_graph.json",
+            ImportFormat::ArrowsApp,
+            &mut import_state,
+        );
     }
 
     // Ctrl+M to import Mermaid
     if keyboard.just_pressed(KeyCode::KeyM) && keyboard.pressed(KeyCode::ControlLeft) {
         info!("Import Mermaid shortcut triggered (Ctrl+M)");
-        import_file_to_graph(&mut commands, &graph_query, "examples/data/workflow.mermaid", ImportFormat::Mermaid, &mut import_state);
+        import_file_to_graph(
+            &mut commands,
+            &graph_query,
+            "examples/data/workflow.mermaid",
+            ImportFormat::Mermaid,
+            &mut import_state,
+        );
     }
 
     // Ctrl+D to import DDD markdown files
@@ -191,7 +221,13 @@ pub fn handle_import_shortcuts(
         let file_path = ddd_files[file_index];
 
         info!("Importing DDD markdown file: {}", file_path);
-        import_file_to_graph(&mut commands, &graph_query, file_path, ImportFormat::Mermaid, &mut import_state);
+        import_file_to_graph(
+            &mut commands,
+            &graph_query,
+            file_path,
+            ImportFormat::Mermaid,
+            &mut import_state,
+        );
     }
 
     // Ctrl+C to import from clipboard
@@ -264,7 +300,10 @@ pub fn import_file_to_graph(
     import_state: &mut ResMut<ImportState>,
 ) {
     eprintln!("import_file_to_graph called with: {file_path} format: {format:?}");
-    info!("Importing file to existing graph: {} with format: {:?}", file_path, format);
+    info!(
+        "Importing file to existing graph: {} with format: {:?}",
+        file_path, format
+    );
 
     // Get the current graph ID, or create a new one if none exists
     let (graph_id, is_new_graph) = if let Ok(container) = graph_query.single() {
@@ -297,10 +336,13 @@ pub fn import_file_to_graph(
     let x_offset = if is_new_graph {
         0.0
     } else {
-        import_state.import_count as f32 * 50.0  // Increased offset to 50 units
+        import_state.import_count as f32 * 50.0 // Increased offset to 50 units
     };
 
-    eprintln!("File exists, creating import command for graph: {:?} with offset: {}", graph_id, x_offset);
+    eprintln!(
+        "File exists, creating import command for graph: {:?} with offset: {}",
+        graph_id, x_offset
+    );
 
     // Create a mapping that preserves original positions
     let mut mapping = ImportMapping::default();
@@ -318,7 +360,7 @@ pub fn import_file_to_graph(
             },
             format: format_to_string(&format),
             options: ImportOptions {
-                merge_behavior: MergeBehavior::MergePreferImported,  // Merge into existing graph
+                merge_behavior: MergeBehavior::MergePreferImported, // Merge into existing graph
                 id_prefix: Some(format!("import_{}", import_state.import_count)),
                 position_offset: Some(Position3D {
                     x: x_offset,
@@ -335,8 +377,14 @@ pub fn import_file_to_graph(
     // Increment import count for next import
     import_state.import_count += 1;
 
-    eprintln!("Import command sent for graph: {graph_id:?}, import count incremented to: {}", import_state.import_count);
-    info!("Import command sent for graph: {:?}, import count incremented to: {}", graph_id, import_state.import_count);
+    eprintln!(
+        "Import command sent for graph: {graph_id:?}, import count incremented to: {}",
+        import_state.import_count
+    );
+    info!(
+        "Import command sent for graph: {:?}, import count incremented to: {}",
+        graph_id, import_state.import_count
+    );
 }
 
 /// Import from clipboard (simulated with inline content)
@@ -429,7 +477,7 @@ graph LR
             },
             format: "mermaid".to_string(),
             options: ImportOptions {
-                merge_behavior: MergeBehavior::MergePreferImported,  // Merge into existing graph
+                merge_behavior: MergeBehavior::MergePreferImported, // Merge into existing graph
                 id_prefix: Some(format!("clipboard_{}", import_state.import_count)),
                 position_offset: Some(Position3D {
                     x: x_offset,
@@ -446,7 +494,10 @@ graph LR
     // Increment import count
     import_state.import_count += 1;
 
-    info!("Imported content from clipboard to graph: {:?}, total imports: {}", graph_id, import_state.import_count);
+    info!(
+        "Imported content from clipboard to graph: {:?}, total imports: {}",
+        graph_id, import_state.import_count
+    );
 }
 
 /// Convert ImportFormat enum to string

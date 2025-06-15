@@ -1,9 +1,8 @@
-use serde::{Deserialize, Serialize};
 use crate::domain::value_objects::{
-    GraphId, SubgraphId, NodeId, Position3D,
-    CollapseStrategy, LayoutStrategy, MergeStrategy, SplitCriteria,
-    SubgraphType, SubgraphMetadata, SubgraphStyle,
+    CollapseStrategy, GraphId, LayoutStrategy, MergeStrategy, NodeId, Position3D, SplitCriteria,
+    SubgraphId, SubgraphMetadata, SubgraphStyle, SubgraphType,
 };
+use serde::{Deserialize, Serialize};
 
 /// Commands for advanced subgraph operations
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -214,7 +213,9 @@ impl SubgraphOperationCommand {
             Self::UpdateSubgraphBoundary { graph_id, .. } => *graph_id,
             Self::OptimizeSubgraph { graph_id, .. } => *graph_id,
             Self::ExtractSubgraphAsGraph { graph_id, .. } => *graph_id,
-            Self::ImportGraphAsSubgraph { target_graph_id, .. } => *target_graph_id,
+            Self::ImportGraphAsSubgraph {
+                target_graph_id, ..
+            } => *target_graph_id,
             Self::CloneSubgraph { graph_id, .. } => *graph_id,
             Self::SetSubgraphLocked { graph_id, .. } => *graph_id,
             Self::SetSubgraphVisibility { graph_id, .. } => *graph_id,
@@ -262,7 +263,9 @@ mod tests {
                 optimization_type: opt_type,
             };
             match cmd {
-                SubgraphOperationCommand::OptimizeSubgraph { optimization_type, .. } => {
+                SubgraphOperationCommand::OptimizeSubgraph {
+                    optimization_type, ..
+                } => {
                     assert_eq!(optimization_type, opt_type);
                 }
                 _ => panic!("Wrong command type"),

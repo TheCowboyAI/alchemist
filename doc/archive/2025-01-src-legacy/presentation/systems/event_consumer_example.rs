@@ -1,9 +1,9 @@
 //! Example of consuming subject-based events in Bevy systems
 
-use bevy::prelude::*;
-use crate::infrastructure::event_bridge::{SubjectRouter, SubjectConsumer};
 use crate::domain::events::DomainEvent;
+use crate::infrastructure::event_bridge::{SubjectConsumer, SubjectRouter};
 use crate::presentation::components::GraphNode;
+use bevy::prelude::*;
 use tracing::info;
 
 /// Example system that consumes graph-related events
@@ -19,11 +19,15 @@ pub fn graph_event_consumer_system(
         // Process events in order
         for routed_event in events {
             match &routed_event.event {
-                DomainEvent::Node(crate::domain::events::NodeEvent::NodeAdded { graph_id, node_id, position, .. }) => {
+                DomainEvent::Node(crate::domain::events::NodeEvent::NodeAdded {
+                    graph_id,
+                    node_id,
+                    position,
+                    ..
+                }) => {
                     info!(
                         "Received NodeAdded on subject '{}' (seq: {})",
-                        routed_event.subject,
-                        routed_event.global_sequence
+                        routed_event.subject, routed_event.global_sequence
                     );
 
                     // Handle the event - spawn visual representation
@@ -37,11 +41,16 @@ pub fn graph_event_consumer_system(
                     ));
                 }
 
-                DomainEvent::Edge(crate::domain::events::EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
+                DomainEvent::Edge(crate::domain::events::EdgeEvent::EdgeConnected {
+                    graph_id,
+                    edge_id,
+                    source,
+                    target,
+                    ..
+                }) => {
                     info!(
                         "Received EdgeConnected on subject '{}' (seq: {})",
-                        routed_event.subject,
-                        routed_event.global_sequence
+                        routed_event.subject, routed_event.global_sequence
                     );
 
                     // Handle edge creation
@@ -72,8 +81,8 @@ impl GraphEventConsumer {
     /// Create a consumer for specific graph events
     pub fn new_for_graph(router: &SubjectRouter, graph_id: &str) -> Result<Self, String> {
         let patterns = vec![
-            format!("event.graph.{}.>", graph_id),  // All events for this graph
-            "event.graph.*.created".to_string(),    // All graph creation events
+            format!("event.graph.{}.>", graph_id), // All events for this graph
+            "event.graph.*.created".to_string(),   // All graph creation events
         ];
 
         let subject_consumer = SubjectConsumer::new(router, patterns)?;
@@ -88,7 +97,7 @@ impl GraphEventConsumer {
     /// Create a consumer for all node events across graphs
     pub fn new_for_nodes(router: &SubjectRouter) -> Result<Self, String> {
         let patterns = vec![
-            "event.graph.*.node.>".to_string(),  // All node events
+            "event.graph.*.node.>".to_string(), // All node events
         ];
 
         let subject_consumer = SubjectConsumer::new(router, patterns)?;
@@ -102,21 +111,15 @@ impl GraphEventConsumer {
 }
 
 /// System to create specialized consumers
-pub fn setup_event_consumers(
-    mut commands: Commands,
-    router: Res<SubjectRouter>,
-) {
+pub fn setup_event_consumers(mut commands: Commands, router: Res<SubjectRouter>) {
     // Create a consumer for all graph events
     if let Ok(consumer) = GraphEventConsumer::new_for_nodes(&router) {
-        commands.spawn((
-            consumer,
-            Name::new("NodeEventConsumer"),
-        ));
+        commands.spawn((consumer, Name::new("NodeEventConsumer")));
     }
 
     // You can create multiple consumers with different patterns
     let patterns = vec![
-        "event.graph.*.subgraph.>".to_string(),  // All subgraph events
+        "event.graph.*.subgraph.>".to_string(), // All subgraph events
     ];
 
     if let Ok(subject_consumer) = SubjectConsumer::new(&router, patterns) {
@@ -132,10 +135,7 @@ pub fn setup_event_consumers(
 }
 
 /// System to monitor event consumer health
-pub fn monitor_event_consumers(
-    consumers: Query<(&Name, &GraphEventConsumer)>,
-    time: Res<Time>,
-) {
+pub fn monitor_event_consumers(consumers: Query<(&Name, &GraphEventConsumer)>, time: Res<Time>) {
     static mut LAST_CHECK: Option<f32> = None;
 
     let current_time = time.elapsed_secs();
@@ -143,7 +143,7 @@ pub fn monitor_event_consumers(
     unsafe {
         if let Some(last) = LAST_CHECK {
             if current_time - last < 5.0 {
-                return;  // Only check every 5 seconds
+                return; // Only check every 5 seconds
             }
         }
         LAST_CHECK = Some(current_time);
@@ -152,9 +152,7 @@ pub fn monitor_event_consumers(
     for (name, consumer) in consumers.iter() {
         info!(
             "{}: Processed {} events, last sequence: {}",
-            name,
-            consumer.events_processed,
-            consumer.last_global_sequence
+            name, consumer.events_processed, consumer.last_global_sequence
         );
     }
 }
@@ -164,13 +162,9 @@ pub struct EventConsumerExamplePlugin;
 
 impl Plugin for EventConsumerExamplePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_event_consumers)
-            .add_systems(
-                Update,
-                (
-                    graph_event_consumer_system,
-                    monitor_event_consumers,
-                ),
-            );
+        app.add_systems(Startup, setup_event_consumers).add_systems(
+            Update,
+            (graph_event_consumer_system, monitor_event_consumers),
+        );
     }
 }

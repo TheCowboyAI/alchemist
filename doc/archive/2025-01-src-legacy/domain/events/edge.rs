@@ -1,4 +1,4 @@
-use crate::domain::value_objects::{GraphId, NodeId, EdgeId};
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -3,11 +3,8 @@
 use std::sync::Arc;
 
 use crate::domain::{
-    aggregates::workflow::Workflow,
-    commands::workflow::WorkflowCommand,
-    events::DomainEvent,
-    value_objects::WorkflowId,
-    DomainError,
+    DomainError, aggregates::workflow::Workflow, commands::workflow::WorkflowCommand,
+    events::DomainEvent, value_objects::WorkflowId,
 };
 use crate::infrastructure::event_store::EventStore;
 
@@ -23,7 +20,8 @@ impl WorkflowCommandHandler {
 
     /// Load workflow aggregate from event store
     async fn load_workflow(&self, workflow_id: &WorkflowId) -> Result<Workflow, DomainError> {
-        let events = self.event_store
+        let events = self
+            .event_store
             .get_events(workflow_id.to_string())
             .await
             .map_err(|_| DomainError::AggregateNotFound)?;
@@ -84,9 +82,9 @@ impl WorkflowCommandHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::aggregates::workflow::{StepType, WorkflowStep};
+    use crate::domain::commands::workflow::{AddStep, CreateWorkflow};
     use crate::infrastructure::event_store::InMemoryEventStore;
-    use crate::domain::commands::workflow::{CreateWorkflow, AddStep};
-    use crate::domain::aggregates::workflow::{WorkflowStep, StepType};
 
     #[tokio::test]
     async fn test_create_workflow() {

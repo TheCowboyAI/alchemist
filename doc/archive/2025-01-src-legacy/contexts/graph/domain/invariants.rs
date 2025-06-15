@@ -3,8 +3,10 @@
 //! This module contains specific invariant validators that can be injected
 //! into ContextGraph instances based on their type and requirements.
 
-use crate::shared::types::{NodeId, Result, Error};
-use crate::contexts::graph::domain::context_graph::{ContextGraph, ContextType, InvariantValidator};
+use crate::contexts::graph::domain::context_graph::{
+    ContextGraph, ContextType, InvariantValidator,
+};
+use crate::shared::types::{Error, NodeId, Result};
 
 /// Bounded Context invariant validator
 pub struct BoundedContextValidator {
@@ -14,21 +16,30 @@ pub struct BoundedContextValidator {
 
 impl BoundedContextValidator {
     pub fn new(max_nodes: usize, max_edges: usize) -> Self {
-        Self { max_nodes, max_edges }
+        Self {
+            max_nodes,
+            max_edges,
+        }
     }
 }
 
 impl InvariantValidator for BoundedContextValidator {
     fn validate_node_addition(&self, graph: &ContextGraph, _node_id: &NodeId) -> Result<()> {
         if graph.node_count() >= self.max_nodes {
-            return Err(Error::InvariantViolation(
-                format!("Bounded context cannot have more than {} nodes", self.max_nodes)
-            ));
+            return Err(Error::InvariantViolation(format!(
+                "Bounded context cannot have more than {} nodes",
+                self.max_nodes
+            )));
         }
         Ok(())
     }
 
-    fn validate_edge_creation(&self, graph: &ContextGraph, source: &NodeId, target: &NodeId) -> Result<()> {
+    fn validate_edge_creation(
+        &self,
+        graph: &ContextGraph,
+        source: &NodeId,
+        target: &NodeId,
+    ) -> Result<()> {
         // Check nodes exist
         if !graph.has_node(source) {
             return Err(Error::NotFound(format!("Source node {} not found", source)));
@@ -39,9 +50,10 @@ impl InvariantValidator for BoundedContextValidator {
 
         // Check edge limit
         if graph.edge_count() >= self.max_edges {
-            return Err(Error::InvariantViolation(
-                format!("Bounded context cannot have more than {} edges", self.max_edges)
-            ));
+            return Err(Error::InvariantViolation(format!(
+                "Bounded context cannot have more than {} edges",
+                self.max_edges
+            )));
         }
 
         Ok(())
@@ -52,14 +64,14 @@ impl InvariantValidator for BoundedContextValidator {
             ContextType::BoundedContext { name, .. } => {
                 if name.is_empty() {
                     return Err(Error::InvariantViolation(
-                        "Bounded context must have a name".to_string()
+                        "Bounded context must have a name".to_string(),
                     ));
                 }
                 Ok(())
             }
             _ => Err(Error::InvariantViolation(
-                "This validator is only for bounded contexts".to_string()
-            ))
+                "This validator is only for bounded contexts".to_string(),
+            )),
         }
     }
 }
@@ -82,7 +94,12 @@ impl InvariantValidator for AggregateContextValidator {
         Ok(())
     }
 
-    fn validate_edge_creation(&self, graph: &ContextGraph, source: &NodeId, target: &NodeId) -> Result<()> {
+    fn validate_edge_creation(
+        &self,
+        graph: &ContextGraph,
+        source: &NodeId,
+        target: &NodeId,
+    ) -> Result<()> {
         // Ensure both nodes exist
         if !graph.has_node(source) || !graph.has_node(target) {
             return Err(Error::NotFound("One or both nodes not found".to_string()));
@@ -97,14 +114,14 @@ impl InvariantValidator for AggregateContextValidator {
             ContextType::AggregateContext { aggregate_type, .. } => {
                 if aggregate_type.is_empty() {
                     return Err(Error::InvariantViolation(
-                        "Aggregate context must specify aggregate type".to_string()
+                        "Aggregate context must specify aggregate type".to_string(),
                     ));
                 }
                 Ok(())
             }
             _ => Err(Error::InvariantViolation(
-                "This validator is only for aggregate contexts".to_string()
-            ))
+                "This validator is only for aggregate contexts".to_string(),
+            )),
         }
     }
 }
@@ -127,9 +144,7 @@ impl ValidatorFactory for DefaultValidatorFactory {
             ContextType::AggregateContext { .. } => {
                 Box::new(AggregateContextValidator::new(vec![]))
             }
-            _ => {
-                Box::new(crate::contexts::graph::domain::context_graph::DefaultInvariantValidator)
-            }
+            _ => Box::new(crate::contexts::graph::domain::context_graph::DefaultInvariantValidator),
         }
     }
 }

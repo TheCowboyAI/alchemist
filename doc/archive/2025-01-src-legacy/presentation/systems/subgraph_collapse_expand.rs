@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use crate::domain::value_objects::{SubgraphId, NodeId, GraphId, LayoutStrategy};
-use crate::domain::commands::{Command, SubgraphOperationCommand};
-use crate::presentation::components::{GraphNode, SubgraphMember, SubgraphOrigin};
 use crate::application::CommandEvent;
+use crate::domain::commands::{Command, SubgraphOperationCommand};
+use crate::domain::value_objects::{GraphId, LayoutStrategy, NodeId, SubgraphId};
+use crate::presentation::components::{GraphNode, SubgraphMember, SubgraphOrigin};
+use bevy::prelude::*;
 use std::collections::HashMap;
 
 /// Component marking a collapsed subgraph
@@ -155,7 +155,8 @@ pub fn execute_collapse(
             graph_id,
             subgraph_id,
             strategy,
-        }) = &event.command {
+        }) = &event.command
+        {
             // Find all nodes in this subgraph
             let mut node_positions = HashMap::new();
             let mut node_entities = Vec::new();
@@ -175,7 +176,8 @@ pub fn execute_collapse(
                 center /= count as f32;
 
                 // Find origin position or use center
-                let target_position = origins.iter()
+                let target_position = origins
+                    .iter()
                     .find(|(origin, _)| origin.subgraph_id == *subgraph_id)
                     .map(|(_, transform)| transform.translation)
                     .unwrap_or(center);
@@ -193,14 +195,19 @@ pub fn execute_collapse(
                 }
 
                 // Store collapsed state
-                state.collapsed_subgraphs.insert(*subgraph_id, CollapsedSubgraphInfo {
-                    node_positions,
-                    center_position: target_position,
-                    node_count: count,
-                    edge_count: 0, // TODO: Count edges
-                });
+                state.collapsed_subgraphs.insert(
+                    *subgraph_id,
+                    CollapsedSubgraphInfo {
+                        node_positions,
+                        center_position: target_position,
+                        node_count: count,
+                        edge_count: 0, // TODO: Count edges
+                    },
+                );
 
-                state.animating.insert(*subgraph_id, AnimationState::Collapsing { progress: 0.0 });
+                state
+                    .animating
+                    .insert(*subgraph_id, AnimationState::Collapsing { progress: 0.0 });
             }
         }
     }
@@ -298,7 +305,7 @@ pub fn detect_expand_trigger(
                                                             spring_strength: 0.1,
                                                             repulsion_strength: 100.0,
                                                         },
-                                                    }
+                                                    },
                                                 ),
                                             });
                                             break;
@@ -324,7 +331,13 @@ pub fn execute_expand(
     mut commands: Commands,
     time: Res<Time>,
     mut state: ResMut<CollapseExpandState>,
-    mut nodes: Query<(Entity, &mut Visibility, &GraphNode, &SubgraphMember, &mut Transform)>,
+    mut nodes: Query<(
+        Entity,
+        &mut Visibility,
+        &GraphNode,
+        &SubgraphMember,
+        &mut Transform,
+    )>,
     collapsed_origins: Query<(Entity, &SubgraphOrigin, &CollapsedSubgraph)>,
     mut expand_events: EventReader<CommandEvent>,
 ) {
@@ -333,7 +346,8 @@ pub fn execute_expand(
             graph_id,
             subgraph_id,
             layout,
-        }) = &event.command {
+        }) = &event.command
+        {
             // Get collapsed info
             if let Some(collapsed_info) = state.collapsed_subgraphs.get(subgraph_id) {
                 // Remove collapsed marker from origin
@@ -365,7 +379,9 @@ pub fn execute_expand(
                     }
                 }
 
-                state.animating.insert(*subgraph_id, AnimationState::Expanding { progress: 0.0 });
+                state
+                    .animating
+                    .insert(*subgraph_id, AnimationState::Expanding { progress: 0.0 });
             }
         }
     }
@@ -421,19 +437,17 @@ pub struct SubgraphCollapseExpandPlugin;
 
 impl Plugin for SubgraphCollapseExpandPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .init_resource::<CollapseExpandState>()
-            .add_systems(
-                Update,
-                (
-                    detect_collapse_trigger,
-                    execute_collapse,
-                    animate_collapse,
-                    detect_expand_trigger,
-                    execute_expand,
-                    animate_expand,
-                )
-                    .chain(),
-            );
+        app.init_resource::<CollapseExpandState>().add_systems(
+            Update,
+            (
+                detect_collapse_trigger,
+                execute_collapse,
+                animate_collapse,
+                detect_expand_trigger,
+                execute_expand,
+                animate_expand,
+            )
+                .chain(),
+        );
     }
 }

@@ -1,6 +1,6 @@
 //! Graph Commands
 
-use crate::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D};
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId, Position3D};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -109,8 +109,12 @@ pub enum GraphCommand {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ImportSource {
-    File { path: String },
-    Url { url: String },
+    File {
+        path: String,
+    },
+    Url {
+        url: String,
+    },
     GitRepository {
         url: String,
         branch: Option<String>,
@@ -120,7 +124,9 @@ pub enum ImportSource {
         flake_ref: String,
         output: String,
     },
-    InlineContent { content: String },
+    InlineContent {
+        content: String,
+    },
 }
 
 /// How to handle conflicts when importing into existing graphs
@@ -207,7 +213,9 @@ impl GraphCommand {
             | GraphCommand::CreateConceptualGraph { graph_id, .. }
             | GraphCommand::AddConceptualNode { graph_id, .. } => *graph_id,
             GraphCommand::ApplyGraphMorphism { source_graph, .. } => *source_graph,
-            GraphCommand::ComposeConceptualGraphs { result_graph_id, .. } => *result_graph_id,
+            GraphCommand::ComposeConceptualGraphs {
+                result_graph_id, ..
+            } => *result_graph_id,
         }
     }
 }

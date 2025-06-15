@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> { } }:
 
 let
   # Domain repository configurations
@@ -67,7 +67,8 @@ let
     echo "3. Add each as a submodule to the main project"
   '';
 
-in pkgs.mkShell {
+in
+pkgs.mkShell {
   buildInputs = with pkgs; [
     gh
     git

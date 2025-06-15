@@ -1,13 +1,13 @@
 //! Example: Importing graphs from various sources
 
+use bevy::prelude::*;
+use ia::application::CommandEvent;
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions},
     commands::graph_commands::MergeBehavior,
+    commands::{Command, GraphCommand, ImportOptions, ImportSource},
     services::{GraphImportService, ImportFormat},
     value_objects::GraphId,
 };
-use ia::application::CommandEvent;
-use bevy::prelude::*;
 use std::collections::HashMap;
 
 fn main() {

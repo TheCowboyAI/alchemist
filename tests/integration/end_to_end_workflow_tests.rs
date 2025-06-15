@@ -16,17 +16,16 @@
 //!     F --> G[User Sees Result]
 //! ```
 
-use crate::fixtures::{TestNatsServer, TestEventStore, create_test_app, assertions::*};
-use cim_domain::{DomainResult, GraphId, NodeId, EdgeId, DomainEvent};
+use crate::fixtures::{TestEventStore, TestNatsServer, assertions::*, create_test_app};
+use bevy::prelude::*;
+use cim_domain::{DomainEvent, DomainResult, EdgeId, GraphId, NodeId};
 use cim_domain_graph::{
-    GraphAggregate, GraphCommand, GraphDomainEvent, NodeType, StepType,
-    Position3D, EdgeType, WorkflowState, WorkflowStatus,
+    EdgeType, GraphAggregate, GraphCommand, GraphDomainEvent, NodeType, Position3D, StepType,
+    WorkflowState, WorkflowStatus,
 };
 use cim_domain_workflow::{
-    WorkflowAggregate, WorkflowCommand, WorkflowEvent,
-    State, Transition, StateId, TransitionId,
+    State, StateId, Transition, TransitionId, WorkflowAggregate, WorkflowCommand, WorkflowEvent,
 };
-use bevy::prelude::*;
 use std::collections::HashMap;
 
 /// Test complete graph creation and visualization workflow
@@ -62,10 +61,50 @@ async fn test_complete_graph_creation_workflow() -> DomainResult<()> {
     let end_node = NodeId::new();
 
     let nodes = vec![
-        (start_node, NodeType::WorkflowStep { step_type: StepType::Start }, Position3D { x: 0.0, y: 0.0, z: 0.0 }),
-        (process_node, NodeType::WorkflowStep { step_type: StepType::Process }, Position3D { x: 5.0, y: 0.0, z: 0.0 }),
-        (decision_node, NodeType::Decision { criteria: Default::default() }, Position3D { x: 10.0, y: 0.0, z: 0.0 }),
-        (end_node, NodeType::WorkflowStep { step_type: StepType::End }, Position3D { x: 15.0, y: 0.0, z: 0.0 }),
+        (
+            start_node,
+            NodeType::WorkflowStep {
+                step_type: StepType::Start,
+            },
+            Position3D {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+        ),
+        (
+            process_node,
+            NodeType::WorkflowStep {
+                step_type: StepType::Process,
+            },
+            Position3D {
+                x: 5.0,
+                y: 0.0,
+                z: 0.0,
+            },
+        ),
+        (
+            decision_node,
+            NodeType::Decision {
+                criteria: Default::default(),
+            },
+            Position3D {
+                x: 10.0,
+                y: 0.0,
+                z: 0.0,
+            },
+        ),
+        (
+            end_node,
+            NodeType::WorkflowStep {
+                step_type: StepType::End,
+            },
+            Position3D {
+                x: 15.0,
+                y: 0.0,
+                z: 0.0,
+            },
+        ),
     ];
 
     for (node_id, node_type, position) in nodes {
@@ -81,7 +120,13 @@ async fn test_complete_graph_creation_workflow() -> DomainResult<()> {
     let edges = vec![
         (start_node, process_node, EdgeType::Sequence),
         (process_node, decision_node, EdgeType::Sequence),
-        (decision_node, end_node, EdgeType::Conditional { condition: "approved".to_string() }),
+        (
+            decision_node,
+            end_node,
+            EdgeType::Conditional {
+                condition: "approved".to_string(),
+            },
+        ),
     ];
 
     for (source, target, edge_type) in edges {
@@ -97,12 +142,16 @@ async fn test_complete_graph_creation_workflow() -> DomainResult<()> {
     app.update(); // Process events to entities
 
     // Check that all nodes are visualized
-    let node_query = app.world.query::<&cim_domain_bevy::components::NodeVisual>();
+    let node_query = app
+        .world
+        .query::<&cim_domain_bevy::components::NodeVisual>();
     let node_count = node_query.iter(&app.world).count();
     assert_eq!(node_count, 4, "All workflow nodes should be visualized");
 
     // Check that all edges are visualized
-    let edge_query = app.world.query::<&cim_domain_bevy::components::EdgeVisual>();
+    let edge_query = app
+        .world
+        .query::<&cim_domain_bevy::components::EdgeVisual>();
     let edge_count = edge_query.iter(&app.world).count();
     assert_eq!(edge_count, 3, "All workflow edges should be visualized");
 
@@ -112,7 +161,10 @@ async fn test_complete_graph_creation_workflow() -> DomainResult<()> {
 
     // Verify events were persisted
     let events = event_store.get_events().await;
-    assert!(events.len() >= 8, "Should have graph creation + 4 nodes + 3 edges");
+    assert!(
+        events.len() >= 8,
+        "Should have graph creation + 4 nodes + 3 edges"
+    );
 
     // Cleanup
     nats.cleanup().await?;
@@ -307,15 +359,21 @@ async fn test_multi_user_collaborative_editing() -> DomainResult<()> {
 
     // Verify collaborative result
     let events = event_store.get_events().await;
-    let node_events: Vec<_> = events.iter()
+    let node_events: Vec<_> = events
+        .iter()
         .filter(|e| matches!(e, DomainEvent::Graph(GraphDomainEvent::NodeAdded { .. })))
         .collect();
 
-    assert_eq!(node_events.len(), 9, "Should have 3 nodes from each of 3 users");
+    assert_eq!(
+        node_events.len(),
+        9,
+        "Should have 3 nodes from each of 3 users"
+    );
 
     // Check that all users' contributions are present
     for user in &users {
-        let user_nodes: Vec<_> = node_events.iter()
+        let user_nodes: Vec<_> = node_events
+            .iter()
             .filter(|e| {
                 if let DomainEvent::Graph(GraphDomainEvent::NodeAdded { metadata, .. }) = e {
                     metadata.get("author") == Some(&user.to_string())
@@ -363,7 +421,9 @@ async fn test_complex_event_choreography() -> DomainResult<()> {
             let inventory_event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
                 graph_id: order_id,
                 node_id: NodeId::new(),
-                node_type: NodeType::WorkflowStep { step_type: StepType::Process },
+                node_type: NodeType::WorkflowStep {
+                    step_type: StepType::Process,
+                },
                 position: Position3D::default(),
                 conceptual_point: Default::default(),
                 metadata: HashMap::from([
@@ -386,7 +446,9 @@ async fn test_complex_event_choreography() -> DomainResult<()> {
             let payment_event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
                 graph_id: order_id,
                 node_id: NodeId::new(),
-                node_type: NodeType::WorkflowStep { step_type: StepType::Process },
+                node_type: NodeType::WorkflowStep {
+                    step_type: StepType::Process,
+                },
                 position: Position3D::default(),
                 conceptual_point: Default::default(),
                 metadata: HashMap::from([
@@ -421,7 +483,9 @@ async fn test_complex_event_choreography() -> DomainResult<()> {
         let completion_event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
             graph_id: order_id,
             node_id: NodeId::new(),
-            node_type: NodeType::WorkflowStep { step_type: StepType::End },
+            node_type: NodeType::WorkflowStep {
+                step_type: StepType::End,
+            },
             position: Position3D::default(),
             conceptual_point: Default::default(),
             metadata: HashMap::from([
@@ -435,10 +499,15 @@ async fn test_complex_event_choreography() -> DomainResult<()> {
 
     // Verify choreography result
     let final_events = event_store.get_events().await;
-    assert_eq!(final_events.len(), 4, "Should have order + inventory + payment + completion");
+    assert_eq!(
+        final_events.len(),
+        4,
+        "Should have order + inventory + payment + completion"
+    );
 
     // Verify order of events
-    let step_events: Vec<_> = final_events.iter()
+    let step_events: Vec<_> = final_events
+        .iter()
         .filter_map(|e| {
             if let DomainEvent::Graph(GraphDomainEvent::NodeAdded { metadata, .. }) = e {
                 metadata.get("step").cloned()
@@ -547,7 +616,10 @@ async fn test_workflow_error_recovery() -> DomainResult<()> {
 
     // Verify recovery path in history
     let history = workflow.execution_history();
-    assert!(history.len() >= 3, "Should have error -> retry -> success path");
+    assert!(
+        history.len() >= 3,
+        "Should have error -> retry -> success path"
+    );
 
     Ok(())
 }
@@ -566,51 +638,57 @@ async fn test_concurrent_workflow_performance() -> DomainResult<()> {
     let start = Instant::now();
 
     // Spawn concurrent workflows
-    let handles: Vec<_> = (0..workflow_count).map(|i| {
-        let store = event_store.clone();
+    let handles: Vec<_> = (0..workflow_count)
+        .map(|i| {
+            let store = event_store.clone();
 
-        task::spawn(async move {
-            let workflow_id = cim_domain::WorkflowId::new();
-            let graph_id = GraphId::new();
+            task::spawn(async move {
+                let workflow_id = cim_domain::WorkflowId::new();
+                let graph_id = GraphId::new();
 
-            // Create workflow graph
-            let create_event = DomainEvent::Graph(GraphDomainEvent::GraphCreated {
-                graph_id,
-                graph_type: cim_domain_graph::GraphType::WorkflowGraph,
-                name: format!("Workflow {}", i),
-                metadata: Default::default(),
-            });
-
-            store.append(create_event).await?;
-
-            // Add workflow steps
-            for step in 0..steps_per_workflow {
-                let node_event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                // Create workflow graph
+                let create_event = DomainEvent::Graph(GraphDomainEvent::GraphCreated {
                     graph_id,
-                    node_id: NodeId::new(),
-                    node_type: NodeType::WorkflowStep {
-                        step_type: if step == 0 {
-                            StepType::Start
-                        } else if step == steps_per_workflow - 1 {
-                            StepType::End
-                        } else {
-                            StepType::Process
-                        }
-                    },
-                    position: Position3D { x: step as f32, y: 0.0, z: 0.0 },
-                    conceptual_point: Default::default(),
-                    metadata: HashMap::from([
-                        ("workflow".to_string(), i.to_string()),
-                        ("step".to_string(), step.to_string()),
-                    ]),
+                    graph_type: cim_domain_graph::GraphType::WorkflowGraph,
+                    name: format!("Workflow {}", i),
+                    metadata: Default::default(),
                 });
 
-                store.append(node_event).await?;
-            }
+                store.append(create_event).await?;
 
-            Ok::<(), cim_domain::DomainError>(())
+                // Add workflow steps
+                for step in 0..steps_per_workflow {
+                    let node_event = DomainEvent::Graph(GraphDomainEvent::NodeAdded {
+                        graph_id,
+                        node_id: NodeId::new(),
+                        node_type: NodeType::WorkflowStep {
+                            step_type: if step == 0 {
+                                StepType::Start
+                            } else if step == steps_per_workflow - 1 {
+                                StepType::End
+                            } else {
+                                StepType::Process
+                            },
+                        },
+                        position: Position3D {
+                            x: step as f32,
+                            y: 0.0,
+                            z: 0.0,
+                        },
+                        conceptual_point: Default::default(),
+                        metadata: HashMap::from([
+                            ("workflow".to_string(), i.to_string()),
+                            ("step".to_string(), step.to_string()),
+                        ]),
+                    });
+
+                    store.append(node_event).await?;
+                }
+
+                Ok::<(), cim_domain::DomainError>(())
+            })
         })
-    }).collect();
+        .collect();
 
     // Wait for all workflows
     for handle in handles {
@@ -623,16 +701,24 @@ async fn test_concurrent_workflow_performance() -> DomainResult<()> {
     let events = event_store.get_events().await;
     let expected_events = workflow_count * (1 + steps_per_workflow); // create + steps
 
-    assert_eq!(events.len(), expected_events, "Should have all workflow events");
+    assert_eq!(
+        events.len(),
+        expected_events,
+        "Should have all workflow events"
+    );
 
     // Performance assertions
     let events_per_second = expected_events as f64 / duration.as_secs_f64();
-    println!("Processed {} workflows with {} events in {:?} ({:.2} events/sec)",
-        workflow_count, expected_events, duration, events_per_second);
+    println!(
+        "Processed {} workflows with {} events in {:?} ({:.2} events/sec)",
+        workflow_count, expected_events, duration, events_per_second
+    );
 
-    assert!(events_per_second > 1000.0,
+    assert!(
+        events_per_second > 1000.0,
         "Should process at least 1000 events/sec, got {:.2}",
-        events_per_second);
+        events_per_second
+    );
 
     Ok(())
 }

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
 
-use super::{AggregateSnapshot, EventEnvelope, EventId, InternalEventStore, EventStoreError};
+use super::{AggregateSnapshot, EventEnvelope, EventId, EventStoreError, InternalEventStore};
 use crate::domain::events::DomainEvent;
 use crate::domain::value_objects::GraphId;
 

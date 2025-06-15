@@ -3,17 +3,17 @@
 //! These tests verify the complete flow from command submission
 //! through event storage to projection updates.
 
-use ia::domain::aggregates::Graph;
-use ia::domain::commands::{GraphCommand, NodeCommand, EdgeCommand};
-use ia::domain::events::{DomainEvent, GraphEvent, NodeEvent, EdgeEvent};
-use ia::domain::value_objects::{GraphId, NodeId, EdgeId, Position3D, GraphMetadata};
-use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
-use ia::infrastructure::event_bridge::EventBridge;
-use ia::application::command_handlers::{GraphCommandHandler, CommandHandler};
 use super::fixtures::*;
+use ia::application::command_handlers::{CommandHandler, GraphCommandHandler};
+use ia::domain::aggregates::Graph;
+use ia::domain::commands::{EdgeCommand, GraphCommand, NodeCommand};
+use ia::domain::events::{DomainEvent, EdgeEvent, GraphEvent, NodeEvent};
+use ia::domain::value_objects::{EdgeId, GraphId, GraphMetadata, NodeId, Position3D};
+use ia::infrastructure::event_bridge::EventBridge;
+use ia::infrastructure::event_store::{DistributedEventStore, EventStore};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
-use std::collections::HashMap;
 
 #[tokio::test]
 #[ignore = "requires running NATS server"]
@@ -36,7 +36,10 @@ async fn test_complete_command_to_projection_flow() -> Result<(), Box<dyn std::e
         name: "integration-test-graph".to_string(),
         metadata: {
             let mut map = HashMap::new();
-            map.insert("description".to_string(), serde_json::json!("Testing command to projection flow"));
+            map.insert(
+                "description".to_string(),
+                serde_json::json!("Testing command to projection flow"),
+            );
             map
         },
     });
@@ -64,7 +67,11 @@ async fn test_complete_command_to_projection_flow() -> Result<(), Box<dyn std::e
         graph_id,
         node_id,
         content: "test-node".to_string(),
-        position: Position3D { x: 1.0, y: 2.0, z: 3.0 },
+        position: Position3D {
+            x: 1.0,
+            y: 2.0,
+            z: 3.0,
+        },
         metadata: Default::default(),
     };
 
@@ -79,7 +86,8 @@ async fn test_complete_command_to_projection_flow() -> Result<(), Box<dyn std::e
     assert_eq!(all_events.len(), 2);
 
     // Verify CID chain integrity
-    let chain_events: Vec<_> = all_events.iter()
+    let chain_events: Vec<_> = all_events
+        .iter()
         .map(|e| e.as_chained_event())
         .collect::<Result<Vec<_>, _>>()?;
 
@@ -95,10 +103,8 @@ async fn test_complete_command_to_projection_flow() -> Result<(), Box<dyn std::e
     }
 
     // Verify projection received events
-    let projection_event: DomainEvent = TestAssertions::assert_event_published(
-        &mut consumer,
-        Duration::from_secs(1),
-    ).await?;
+    let projection_event: DomainEvent =
+        TestAssertions::assert_event_published(&mut consumer, Duration::from_secs(1)).await?;
 
     match projection_event {
         DomainEvent::GraphCreated { .. } => {
@@ -129,7 +135,10 @@ async fn test_multi_aggregate_event_flow() -> Result<(), Box<dyn std::error::Err
             id: *graph_id,
             metadata: {
                 let mut map = HashMap::new();
-                map.insert("name".to_string(), serde_json::json!(format!("graph-{}", i)));
+                map.insert(
+                    "name".to_string(),
+                    serde_json::json!(format!("graph-{}", i)),
+                );
                 map
             },
         };
@@ -238,10 +247,12 @@ async fn test_complex_graph_operations_flow() -> Result<(), Box<dyn std::error::
     let remove_events = handler.handle(remove_cmd.into()).await?;
 
     // Should have node removed event and edge removed events
-    let node_removed_count = remove_events.iter()
+    let node_removed_count = remove_events
+        .iter()
         .filter(|e| matches!(e, DomainEvent::NodeRemoved { .. }))
         .count();
-    let edge_removed_count = remove_events.iter()
+    let edge_removed_count = remove_events
+        .iter()
         .filter(|e| matches!(e, DomainEvent::EdgeRemoved { .. }))
         .count();
 
@@ -324,7 +335,8 @@ async fn test_concurrent_command_processing() -> Result<(), Box<dyn std::error::
     assert_eq!(events.len(), 21); // 1 create + 20 nodes
 
     // Verify CID chain integrity despite concurrent processing
-    let chain_events: Vec<_> = events.iter()
+    let chain_events: Vec<_> = events
+        .iter()
         .map(|e| e.as_chained_event())
         .collect::<Result<Vec<_>, _>>()?;
 

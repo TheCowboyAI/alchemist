@@ -4,10 +4,10 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, command_handlers};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource},
     value_objects::{GraphId, NodeId},
 };
-use ia::presentation::components::{GraphNode, GraphEdge};
+use ia::presentation::components::{GraphEdge, GraphNode};
 use std::time::Duration;
 
 /// Test that import commands are properly processed and create visible entities
@@ -41,20 +41,20 @@ fn test_import_graph_creates_entities() {
     app.update();
 
     // Assert - Check that nodes were created
-    let node_count = app.world
-        .query::<&GraphNode>()
-        .iter(&app.world)
-        .count();
+    let node_count = app.world.query::<&GraphNode>().iter(&app.world).count();
 
-    assert!(node_count > 0, "Import command should create graph nodes, but found 0 nodes");
+    assert!(
+        node_count > 0,
+        "Import command should create graph nodes, but found 0 nodes"
+    );
 
     // Check that edges were created
-    let edge_count = app.world
-        .query::<&GraphEdge>()
-        .iter(&app.world)
-        .count();
+    let edge_count = app.world.query::<&GraphEdge>().iter(&app.world).count();
 
-    assert!(edge_count > 0, "Import command should create graph edges, but found 0 edges");
+    assert!(
+        edge_count > 0,
+        "Import command should create graph edges, but found 0 edges"
+    );
 }
 
 /// Test that import commands emit proper events
@@ -64,7 +64,9 @@ fn test_import_graph_emits_events() {
     // and result in NodeAdded/EdgeAdded events
 
     // TODO: Implement when event handling is properly wired up
-    panic!("Import event handling not implemented - GraphImportRequested events are not processed!");
+    panic!(
+        "Import event handling not implemented - GraphImportRequested events are not processed!"
+    );
 }
 
 /// Test that imported nodes have proper visual components
@@ -95,25 +97,28 @@ fn test_imported_nodes_have_visual_components() {
     app.update();
 
     // Check that nodes have required visual components
-    let visual_nodes = app.world
+    let visual_nodes = app
+        .world
         .query::<(&GraphNode, &Transform)>()
         .iter(&app.world)
         .count();
 
-    assert!(visual_nodes > 0,
-        "Imported nodes should have visual components (Transform, Mesh3d), but found 0 complete nodes");
+    assert!(
+        visual_nodes > 0,
+        "Imported nodes should have visual components (Transform, Mesh3d), but found 0 complete nodes"
+    );
 }
 
 /// Helper system to verify import results
-fn verify_import_creates_entities(
-    nodes: Query<&GraphNode>,
-    edges: Query<&GraphEdge>,
-) {
+fn verify_import_creates_entities(nodes: Query<&GraphNode>, edges: Query<&GraphEdge>) {
     let node_count = nodes.iter().count();
     let edge_count = edges.iter().count();
 
     if node_count > 0 || edge_count > 0 {
-        println!("Import created {} nodes and {} edges", node_count, edge_count);
+        println!(
+            "Import created {} nodes and {} edges",
+            node_count, edge_count
+        );
     }
 }
 
@@ -150,6 +155,8 @@ mod import_service_tests {
         // This test should verify the command handler actually processes ImportGraph commands
         // Currently it just returns None for ImportGraph!
 
-        panic!("ImportGraph command handler not implemented - returns None instead of processing import!");
+        panic!(
+            "ImportGraph command handler not implemented - returns None instead of processing import!"
+        );
     }
 }

@@ -2,21 +2,25 @@
 //! The Workflow aggregate is marked as 100% complete in progress.json
 //! These tests ensure full coverage of the implemented functionality
 
+use chrono::Utc;
 use ia::domain::{
+    DomainError,
     aggregates::workflow::*,
     commands::workflow::*,
     events::{DomainEvent, workflow::*},
-    value_objects::{WorkflowId, StepId, EdgeId, UserId, NodeId},
-    DomainError,
+    value_objects::{EdgeId, NodeId, StepId, UserId, WorkflowId},
 };
-use chrono::Utc;
 use std::collections::HashMap;
 
 #[test]
 fn test_workflow_state_machine_transitions() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     // Test Designed -> Ready transition
     assert!(matches!(workflow.state, WorkflowState::Designed));
@@ -70,7 +74,11 @@ fn test_workflow_creation_command() {
 fn test_add_step_to_workflow() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     let step = WorkflowStep {
         id: StepId::new(),
@@ -111,7 +119,11 @@ fn test_add_step_to_workflow() {
 fn test_connect_workflow_steps() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     // Add two steps first
     let step1 = WorkflowStep {
@@ -168,7 +180,11 @@ fn test_connect_workflow_steps() {
 fn test_validate_workflow() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     // Add a step and set start/end
     let step = WorkflowStep {
@@ -211,7 +227,11 @@ fn test_validate_workflow() {
 fn test_workflow_validation_failures() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     // Test validation with no steps
     let cmd = WorkflowCommand::ValidateWorkflow(ValidateWorkflow {
@@ -233,7 +253,11 @@ fn test_workflow_validation_failures() {
 fn test_start_workflow() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     // Setup workflow in Ready state
     let step = WorkflowStep {
@@ -282,7 +306,11 @@ fn test_start_workflow() {
 fn test_complete_workflow_step() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     // Setup workflow with two steps
     let step1 = WorkflowStep {
@@ -353,7 +381,11 @@ fn test_complete_workflow_step() {
 fn test_pause_and_resume_workflow() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     let step = StepId::new();
     workflow.state = WorkflowState::Running {
@@ -412,7 +444,11 @@ fn test_pause_and_resume_workflow() {
 fn test_fail_workflow() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     let step = StepId::new();
     workflow.state = WorkflowState::Running {
@@ -580,7 +616,11 @@ fn test_workflow_event_application() {
 fn test_duplicate_step_rejection() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     let step_id = StepId::new();
     let step = WorkflowStep {
@@ -617,7 +657,11 @@ fn test_duplicate_step_rejection() {
 fn test_invalid_state_transitions() {
     let workflow_id = WorkflowId::new();
     let user_id = UserId::new();
-    let mut workflow = Workflow::new(workflow_id.clone(), "Test Workflow".to_string(), user_id.clone());
+    let mut workflow = Workflow::new(
+        workflow_id.clone(),
+        "Test Workflow".to_string(),
+        user_id.clone(),
+    );
 
     // Try to start workflow from Designed state (should fail)
     let cmd = WorkflowCommand::StartWorkflow(StartWorkflow {
@@ -662,8 +706,12 @@ fn test_execution_context() {
     };
 
     // Add some test data
-    context.inputs.insert("orderId".to_string(), serde_json::json!("12345"));
-    context.variables.insert("status".to_string(), serde_json::json!("processing"));
+    context
+        .inputs
+        .insert("orderId".to_string(), serde_json::json!("12345"));
+    context
+        .variables
+        .insert("status".to_string(), serde_json::json!("processing"));
 
     let mut step_output = HashMap::new();
     step_output.insert("result".to_string(), serde_json::json!(true));

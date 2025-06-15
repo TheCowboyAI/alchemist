@@ -3,7 +3,7 @@
 //! Provides NATS messaging integration for the presentation layer
 
 use bevy::prelude::*;
-use crossbeam_channel::{bounded, Receiver, Sender};
+use crossbeam_channel::{Receiver, Sender, bounded};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use tracing::{debug, error, info, warn};
@@ -94,10 +94,7 @@ enum NatsCommand {
 }
 
 /// System to process NATS events
-fn process_nats_events(
-    event_channel: Res<EventChannel>,
-    _commands: Commands,
-) {
+fn process_nats_events(event_channel: Res<EventChannel>, _commands: Commands) {
     // Process all pending events
     while let Ok(event) = event_channel.rx.try_recv() {
         match event {

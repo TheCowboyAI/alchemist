@@ -26,10 +26,13 @@ impl InMemoryEventStore {
     pub async fn store_with_aggregate(
         &self,
         event: DomainEvent,
-        aggregate_id: Uuid
+        aggregate_id: Uuid,
     ) -> Result<(), EventStoreError> {
         let mut events = self.events.write().await;
-        events.entry(aggregate_id).or_insert_with(Vec::new).push(event);
+        events
+            .entry(aggregate_id)
+            .or_insert_with(Vec::new)
+            .push(event);
         Ok(())
     }
 }
@@ -59,7 +62,11 @@ impl EventStore for InMemoryEventStore {
         Ok(events.values().flatten().cloned().collect())
     }
 
-    async fn append_events(&self, aggregate_id: String, events: Vec<DomainEvent>) -> Result<(), EventStoreError> {
+    async fn append_events(
+        &self,
+        aggregate_id: String,
+        events: Vec<DomainEvent>,
+    ) -> Result<(), EventStoreError> {
         let aggregate_uuid = Uuid::parse_str(&aggregate_id)
             .map_err(|e| EventStoreError::SerializationError(e.to_string()))?;
 
@@ -96,7 +103,10 @@ mod tests {
         let event = DomainEvent::Graph(graph_event);
 
         // Store the event
-        store.store_with_aggregate(event.clone(), aggregate_id).await.unwrap();
+        store
+            .store_with_aggregate(event.clone(), aggregate_id)
+            .await
+            .unwrap();
 
         // Load events
         let loaded = store.load_events(aggregate_id).await.unwrap();
@@ -106,7 +116,10 @@ mod tests {
             (DomainEvent::Graph(loaded_event), DomainEvent::Graph(original_event)) => {
                 // For testing purposes, we can check specific fields
                 match (loaded_event, original_event) {
-                    (GraphEvent::GraphCreated { id: id1, .. }, GraphEvent::GraphCreated { id: id2, .. }) => {
+                    (
+                        GraphEvent::GraphCreated { id: id1, .. },
+                        GraphEvent::GraphCreated { id: id2, .. },
+                    ) => {
                         assert_eq!(id1, id2);
                     }
                     _ => panic!("Event types don't match"),

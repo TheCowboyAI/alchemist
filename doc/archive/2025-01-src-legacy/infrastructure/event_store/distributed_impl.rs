@@ -2,13 +2,14 @@
 
 use super::{EventStore, EventStoreError};
 use crate::domain::events::{
-    DomainEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
+    ContextBridgeEvent, DomainEvent, EdgeEvent, MetricContextEvent, NodeEvent, RuleContextEvent,
+    SubgraphEvent, WorkflowEvent,
 };
 use async_nats::jetstream::{self, stream::Config as StreamConfig};
 use async_trait::async_trait;
 
-use uuid::Uuid;
 use futures::StreamExt;
+use uuid::Uuid;
 
 /// Wrapper around JetStream for EventStore trait implementation
 pub struct DistributedEventStore {
@@ -39,7 +40,9 @@ impl DistributedEventStore {
                     ..Default::default()
                 };
 
-                jetstream.create_stream(stream_config).await
+                jetstream
+                    .create_stream(stream_config)
+                    .await
                     .map_err(|e| EventStoreError::Storage(e.to_string()))?;
 
                 tracing::info!("Created new event-store stream");
@@ -55,7 +58,11 @@ impl DistributedEventStore {
 
 #[async_trait]
 impl EventStore for DistributedEventStore {
-    async fn append_events(&self, aggregate_id: String, events: Vec<DomainEvent>) -> Result<(), EventStoreError> {
+    async fn append_events(
+        &self,
+        aggregate_id: String,
+        events: Vec<DomainEvent>,
+    ) -> Result<(), EventStoreError> {
         for event in events {
             // Determine subject based on event type
             let subject = format!("events.{}.{}", aggregate_id, event.event_type());
@@ -81,7 +88,8 @@ impl EventStore for DistributedEventStore {
         let subject = format!("events.{aggregate_id}.>");
 
         // Get stream handle
-        let stream = self.jetstream
+        let stream = self
+            .jetstream
             .get_stream(&self.stream_name)
             .await
             .map_err(|e| EventStoreError::Storage(e.to_string()))?;
@@ -117,7 +125,9 @@ impl EventStore for DistributedEventStore {
             }
 
             // Acknowledge message
-            message.ack().await
+            message
+                .ack()
+                .await
                 .map_err(|e| EventStoreError::Storage(e.to_string()))?;
         }
 
@@ -126,7 +136,7 @@ impl EventStore for DistributedEventStore {
 
     async fn store(&self, event: DomainEvent) -> Result<(), EventStoreError> {
         // Legacy method - extract aggregate ID from event
-        use crate::domain::events::{GraphEvent};
+        use crate::domain::events::GraphEvent;
 
         let aggregate_id = match &event {
             DomainEvent::Graph(graph_event) => match graph_event {
@@ -176,20 +186,32 @@ impl EventStore for DistributedEventStore {
             DomainEvent::ContextBridge(context_bridge_event) => match context_bridge_event {
                 ContextBridgeEvent::BridgeCreated { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::TranslationRuleAdded { bridge_id, .. } => bridge_id.to_string(),
-                ContextBridgeEvent::TranslationRuleRemoved { bridge_id, .. } => bridge_id.to_string(),
+                ContextBridgeEvent::TranslationRuleRemoved { bridge_id, .. } => {
+                    bridge_id.to_string()
+                }
                 ContextBridgeEvent::ConceptTranslated { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::TranslationFailed { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::BridgeDeleted { bridge_id, .. } => bridge_id.to_string(),
                 ContextBridgeEvent::MappingTypeUpdated { bridge_id, .. } => bridge_id.to_string(),
             },
             DomainEvent::MetricContext(metric_context_event) => match metric_context_event {
-                MetricContextEvent::MetricContextCreated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::MetricContextCreated { context_id, .. } => {
+                    context_id.to_string()
+                }
                 MetricContextEvent::DistanceSet { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::ShortestPathCalculated { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::NearestNeighborsFound { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ShortestPathCalculated { context_id, .. } => {
+                    context_id.to_string()
+                }
+                MetricContextEvent::NearestNeighborsFound { context_id, .. } => {
+                    context_id.to_string()
+                }
                 MetricContextEvent::ConceptsClustered { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::ConceptsWithinRadiusFound { context_id, .. } => context_id.to_string(),
-                MetricContextEvent::MetricPropertiesUpdated { context_id, .. } => context_id.to_string(),
+                MetricContextEvent::ConceptsWithinRadiusFound { context_id, .. } => {
+                    context_id.to_string()
+                }
+                MetricContextEvent::MetricPropertiesUpdated { context_id, .. } => {
+                    context_id.to_string()
+                }
             },
             DomainEvent::RuleContext(rule_event) => match rule_event {
                 RuleContextEvent::RuleContextCreated { context_id, .. } => context_id.to_string(),
@@ -209,7 +231,9 @@ impl EventStore for DistributedEventStore {
                 RuleContextEvent::RulesImported { context_id, .. } => context_id.to_string(),
                 RuleContextEvent::RuleViolated { context_id, .. } => context_id.to_string(),
                 RuleContextEvent::RuleExecutionFailed { context_id, .. } => context_id.to_string(),
-                RuleContextEvent::CircularDependencyDetected { context_id, .. } => context_id.to_string(),
+                RuleContextEvent::CircularDependencyDetected { context_id, .. } => {
+                    context_id.to_string()
+                }
             },
             DomainEvent::ConceptualSpaceCreated(e) => e.space_id.to_string(),
             DomainEvent::QualityDimensionAdded(e) => e.space_id.to_string(),
@@ -238,7 +262,8 @@ impl EventStore for DistributedEventStore {
 
     async fn load_all_events(&self) -> Result<Vec<DomainEvent>, EventStoreError> {
         // Get all events from the stream
-        let stream = self.jetstream
+        let stream = self
+            .jetstream
             .get_stream(&self.stream_name)
             .await
             .map_err(|e| EventStoreError::Storage(e.to_string()))?;
@@ -265,7 +290,9 @@ impl EventStore for DistributedEventStore {
                 Err(e) => tracing::warn!("Failed to deserialize event: {}", e),
             }
 
-            message.ack().await
+            message
+                .ack()
+                .await
                 .map_err(|e| EventStoreError::Storage(e.to_string()))?;
         }
 

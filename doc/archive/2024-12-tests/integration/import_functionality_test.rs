@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions},
+    commands::{Command, GraphCommand, ImportOptions, ImportSource},
     events::{DomainEvent, GraphEvent},
     value_objects::GraphId,
 };
@@ -27,7 +27,8 @@ fn test_import_command_actually_imports() {
                 graph TD
                     A[Start] --> B[Process]
                     B --> C[End]
-                "#.to_string(),
+                "#
+                .to_string(),
             },
             format: "mermaid".to_string(),
             options: ImportOptions {
@@ -56,16 +57,24 @@ fn test_import_command_actually_imports() {
         }
     }
 
-    assert!(import_requested, "ImportGraph command should generate GraphImportRequested event");
+    assert!(
+        import_requested,
+        "ImportGraph command should generate GraphImportRequested event"
+    );
 
     // Update again to process the import request
     app.update();
 
     // Check that nodes were actually created
-    let node_query = app.world().query::<&ia::presentation::components::NodeEntity>();
+    let node_query = app
+        .world()
+        .query::<&ia::presentation::components::NodeEntity>();
     let node_count = node_query.iter(app.world()).count();
 
-    assert!(node_count > 0, "Import should create at least one node entity");
+    assert!(
+        node_count > 0,
+        "Import should create at least one node entity"
+    );
 }
 
 #[test]
@@ -88,7 +97,8 @@ fn test_import_events_are_processed() {
                         "caption": "Direct Test"
                     }],
                     "relationships": []
-                }"#.to_string(),
+                }"#
+                .to_string(),
                 format: ia::domain::events::ImportFormat::ArrowsApp,
             },
             options: ia::domain::events::ImportOptions {
@@ -116,7 +126,10 @@ fn test_import_events_are_processed() {
         }
     }
 
-    assert!(import_completed, "GraphImportRequested should generate GraphImportCompleted event");
+    assert!(
+        import_completed,
+        "GraphImportRequested should generate GraphImportCompleted event"
+    );
 }
 
 #[test]
@@ -128,8 +141,12 @@ fn test_keyboard_shortcut_triggers_import() {
     app.add_plugins(GraphEditorPlugin);
 
     // Simulate Ctrl+M press (Mermaid import)
-    app.world_mut().resource_mut::<ButtonInput<KeyCode>>().press(KeyCode::ControlLeft);
-    app.world_mut().resource_mut::<ButtonInput<KeyCode>>().press(KeyCode::KeyM);
+    app.world_mut()
+        .resource_mut::<ButtonInput<KeyCode>>()
+        .press(KeyCode::ControlLeft);
+    app.world_mut()
+        .resource_mut::<ButtonInput<KeyCode>>()
+        .press(KeyCode::KeyM);
 
     // Update to process input
     app.update();
@@ -146,7 +163,10 @@ fn test_keyboard_shortcut_triggers_import() {
         }
     }
 
-    assert!(command_sent, "Keyboard shortcut should trigger import command");
+    assert!(
+        command_sent,
+        "Keyboard shortcut should trigger import command"
+    );
 }
 
 #[test]
@@ -177,7 +197,11 @@ fn test_import_request_forwarding() {
     let events = app.world().resource::<Events<ImportRequestEvent>>();
     let mut reader = events.get_cursor();
     let requests: Vec<_> = reader.read(events).collect();
-    assert_eq!(requests.len(), 1, "Should have forwarded one import request");
+    assert_eq!(
+        requests.len(),
+        1,
+        "Should have forwarded one import request"
+    );
 }
 
 #[test]

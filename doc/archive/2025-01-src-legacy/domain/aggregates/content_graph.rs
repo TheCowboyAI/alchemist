@@ -1,8 +1,8 @@
 use crate::domain::{
-    events::{content_graph::*, DomainEvent},
-    value_objects::{GraphId, NodeId, EdgeId, Position3D, NodeType, RelationshipType, RelatedBy},
     DomainError,
     commands::ContentGraphCommand,
+    events::{DomainEvent, content_graph::*},
+    value_objects::{EdgeId, GraphId, NodeId, NodeType, Position3D, RelatedBy, RelationshipType},
 };
 use cim_ipld::{
     traits::TypedContent,
@@ -66,7 +66,8 @@ impl<T: TypedContent> LazyCid<T> {
     /// Get the CID, calculating it if necessary
     pub fn cid(&self) -> &Cid {
         self.cid_cache.get_or_init(|| {
-            self.content.calculate_cid()
+            self.content
+                .calculate_cid()
                 .expect("CID calculation should not fail")
         })
     }
@@ -105,9 +106,7 @@ impl<T> VersionedCache<T> {
         let mut cache = self.cache.borrow_mut();
 
         match &*cache {
-            Some((cached_version, value)) if *cached_version == version => {
-                value.clone()
-            }
+            Some((cached_version, value)) if *cached_version == version => value.clone(),
             _ => {
                 let value = f();
                 *cache = Some((version, value.clone()));
@@ -300,7 +299,8 @@ impl GraphView {
 
     /// Get the induced edges (all edges between nodes in this view)
     pub fn induced_edges(&self, graph: &ContentGraph) -> HashSet<EdgeId> {
-        graph.edges
+        graph
+            .edges
             .iter()
             .filter(|(_, edge)| {
                 self.node_ids.contains(&edge.source) && self.node_ids.contains(&edge.target)
@@ -342,27 +342,29 @@ impl ContentGraph {
 
     /// Get semantic clusters (memoized calculation)
     pub fn semantic_clusters(&self) -> Vec<SemanticCluster> {
-        self.semantic_clusters.get_or_compute(self.version, || {
-            self.calculate_semantic_clusters()
-        })
+        self.semantic_clusters
+            .get_or_compute(self.version, || self.calculate_semantic_clusters())
     }
 
     /// Get business metrics (memoized calculation)
     pub fn metrics(&self) -> BusinessMetrics {
-        self.metrics.get_or_compute(self.version, || {
-            self.calculate_business_metrics()
-        })
+        self.metrics
+            .get_or_compute(self.version, || self.calculate_business_metrics())
     }
 
     /// Get detected patterns (memoized calculation)
     pub fn patterns(&self) -> Vec<DetectedPattern> {
-        self.patterns.get_or_compute(self.version, || {
-            self.detect_patterns()
-        })
+        self.patterns
+            .get_or_compute(self.version, || self.detect_patterns())
     }
 
     /// Define a named view into this graph
-    pub fn define_view(&mut self, name: String, description: String, node_ids: HashSet<NodeId>) -> Result<(), ContentGraphError> {
+    pub fn define_view(
+        &mut self,
+        name: String,
+        description: String,
+        node_ids: HashSet<NodeId>,
+    ) -> Result<(), ContentGraphError> {
         // Verify all nodes exist
         for node_id in &node_ids {
             if !self.nodes.contains_key(node_id) {
@@ -389,9 +391,11 @@ impl ContentGraph {
 
     /// Get all nodes in a view
     pub fn get_view_nodes(&self, name: &str) -> Vec<&ContentNode> {
-        self.views.get(name)
+        self.views
+            .get(name)
             .map(|view| {
-                view.node_ids.iter()
+                view.node_ids
+                    .iter()
                     .filter_map(|id| self.nodes.get(id))
                     .collect()
             })
@@ -400,12 +404,11 @@ impl ContentGraph {
 
     /// Get all edges in a view (induced edges)
     pub fn get_view_edges(&self, name: &str) -> Vec<&ContentEdge> {
-        self.views.get(name)
+        self.views
+            .get(name)
             .map(|view| {
                 let induced = view.induced_edges(self);
-                induced.iter()
-                    .filter_map(|id| self.edges.get(id))
-                    .collect()
+                induced.iter().filter_map(|id| self.edges.get(id)).collect()
             })
             .unwrap_or_default()
     }
@@ -437,14 +440,15 @@ impl ContentGraph {
 
     /// Get all nested graphs (nodes that contain graphs)
     pub fn get_nested_graphs(&self) -> Vec<(&NodeId, &GraphId, &GraphType)> {
-        self.nodes.iter()
-            .filter_map(|(node_id, node)| {
-                match &node.content {
-                    NodeContent::Graph { graph_id, graph_type, .. } => {
-                        Some((node_id, graph_id, graph_type))
-                    }
-                    _ => None,
-                }
+        self.nodes
+            .iter()
+            .filter_map(|(node_id, node)| match &node.content {
+                NodeContent::Graph {
+                    graph_id,
+                    graph_type,
+                    ..
+                } => Some((node_id, graph_id, graph_type)),
+                _ => None,
             })
             .collect()
     }
@@ -452,55 +456,55 @@ impl ContentGraph {
     /// Check if this graph represents a DDD pattern
     pub fn get_graph_type(&self) -> Option<GraphType> {
         // Look for a root node that defines the graph type
-        self.nodes.values()
+        self.nodes
+            .values()
             .find(|node| {
                 // Root nodes typically have no incoming edges
                 !self.edges.values().any(|edge| edge.target == node.id)
             })
-            .and_then(|root_node| {
-                match &root_node.content {
-                    NodeContent::Graph { graph_type, .. } => Some(graph_type.clone()),
-                    _ => None,
-                }
+            .and_then(|root_node| match &root_node.content {
+                NodeContent::Graph { graph_type, .. } => Some(graph_type.clone()),
+                _ => None,
             })
     }
 
     /// Handle commands
-    pub fn handle_command(&mut self, command: ContentGraphCommand) -> Result<Vec<DomainEvent>, ContentGraphError> {
+    pub fn handle_command(
+        &mut self,
+        command: ContentGraphCommand,
+    ) -> Result<Vec<DomainEvent>, ContentGraphError> {
         match command {
-            ContentGraphCommand::CreateGraph { graph_id } => {
-                self.handle_create_graph(graph_id)
-            }
-            ContentGraphCommand::AddContent { node_id, content, position, metadata } => {
-                self.handle_add_content(node_id, content, position, metadata)
-            }
-            ContentGraphCommand::RemoveContent { node_id } => {
-                self.handle_remove_content(node_id)
-            }
-            ContentGraphCommand::EstablishRelationship { edge_id, source, target, relationship } => {
-                self.handle_establish_relationship(edge_id, source, target, relationship)
-            }
+            ContentGraphCommand::CreateGraph { graph_id } => self.handle_create_graph(graph_id),
+            ContentGraphCommand::AddContent {
+                node_id,
+                content,
+                position,
+                metadata,
+            } => self.handle_add_content(node_id, content, position, metadata),
+            ContentGraphCommand::RemoveContent { node_id } => self.handle_remove_content(node_id),
+            ContentGraphCommand::EstablishRelationship {
+                edge_id,
+                source,
+                target,
+                relationship,
+            } => self.handle_establish_relationship(edge_id, source, target, relationship),
             ContentGraphCommand::RemoveRelationship { edge_id } => {
                 self.handle_remove_relationship(edge_id)
             }
             ContentGraphCommand::DiscoverRelationships { threshold } => {
                 self.handle_discover_relationships(threshold)
             }
-            ContentGraphCommand::UpdateSemanticClusters => {
-                self.handle_update_semantic_clusters()
-            }
-            ContentGraphCommand::CalculateMetrics => {
-                self.handle_calculate_metrics()
-            }
-            ContentGraphCommand::DefineView { name, description, node_ids } => {
-                self.handle_define_view(name, description, node_ids)
-            }
+            ContentGraphCommand::UpdateSemanticClusters => self.handle_update_semantic_clusters(),
+            ContentGraphCommand::CalculateMetrics => self.handle_calculate_metrics(),
+            ContentGraphCommand::DefineView {
+                name,
+                description,
+                node_ids,
+            } => self.handle_define_view(name, description, node_ids),
             ContentGraphCommand::UpdateView { name, node_ids } => {
                 self.handle_update_view(name, node_ids)
             }
-            ContentGraphCommand::RemoveView { name } => {
-                self.handle_remove_view(name)
-            }
+            ContentGraphCommand::RemoveView { name } => self.handle_remove_view(name),
         }
     }
 
@@ -528,9 +532,8 @@ impl ContentGraph {
             DomainEvent::ContentRemoved(e) => {
                 self.nodes.remove(&e.node_id);
                 // Remove edges connected to this node
-                self.edges.retain(|_, edge| {
-                    edge.source != e.node_id && edge.target != e.node_id
-                });
+                self.edges
+                    .retain(|_, edge| edge.source != e.node_id && edge.target != e.node_id);
                 self.increment_version();
                 Ok(())
             }
@@ -558,7 +561,10 @@ impl ContentGraph {
     }
 
     // Private command handlers
-    fn handle_create_graph(&mut self, graph_id: GraphId) -> Result<Vec<DomainEvent>, ContentGraphError> {
+    fn handle_create_graph(
+        &mut self,
+        graph_id: GraphId,
+    ) -> Result<Vec<DomainEvent>, ContentGraphError> {
         let event = ContentGraphCreated {
             graph_id,
             created_at: SystemTime::now(),
@@ -589,7 +595,10 @@ impl ContentGraph {
         Ok(vec![DomainEvent::ContentAdded(event)])
     }
 
-    fn handle_remove_content(&mut self, node_id: NodeId) -> Result<Vec<DomainEvent>, ContentGraphError> {
+    fn handle_remove_content(
+        &mut self,
+        node_id: NodeId,
+    ) -> Result<Vec<DomainEvent>, ContentGraphError> {
         if !self.nodes.contains_key(&node_id) {
             return Err(ContentGraphError::NodeNotFound(node_id));
         }
@@ -637,7 +646,10 @@ impl ContentGraph {
         Ok(vec![DomainEvent::RelationshipEstablished(event)])
     }
 
-    fn handle_remove_relationship(&mut self, edge_id: EdgeId) -> Result<Vec<DomainEvent>, ContentGraphError> {
+    fn handle_remove_relationship(
+        &mut self,
+        edge_id: EdgeId,
+    ) -> Result<Vec<DomainEvent>, ContentGraphError> {
         if !self.edges.contains_key(&edge_id) {
             return Err(ContentGraphError::EdgeNotFound(edge_id));
         }
@@ -650,7 +662,10 @@ impl ContentGraph {
         Ok(vec![DomainEvent::RelationshipRemoved(event)])
     }
 
-    fn handle_discover_relationships(&mut self, threshold: f64) -> Result<Vec<DomainEvent>, ContentGraphError> {
+    fn handle_discover_relationships(
+        &mut self,
+        threshold: f64,
+    ) -> Result<Vec<DomainEvent>, ContentGraphError> {
         let mut events = vec![];
 
         // Simple similarity-based relationship discovery
@@ -801,7 +816,7 @@ impl ContentGraph {
             edge_count,
             average_degree,
             clustering_coefficient: 0.0, // TODO: Implement
-            semantic_coherence: 0.0, // TODO: Implement
+            semantic_coherence: 0.0,     // TODO: Implement
             pattern_count: self.patterns().len(),
         }
     }
@@ -843,7 +858,11 @@ mod tests {
         let mut graph = ContentGraph::new(graph_id);
 
         let node_id = NodeId::new();
-        let position = Position3D { x: 1.0, y: 2.0, z: 3.0 };
+        let position = Position3D {
+            x: 1.0,
+            y: 2.0,
+            z: 3.0,
+        };
         let metadata = HashMap::new();
 
         let command = ContentGraphCommand::AddContent {

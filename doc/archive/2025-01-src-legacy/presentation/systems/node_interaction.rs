@@ -3,16 +3,16 @@
 //! Handles user interactions with concept nodes including dragging,
 //! connecting, and selection operations.
 
-use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
+use crate::domain::commands::graph_commands::GraphCommand;
+use crate::domain::value_objects::{EdgeId, GraphId, NodeId, Position3D};
 use crate::presentation::components::{
-    ConceptualNodeVisual, DraggableNode, ConnectableNode, SelectableGraph,
-    ConceptualSpaceVisual, DragConstraints, SelectionMode, Highlighted,
-    ConceptRelationship, ConceptualEdgeVisual, EdgeVisualStyle,
+    ConceptRelationship, ConceptualEdgeVisual, ConceptualNodeVisual, ConceptualSpaceVisual,
+    ConnectableNode, DragConstraints, DraggableNode, EdgeVisualStyle, Highlighted, SelectableGraph,
+    SelectionMode,
 };
 use crate::presentation::events::PresentationCommand;
-use crate::domain::commands::graph_commands::GraphCommand;
-use crate::domain::value_objects::{NodeId, EdgeId, Position3D, GraphId};
+use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
 
 /// Event for node drag operations
 #[derive(Event, Debug, Clone)]
@@ -124,11 +124,8 @@ pub fn handle_node_dragging(
                     let mut new_position = plane_intersection + draggable.drag_offset;
 
                     // Apply constraints
-                    new_position = apply_drag_constraints(
-                        new_position,
-                        &draggable.constraints,
-                        space,
-                    );
+                    new_position =
+                        apply_drag_constraints(new_position, &draggable.constraints, space);
 
                     // Snap to grid if enabled
                     if draggable.snap_to_grid {
@@ -148,18 +145,16 @@ pub fn handle_node_dragging(
                     });
 
                     // Send command to update domain model
-                    graph_commands.write(PresentationCommand::new(
-                        GraphCommand::UpdateNode {
-                            graph_id,
-                            node_id: node_visual.concept_id,
-                            new_position: Some(Position3D {
-                                x: new_position.x,
-                                y: new_position.y,
-                                z: new_position.z,
-                            }),
-                            new_content: None,
-                        }
-                    ));
+                    graph_commands.write(PresentationCommand::new(GraphCommand::UpdateNode {
+                        graph_id,
+                        node_id: node_visual.concept_id,
+                        new_position: Some(Position3D {
+                            x: new_position.x,
+                            y: new_position.y,
+                            z: new_position.z,
+                        }),
+                        new_content: None,
+                    }));
                 }
             }
         }
@@ -227,16 +222,14 @@ pub fn handle_node_connections(
             ) {
                 // Create edge in domain model
                 let edge_id = EdgeId::new();
-                graph_commands.write(PresentationCommand::new(
-                    GraphCommand::ConnectNodes {
-                        graph_id,
-                        edge_id,
-                        source_id: source_visual.concept_id,
-                        target_id: target_visual.concept_id,
-                        edge_type: "conceptual".to_string(), // Map from relationship
-                        properties: std::collections::HashMap::new(),
-                    }
-                ));
+                graph_commands.write(PresentationCommand::new(GraphCommand::ConnectNodes {
+                    graph_id,
+                    edge_id,
+                    source_id: source_visual.concept_id,
+                    target_id: target_visual.concept_id,
+                    edge_type: "conceptual".to_string(), // Map from relationship
+                    properties: std::collections::HashMap::new(),
+                }));
 
                 // Create visual edge
                 let edge_visual = ConceptualEdgeVisual {
@@ -308,7 +301,8 @@ pub fn handle_node_selection(
                 if let Some(entity) = closest_entity {
                     if multi_select && graph.selection_mode == SelectionMode::Multiple {
                         // Toggle selection
-                        if let Some(pos) = graph.selected_entities.iter().position(|&e| e == entity) {
+                        if let Some(pos) = graph.selected_entities.iter().position(|&e| e == entity)
+                        {
                             graph.selected_entities.remove(pos);
                             commands.entity(entity).remove::<Highlighted>();
                         } else {
@@ -351,7 +345,11 @@ pub fn handle_node_selection(
 }
 
 /// Helper function for ray-plane intersection
-fn ray_plane_intersection(ray: &Ray3d, plane_normal: Vec3, plane_distance: f32) -> Result<Vec3, ()> {
+fn ray_plane_intersection(
+    ray: &Ray3d,
+    plane_normal: Vec3,
+    plane_distance: f32,
+) -> Result<Vec3, ()> {
     let denominator = ray.direction.dot(plane_normal);
 
     if denominator.abs() < 0.0001 {
@@ -418,8 +416,7 @@ pub struct NodeInteractionPlugin;
 
 impl Plugin for NodeInteractionPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_event::<NodeDragEvent>()
+        app.add_event::<NodeDragEvent>()
             .add_event::<NodeConnectionRequest>()
             .add_event::<SelectionChangedEvent>()
             .add_systems(

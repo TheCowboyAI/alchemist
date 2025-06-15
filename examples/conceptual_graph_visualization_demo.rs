@@ -5,26 +5,27 @@
 use bevy::prelude::*;
 use ia::{
     domain::conceptual_graph::{
-        ConceptGraph, ConceptNode as DomainConceptNode, ConceptType,
-        ConceptEdge as DomainConceptEdge, QualityDimension, DimensionType,
-        DistanceMetric, ConceptualPoint, NodeId,
+        ConceptEdge as DomainConceptEdge, ConceptGraph, ConceptNode as DomainConceptNode,
+        ConceptType, ConceptualPoint, DimensionType, DistanceMetric, NodeId, QualityDimension,
     },
     presentation::{
         components::{
-            ConceptualSpaceVisual, SpaceId, QualityDimensionAxis,
-            SpaceBounds, GridSettings,
+            ConceptualSpaceVisual, GridSettings, QualityDimensionAxis, SpaceBounds, SpaceId,
         },
-        systems::{ConceptualVisualizationPlugin, ConceptNodeEntity},
+        systems::{ConceptNodeEntity, ConceptualVisualizationPlugin},
     },
 };
-use std::ops::Range;
 use std::collections::HashMap;
+use std::ops::Range;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(ConceptualVisualizationPlugin)
-        .add_systems(Startup, (setup_camera, setup_lighting, setup_conceptual_space))
+        .add_systems(
+            Startup,
+            (setup_camera, setup_lighting, setup_conceptual_space),
+        )
         .add_systems(Startup, create_demo_concepts.after(setup_conceptual_space))
         .run();
 }
@@ -65,11 +66,7 @@ fn setup_conceptual_space(mut commands: Commands) {
     // Create quality dimensions
     let dimensions = vec![
         QualityDimensionAxis {
-            dimension: QualityDimension::new(
-                "Complexity",
-                DimensionType::Continuous,
-                0.0..10.0,
-            ),
+            dimension: QualityDimension::new("Complexity", DimensionType::Continuous, 0.0..10.0),
             axis_direction: Vec3::X,
             scale: 1.0,
             color: Color::srgb(1.0, 0.0, 0.0),
@@ -77,11 +74,7 @@ fn setup_conceptual_space(mut commands: Commands) {
             label_entities: vec![],
         },
         QualityDimensionAxis {
-            dimension: QualityDimension::new(
-                "Abstraction",
-                DimensionType::Continuous,
-                0.0..10.0,
-            ),
+            dimension: QualityDimension::new("Abstraction", DimensionType::Continuous, 0.0..10.0),
             axis_direction: Vec3::Y,
             scale: 1.0,
             color: Color::srgb(0.0, 1.0, 0.0),
@@ -89,11 +82,7 @@ fn setup_conceptual_space(mut commands: Commands) {
             label_entities: vec![],
         },
         QualityDimensionAxis {
-            dimension: QualityDimension::new(
-                "Performance",
-                DimensionType::Continuous,
-                0.0..10.0,
-            ),
+            dimension: QualityDimension::new("Performance", DimensionType::Continuous, 0.0..10.0),
             axis_direction: Vec3::Z,
             scale: 1.0,
             color: Color::srgb(0.0, 0.0, 1.0),
@@ -150,7 +139,9 @@ fn create_demo_concepts(mut commands: Commands) {
             quality_position: ConceptualPoint::new(vec![8.0, 5.0, 2.0]),
             input_type: ConceptType::Entity,
             output_type: ConceptType::ValueObject,
-            implementation: ia::domain::conceptual_graph::FunctionImpl::BuiltIn("transform".to_string()),
+            implementation: ia::domain::conceptual_graph::FunctionImpl::BuiltIn(
+                "transform".to_string(),
+            ),
         },
     });
 

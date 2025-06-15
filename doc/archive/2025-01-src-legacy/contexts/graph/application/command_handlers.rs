@@ -3,11 +3,11 @@
 //! Command handlers orchestrate the processing of commands by loading
 //! aggregates, executing commands, and persisting events.
 
-use crate::shared::types::{GraphId, Result};
-use crate::shared::events::{DomainEvent, EventStore};
 use crate::contexts::graph::domain::ContextGraph;
-use crate::contexts::graph::domain::commands::{CreateGraph, CommandHandler, GraphFactory};
+use crate::contexts::graph::domain::commands::{CommandHandler, CreateGraph, GraphFactory};
 use crate::contexts::graph::domain::events::GraphCreated;
+use crate::shared::events::{DomainEvent, EventStore};
+use crate::shared::types::{GraphId, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
 
@@ -60,7 +60,3 @@ impl CommandHandler<CreateGraph> for GraphCommandHandler {
         Ok(vec![Box::new(event)])
     }
 }
-
-
-
-

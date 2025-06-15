@@ -1,12 +1,12 @@
 //! Integration tests for subgraph visualization system
 
 use bevy::prelude::*;
-use ia::domain::value_objects::{NodeId, GraphId};
+use ia::domain::value_objects::{GraphId, NodeId};
+use ia::presentation::bevy_systems::subgraph_visualization::{SubgraphMember, SubgraphOrigin};
 use ia::presentation::bevy_systems::{
-    create_subgraph_origin, add_node_to_subgraph, move_subgraph,
-    get_node_world_position, SubgraphSpatialMap, circular_layout,
+    SubgraphSpatialMap, add_node_to_subgraph, circular_layout, create_subgraph_origin,
+    get_node_world_position, move_subgraph,
 };
-use ia::presentation::bevy_systems::subgraph_visualization::{SubgraphOrigin, SubgraphMember};
 
 #[test]
 fn test_subgraph_creation() {
@@ -49,7 +49,9 @@ fn test_add_nodes_to_subgraph() {
         let origin_entity = create_subgraph_origin(&mut commands, &mut spatial_map);
 
         // Get the graph ID
-        spatial_map.origins.iter()
+        spatial_map
+            .origins
+            .iter()
             .find(|(_, &entity)| entity == origin_entity)
             .map(|(id, _)| *id)
             .unwrap()
@@ -104,7 +106,9 @@ fn test_move_subgraph() {
         let mut spatial_map = app.world_mut().resource_mut::<SubgraphSpatialMap>();
         let origin_entity = create_subgraph_origin(&mut commands, &mut spatial_map);
 
-        let graph_id = spatial_map.origins.iter()
+        let graph_id = spatial_map
+            .origins
+            .iter()
             .find(|(_, &entity)| entity == origin_entity)
             .map(|(id, _)| *id)
             .unwrap();
@@ -121,7 +125,8 @@ fn test_move_subgraph() {
             NodeId::new(),
             Vec3::new(5.0, 0.0, 0.0),
             "Test Node".to_string(),
-        ).unwrap();
+        )
+        .unwrap();
 
         (graph_id, node_entity)
     };
@@ -139,7 +144,12 @@ fn test_move_subgraph() {
     {
         let mut spatial_map = app.world_mut().resource_mut::<SubgraphSpatialMap>();
         let mut query = app.world_mut().query::<&mut Transform>();
-        move_subgraph(&mut spatial_map, &mut query, graph_id, Vec3::new(10.0, 0.0, 0.0));
+        move_subgraph(
+            &mut spatial_map,
+            &mut query,
+            graph_id,
+            Vec3::new(10.0, 0.0, 0.0),
+        );
     }
 
     app.update();
@@ -190,7 +200,9 @@ fn test_multiple_subgraphs() {
         let mut spatial_map = app.world_mut().resource_mut::<SubgraphSpatialMap>();
         let origin_entity = create_subgraph_origin(&mut commands, &mut spatial_map);
 
-        let graph_id = spatial_map.origins.iter()
+        let graph_id = spatial_map
+            .origins
+            .iter()
             .find(|(_, &entity)| entity == origin_entity)
             .map(|(id, _)| *id)
             .unwrap();

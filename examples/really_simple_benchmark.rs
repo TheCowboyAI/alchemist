@@ -52,7 +52,10 @@ fn benchmark_hashmap() -> std::time::Duration {
     for i in 0..10_000 {
         graph.nodes.insert(i, format!("Person {}", i));
     }
-    println!("  - Added 10,000 nodes in {:.2}ms", node_start.elapsed().as_millis());
+    println!(
+        "  - Added 10,000 nodes in {:.2}ms",
+        node_start.elapsed().as_millis()
+    );
 
     // Add 5,000 edges (sequential for reproducibility)
     let edge_start = Instant::now();
@@ -61,7 +64,10 @@ fn benchmark_hashmap() -> std::time::Duration {
         let target = (i + 1) % 10_000;
         graph.edges.insert(i, (source, target));
     }
-    println!("  - Added 5,000 edges in {:.2}ms", edge_start.elapsed().as_millis());
+    println!(
+        "  - Added 5,000 edges in {:.2}ms",
+        edge_start.elapsed().as_millis()
+    );
 
     // Find neighbors of node 0
     let query_start = Instant::now();
@@ -71,9 +77,11 @@ fn benchmark_hashmap() -> std::time::Duration {
             neighbors.push(*target);
         }
     }
-    println!("  - Found {} neighbors of node 0 in {:.2}μs",
-             neighbors.len(),
-             query_start.elapsed().as_micros());
+    println!(
+        "  - Found {} neighbors of node 0 in {:.2}μs",
+        neighbors.len(),
+        query_start.elapsed().as_micros()
+    );
 
     start.elapsed()
 }
@@ -97,7 +105,10 @@ fn benchmark_vec() -> std::time::Duration {
     for i in 0..10_000 {
         graph.nodes.push(format!("Person {}", i));
     }
-    println!("  - Added 10,000 nodes in {:.2}ms", node_start.elapsed().as_millis());
+    println!(
+        "  - Added 10,000 nodes in {:.2}ms",
+        node_start.elapsed().as_millis()
+    );
 
     // Add 5,000 edges
     let edge_start = Instant::now();
@@ -106,14 +117,19 @@ fn benchmark_vec() -> std::time::Duration {
         let target = (i + 1) % 10_000;
         graph.edges[source].push(target);
     }
-    println!("  - Added 5,000 edges in {:.2}ms", edge_start.elapsed().as_millis());
+    println!(
+        "  - Added 5,000 edges in {:.2}ms",
+        edge_start.elapsed().as_millis()
+    );
 
     // Find neighbors of node 0
     let query_start = Instant::now();
     let neighbors = &graph.edges[0];
-    println!("  - Found {} neighbors of node 0 in {:.2}μs",
-             neighbors.len(),
-             query_start.elapsed().as_micros());
+    println!(
+        "  - Found {} neighbors of node 0 in {:.2}μs",
+        neighbors.len(),
+        query_start.elapsed().as_micros()
+    );
 
     start.elapsed()
 }

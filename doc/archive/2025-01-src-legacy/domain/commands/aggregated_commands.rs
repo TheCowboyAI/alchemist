@@ -3,8 +3,8 @@
 //! These commands represent business-meaningful state changes that
 //! result from aggregating multiple presentation events.
 
+use crate::domain::value_objects::{GraphModel, NodeId, Position3D};
 use serde::{Deserialize, Serialize};
-use crate::domain::value_objects::{NodeId, Position3D, GraphModel};
 
 /// Update multiple node positions at once
 #[derive(Debug, Clone, Serialize, Deserialize)]

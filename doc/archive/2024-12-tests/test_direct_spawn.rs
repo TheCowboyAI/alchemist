@@ -86,17 +86,19 @@ fn spawn_test_nodes(
     println!("Spawned 3 test objects");
 }
 
-fn check_nodes(
-    query: Query<(&Name, &Transform)>,
-    keyboard: Res<ButtonInput<KeyCode>>,
-) {
+fn check_nodes(query: Query<(&Name, &Transform)>, keyboard: Res<ButtonInput<KeyCode>>) {
     if keyboard.just_pressed(KeyCode::Space) {
         println!("\n=== ENTITIES ===");
         for (name, transform) in query.iter() {
-            println!("{}: pos=({:.2}, {:.2}, {:.2}), scale=({:.2}, {:.2}, {:.2})",
+            println!(
+                "{}: pos=({:.2}, {:.2}, {:.2}), scale=({:.2}, {:.2}, {:.2})",
                 name,
-                transform.translation.x, transform.translation.y, transform.translation.z,
-                transform.scale.x, transform.scale.y, transform.scale.z
+                transform.translation.x,
+                transform.translation.y,
+                transform.translation.z,
+                transform.scale.x,
+                transform.scale.y,
+                transform.scale.z
             );
         }
     }

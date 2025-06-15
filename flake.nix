@@ -9,7 +9,7 @@
     # Add rust-overlay for nightly Rust support
     rust-overlay.url = "github:oxalica/rust-overlay";
 
-        # Dev tools
+    # Dev tools
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
@@ -75,19 +75,21 @@
           # App configuration
           ia-app = {
             type = "app";
-            program = let
-              runner = pkgs.writeShellScriptBin "ia-runner" ''
-                export PATH="${rust-toolchain}/bin:${pkgs.pkg-config}/bin:$PATH"
-                export PKG_CONFIG_PATH="${pkgs.lib.makeSearchPath "lib/pkgconfig" nonRustDeps}"
-                export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath nonRustDeps}:$(pwd)/target/debug/deps:$(pwd)/target/release/deps"
-                export RUST_LOG=''${RUST_LOG:-info}
-                export BEVY_ASSET_ROOT="${toString ./.}"
-                export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.alsa-lib}/include"
+            program =
+              let
+                runner = pkgs.writeShellScriptBin "ia-runner" ''
+                  export PATH="${rust-toolchain}/bin:${pkgs.pkg-config}/bin:$PATH"
+                  export PKG_CONFIG_PATH="${pkgs.lib.makeSearchPath "lib/pkgconfig" nonRustDeps}"
+                  export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath nonRustDeps}:$(pwd)/target/debug/deps:$(pwd)/target/release/deps"
+                  export RUST_LOG=''${RUST_LOG:-info}
+                  export BEVY_ASSET_ROOT="${toString ./.}"
+                  export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.alsa-lib}/include"
 
-                # Run cargo from the current directory
-                exec cargo run --bin ia "$@"
-              '';
-            in "${runner}/bin/ia-runner";
+                  # Run cargo from the current directory
+                  exec cargo run --bin ia "$@"
+                '';
+              in
+              "${runner}/bin/ia-runner";
           };
         in
         {

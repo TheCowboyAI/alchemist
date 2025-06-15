@@ -1,8 +1,6 @@
 use crate::domain::{
     aggregates::content_graph::{BusinessMetrics, NodeContent, PatternType, SemanticCluster},
-    value_objects::{
-        EdgeId, GraphId, NodeId, Position3D, RelatedBy,
-    },
+    value_objects::{EdgeId, GraphId, NodeId, Position3D, RelatedBy},
 };
 use cim_ipld::types::Cid;
 use serde::{Deserialize, Serialize};

@@ -13,10 +13,10 @@ fn test_conflicting_event_access() {
     app.add_event::<TestEvent>();
 
     // Add two systems that would conflict
-    app.add_systems(Update, (
-        system_that_reads_events,
-        system_that_writes_events,
-    ));
+    app.add_systems(
+        Update,
+        (system_that_reads_events, system_that_writes_events),
+    );
 
     // This should panic if there's a conflict
     app.update();
@@ -46,10 +46,10 @@ fn test_res_resmut_conflict() {
     app.insert_resource(TestResource(0));
 
     // Add systems that conflict on resource access
-    app.add_systems(Update, (
-        system_that_reads_resource,
-        system_that_mutates_resource,
-    ));
+    app.add_systems(
+        Update,
+        (system_that_reads_resource, system_that_mutates_resource),
+    );
 
     // This SHOULD panic with a conflict error
     app.update();
@@ -74,10 +74,10 @@ fn test_chained_systems_no_conflict() {
     app.add_event::<TestEvent>();
 
     // When chained, systems run sequentially so no conflict
-    app.add_systems(Update, (
-        system_that_writes_events,
-        system_that_reads_events,
-    ).chain());
+    app.add_systems(
+        Update,
+        (system_that_writes_events, system_that_reads_events).chain(),
+    );
 
     // This should NOT panic
     app.update();
@@ -95,17 +95,20 @@ fn test_event_reader_writer_internal_conflict() {
     // EventReader internally uses Res<Events<T>>
     // EventWriter internally uses ResMut<Events<T>>
     // Running them in parallel causes a conflict
-    app.add_systems(Update, (
-        |mut reader: EventReader<TestEvent>, mut writer: EventWriter<TestEvent>| {
-            // This system has both reader and writer - no conflict within same system
-            for _ in reader.read() {}
-            writer.write(TestEvent);
-        },
-        |mut reader: EventReader<TestEvent>| {
-            // Another system reading - this will conflict with the writer above
-            for _ in reader.read() {}
-        },
-    ));
+    app.add_systems(
+        Update,
+        (
+            |mut reader: EventReader<TestEvent>, mut writer: EventWriter<TestEvent>| {
+                // This system has both reader and writer - no conflict within same system
+                for _ in reader.read() {}
+                writer.write(TestEvent);
+            },
+            |mut reader: EventReader<TestEvent>| {
+                // Another system reading - this will conflict with the writer above
+                for _ in reader.read() {}
+            },
+        ),
+    );
 
     // This SHOULD panic
     app.update();

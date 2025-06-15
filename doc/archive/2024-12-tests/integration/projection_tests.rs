@@ -3,9 +3,9 @@
 //! These tests will verify projection updates from events
 //! once the projection infrastructure is implemented.
 
-use ia::domain::events::DomainEvent;
-use ia::domain::value_objects::{GraphId, NodeId, GraphMetadata};
 use super::fixtures::*;
+use ia::domain::events::DomainEvent;
+use ia::domain::value_objects::{GraphId, GraphMetadata, NodeId};
 
 #[tokio::test]
 #[ignore = "requires projection implementation"]

@@ -3,43 +3,32 @@
 //! This is the aggregate root for the graph context. It wraps the GraphComposition
 //! from the graph-composition library and adds domain-specific behavior.
 
-use crate::shared::types::{Result, Error};
-use crate::shared::events::{EventMetadata, DomainEvent};
+use crate::shared::events::{DomainEvent, EventMetadata};
+use crate::shared::types::{Error, Result};
 use graph_composition::{
-    GraphComposition, GraphId, NodeId, EdgeId,
-    CompositionType, DomainCompositionType,
-    BaseNodeType, BaseRelationshipType,
-    CompositionNode, CompositionEdge,
+    BaseNodeType, BaseRelationshipType, CompositionEdge, CompositionNode, CompositionType,
+    DomainCompositionType, EdgeId, GraphComposition, GraphId, NodeId,
 };
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// The type of context this graph represents
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ContextType {
     /// A bounded context in DDD
-    BoundedContext {
-        name: String,
-        domain: String
-    },
+    BoundedContext { name: String, domain: String },
 
     /// An aggregate context (consistency boundary)
     AggregateContext {
         name: String,
-        aggregate_type: String
+        aggregate_type: String,
     },
 
     /// A module context (functional grouping)
-    ModuleContext {
-        name: String,
-        purpose: String
-    },
+    ModuleContext { name: String, purpose: String },
 
     /// A service context (capability boundary)
-    ServiceContext {
-        name: String,
-        capability: String
-    },
+    ServiceContext { name: String, capability: String },
 }
 
 impl From<ContextType> for CompositionType {
@@ -48,14 +37,17 @@ impl From<ContextType> for CompositionType {
             ContextType::BoundedContext { name, domain } => {
                 CompositionType::Domain(DomainCompositionType::BoundedContext { domain })
             }
-            ContextType::AggregateContext { name, aggregate_type } => {
-                CompositionType::Domain(DomainCompositionType::Aggregate { aggregate_type })
-            }
-            ContextType::ModuleContext { name, purpose } => {
-                CompositionType::Composite { structure_type: format!("Module:{}", purpose) }
-            }
+            ContextType::AggregateContext {
+                name,
+                aggregate_type,
+            } => CompositionType::Domain(DomainCompositionType::Aggregate { aggregate_type }),
+            ContextType::ModuleContext { name, purpose } => CompositionType::Composite {
+                structure_type: format!("Module:{}", purpose),
+            },
             ContextType::ServiceContext { name, capability } => {
-                CompositionType::Domain(DomainCompositionType::Service { service_type: capability })
+                CompositionType::Domain(DomainCompositionType::Service {
+                    service_type: capability,
+                })
             }
         }
     }
@@ -67,7 +59,12 @@ pub trait InvariantValidator: Send + Sync {
     fn validate_node_addition(&self, graph: &ContextGraph, node_id: &NodeId) -> Result<()>;
 
     /// Validate that an edge can be created
-    fn validate_edge_creation(&self, graph: &ContextGraph, source: &NodeId, target: &NodeId) -> Result<()>;
+    fn validate_edge_creation(
+        &self,
+        graph: &ContextGraph,
+        source: &NodeId,
+        target: &NodeId,
+    ) -> Result<()>;
 
     /// Validate the context root
     fn validate_context_root(&self, graph: &ContextGraph) -> Result<()>;
@@ -76,7 +73,8 @@ pub trait InvariantValidator: Send + Sync {
 /// Trait for calculating node positions
 pub trait PositionCalculator: Send + Sync {
     /// Calculate optimal position for a new node
-    fn calculate_position(&self, graph: &ContextGraph, node_id: &NodeId) -> Result<(f32, f32, f32)>;
+    fn calculate_position(&self, graph: &ContextGraph, node_id: &NodeId)
+    -> Result<(f32, f32, f32)>;
 }
 
 /// The ContextGraph aggregate root - wraps GraphComposition with domain behavior
@@ -123,7 +121,9 @@ impl ContextGraph {
         };
 
         // Validate initial state
-        context_graph.invariant_validator.validate_context_root(&context_graph)?;
+        context_graph
+            .invariant_validator
+            .validate_context_root(&context_graph)?;
 
         Ok(context_graph)
     }
@@ -161,7 +161,12 @@ impl ContextGraph {
     }
 
     /// Add a node (called by commands)
-    pub(crate) fn add_node(&mut self, id: NodeId, node_type: String, metadata: HashMap<String, serde_json::Value>) -> Result<()> {
+    pub(crate) fn add_node(
+        &mut self,
+        id: NodeId,
+        node_type: String,
+        metadata: HashMap<String, serde_json::Value>,
+    ) -> Result<()> {
         self.invariant_validator.validate_node_addition(self, &id)?;
 
         // Convert to BaseNodeType
@@ -187,8 +192,16 @@ impl ContextGraph {
     }
 
     /// Add an edge (called by commands)
-    pub(crate) fn add_edge(&mut self, id: EdgeId, source: NodeId, target: NodeId, edge_type: String, metadata: HashMap<String, serde_json::Value>) -> Result<()> {
-        self.invariant_validator.validate_edge_creation(self, &source, &target)?;
+    pub(crate) fn add_edge(
+        &mut self,
+        id: EdgeId,
+        source: NodeId,
+        target: NodeId,
+        edge_type: String,
+        metadata: HashMap<String, serde_json::Value>,
+    ) -> Result<()> {
+        self.invariant_validator
+            .validate_edge_creation(self, &source, &target)?;
 
         // Convert to BaseRelationshipType
         let base_rel = match edge_type.as_str() {
@@ -238,7 +251,12 @@ impl InvariantValidator for DefaultInvariantValidator {
         Ok(())
     }
 
-    fn validate_edge_creation(&self, graph: &ContextGraph, source: &NodeId, target: &NodeId) -> Result<()> {
+    fn validate_edge_creation(
+        &self,
+        graph: &ContextGraph,
+        source: &NodeId,
+        target: &NodeId,
+    ) -> Result<()> {
         // Ensure both nodes exist
         if !graph.has_node(source) {
             return Err(Error::NotFound(format!("Source node {} not found", source)));
@@ -256,7 +274,7 @@ impl InvariantValidator for DefaultInvariantValidator {
                 // Bounded contexts have specific root requirements
                 Ok(())
             }
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 }
@@ -265,7 +283,11 @@ impl InvariantValidator for DefaultInvariantValidator {
 pub struct DefaultPositionCalculator;
 
 impl PositionCalculator for DefaultPositionCalculator {
-    fn calculate_position(&self, graph: &ContextGraph, _node_id: &NodeId) -> Result<(f32, f32, f32)> {
+    fn calculate_position(
+        &self,
+        graph: &ContextGraph,
+        _node_id: &NodeId,
+    ) -> Result<(f32, f32, f32)> {
         // Simple grid layout based on node count
         let count = graph.node_count() as f32;
         let x = (count % 10.0) * 100.0;
@@ -293,7 +315,8 @@ mod tests {
             root_id,
             Box::new(DefaultInvariantValidator),
             Box::new(DefaultPositionCalculator),
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(graph.id(), graph_id);
         assert_eq!(graph.version(), 0);
@@ -308,7 +331,12 @@ mod tests {
             fn validate_node_addition(&self, _: &ContextGraph, _: &NodeId) -> Result<()> {
                 Err(Error::InvariantViolation("No nodes allowed".to_string()))
             }
-            fn validate_edge_creation(&self, _: &ContextGraph, _: &NodeId, _: &NodeId) -> Result<()> {
+            fn validate_edge_creation(
+                &self,
+                _: &ContextGraph,
+                _: &NodeId,
+                _: &NodeId,
+            ) -> Result<()> {
                 Err(Error::InvariantViolation("No edges allowed".to_string()))
             }
             fn validate_context_root(&self, _: &ContextGraph) -> Result<()> {
@@ -326,7 +354,8 @@ mod tests {
             NodeId::new(),
             Box::new(StrictValidator),
             Box::new(DefaultPositionCalculator),
-        ).unwrap();
+        )
+        .unwrap();
 
         // Should fail due to injected validator
         let result = graph.add_node(NodeId::new(), "TestNode".to_string(), HashMap::new());

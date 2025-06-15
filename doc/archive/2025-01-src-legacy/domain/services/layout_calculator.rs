@@ -1,10 +1,9 @@
 use crate::domain::value_objects::{
-    Position3D, NodeId,
-    LayoutStrategy, LayoutDirection, CollapseStrategy,
+    CollapseStrategy, LayoutDirection, LayoutStrategy, NodeId, Position3D,
 };
+use petgraph::graph::{Graph, NodeIndex};
 use std::collections::HashMap;
 use std::f32::consts::PI;
-use petgraph::graph::{Graph, NodeIndex};
 
 /// Service for calculating subgraph layouts
 pub struct SubgraphLayoutCalculator {
@@ -34,9 +33,7 @@ impl SubgraphLayoutCalculator {
         graph: Option<&Graph<NodeId, ()>>,
     ) -> Position3D {
         match collapse_strategy {
-            CollapseStrategy::Centroid => {
-                self.calculate_centroid(node_positions)
-            }
+            CollapseStrategy::Centroid => self.calculate_centroid(node_positions),
             CollapseStrategy::MostConnected => {
                 if let Some(g) = graph {
                     self.find_most_connected_position(g, node_positions)
@@ -61,31 +58,39 @@ impl SubgraphLayoutCalculator {
         previous_positions: Option<&HashMap<NodeId, Position3D>>,
     ) -> HashMap<NodeId, Position3D> {
         match layout_strategy {
-            LayoutStrategy::ForceDirected { iterations, spring_strength, repulsion_strength } => {
-                self.force_directed.calculate(
-                    nodes,
-                    center,
-                    graph,
-                    *iterations,
-                    *spring_strength,
-                    *repulsion_strength,
-                )
-            }
-            LayoutStrategy::Hierarchical { direction, layer_spacing, node_spacing } => {
-                self.hierarchical.calculate(
-                    nodes,
-                    center,
-                    graph,
-                    direction,
-                    *layer_spacing,
-                    *node_spacing,
-                )
-            }
-            LayoutStrategy::Circular { radius, start_angle } => {
-                self.circular.calculate(nodes, center, *radius, *start_angle)
-            }
+            LayoutStrategy::ForceDirected {
+                iterations,
+                spring_strength,
+                repulsion_strength,
+            } => self.force_directed.calculate(
+                nodes,
+                center,
+                graph,
+                *iterations,
+                *spring_strength,
+                *repulsion_strength,
+            ),
+            LayoutStrategy::Hierarchical {
+                direction,
+                layer_spacing,
+                node_spacing,
+            } => self.hierarchical.calculate(
+                nodes,
+                center,
+                graph,
+                direction,
+                *layer_spacing,
+                *node_spacing,
+            ),
+            LayoutStrategy::Circular {
+                radius,
+                start_angle,
+            } => self
+                .circular
+                .calculate(nodes, center, *radius, *start_angle),
             LayoutStrategy::Grid { columns, spacing } => {
-                self.grid.calculate(nodes, center, *columns as usize, *spacing)
+                self.grid
+                    .calculate(nodes, center, *columns as usize, *spacing)
             }
             LayoutStrategy::Geometric { spacing } => {
                 self.geometric.calculate(nodes, center, *spacing)
@@ -186,10 +191,11 @@ impl SubgraphLayoutCalculator {
             return Position3D::new_unchecked(0.0, 0.0, 0.0);
         }
 
-        let sum = positions.values().fold(
-            Position3D::new_unchecked(0.0, 0.0, 0.0),
-            |acc, pos| Position3D::new_unchecked(acc.x + pos.x, acc.y + pos.y, acc.z + pos.z),
-        );
+        let sum = positions
+            .values()
+            .fold(Position3D::new_unchecked(0.0, 0.0, 0.0), |acc, pos| {
+                Position3D::new_unchecked(acc.x + pos.x, acc.y + pos.y, acc.z + pos.z)
+            });
 
         let count = positions.len() as f32;
         Position3D::new_unchecked(sum.x / count, sum.y / count, sum.z / count)
@@ -206,9 +212,7 @@ impl SubgraphLayoutCalculator {
         // Find node indices for our nodes
         let node_indices: HashMap<NodeId, NodeIndex> = graph
             .node_indices()
-            .filter_map(|idx| {
-                graph.node_weight(idx).map(|&node_id| (node_id, idx))
-            })
+            .filter_map(|idx| graph.node_weight(idx).map(|&node_id| (node_id, idx)))
             .collect();
 
         for (node_id, _) in positions {
@@ -236,9 +240,7 @@ impl SubgraphLayoutCalculator {
             // Weight by node degree
             let node_indices: HashMap<NodeId, NodeIndex> = g
                 .node_indices()
-                .filter_map(|idx| {
-                    g.node_weight(idx).map(|&node_id| (node_id, idx))
-                })
+                .filter_map(|idx| g.node_weight(idx).map(|&node_id| (node_id, idx)))
                 .collect();
 
             let mut weighted_sum = Position3D::new_unchecked(0.0, 0.0, 0.0);
@@ -277,14 +279,17 @@ impl SubgraphLayoutCalculator {
         let edges: Vec<(NodeId, NodeId)> = graph
             .edge_indices()
             .filter_map(|edge_idx| {
-                graph.edge_endpoints(edge_idx).and_then(|(src_idx, tgt_idx)| {
-                    if let (Some(&src_id), Some(&tgt_id)) =
-                        (graph.node_weight(src_idx), graph.node_weight(tgt_idx)) {
-                        Some((src_id, tgt_id))
-                    } else {
-                        None
-                    }
-                })
+                graph
+                    .edge_endpoints(edge_idx)
+                    .and_then(|(src_idx, tgt_idx)| {
+                        if let (Some(&src_id), Some(&tgt_id)) =
+                            (graph.node_weight(src_idx), graph.node_weight(tgt_idx))
+                        {
+                            Some((src_id, tgt_id))
+                        } else {
+                            None
+                        }
+                    })
             })
             .collect();
 
@@ -340,7 +345,8 @@ impl SubgraphLayoutCalculator {
             for i in 0..nodes.len() {
                 for j in (i + 1)..nodes.len() {
                     if let (Some(pos_i), Some(pos_j)) =
-                        (positions.get(&nodes[i]), positions.get(&nodes[j])) {
+                        (positions.get(&nodes[i]), positions.get(&nodes[j]))
+                    {
                         let dx = pos_j.x - pos_i.x;
                         let dy = pos_j.y - pos_i.y;
                         let dz = pos_j.z - pos_i.z;
@@ -413,7 +419,8 @@ impl ForceDirectedLayout {
                 for i in 0..nodes.len() {
                     for j in (i + 1)..nodes.len() {
                         if let (Some(pos_i), Some(pos_j)) =
-                            (positions.get(&nodes[i]), positions.get(&nodes[j])) {
+                            (positions.get(&nodes[i]), positions.get(&nodes[j]))
+                        {
                             let dx = pos_j.x - pos_i.x;
                             let dy = pos_j.y - pos_i.y;
                             let dz = pos_j.z - pos_i.z;
@@ -424,25 +431,13 @@ impl ForceDirectedLayout {
                             let fy = force * dy / dist_sq.sqrt();
                             let fz = force * dz / dist_sq.sqrt();
 
-                            forces.entry(nodes[i])
-                                .or_insert(Position3D::default())
-                                .x -= fx;
-                            forces.entry(nodes[i])
-                                .or_insert(Position3D::default())
-                                .y -= fy;
-                            forces.entry(nodes[i])
-                                .or_insert(Position3D::default())
-                                .z -= fz;
+                            forces.entry(nodes[i]).or_insert(Position3D::default()).x -= fx;
+                            forces.entry(nodes[i]).or_insert(Position3D::default()).y -= fy;
+                            forces.entry(nodes[i]).or_insert(Position3D::default()).z -= fz;
 
-                            forces.entry(nodes[j])
-                                .or_insert(Position3D::default())
-                                .x += fx;
-                            forces.entry(nodes[j])
-                                .or_insert(Position3D::default())
-                                .y += fy;
-                            forces.entry(nodes[j])
-                                .or_insert(Position3D::default())
-                                .z += fz;
+                            forces.entry(nodes[j]).or_insert(Position3D::default()).x += fx;
+                            forces.entry(nodes[j]).or_insert(Position3D::default()).y += fy;
+                            forces.entry(nodes[j]).or_insert(Position3D::default()).z += fz;
                         }
                     }
                 }
@@ -450,17 +445,17 @@ impl ForceDirectedLayout {
                 // Calculate spring forces for edges
                 let node_indices: HashMap<NodeId, NodeIndex> = g
                     .node_indices()
-                    .filter_map(|idx| {
-                        g.node_weight(idx).map(|&node_id| (node_id, idx))
-                    })
+                    .filter_map(|idx| g.node_weight(idx).map(|&node_id| (node_id, idx)))
                     .collect();
 
                 for edge in g.edge_indices() {
                     if let Some((src_idx, tgt_idx)) = g.edge_endpoints(edge) {
                         if let (Some(&src_id), Some(&tgt_id)) =
-                            (g.node_weight(src_idx), g.node_weight(tgt_idx)) {
+                            (g.node_weight(src_idx), g.node_weight(tgt_idx))
+                        {
                             if let (Some(pos_src), Some(pos_tgt)) =
-                                (positions.get(&src_id), positions.get(&tgt_id)) {
+                                (positions.get(&src_id), positions.get(&tgt_id))
+                            {
                                 let dx = pos_tgt.x - pos_src.x;
                                 let dy = pos_tgt.y - pos_src.y;
                                 let dz = pos_tgt.z - pos_src.z;
@@ -472,25 +467,13 @@ impl ForceDirectedLayout {
                                     let fy = force * dy / dist;
                                     let fz = force * dz / dist;
 
-                                    forces.entry(src_id)
-                                        .or_insert(Position3D::default())
-                                        .x += fx;
-                                    forces.entry(src_id)
-                                        .or_insert(Position3D::default())
-                                        .y += fy;
-                                    forces.entry(src_id)
-                                        .or_insert(Position3D::default())
-                                        .z += fz;
+                                    forces.entry(src_id).or_insert(Position3D::default()).x += fx;
+                                    forces.entry(src_id).or_insert(Position3D::default()).y += fy;
+                                    forces.entry(src_id).or_insert(Position3D::default()).z += fz;
 
-                                    forces.entry(tgt_id)
-                                        .or_insert(Position3D::default())
-                                        .x -= fx;
-                                    forces.entry(tgt_id)
-                                        .or_insert(Position3D::default())
-                                        .y -= fy;
-                                    forces.entry(tgt_id)
-                                        .or_insert(Position3D::default())
-                                        .z -= fz;
+                                    forces.entry(tgt_id).or_insert(Position3D::default()).x -= fx;
+                                    forces.entry(tgt_id).or_insert(Position3D::default()).y -= fy;
+                                    forces.entry(tgt_id).or_insert(Position3D::default()).z -= fz;
                                 }
                             }
                         }
@@ -539,29 +522,22 @@ impl HierarchicalLayout {
             let layer_offset = layer_idx as f32 * layer_spacing;
 
             for (node_idx, &node_id) in layer_nodes.iter().enumerate() {
-                let node_offset = (node_idx as f32 - (layer_nodes.len() - 1) as f32 / 2.0) * node_spacing;
+                let node_offset =
+                    (node_idx as f32 - (layer_nodes.len() - 1) as f32 / 2.0) * node_spacing;
 
                 let position = match direction {
-                    LayoutDirection::TopToBottom => Position3D::new(
-                        center.x + node_offset,
-                        center.y - layer_offset,
-                        center.z,
-                    ),
-                    LayoutDirection::BottomToTop => Position3D::new(
-                        center.x + node_offset,
-                        center.y + layer_offset,
-                        center.z,
-                    ),
-                    LayoutDirection::LeftToRight => Position3D::new(
-                        center.x + layer_offset,
-                        center.y + node_offset,
-                        center.z,
-                    ),
-                    LayoutDirection::RightToLeft => Position3D::new(
-                        center.x - layer_offset,
-                        center.y + node_offset,
-                        center.z,
-                    ),
+                    LayoutDirection::TopToBottom => {
+                        Position3D::new(center.x + node_offset, center.y - layer_offset, center.z)
+                    }
+                    LayoutDirection::BottomToTop => {
+                        Position3D::new(center.x + node_offset, center.y + layer_offset, center.z)
+                    }
+                    LayoutDirection::LeftToRight => {
+                        Position3D::new(center.x + layer_offset, center.y + node_offset, center.z)
+                    }
+                    LayoutDirection::RightToLeft => {
+                        Position3D::new(center.x - layer_offset, center.y + node_offset, center.z)
+                    }
                 };
 
                 if let Ok(pos) = position {
@@ -573,14 +549,21 @@ impl HierarchicalLayout {
         positions
     }
 
-    fn assign_layers(&self, nodes: &[NodeId], graph: Option<&Graph<NodeId, ()>>) -> Vec<Vec<NodeId>> {
+    fn assign_layers(
+        &self,
+        nodes: &[NodeId],
+        graph: Option<&Graph<NodeId, ()>>,
+    ) -> Vec<Vec<NodeId>> {
         // Simple layer assignment - in practice would use proper graph algorithms
         if nodes.len() <= 3 {
             vec![nodes.to_vec()]
         } else {
             // Split into roughly equal layers
             let layer_size = (nodes.len() as f32 / 3.0).ceil() as usize;
-            nodes.chunks(layer_size).map(|chunk| chunk.to_vec()).collect()
+            nodes
+                .chunks(layer_size)
+                .map(|chunk| chunk.to_vec())
+                .collect()
         }
     }
 }
@@ -726,7 +709,7 @@ mod tests {
 
         let centroid = calculator.calculate_centroid(&positions);
         assert_eq!(centroid.x, 2.0);
-        assert!((centroid.y - 2.0/3.0).abs() < 0.01);
+        assert!((centroid.y - 2.0 / 3.0).abs() < 0.01);
         assert_eq!(centroid.z, 0.0);
     }
 
@@ -739,7 +722,10 @@ mod tests {
         let positions = calculator.calculate_expansion_layout(
             &nodes,
             center,
-            &LayoutStrategy::Circular { radius: 5.0, start_angle: 0.0 },
+            &LayoutStrategy::Circular {
+                radius: 5.0,
+                start_angle: 0.0,
+            },
             None,
             None,
         );
@@ -762,7 +748,10 @@ mod tests {
         let positions = calculator.calculate_expansion_layout(
             &nodes,
             center,
-            &LayoutStrategy::Grid { columns: 3, spacing: 2.0 },
+            &LayoutStrategy::Grid {
+                columns: 3,
+                spacing: 2.0,
+            },
             None,
             None,
         );
@@ -770,7 +759,8 @@ mod tests {
         assert_eq!(positions.len(), 6);
 
         // Check that nodes are arranged in a 2x3 grid
-        let y_values: HashSet<i32> = positions.values()
+        let y_values: HashSet<i32> = positions
+            .values()
             .map(|p| (p.y / 2.0).round() as i32)
             .collect();
         assert_eq!(y_values.len(), 2); // 2 rows

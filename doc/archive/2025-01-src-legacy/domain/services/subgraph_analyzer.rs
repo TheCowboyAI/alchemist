@@ -1,12 +1,10 @@
 use crate::domain::value_objects::{
-    NodeId, EdgeId,
-    SubgraphStatistics, SubgraphAnalysis, SuggestedOperation,
-    SplitCriteria, SubgraphType, OptimizationType,
-    ClusteringAlgorithm,
+    ClusteringAlgorithm, EdgeId, NodeId, OptimizationType, SplitCriteria, SubgraphAnalysis,
+    SubgraphStatistics, SubgraphType, SuggestedOperation,
 };
-use std::collections::{HashMap, HashSet};
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::visit::EdgeRef;
+use std::collections::{HashMap, HashSet};
 
 /// Service for analyzing subgraphs and providing insights
 pub struct SubgraphAnalyzer {
@@ -31,12 +29,16 @@ impl SubgraphAnalyzer {
         subgraph_nodes: &HashSet<NodeId>,
     ) -> SubgraphAnalysis {
         // Calculate basic statistics
-        let statistics = self.metrics_calculator.calculate_statistics(graph, subgraph_nodes);
+        let statistics = self
+            .metrics_calculator
+            .calculate_statistics(graph, subgraph_nodes);
 
         // Calculate quality metrics
         let cohesion_score = self.analyze_cohesion(graph, subgraph_nodes);
         let coupling_score = self.analyze_coupling(graph, subgraph_nodes);
-        let complexity_score = self.complexity_analyzer.calculate_complexity(graph, subgraph_nodes);
+        let complexity_score = self
+            .complexity_analyzer
+            .calculate_complexity(graph, subgraph_nodes);
 
         // Detect patterns and generate suggestions
         let suggested_operations = self.generate_suggestions(
@@ -135,11 +137,8 @@ impl SubgraphAnalyzer {
         let mut inter_connections = 0;
         for i in 0..subgraph_groups.len() {
             for j in (i + 1)..subgraph_groups.len() {
-                inter_connections += self.count_connections_between(
-                    graph,
-                    &subgraph_groups[i],
-                    &subgraph_groups[j],
-                );
+                inter_connections +=
+                    self.count_connections_between(graph, &subgraph_groups[i], &subgraph_groups[j]);
             }
         }
 
@@ -162,9 +161,7 @@ impl SubgraphAnalyzer {
     ) -> usize {
         let node_indices: HashMap<NodeId, NodeIndex> = graph
             .node_indices()
-            .filter_map(|idx| {
-                graph.node_weight(idx).map(|&node_id| (node_id, idx))
-            })
+            .filter_map(|idx| graph.node_weight(idx).map(|&node_id| (node_id, idx)))
             .collect();
 
         graph
@@ -172,9 +169,10 @@ impl SubgraphAnalyzer {
             .filter(|&edge_idx| {
                 if let Some((source_idx, target_idx)) = graph.edge_endpoints(edge_idx) {
                     if let (Some(&source_id), Some(&target_id)) =
-                        (graph.node_weight(source_idx), graph.node_weight(target_idx)) {
-                        return subgraph_nodes.contains(&source_id) &&
-                               subgraph_nodes.contains(&target_id);
+                        (graph.node_weight(source_idx), graph.node_weight(target_idx))
+                    {
+                        return subgraph_nodes.contains(&source_id)
+                            && subgraph_nodes.contains(&target_id);
                     }
                 }
                 false
@@ -192,7 +190,8 @@ impl SubgraphAnalyzer {
             .filter(|&edge_idx| {
                 if let Some((source_idx, target_idx)) = graph.edge_endpoints(edge_idx) {
                     if let (Some(&source_id), Some(&target_id)) =
-                        (graph.node_weight(source_idx), graph.node_weight(target_idx)) {
+                        (graph.node_weight(source_idx), graph.node_weight(target_idx))
+                    {
                         let source_in = subgraph_nodes.contains(&source_id);
                         let target_in = subgraph_nodes.contains(&target_id);
                         return source_in != target_in; // One in, one out
@@ -214,9 +213,10 @@ impl SubgraphAnalyzer {
             .filter(|&edge_idx| {
                 if let Some((source_idx, target_idx)) = graph.edge_endpoints(edge_idx) {
                     if let (Some(&source_id), Some(&target_id)) =
-                        (graph.node_weight(source_idx), graph.node_weight(target_idx)) {
-                        return (group1.contains(&source_id) && group2.contains(&target_id)) ||
-                               (group2.contains(&source_id) && group1.contains(&target_id));
+                        (graph.node_weight(source_idx), graph.node_weight(target_idx))
+                    {
+                        return (group1.contains(&source_id) && group2.contains(&target_id))
+                            || (group2.contains(&source_id) && group1.contains(&target_id));
                     }
                 }
                 false
@@ -277,7 +277,10 @@ impl SubgraphAnalyzer {
         }
 
         // Suggest refactoring based on patterns
-        if let Some(suggested_type) = self.pattern_detector.detect_type(statistics, cohesion_score) {
+        if let Some(suggested_type) = self
+            .pattern_detector
+            .detect_type(statistics, cohesion_score)
+        {
             suggestions.push(SuggestedOperation::Refactor {
                 reason: "Pattern analysis suggests different organization".to_string(),
                 suggested_type,
@@ -312,9 +315,7 @@ impl MetricsCalculator {
         // Create a mapping of NodeId to NodeIndex for efficient lookup
         let node_indices: HashMap<NodeId, NodeIndex> = graph
             .node_indices()
-            .filter_map(|idx| {
-                graph.node_weight(idx).map(|&node_id| (node_id, idx))
-            })
+            .filter_map(|idx| graph.node_weight(idx).map(|&node_id| (node_id, idx)))
             .collect();
 
         // Count edges and calculate degrees
@@ -355,11 +356,8 @@ impl MetricsCalculator {
         };
 
         // Calculate clustering coefficient (simplified)
-        let clustering_coefficient = self.calculate_clustering_coefficient(
-            graph,
-            subgraph_nodes,
-            &node_indices,
-        );
+        let clustering_coefficient =
+            self.calculate_clustering_coefficient(graph, subgraph_nodes, &node_indices);
 
         SubgraphStatistics {
             node_count,
@@ -401,8 +399,9 @@ impl MetricsCalculator {
 
                     for i in 0..neighbors.len() {
                         for j in (i + 1)..neighbors.len() {
-                            if graph.find_edge(neighbors[i], neighbors[j]).is_some() ||
-                               graph.find_edge(neighbors[j], neighbors[i]).is_some() {
+                            if graph.find_edge(neighbors[i], neighbors[j]).is_some()
+                                || graph.find_edge(neighbors[j], neighbors[i]).is_some()
+                            {
                                 neighbor_connections += 1;
                             }
                         }
@@ -491,9 +490,10 @@ impl ComplexityAnalyzer {
             .filter(|&edge_idx| {
                 if let Some((source_idx, target_idx)) = graph.edge_endpoints(edge_idx) {
                     if let (Some(&source_id), Some(&target_id)) =
-                        (graph.node_weight(source_idx), graph.node_weight(target_idx)) {
-                        return subgraph_nodes.contains(&source_id) ||
-                               subgraph_nodes.contains(&target_id);
+                        (graph.node_weight(source_idx), graph.node_weight(target_idx))
+                    {
+                        return subgraph_nodes.contains(&source_id)
+                            || subgraph_nodes.contains(&target_id);
                     }
                 }
                 false

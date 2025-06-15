@@ -1,11 +1,11 @@
 //! Graph visualization systems
 
-use bevy::prelude::*;
-use tracing::info;
-use crate::presentation::components::{GraphNode, GraphEdge};
+use super::event_animation::{GraphCommand, ScheduledCommand};
 use crate::domain::value_objects::NodeId;
-use super::event_animation::{ScheduledCommand, GraphCommand};
+use crate::presentation::components::{GraphEdge, GraphNode};
+use bevy::prelude::*;
 use std::time::Duration;
+use tracing::info;
 
 /// Setup 3D scene with camera and lighting
 pub fn setup_3d_scene(mut commands: Commands) {

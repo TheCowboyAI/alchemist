@@ -20,9 +20,15 @@ impl RuleContextHandler {
         }
     }
 
-    pub async fn handle_command(&self, command: RuleContextCommand) -> Result<Vec<DomainEvent>, String> {
+    pub async fn handle_command(
+        &self,
+        command: RuleContextCommand,
+    ) -> Result<Vec<DomainEvent>, String> {
         match command {
-            RuleContextCommand::CreateRuleContext { name, domain_context } => {
+            RuleContextCommand::CreateRuleContext {
+                name,
+                domain_context,
+            } => {
                 let context_id = RuleContextId::new();
                 let context = RuleContext::new(name.clone(), domain_context);
 
@@ -35,7 +41,8 @@ impl RuleContextHandler {
                     domain_context: domain_context.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
@@ -44,7 +51,8 @@ impl RuleContextHandler {
 
             RuleContextCommand::AddRule { context_id, rule } => {
                 let mut contexts = self.contexts.write().await;
-                let context = contexts.get_mut(&context_id)
+                let context = contexts
+                    .get_mut(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 context.add_rule(rule.clone())?;
@@ -54,16 +62,21 @@ impl RuleContextHandler {
                     rule: rule.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            RuleContextCommand::RemoveRule { context_id, rule_id } => {
+            RuleContextCommand::RemoveRule {
+                context_id,
+                rule_id,
+            } => {
                 let mut contexts = self.contexts.write().await;
-                let context = contexts.get_mut(&context_id)
+                let context = contexts
+                    .get_mut(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 context.remove_rule(rule_id)?;
@@ -73,19 +86,27 @@ impl RuleContextHandler {
                     rule_id,
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            RuleContextCommand::SetRuleEnabled { context_id, rule_id, enabled } => {
+            RuleContextCommand::SetRuleEnabled {
+                context_id,
+                rule_id,
+                enabled,
+            } => {
                 let mut contexts = self.contexts.write().await;
-                let context = contexts.get_mut(&context_id)
+                let context = contexts
+                    .get_mut(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
-                let rule = context.rules.get_mut(&rule_id)
+                let rule = context
+                    .rules
+                    .get_mut(&rule_id)
                     .ok_or_else(|| "Rule not found".to_string())?;
 
                 rule.enabled = enabled;
@@ -96,16 +117,22 @@ impl RuleContextHandler {
                     enabled,
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            RuleContextCommand::EvaluateRules { context_id, concept_id, facts } => {
+            RuleContextCommand::EvaluateRules {
+                context_id,
+                concept_id,
+                facts,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 let evaluation = context.evaluate(concept_id, &facts)?;
@@ -115,16 +142,22 @@ impl RuleContextHandler {
                     evaluation,
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            RuleContextCommand::CheckCompliance { context_id, concept_id, facts } => {
+            RuleContextCommand::CheckCompliance {
+                context_id,
+                concept_id,
+                facts,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 let result = context.check_compliance(concept_id, &facts);
@@ -134,7 +167,8 @@ impl RuleContextHandler {
                     result: result.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
@@ -143,7 +177,8 @@ impl RuleContextHandler {
 
             RuleContextCommand::InferFacts { context_id, facts } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 let inferred = context.infer_facts(&facts)?;
@@ -153,16 +188,21 @@ impl RuleContextHandler {
                     inferred_facts: inferred.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            RuleContextCommand::AnalyzeImpact { context_id, fact_change } => {
+            RuleContextCommand::AnalyzeImpact {
+                context_id,
+                fact_change,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 let affected_rules = context.analyze_impact(&fact_change);
@@ -173,19 +213,27 @@ impl RuleContextHandler {
                     fact_type: fact_change.fact_type.clone(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            RuleContextCommand::UpdateRulePriority { context_id, rule_id, new_priority } => {
+            RuleContextCommand::UpdateRulePriority {
+                context_id,
+                rule_id,
+                new_priority,
+            } => {
                 let mut contexts = self.contexts.write().await;
-                let context = contexts.get_mut(&context_id)
+                let context = contexts
+                    .get_mut(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
-                let rule = context.rules.get_mut(&rule_id)
+                let rule = context
+                    .rules
+                    .get_mut(&rule_id)
                     .ok_or_else(|| "Rule not found".to_string())?;
 
                 let old_priority = rule.priority;
@@ -201,7 +249,12 @@ impl RuleContextHandler {
                 Ok(vec![DomainEvent::RuleContext(event)])
             }
 
-            RuleContextCommand::AddFact { context_id, concept_id, fact_type, value } => {
+            RuleContextCommand::AddFact {
+                context_id,
+                concept_id,
+                fact_type,
+                value,
+            } => {
                 let event = RuleContextEvent::FactAdded {
                     context_id,
                     concept_id,
@@ -212,7 +265,11 @@ impl RuleContextHandler {
                 Ok(vec![DomainEvent::RuleContext(event)])
             }
 
-            RuleContextCommand::RemoveFact { context_id, concept_id, fact_type } => {
+            RuleContextCommand::RemoveFact {
+                context_id,
+                concept_id,
+                fact_type,
+            } => {
                 let event = RuleContextEvent::FactRemoved {
                     context_id,
                     concept_id,
@@ -222,16 +279,25 @@ impl RuleContextHandler {
                 Ok(vec![DomainEvent::RuleContext(event)])
             }
 
-            RuleContextCommand::ExecuteRuleActions { context_id, rule_id, concept_id } => {
+            RuleContextCommand::ExecuteRuleActions {
+                context_id,
+                rule_id,
+                concept_id,
+            } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
-                let rule = context.rules.get(&rule_id)
+                let rule = context
+                    .rules
+                    .get(&rule_id)
                     .ok_or_else(|| "Rule not found".to_string())?;
 
                 // Execute actions (simplified)
-                let actions_performed: Vec<String> = rule.actions.iter()
+                let actions_performed: Vec<String> = rule
+                    .actions
+                    .iter()
                     .map(|action| format!("{:?}", action))
                     .collect();
 
@@ -247,7 +313,8 @@ impl RuleContextHandler {
 
             RuleContextCommand::ValidateRules { context_id } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 // Validate rules (simplified)
@@ -263,7 +330,8 @@ impl RuleContextHandler {
 
             RuleContextCommand::ExportRules { context_id, format } => {
                 let contexts = self.contexts.read().await;
-                let context = contexts.get(&context_id)
+                let context = contexts
+                    .get(&context_id)
                     .ok_or_else(|| "Rule context not found".to_string())?;
 
                 let event = DomainEvent::RuleContext(RuleContextEvent::RulesExported {
@@ -272,14 +340,19 @@ impl RuleContextHandler {
                     rule_count: context.rules.len(),
                 });
 
-                self.event_store.append_events(context_id.to_string(), vec![event.clone()])
+                self.event_store
+                    .append_events(context_id.to_string(), vec![event.clone()])
                     .await
                     .map_err(|e| e.to_string())?;
 
                 Ok(vec![event])
             }
 
-            RuleContextCommand::ImportRules { context_id, rules_data: _, format } => {
+            RuleContextCommand::ImportRules {
+                context_id,
+                rules_data: _,
+                format,
+            } => {
                 // Import rules (simplified)
                 let imported_count = 0;
                 let failed_count = 0;

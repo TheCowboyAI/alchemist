@@ -5,16 +5,16 @@ use std::time::SystemTime;
 use thiserror::Error;
 use uuid::Uuid;
 
-mod local;
 pub mod distributed;
 pub mod distributed_impl;
+mod local;
 pub mod memory;
 
 use local::LocalEventStore;
 
 // Re-export the new implementation as the primary one
-pub use distributed_impl::DistributedEventStore;
 pub use distributed::{DistributedEventStoreConfig, EventStoreStats};
+pub use distributed_impl::DistributedEventStore;
 pub use memory::InMemoryEventStore;
 
 use crate::domain::events::DomainEvent;
@@ -128,7 +128,11 @@ pub fn get_aggregate_events(aggregate_id: GraphId) -> Vec<EventEnvelope> {
 #[async_trait]
 pub trait EventStore: Send + Sync {
     /// Append events to the store for a specific aggregate
-    async fn append_events(&self, aggregate_id: String, events: Vec<DomainEvent>) -> Result<(), EventStoreError>;
+    async fn append_events(
+        &self,
+        aggregate_id: String,
+        events: Vec<DomainEvent>,
+    ) -> Result<(), EventStoreError>;
 
     /// Get all events for an aggregate
     async fn get_events(&self, aggregate_id: String) -> Result<Vec<DomainEvent>, EventStoreError>;

@@ -47,7 +47,7 @@ pkgs.rustPlatform.buildRustPackage rec {
   # Disable patchelf initially to preserve RPATH
   dontPatchELF = true;
 
-    # Install phase to copy assets
+  # Install phase to copy assets
   postInstall = ''
     # Copy assets if they exist
     if [ -d assets ]; then
@@ -56,7 +56,7 @@ pkgs.rustPlatform.buildRustPackage rec {
     fi
   '';
 
-      # Post-fixup phase to manually patch RPATH and wrap binaries
+  # Post-fixup phase to manually patch RPATH and wrap binaries
   postFixup = ''
     # Add necessary libraries to RPATH
     for bin in $out/bin/*; do

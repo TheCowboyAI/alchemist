@@ -3,8 +3,8 @@
 use bevy::prelude::*;
 use ia::application::{CommandEvent, EventNotification};
 use ia::domain::{
-    commands::{Command, GraphCommand, ImportSource, ImportOptions},
     commands::graph_commands::MergeBehavior,
+    commands::{Command, GraphCommand, ImportOptions, ImportSource},
     events::{DomainEvent, GraphEvent, NodeEvent},
     value_objects::{GraphId, NodeId},
 };
@@ -22,10 +22,14 @@ fn test_import_graph_full_flow() {
     app.add_event::<EventNotification>();
 
     // Add the systems we need
-    app.add_systems(Update, (
-        ia::application::command_handlers::process_commands,
-        process_graph_import_requests,
-    ).chain());
+    app.add_systems(
+        Update,
+        (
+            ia::application::command_handlers::process_commands,
+            process_graph_import_requests,
+        )
+            .chain(),
+    );
 
     // Create test content
     let test_content = r#"{
@@ -72,7 +76,11 @@ fn test_import_graph_full_flow() {
     // 1. GraphImportRequested event (from command handler)
     // 2. NodeAdded event (from import processor)
     // 3. GraphImportCompleted event (from import processor)
-    assert!(event_count >= 3, "Expected at least 3 events, got {}", event_count);
+    assert!(
+        event_count >= 3,
+        "Expected at least 3 events, got {}",
+        event_count
+    );
 }
 
 #[test]
@@ -98,10 +106,14 @@ fn test_import_with_edges() {
     app.add_event::<CommandEvent>();
     app.add_event::<EventNotification>();
 
-    app.add_systems(Update, (
-        ia::application::command_handlers::process_commands,
-        process_graph_import_requests,
-    ).chain());
+    app.add_systems(
+        Update,
+        (
+            ia::application::command_handlers::process_commands,
+            process_graph_import_requests,
+        )
+            .chain(),
+    );
 
     // Create test content with edges
     let test_content = r#"{
@@ -165,15 +177,21 @@ fn test_import_with_edges() {
     // 3. NodeAdded for node2
     // 4. EdgeConnected for edge1
     // 5. GraphImportCompleted
-    assert!(generated_events.len() >= 5, "Expected at least 5 events, got {}", generated_events.len());
+    assert!(
+        generated_events.len() >= 5,
+        "Expected at least 5 events, got {}",
+        generated_events.len()
+    );
 
     // Count event types
-    let node_added_count = generated_events.iter()
+    let node_added_count = generated_events
+        .iter()
         .filter(|e| matches!(&e.event, DomainEvent::Node(NodeEvent::NodeAdded { .. })))
         .count();
     assert_eq!(node_added_count, 2, "Expected 2 NodeAdded events");
 
-    let edge_connected_count = generated_events.iter()
+    let edge_connected_count = generated_events
+        .iter()
         .filter(|e| matches!(&e.event, DomainEvent::Edge(_)))
         .count();
     assert_eq!(edge_connected_count, 1, "Expected 1 EdgeConnected event");
@@ -187,12 +205,12 @@ fn test_complete_import_to_render_pipeline() {
     // Expected Behavior: Import command → events → Bevy entities with all required components
 
     use bevy::app::App;
-    use ia::presentation::plugins::GraphEditorPlugin;
-    use ia::presentation::components::{GraphNode, GraphEdge, NodeLabel};
-    use ia::application::CommandEvent;
-    use ia::domain::commands::{Command, GraphCommand, ImportSource, ImportOptions};
-    use ia::domain::value_objects::GraphId;
     use bevy::prelude::*;
+    use ia::application::CommandEvent;
+    use ia::domain::commands::{Command, GraphCommand, ImportOptions, ImportSource};
+    use ia::domain::value_objects::GraphId;
+    use ia::presentation::components::{GraphEdge, GraphNode, NodeLabel};
+    use ia::presentation::plugins::GraphEditorPlugin;
 
     // Set headless mode
     unsafe {
@@ -203,10 +221,7 @@ fn test_complete_import_to_render_pipeline() {
     let mut app = App::new();
 
     // Add minimal plugins needed for rendering
-    app.add_plugins((
-        bevy::MinimalPlugins,
-        bevy::asset::AssetPlugin::default(),
-    ));
+    app.add_plugins((bevy::MinimalPlugins, bevy::asset::AssetPlugin::default()));
 
     // Add our graph editor plugin
     app.add_plugins(GraphEditorPlugin);
@@ -262,38 +277,54 @@ fn test_complete_import_to_render_pipeline() {
     }
 
     // Then - Verify nodes were created with all required components
-    let nodes_with_components: Vec<_> = app.world_mut()
+    let nodes_with_components: Vec<_> = app
+        .world_mut()
         .query::<(&GraphNode, &Transform, &NodeLabel)>()
         .iter(&app.world())
         .collect();
 
-    assert_eq!(nodes_with_components.len(), 2,
+    assert_eq!(
+        nodes_with_components.len(),
+        2,
         "Should have created 2 nodes with all visual components, but found {}",
-        nodes_with_components.len());
+        nodes_with_components.len()
+    );
 
     // Verify node labels
-    let labels: Vec<String> = nodes_with_components.iter()
+    let labels: Vec<String> = nodes_with_components
+        .iter()
         .map(|(_, _, label)| label.text.clone())
         .collect();
 
-    assert!(labels.contains(&"Node One".to_string()), "Should have Node One");
-    assert!(labels.contains(&"Node Two".to_string()), "Should have Node Two");
+    assert!(
+        labels.contains(&"Node One".to_string()),
+        "Should have Node One"
+    );
+    assert!(
+        labels.contains(&"Node Two".to_string()),
+        "Should have Node Two"
+    );
 
     // Verify edges were created
-    let edges: Vec<_> = app.world_mut()
+    let edges: Vec<_> = app
+        .world_mut()
         .query::<(&GraphEdge, &Transform)>()
         .iter(&app.world())
         .collect();
 
-    assert_eq!(edges.len(), 1,
+    assert_eq!(
+        edges.len(),
+        1,
         "Should have created 1 edge with visual components, but found {}",
-        edges.len());
+        edges.len()
+    );
 
     // Verify the edge connects the right nodes
     let (edge, _) = &edges[0];
 
     // Collect node entities first to avoid borrow issues
-    let node_entities: Vec<(Entity, NodeId)> = app.world()
+    let node_entities: Vec<(Entity, NodeId)> = app
+        .world()
         .query::<(Entity, &GraphNode)>()
         .iter(&app.world())
         .map(|(e, node)| (e, node.node_id))
@@ -305,8 +336,14 @@ fn test_complete_import_to_render_pipeline() {
     let source_exists = node_entities.iter().any(|(e, _)| *e == edge.source);
     let target_exists = node_entities.iter().any(|(e, _)| *e == edge.target);
 
-    assert!(source_exists, "Edge source should reference a valid node entity");
-    assert!(target_exists, "Edge target should reference a valid node entity");
+    assert!(
+        source_exists,
+        "Edge source should reference a valid node entity"
+    );
+    assert!(
+        target_exists,
+        "Edge target should reference a valid node entity"
+    );
 }
 
 #[test]
@@ -317,12 +354,12 @@ fn test_import_mermaid_to_render_pipeline() {
     // Expected Behavior: Mermaid text → parsed → events → rendered entities
 
     use bevy::app::App;
-    use ia::presentation::plugins::GraphEditorPlugin;
-    use ia::presentation::components::GraphNode;
-    use ia::application::CommandEvent;
-    use ia::domain::commands::{Command, GraphCommand, ImportSource, ImportOptions};
-    use ia::domain::value_objects::GraphId;
     use bevy::prelude::*;
+    use ia::application::CommandEvent;
+    use ia::domain::commands::{Command, GraphCommand, ImportOptions, ImportSource};
+    use ia::domain::value_objects::GraphId;
+    use ia::presentation::components::GraphNode;
+    use ia::presentation::plugins::GraphEditorPlugin;
 
     // Set headless mode
     unsafe {
@@ -332,10 +369,7 @@ fn test_import_mermaid_to_render_pipeline() {
     // Given - A full Bevy app
     let mut app = App::new();
 
-    app.add_plugins((
-        bevy::MinimalPlugins,
-        bevy::asset::AssetPlugin::default(),
-    ));
+    app.add_plugins((bevy::MinimalPlugins, bevy::asset::AssetPlugin::default()));
 
     app.add_plugins(GraphEditorPlugin);
     app.add_event::<CommandEvent>();
@@ -367,12 +401,16 @@ graph TD
     }
 
     // Then - Verify rendering
-    let nodes: Vec<_> = app.world_mut()
+    let nodes: Vec<_> = app
+        .world_mut()
         .query::<&GraphNode>()
         .iter(&app.world())
         .collect();
 
-    assert_eq!(nodes.len(), 4,
+    assert_eq!(
+        nodes.len(),
+        4,
         "Mermaid diagram should create 4 nodes (A, B, C, D), but found {}",
-        nodes.len());
+        nodes.len()
+    );
 }

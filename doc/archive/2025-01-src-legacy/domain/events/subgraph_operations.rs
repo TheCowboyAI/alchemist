@@ -1,10 +1,8 @@
-use serde::{Deserialize, Serialize};
 use crate::domain::value_objects::{
-    GraphId, SubgraphId, NodeId, Position3D,
-    SubgraphState, LayoutStrategy, MergeStrategy, SplitCriteria,
-    SubgraphType, SubgraphMetadata, SubgraphStyle, CollapseStrategy,
-    SubgraphAnalysis,
+    CollapseStrategy, GraphId, LayoutStrategy, MergeStrategy, NodeId, Position3D, SplitCriteria,
+    SubgraphAnalysis, SubgraphId, SubgraphMetadata, SubgraphState, SubgraphStyle, SubgraphType,
 };
+use serde::{Deserialize, Serialize};
 
 /// Events related to subgraph operations
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -216,8 +214,12 @@ impl SubgraphOperationEvent {
         match self {
             Self::SubgraphCollapsed { subgraph_id, .. } => Some(*subgraph_id),
             Self::SubgraphExpanded { subgraph_id, .. } => Some(*subgraph_id),
-            Self::SubgraphsMerged { target_subgraph, .. } => Some(*target_subgraph),
-            Self::SubgraphSplit { source_subgraph, .. } => Some(*source_subgraph),
+            Self::SubgraphsMerged {
+                target_subgraph, ..
+            } => Some(*target_subgraph),
+            Self::SubgraphSplit {
+                source_subgraph, ..
+            } => Some(*source_subgraph),
             Self::SubgraphTransitionStarted { subgraph_id, .. } => Some(*subgraph_id),
             Self::SubgraphTransitionCompleted { subgraph_id, .. } => Some(*subgraph_id),
             Self::SubgraphMetadataUpdated { subgraph_id, .. } => Some(*subgraph_id),
@@ -226,8 +228,12 @@ impl SubgraphOperationEvent {
             Self::SubgraphAnalyzed { subgraph_id, .. } => Some(*subgraph_id),
             Self::NodesGroupedIntoSubgraph { subgraph_id, .. } => Some(*subgraph_id),
             Self::SubgraphUngrouped { subgraph_id, .. } => Some(*subgraph_id),
-            Self::SubgraphHierarchyEstablished { parent_subgraph, .. } => Some(*parent_subgraph),
-            Self::SubgraphHierarchyRemoved { parent_subgraph, .. } => Some(*parent_subgraph),
+            Self::SubgraphHierarchyEstablished {
+                parent_subgraph, ..
+            } => Some(*parent_subgraph),
+            Self::SubgraphHierarchyRemoved {
+                parent_subgraph, ..
+            } => Some(*parent_subgraph),
             Self::SubgraphLayoutRecalculated { subgraph_id, .. } => Some(*subgraph_id),
             Self::SubgraphBoundaryUpdated { subgraph_id, .. } => Some(*subgraph_id),
         }

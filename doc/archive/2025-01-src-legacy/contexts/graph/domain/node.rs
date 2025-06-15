@@ -4,8 +4,8 @@
 //! They have no identity outside of their containing graph.
 
 use crate::shared::types::NodeId;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 /// Node data within a graph
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

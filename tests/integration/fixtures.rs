@@ -1,7 +1,7 @@
 //! Test fixtures and helpers for integration tests
 
 use async_nats::jetstream;
-use cim_domain::{DomainResult, DomainError, DomainEvent};
+use cim_domain::{DomainError, DomainEvent, DomainResult};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -81,8 +81,8 @@ impl TestEventStore {
 
 /// Create a test graph aggregate
 pub fn create_test_graph() -> cim_domain_graph::GraphAggregate {
-    use cim_domain_graph::{GraphAggregate, GraphType};
     use cim_domain::GraphId;
+    use cim_domain_graph::{GraphAggregate, GraphType};
 
     GraphAggregate::new(
         GraphId::new(),
@@ -93,8 +93,8 @@ pub fn create_test_graph() -> cim_domain_graph::GraphAggregate {
 
 /// Create test node
 pub fn create_test_node() -> cim_domain_graph::Node {
-    use cim_domain_graph::{Node, NodeType};
     use cim_domain::NodeId;
+    use cim_domain_graph::{Node, NodeType};
 
     Node::new(
         NodeId::new(),

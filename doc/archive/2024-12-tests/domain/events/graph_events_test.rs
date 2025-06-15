@@ -14,12 +14,15 @@ fn test_graph_created_event() {
     // When
     let event = GraphEvent::GraphCreated {
         id,
-        metadata: metadata.clone()
+        metadata: metadata.clone(),
     };
 
     // Then
     match event {
-        GraphEvent::GraphCreated { id: event_id, metadata: event_metadata } => {
+        GraphEvent::GraphCreated {
+            id: event_id,
+            metadata: event_metadata,
+        } => {
             assert_eq!(event_id, id);
             assert_eq!(event_metadata.name, metadata.name);
         }
@@ -38,7 +41,7 @@ fn test_graph_renamed_event() {
     let event = GraphEvent::GraphRenamed {
         id,
         old_name: old_name.clone(),
-        new_name: new_name.clone()
+        new_name: new_name.clone(),
     };
 
     // Then
@@ -46,7 +49,7 @@ fn test_graph_renamed_event() {
         GraphEvent::GraphRenamed {
             id: event_id,
             old_name: event_old,
-            new_name: event_new
+            new_name: event_new,
         } => {
             assert_eq!(event_id, id);
             assert_eq!(event_old, old_name);
@@ -65,12 +68,15 @@ fn test_graph_tagged_event() {
     // When
     let event = GraphEvent::GraphTagged {
         id,
-        tag: tag.clone()
+        tag: tag.clone(),
     };
 
     // Then
     match event {
-        GraphEvent::GraphTagged { id: event_id, tag: event_tag } => {
+        GraphEvent::GraphTagged {
+            id: event_id,
+            tag: event_tag,
+        } => {
             assert_eq!(event_id, id);
             assert_eq!(event_tag, tag);
         }
@@ -87,12 +93,15 @@ fn test_graph_untagged_event() {
     // When
     let event = GraphEvent::GraphUntagged {
         id,
-        tag: tag.clone()
+        tag: tag.clone(),
     };
 
     // Then
     match event {
-        GraphEvent::GraphUntagged { id: event_id, tag: event_tag } => {
+        GraphEvent::GraphUntagged {
+            id: event_id,
+            tag: event_tag,
+        } => {
             assert_eq!(event_id, id);
             assert_eq!(event_tag, tag);
         }
@@ -123,7 +132,7 @@ fn test_domain_event_wrapping() {
     let id = GraphId::new();
     let graph_event = GraphEvent::GraphCreated {
         id,
-        metadata: GraphMetadata::new("Test".to_string())
+        metadata: GraphMetadata::new("Test".to_string()),
     };
 
     // When
@@ -144,7 +153,7 @@ fn test_event_serialization() {
     let id = GraphId::new();
     let event = GraphEvent::GraphCreated {
         id,
-        metadata: GraphMetadata::new("Serializable".to_string())
+        metadata: GraphMetadata::new("Serializable".to_string()),
     };
     let domain_event = DomainEvent::Graph(event);
 
@@ -154,7 +163,10 @@ fn test_event_serialization() {
 
     // Then
     match deserialized {
-        DomainEvent::Graph(GraphEvent::GraphCreated { id: event_id, metadata }) => {
+        DomainEvent::Graph(GraphEvent::GraphCreated {
+            id: event_id,
+            metadata,
+        }) => {
             assert_eq!(event_id, id);
             assert_eq!(metadata.name, "Serializable");
         }
@@ -201,11 +213,11 @@ fn test_event_equality() {
     // When
     let event1 = GraphEvent::GraphCreated {
         id,
-        metadata: metadata.clone()
+        metadata: metadata.clone(),
     };
     let event2 = GraphEvent::GraphCreated {
         id,
-        metadata: metadata.clone()
+        metadata: metadata.clone(),
     };
 
     // Then - events with same data should be equal

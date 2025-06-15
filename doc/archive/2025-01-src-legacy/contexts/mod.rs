@@ -4,7 +4,7 @@
 //! application services, and infrastructure. All contexts are independent
 //! of the presentation layer (Bevy).
 
-pub mod graph;  // Foundation context for all graphs
+pub mod graph; // Foundation context for all graphs
 
 // Future contexts will be added here:
 // pub mod ddd;        // DDD modeling context
