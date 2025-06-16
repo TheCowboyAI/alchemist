@@ -42,6 +42,7 @@ pkgs.mkShell {
     libgpg-error      # GPG error handling library
     nettle            # Low-level cryptographic library
     gmp               # GNU Multiple Precision Arithmetic Library (required by nettle)
+    libclang          # For bindgen support
 
     # Development tools
     rust-analyzer
@@ -110,7 +111,7 @@ pkgs.mkShell {
   ];
 
   # Clang configuration for bindgen
-  LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+  LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
 
   # Disable experimental features that might cause issues
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
