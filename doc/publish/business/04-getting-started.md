@@ -23,7 +23,7 @@ graph LR
 
 **Good First Projects:**
 - Customer journey mapping for a single product line
-- Supply chain visualization for your top 10 SKUs
+- Supply chain visualization for your top SKUs
 - Sales team performance and relationship networks
 - Single department process optimization
 
@@ -232,7 +232,7 @@ sequenceDiagram
 **Week 2**: Visualize customer networks
 **Week 3**: Identify influencer customers
 **Week 4**: Launch referral program
-**Result**: 30% increase in referral sales
+**Result**: Improved referral program effectiveness
 
 ### Scenario 2: Operations Director
 **Goal**: Optimize supply chain efficiency
@@ -241,7 +241,7 @@ sequenceDiagram
 **Week 2**: Map supplier networks
 **Week 3**: Identify bottlenecks
 **Week 4**: Restructure routing
-**Result**: 20% reduction in delivery times
+**Result**: Enhanced delivery performance
 
 ### Scenario 3: Marketing VP
 **Goal**: Improve campaign effectiveness
@@ -250,7 +250,7 @@ sequenceDiagram
 **Week 2**: Visualize customer journey
 **Week 3**: Find drop-off points
 **Week 4**: Redesign touchpoints
-**Result**: 45% improvement in conversion
+**Result**: Improved conversion rates
 
 ## Best Practices for Success
 
@@ -271,7 +271,7 @@ sequenceDiagram
 ## Support Resources
 
 ### Training Options
-1. **Quick Start Videos**: 30-minute overview
+1. **Quick Start Videos**: Overview sessions
 2. **Interactive Tutorials**: Hands-on learning
 3. **Weekly Webinars**: Tips and tricks
 4. **User Community**: Share experiences
@@ -317,4 +317,4 @@ Remember: The goal isn't to create perfect visualizations—it's to uncover insi
 
 ---
 
-*Start your free trial today and see your business in a whole new light.*
+*Start your journey today and see your business in a whole new light.*
