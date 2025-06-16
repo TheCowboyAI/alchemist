@@ -109,6 +109,9 @@ pkgs.mkShell {
     pkgs.gmp
   ];
 
+  # Clang configuration for bindgen
+  LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+
   # Disable experimental features that might cause issues
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
 }
