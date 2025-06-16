@@ -1,0 +1,113 @@
+name: Bug Report
+description: Report a bug to help us improve Information Alchemist
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible to help us resolve the issue quickly.
+        
+        **Note**: For security vulnerabilities, please follow our [Security Policy](../../SECURITY.md) instead of creating a public issue.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen instead?
+      placeholder: Tell us what you expected!
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain-context
+    attributes:
+      label: Domain Context
+      description: Which domain context is this bug related to?
+      options:
+        - Graph Visualization (cim-domain-graph)
+        - Agent Management (cim-domain-agent)
+        - Conceptual Spaces (cim-domain-conceptualspaces)
+        - Document Management (cim-domain-document)
+        - Git Integration (cim-domain-git)
+        - NIX Integration (cim-domain-nix)
+        - Policy Management (cim-domain-policy)
+        - Workflow Management (cim-domain-workflow)
+        - Infrastructure (cim-infrastructure)
+        - Presentation Layer (Bevy UI)
+        - NATS Messaging
+        - Other/Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Information
+      description: |
+        Please provide your environment details:
+      value: |
+        - OS: [e.g., NixOS 23.11, Ubuntu 22.04, macOS 14]
+        - Rust Version: [e.g., 1.75.0]
+        - Alchemist Version: [e.g., main branch commit hash]
+        - Build Method: [nix build/nix run, cargo build, etc.]
+        - Graphics: [e.g., NVIDIA RTX 4080, integrated Intel, etc.]
+        - NATS Server Version: [if applicable]
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output
+      description: |
+        Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+        
+        For verbose logging, run with `RUST_LOG=debug` or `RUST_LOG=trace`.
+      render: shell
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Add any other context about the problem here, such as:
+        - Screenshots or videos
+        - Configuration files
+        - Related issues
+        - Potential workarounds you've tried
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Contribution Agreement
+      description: By submitting this issue, you agree to our terms
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have read the [Code of Conduct](../CODE_OF_CONDUCT.md)
+          required: true
+        - label: I am willing to help test a fix for this issue
+          required: false 

@@ -42,9 +42,9 @@ with pkgs; [
   openssl
 
   # Cryptographic and smart card support for cim-keys
-  pcsclite          # PC/SC smart card interface for YubiKey
-  gpgme             # GPG Made Easy library
-  libgpg-error      # GPG error handling library
-  nettle            # Low-level cryptographic library
-  gmp               # GNU Multiple Precision Arithmetic Library (required by nettle)
+  pcsclite # PC/SC smart card interface for YubiKey
+  gpgme # GPG Made Easy library
+  libgpg-error # GPG error handling library
+  nettle.dev # Low-level cryptographic library with development headers
+  gmp.dev # GNU Multiple Precision Arithmetic Library (required by nettle) with dev headers
 ]

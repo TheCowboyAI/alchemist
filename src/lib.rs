@@ -33,14 +33,14 @@ pub use cim_domain_workflow;
 
 // Re-export infrastructure
 pub use cim_ipld;
-pub use cim_subject;
 pub use cim_keys;
+pub use cim_subject;
 
 // Re-export graph modules
 pub use cim_compose;
 pub use cim_contextgraph;
-pub use cim_workflow_graph;
 pub use cim_ipld_graph;
+pub use cim_workflow_graph;
 
 /// Prelude module for convenient imports
 pub mod prelude {

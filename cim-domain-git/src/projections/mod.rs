@@ -8,4 +8,4 @@
 // - CommitHistoryProjection
 // - BranchStatusProjection
 // - FileChangeProjection
-// etc. 
+// etc.

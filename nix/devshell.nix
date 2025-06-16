@@ -37,12 +37,12 @@ pkgs.mkShell {
     openssl
 
     # Cryptographic and smart card support for cim-keys
-    pcsclite          # PC/SC smart card interface for YubiKey
-    gpgme             # GPG Made Easy library
-    libgpg-error      # GPG error handling library
-    nettle            # Low-level cryptographic library
-    gmp               # GNU Multiple Precision Arithmetic Library (required by nettle)
-    libclang          # For bindgen support
+    pcsclite # PC/SC smart card interface for YubiKey
+    gpgme # GPG Made Easy library
+    libgpg-error # GPG error handling library
+    nettle # Low-level cryptographic library
+    gmp # GNU Multiple Precision Arithmetic Library (required by nettle)
+    libclang # For bindgen support
 
     # Development tools
     rust-analyzer

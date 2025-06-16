@@ -1,11 +1,11 @@
-# Information Alchemist
+# Alchemist - Composable Information Machine
 
 ![The Alchemist](./alchemist.webp)
 > "A person who transforms or creates something through a seemingly magical process."
 
 ## Visual Intelligence for the Composable Information Machine
 
-Information Alchemist is a powerful 3D-capable graph visualization and editing system that serves as the primary user interface for the Composable Information Machine (CIM). It transforms complex data relationships into intuitive, interactive visual spaces where information comes alive.
+Alchemist is a powerful 3D-capable graph visualization and editing system that serves as the primary user interface for the Composable Information Machine (CIM). It transforms complex data relationships into intuitive, interactive visual spaces where information comes alive.
 
 ### 🚀 Key Features
 
@@ -20,7 +20,7 @@ Information Alchemist is a powerful 3D-capable graph visualization and editing s
 ## 📚 Documentation
 
 ### [Business Documentation](doc/publish/business/)
-For business leaders and decision makers - understand how Information Alchemist transforms your business through visual intelligence.
+For business leaders and decision makers - understand how Alchemist transforms your business through visual intelligence.
 
 ### [Technical Documentation](doc/publish/technical/)
 For developers and technical implementers - comprehensive guides on architecture, integration, and extension.
@@ -30,7 +30,7 @@ Detailed requirements documentation and implementation roadmap.
 
 ## 🏗️ Architecture Overview
 
-Information Alchemist is built on three foundational models:
+Alchemist is built on three foundational models:
 
 ### Mathematical Model
 Using Applied Category Theory to define and model information relationships:
@@ -74,8 +74,8 @@ Domains provide boundaries and meaning to our ECS worlds:
 
 ```bash
 # Clone the repository
-git clone https://github.com/thecowboyai/information-alchemist
-cd ia
+git clone https://github.com/TheCowboyAI/alchemist
+cd alchemist
 
 # Using Nix (recommended)
 nix develop
@@ -115,7 +115,7 @@ This project uses Nix for reproducible builds and development environments.
 
 ## 🔌 Integration
 
-Information Alchemist integrates seamlessly with the CIM backend through:
+Alchemist integrates seamlessly with the CIM backend through:
 
 - **NATS JetStream**: Real-time event streaming
 - **GraphQL**: Flexible data queries
@@ -124,19 +124,21 @@ Information Alchemist integrates seamlessly with the CIM backend through:
 
 ## 🚦 Project Status
 
-Information Alchemist is under active development. Current focus areas:
+Alchemist is under active development. Current focus areas:
 
-- [ ] Core graph engine implementation
+- [x] Core graph engine implementation
+- [x] Event system integration
+- [x] Domain-driven architecture
 - [ ] 3D rendering pipeline
-- [ ] Event system integration
 - [ ] WASM plugin architecture
 - [ ] AI agent integration
 - [ ] Performance optimization
 
-
 ## 📄 License
 
-Information Alchemist is part of the Composable Information Machine ecosystem. See [LICENSE](LICENSE) for details.
+Copyright (c) 2025 Cowboy AI, LLC
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -148,9 +150,9 @@ Built with:
 
 ---
 
-**Information Alchemist**: Where data becomes understanding through the magic of visualization.
+**Alchemist**: Where data becomes understanding through the magic of visualization.
 
-*Part of the [Composable Information Machine](https://github.com/thecowboyai/CIM) project*
+*Part of the [Composable Information Machine](https://github.com/TheCowboyAI/CIM) project by [Cowboy AI, LLC](https://cowboy.ai)*
 
 
 

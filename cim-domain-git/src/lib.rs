@@ -42,9 +42,9 @@ pub mod value_objects;
 
 // Re-export commonly used types
 pub use aggregate::{Repository, RepositoryId};
-pub use commands::{CloneRepository, AnalyzeCommit};
-pub use events::{RepositoryCloned, CommitAnalyzed};
-pub use value_objects::{CommitHash, BranchName, AuthorInfo};
+pub use commands::{AnalyzeCommit, CloneRepository};
+pub use events::{CommitAnalyzed, RepositoryCloned};
+pub use value_objects::{AuthorInfo, BranchName, CommitHash};
 
 /// Domain-specific errors for Git operations
 #[derive(Debug, thiserror::Error)]
@@ -52,23 +52,23 @@ pub enum GitDomainError {
     /// Repository not found
     #[error("Repository not found: {0}")]
     RepositoryNotFound(String),
-    
+
     /// Invalid commit hash
     #[error("Invalid commit hash: {0}")]
     InvalidCommitHash(String),
-    
+
     /// Git operation failed
     #[error("Git operation failed: {0}")]
     GitOperationFailed(String),
-    
+
     /// Graph extraction failed
     #[error("Graph extraction failed: {0}")]
     GraphExtractionFailed(String),
-    
+
     /// Infrastructure error
     #[error("Infrastructure error: {0}")]
     InfrastructureError(#[from] anyhow::Error),
 }
 
 /// Result type for Git domain operations
-pub type Result<T> = std::result::Result<T, GitDomainError>; 
+pub type Result<T> = std::result::Result<T, GitDomainError>;

@@ -1,0 +1,134 @@
+name: Question or Discussion
+description: Ask a question or start a discussion about Information Alchemist
+title: "[Question]: "
+labels: ["question", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about Information Alchemist? Want to discuss a concept or approach? We're here to help!
+        
+        **Note**: For bug reports, please use the [Bug Report template](./bug_report.yml). For feature requests, use the [Feature Request template](./feature_request.yml).
+
+  - type: dropdown
+    id: question-type
+    attributes:
+      label: Question Type
+      description: What type of question is this?
+      options:
+        - Architecture/Design Question
+        - Domain-Driven Design Concept
+        - Implementation Help
+        - Best Practices
+        - Integration Question
+        - Performance Question
+        - Conceptual Discussion
+        - Contributing Question
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know or discuss?
+      placeholder: |
+        Please be as specific as possible. Include:
+        - What you're trying to accomplish
+        - What you've already tried
+        - Specific areas where you need clarification
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain-context
+    attributes:
+      label: Related Domain Context (if applicable)
+      description: Is your question related to a specific domain?
+      options:
+        - Not domain-specific
+        - Graph Visualization (cim-domain-graph)
+        - Agent Management (cim-domain-agent)
+        - Conceptual Spaces (cim-domain-conceptualspaces)
+        - Document Management (cim-domain-document)
+        - Git Integration (cim-domain-git)
+        - NIX Integration (cim-domain-nix)
+        - Policy Management (cim-domain-policy)
+        - Workflow Management (cim-domain-workflow)
+        - Infrastructure (cim-infrastructure)
+        - Presentation Layer (Bevy UI)
+        - NATS Messaging
+        - Cross-Domain Question
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: |
+        Provide any additional context that might help us answer your question
+      placeholder: |
+        - Your experience level with Rust/Bevy/DDD
+        - What you're building or trying to accomplish
+        - Relevant code snippets or configurations
+        - Links to documentation you've already read
+        - Related discussions or issues
+
+  - type: textarea
+    id: attempted-solutions
+    attributes:
+      label: What have you tried?
+      description: |
+        If applicable, what approaches or solutions have you already attempted?
+      placeholder: |
+        - Approach 1: [what you tried and what happened]
+        - Approach 2: [what you tried and what happened]
+        - Resources consulted: [documentation, examples, etc.]
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this question for you?
+      options:
+        - Not urgent (general learning/curiosity)
+        - Moderate (working on a project, not blocked)
+        - High (blocked on current work)
+        - Critical (production issue or deadline)
+
+  - type: checkboxes
+    id: research-done
+    attributes:
+      label: Research Checklist
+      description: Please confirm you've done some basic research first
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have read the relevant documentation
+          required: true
+        - label: I have looked at the examples in the repository
+          required: false
+
+  - type: checkboxes
+    id: contribution-interest
+    attributes:
+      label: Contribution Interest
+      description: Are you interested in contributing to this area?
+      options:
+        - label: I might be interested in contributing documentation improvements based on this discussion
+          required: false
+        - label: I might be interested in contributing code improvements based on this discussion
+          required: false
+        - label: I'm asking this question to better understand how to contribute
+          required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Community Guidelines
+      description: By asking this question, you agree to our community guidelines
+      options:
+        - label: I have read the [Code of Conduct](../CODE_OF_CONDUCT.md)
+          required: true
+        - label: I understand this is a community-driven project with volunteer maintainers
+          required: true 

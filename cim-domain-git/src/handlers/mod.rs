@@ -8,4 +8,4 @@
 // - AnalyzeCommitHandler
 // - ExtractCommitGraphHandler
 // - ExtractDependencyGraphHandler
-// etc. 
+// etc.

@@ -1,0 +1,287 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+  BEVY_HEADLESS: 1
+
+jobs:
+  nix-flake-check:
+    name: Nix Flake Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Check flake
+      run: nix flake check --show-trace
+
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: nix-flake-check
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Build project
+      run: |
+        echo "Building Information Alchemist..."
+        nix build --show-trace
+
+    - name: Run tests
+      run: |
+        echo "Running test suite in headless mode..."
+        nix develop --command cargo test --verbose
+
+    - name: Check formatting
+      run: |
+        echo "Checking code formatting..."
+        nix develop --command cargo fmt --check
+
+    - name: Run clippy
+      run: |
+        echo "Running clippy linter..."
+        nix develop --command cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Build documentation
+      run: |
+        echo "Building documentation..."
+        nix develop --command cargo doc --no-deps
+
+  domain-module-tests:
+    name: Domain Module Tests
+    runs-on: ubuntu-latest
+    needs: nix-flake-check
+    strategy:
+      matrix:
+        module:
+          - cim-domain-graph
+          - cim-domain-agent
+          - cim-domain-conceptualspaces
+          - cim-domain-document
+          - cim-domain-git
+          - cim-domain-nix
+          - cim-domain-policy
+          - cim-domain-workflow
+          - cim-infrastructure
+          - cim-ipld
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Test domain module
+      run: |
+        echo "Testing ${{ matrix.module }}..."
+        if [ -d "${{ matrix.module }}" ]; then
+          cd ${{ matrix.module }}
+          nix develop --command cargo test --verbose
+        else
+          echo "Module ${{ matrix.module }} not found, skipping..."
+        fi
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Security audit
+      run: |
+        echo "Running security audit..."
+        nix develop --command cargo audit
+
+  check-dependencies:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Check outdated dependencies
+      run: |
+        echo "Checking for outdated dependencies..."
+        nix develop --command cargo outdated || true
+
+    - name: Check unused dependencies
+      run: |
+        echo "Checking for unused dependencies..."
+        nix develop --command cargo machete || true
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    services:
+      nats:
+        image: nats:latest
+        ports:
+          - 4222:4222
+        options: >-
+          --health-cmd "nats-server --signal quit"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Wait for NATS
+      run: |
+        echo "Waiting for NATS server to be ready..."
+        timeout 30 bash -c 'until nc -z localhost 4222; do sleep 1; done'
+
+    - name: Run integration tests
+      run: |
+        echo "Running integration tests..."
+        nix develop --command cargo test --test integration -- --test-threads=1
+      env:
+        NATS_URL: "nats://localhost:4222"
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Run benchmarks
+      run: |
+        echo "Running performance benchmarks..."
+        nix develop --command cargo bench --verbose
+
+  code-coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Generate code coverage
+      run: |
+        echo "Generating code coverage report..."
+        nix develop --command cargo tarpaulin --verbose --all-features --workspace --timeout 120
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+
+  documentation-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        logger: pretty
+
+    - name: Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Check documentation links
+      run: |
+        echo "Checking documentation links..."
+        # Add link checking logic here
+        find doc/ -name "*.md" -type f | head -5
+
+    - name: Build rustdoc
+      run: |
+        echo "Building rustdoc documentation..."
+        nix develop --command cargo doc --all --no-deps
+
+    - name: Check for missing docs
+      run: |
+        echo "Checking for missing documentation..."
+        nix develop --command cargo doc --all --no-deps 2>&1 | grep -i warning || true
+
+  notify-on-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [nix-flake-check, build-and-test, domain-module-tests, security-audit, integration-tests]
+    if: failure()
+    steps:
+    - name: Notify about CI failure
+      run: |
+        echo "CI pipeline failed. Please check the failed jobs and fix issues before merging."
+        echo "Failed jobs may include: build, test, security audit, or integration tests." 

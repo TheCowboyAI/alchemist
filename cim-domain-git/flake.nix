@@ -36,7 +36,7 @@
         commonArgs = {
           inherit src;
           strictDeps = true;
-          
+
           # Specify the package to build
           cargoExtraArgs = "-p cim-domain-git";
 
@@ -117,12 +117,12 @@
             cargo-audit
             cargo-license
             cargo-tarpaulin
-            
+
             # Git development tools
             git
             gitui
             gh
-            
+
             # General development tools
             just
             bacon
@@ -133,11 +133,11 @@
           RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
           RUST_BACKTRACE = 1;
           RUST_LOG = "debug";
-          
+
           # Git2 environment variables
           LIBGIT2_SYS_USE_PKG_CONFIG = "1";
           PKG_CONFIG_PATH = "${pkgs.libgit2}/lib/pkgconfig";
-          
+
           shellHook = ''
             echo "CIM Domain Git Development Shell"
             echo "================================"
@@ -152,4 +152,4 @@
           '';
         };
       });
-} 
+}

@@ -3,9 +3,9 @@
 //! This module contains the aggregate roots that maintain consistency
 //! boundaries for Git-related operations.
 
-use crate::events::{GitDomainEvent, RepositoryCloned};
-use crate::value_objects::{CommitHash, BranchName, RemoteUrl, AuthorInfo};
 use crate::GitDomainError;
+use crate::events::{GitDomainEvent, RepositoryCloned};
+use crate::value_objects::{AuthorInfo, BranchName, CommitHash, RemoteUrl};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -20,12 +20,12 @@ impl RepositoryId {
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
-    
+
     /// Create from an existing UUID
     pub fn from_uuid(uuid: Uuid) -> Self {
         Self(uuid)
     }
-    
+
     /// Get the inner UUID
     pub fn as_uuid(&self) -> &Uuid {
         &self.0
@@ -43,22 +43,22 @@ impl Default for RepositoryId {
 pub struct Repository {
     /// Unique identifier
     pub id: RepositoryId,
-    
+
     /// Remote URL of the repository
     pub remote_url: Option<RemoteUrl>,
-    
+
     /// Local path where repository is cloned
     pub local_path: Option<String>,
-    
+
     /// Current HEAD commit
     pub head: Option<CommitHash>,
-    
+
     /// Branches in the repository
     pub branches: HashMap<BranchName, CommitHash>,
-    
+
     /// Repository metadata
     pub metadata: RepositoryMetadata,
-    
+
     /// Aggregate version for optimistic locking
     pub version: u64,
 }
@@ -68,25 +68,25 @@ pub struct Repository {
 pub struct RepositoryMetadata {
     /// Repository name
     pub name: String,
-    
+
     /// Repository description
     pub description: Option<String>,
-    
+
     /// Primary language
     pub primary_language: Option<String>,
-    
+
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
-    
+
     /// Last update timestamp
     pub updated_at: DateTime<Utc>,
-    
+
     /// Repository size in bytes
     pub size_bytes: Option<u64>,
-    
+
     /// Number of commits
     pub commit_count: Option<usize>,
-    
+
     /// Custom metadata
     pub custom: HashMap<String, serde_json::Value>,
 }
@@ -114,27 +114,31 @@ impl Repository {
             version: 0,
         }
     }
-    
+
     /// Handle a clone repository command
-    pub fn clone_repository(&mut self, remote_url: RemoteUrl, local_path: String) -> Result<Vec<GitDomainEvent>, GitDomainError> {
+    pub fn clone_repository(
+        &mut self,
+        remote_url: RemoteUrl,
+        local_path: String,
+    ) -> Result<Vec<GitDomainEvent>, GitDomainError> {
         if self.local_path.is_some() {
             return Err(GitDomainError::GitOperationFailed(
-                "Repository already cloned".to_string()
+                "Repository already cloned".to_string(),
             ));
         }
-        
+
         let event = RepositoryCloned {
             repository_id: self.id,
             remote_url: remote_url.clone(),
             local_path: local_path.clone(),
             timestamp: Utc::now(),
         };
-        
+
         self.apply_event(&GitDomainEvent::RepositoryCloned(event.clone()))?;
-        
+
         Ok(vec![GitDomainEvent::RepositoryCloned(event)])
     }
-    
+
     /// Apply an event to update the aggregate state
     pub fn apply_event(&mut self, event: &GitDomainEvent) -> Result<(), GitDomainError> {
         match event {
@@ -144,18 +148,17 @@ impl Repository {
                 self.metadata.updated_at = e.timestamp;
             }
             GitDomainEvent::CommitAnalyzed(e) => {
-                self.metadata.commit_count = Some(
-                    self.metadata.commit_count.unwrap_or(0) + 1
-                );
+                self.metadata.commit_count = Some(self.metadata.commit_count.unwrap_or(0) + 1);
                 self.metadata.updated_at = e.timestamp;
             }
             GitDomainEvent::BranchCreated(e) => {
-                self.branches.insert(e.branch_name.clone(), e.commit_hash.clone());
+                self.branches
+                    .insert(e.branch_name.clone(), e.commit_hash.clone());
                 self.metadata.updated_at = e.timestamp;
             }
             _ => {} // Handle other events as needed
         }
-        
+
         self.version += 1;
         Ok(())
     }
@@ -166,22 +169,22 @@ impl Repository {
 pub struct Commit {
     /// Repository this commit belongs to
     pub repository_id: RepositoryId,
-    
+
     /// Commit hash
     pub hash: CommitHash,
-    
+
     /// Parent commits
     pub parents: Vec<CommitHash>,
-    
+
     /// Commit author
     pub author: AuthorInfo,
-    
+
     /// Commit timestamp
     pub timestamp: DateTime<Utc>,
-    
+
     /// Commit message
     pub message: String,
-    
+
     /// Files changed in this commit
     pub files_changed: Vec<FileChange>,
 }
@@ -191,13 +194,13 @@ pub struct Commit {
 pub struct FileChange {
     /// File path
     pub path: String,
-    
+
     /// Change type
     pub change_type: ChangeType,
-    
+
     /// Lines added
     pub additions: usize,
-    
+
     /// Lines deleted
     pub deletions: usize,
 }
@@ -220,16 +223,16 @@ pub enum ChangeType {
 pub struct Branch {
     /// Repository this branch belongs to
     pub repository_id: RepositoryId,
-    
+
     /// Branch name
     pub name: BranchName,
-    
+
     /// Current commit this branch points to
     pub head: CommitHash,
-    
+
     /// Whether this is the default branch
     pub is_default: bool,
-    
+
     /// Branch metadata
     pub metadata: BranchMetadata,
 }
@@ -239,13 +242,13 @@ pub struct Branch {
 pub struct BranchMetadata {
     /// Creation timestamp
     pub created_at: DateTime<Utc>,
-    
+
     /// Last update timestamp
     pub updated_at: DateTime<Utc>,
-    
+
     /// Number of commits ahead of default branch
     pub ahead_count: Option<usize>,
-    
+
     /// Number of commits behind default branch
     pub behind_count: Option<usize>,
 }
@@ -253,7 +256,7 @@ pub struct BranchMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_repository_creation() {
         let repo = Repository::new("test-repo".to_string());
@@ -262,18 +265,20 @@ mod tests {
         assert!(repo.local_path.is_none());
         assert_eq!(repo.version, 0);
     }
-    
+
     #[test]
     fn test_repository_clone() {
         let mut repo = Repository::new("test-repo".to_string());
         let remote_url = RemoteUrl::new("https://github.com/test/repo.git").unwrap();
         let local_path = "/tmp/test-repo".to_string();
-        
-        let events = repo.clone_repository(remote_url.clone(), local_path.clone()).unwrap();
-        
+
+        let events = repo
+            .clone_repository(remote_url.clone(), local_path.clone())
+            .unwrap();
+
         assert_eq!(events.len(), 1);
         assert!(repo.remote_url.is_some());
         assert_eq!(repo.local_path, Some(local_path));
         assert_eq!(repo.version, 1);
     }
-} 
+}

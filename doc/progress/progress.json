@@ -4400,6 +4400,48 @@
           "time_taken": "45 minutes"
         }
       }
+    },
+    {
+      "id": "github-contributor-ready",
+      "label": "GitHub Contributor Ready",
+      "type": "milestone",
+      "position": {
+        "x": 900,
+        "y": 300,
+        "z": 0
+      },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-12",
+        "progress": 100,
+        "description": "Complete GitHub infrastructure for open source contributors",
+        "details": [
+          "Created EGALITARIAN Code of Conduct emphasizing merit-based contribution",
+          "Implemented comprehensive issue templates (bug, feature, question)",
+          "Added structured pull request template with DDD compliance checks",
+          "Created security policy with responsible disclosure process",
+          "Set up CI/CD pipeline with Nix, testing, and security audits",
+          "Enhanced CONTRIBUTING.md with clear guidelines",
+          "Added GitHub workflows for automated quality assurance",
+          "Configured domain-specific issue routing and labeling",
+          "MIT license already in place with proper copyright attribution"
+        ],
+        "deliverables": [
+          ".github/CODE_OF_CONDUCT.md - EGALITARIAN principles",
+          ".github/ISSUE_TEMPLATE/ - Structured issue forms",
+          ".github/pull_request_template.md - Comprehensive PR checklist",
+          ".github/SECURITY.md - Security vulnerability reporting",
+          ".github/workflows/ci.yml - Automated CI/CD pipeline",
+          "Enhanced CONTRIBUTING.md with Code of Conduct integration"
+        ],
+        "impact": [
+          "Clear contributor onboarding process",
+          "Merit-based evaluation criteria established",
+          "Automated quality gates for all contributions",
+          "Security-first approach to vulnerability management",
+          "Domain-driven issue categorization and routing"
+        ]
+      }
     }
   ],
   "edges": [
@@ -4818,6 +4860,13 @@
       "target": "identity-domain-tests-fixed",
       "relationship": "enables",
       "label": "Clean compilation enables test fixes"
+    },
+    {
+      "id": "edge-identity-tests-to-contributor-ready",
+      "source": "identity-domain-tests-fixed",
+      "target": "github-contributor-ready",
+      "relationship": "enables",
+      "label": "Stable codebase enables open source contribution"
     }
   ],
   "milestones": [

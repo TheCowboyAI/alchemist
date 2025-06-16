@@ -1,10 +1,10 @@
 //! Basic tests for cim-domain-git module structure
 
 use cim_domain_git::{
+    GitDomainError,
     aggregate::Repository,
     commands::CloneRepository,
-    value_objects::{RemoteUrl, CommitHash, BranchName},
-    GitDomainError,
+    value_objects::{BranchName, CommitHash, RemoteUrl},
 };
 
 #[test]
@@ -21,11 +21,11 @@ fn test_value_objects() {
     let url = RemoteUrl::new("https://github.com/test/repo.git").unwrap();
     assert_eq!(url.repository_name(), Some("repo"));
     assert!(url.is_github());
-    
+
     // Test CommitHash
     let hash = CommitHash::new("abc123def456").unwrap();
     assert_eq!(hash.short(), "abc123d");
-    
+
     // Test BranchName
     let branch = BranchName::new("main").unwrap();
     assert!(branch.is_default());
@@ -41,7 +41,7 @@ fn test_command_creation() {
         branch: None,
         depth: None,
     };
-    
+
     assert_eq!(cmd.local_path, "/tmp/repo");
 }
 
@@ -49,7 +49,7 @@ fn test_command_creation() {
 fn test_error_types() {
     let err = GitDomainError::RepositoryNotFound("test".to_string());
     assert_eq!(err.to_string(), "Repository not found: test");
-    
+
     let err = GitDomainError::InvalidCommitHash("xyz".to_string());
     assert_eq!(err.to_string(), "Invalid commit hash: xyz");
-} 
+}

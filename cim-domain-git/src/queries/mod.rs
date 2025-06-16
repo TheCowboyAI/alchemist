@@ -8,4 +8,4 @@
 // - GetCommitHistory
 // - GetBranchList
 // - GetFileChanges
-// etc. 
+// etc.

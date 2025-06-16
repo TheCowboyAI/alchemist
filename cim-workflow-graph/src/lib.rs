@@ -3,10 +3,10 @@
 //! This module provides a graph structure for workflows using the simple
 //! workflow types from cim-domain-workflow.
 
-use cim_domain::{GraphId};
+use cim_domain::GraphId;
 use cim_domain_workflow::{
-    Workflow, WorkflowStep, WorkflowStatus, StepId, WorkflowId,
-    StateId, WorkflowState, WorkflowTransition, TransitionInput, TransitionOutput, WorkflowContext,
+    StateId, StepId, TransitionInput, TransitionOutput, Workflow, WorkflowContext, WorkflowId,
+    WorkflowState, WorkflowStatus, WorkflowStep, WorkflowTransition,
 };
 use petgraph::stable_graph::{EdgeIndex, NodeIndex, StableGraph};
 use petgraph::visit::EdgeRef;
@@ -34,7 +34,7 @@ pub struct WorkflowGraph {
     pub workflow_id: WorkflowId,
     pub graph: StableGraph<WorkflowStep, String>, // String for edge labels
     pub workflow_type: WorkflowType,
-    
+
     // Index structures for efficient lookups
     step_to_node: HashMap<StepId, NodeIndex>,
     node_to_step: HashMap<NodeIndex, StepId>,
@@ -56,12 +56,12 @@ impl WorkflowGraph {
     /// Create a workflow graph from a Workflow
     pub fn from_workflow(workflow: &Workflow) -> Self {
         let mut graph = Self::new(workflow.id, WorkflowType::Sequential);
-        
+
         // Add all steps as nodes
         for step in &workflow.steps {
             graph.add_step(step.clone());
         }
-        
+
         // For sequential workflows, connect steps in order
         if workflow.steps.len() > 1 {
             for i in 0..workflow.steps.len() - 1 {
@@ -70,7 +70,7 @@ impl WorkflowGraph {
                 let _ = graph.add_connection(source, target, "next".to_string());
             }
         }
-        
+
         graph
     }
 
@@ -99,9 +99,13 @@ impl WorkflowGraph {
         label: String,
     ) -> Result<EdgeIndex, WorkflowGraphError> {
         // Ensure both steps exist
-        let source_idx = self.step_to_node.get(&source_step)
+        let source_idx = self
+            .step_to_node
+            .get(&source_step)
             .ok_or(WorkflowGraphError::StepNotFound(source_step))?;
-        let target_idx = self.step_to_node.get(&target_step)
+        let target_idx = self
+            .step_to_node
+            .get(&target_step)
             .ok_or(WorkflowGraphError::StepNotFound(target_step))?;
 
         // Add the connection
@@ -111,7 +115,8 @@ impl WorkflowGraph {
 
     /// Get a step by its ID
     pub fn get_step(&self, step_id: &StepId) -> Option<&WorkflowStep> {
-        self.step_to_node.get(step_id)
+        self.step_to_node
+            .get(step_id)
             .and_then(|&idx| self.graph.node_weight(idx))
     }
 
@@ -132,9 +137,13 @@ impl WorkflowGraph {
 
     /// Find initial steps (steps with no incoming edges)
     pub fn initial_steps(&self) -> Vec<&WorkflowStep> {
-        self.graph.node_indices()
+        self.graph
+            .node_indices()
             .filter(|&idx| {
-                self.graph.edges_directed(idx, petgraph::Direction::Incoming).count() == 0
+                self.graph
+                    .edges_directed(idx, petgraph::Direction::Incoming)
+                    .count()
+                    == 0
             })
             .filter_map(|idx| self.graph.node_weight(idx))
             .collect()
@@ -142,9 +151,13 @@ impl WorkflowGraph {
 
     /// Find terminal steps (steps with no outgoing edges)
     pub fn terminal_steps(&self) -> Vec<&WorkflowStep> {
-        self.graph.node_indices()
+        self.graph
+            .node_indices()
             .filter(|&idx| {
-                self.graph.edges_directed(idx, petgraph::Direction::Outgoing).count() == 0
+                self.graph
+                    .edges_directed(idx, petgraph::Direction::Outgoing)
+                    .count()
+                    == 0
             })
             .filter_map(|idx| self.graph.node_weight(idx))
             .collect()
@@ -153,7 +166,8 @@ impl WorkflowGraph {
     /// Get the next steps from a given step
     pub fn next_steps(&self, step_id: &StepId) -> Vec<&WorkflowStep> {
         if let Some(&node_idx) = self.step_to_node.get(step_id) {
-            self.graph.edges_directed(node_idx, petgraph::Direction::Outgoing)
+            self.graph
+                .edges_directed(node_idx, petgraph::Direction::Outgoing)
                 .filter_map(|edge| self.graph.node_weight(edge.target()))
                 .collect()
         } else {
@@ -164,7 +178,8 @@ impl WorkflowGraph {
     /// Get the previous steps from a given step
     pub fn previous_steps(&self, step_id: &StepId) -> Vec<&WorkflowStep> {
         if let Some(&node_idx) = self.step_to_node.get(step_id) {
-            self.graph.edges_directed(node_idx, petgraph::Direction::Incoming)
+            self.graph
+                .edges_directed(node_idx, petgraph::Direction::Incoming)
                 .filter_map(|edge| self.graph.node_weight(edge.source()))
                 .collect()
         } else {
@@ -207,10 +222,8 @@ mod tests {
 
     #[test]
     fn test_from_workflow() {
-        let mut workflow = Workflow::new(
-            "Test Workflow".to_string(),
-            "A test workflow".to_string(),
-        );
+        let mut workflow =
+            Workflow::new("Test Workflow".to_string(), "A test workflow".to_string());
 
         // Add some steps
         let step1 = cim_domain_workflow::WorkflowStep {
