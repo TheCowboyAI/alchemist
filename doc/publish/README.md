@@ -1,14 +1,105 @@
 # CIM (Composable Information Machine) Documentation
 
+## 🚀 **NATS-Native Event-Driven Architecture**
+
+**CIM is designed from the ground up as a NATS-first system.** Every interaction, every data flow, and every system operation uses NATS messaging patterns. There are no REST APIs, no GraphQL endpoints - only pure NATS communication for maximum scalability, reliability, and real-time collaboration.
+
 ## Overview
 
 The Composable Information Machine (CIM) is a revolutionary distributed system architecture that transforms how we build, visualize, and reason about information systems. CIM combines:
 
-- **Event-Driven Architecture**: All state changes flow through immutable events
-- **Graph-Based Workflows**: Visual representation of business processes and knowledge
-- **Conceptual Spaces**: Geometric representation of semantic relationships
-- **AI-Native Design**: Built for seamless integration with intelligent agents
-- **Self-Referential Capability**: Systems that can visualize and reason about themselves
+- **🔄 Event-Driven Architecture**: All state changes flow through immutable events via NATS
+- **📊 Graph-Based Workflows**: Visual representation of business processes and knowledge  
+- **🧠 Conceptual Spaces**: Geometric representation of semantic relationships
+- **🤖 AI-Native Design**: Built for seamless integration with intelligent agents
+- **🔍 Self-Referential Capability**: Systems that can visualize and reason about themselves
+- **⚡ Real-Time Collaboration**: Instant updates across all connected clients via NATS streams
+
+## 🎯 **Why NATS-First?**
+
+### **Distributed by Design**
+- Natural horizontal scaling across multiple nodes
+- Fault tolerance through built-in clustering and failover
+- No single points of failure in the architecture
+
+### **Real-Time Everything**
+- Sub-millisecond message delivery for instant collaboration
+- Event sourcing enables complete system auditability
+- Live updates across all connected systems and users
+
+### **Developer Experience**
+- Simple subject-based messaging patterns
+- Built-in security with authentication and authorization
+- Rich ecosystem of language bindings and tools
+
+### **Operational Excellence**
+- Built-in monitoring and observability
+- Automatic retries and dead letter queues
+- Persistent messaging with JetStream for reliability
+
+## 📡 **NATS Communication Patterns**
+
+### **Commands** → `cmd.{domain}.{action}`
+Send commands to modify state and trigger business processes:
+```rust
+// Create a new graph node
+client.publish("cmd.graph.create_node", command_payload).await?;
+
+// Start a workflow process  
+client.publish("cmd.workflow.start_process", workflow_data).await?;
+
+// Register an AI agent
+client.publish("cmd.agent.register", agent_config).await?;
+```
+
+### **Events** → `event.{domain}.{event_type}`
+Subscribe to domain events to react to state changes:
+```rust
+// Subscribe to all graph events
+let mut subscriber = client.subscribe("event.graph.>").await?;
+
+// Subscribe to specific event types
+let mut nodes = client.subscribe("event.graph.node_*").await?;
+
+// Process events as they arrive
+while let Some(message) = subscriber.next().await {
+    let event: DomainEvent = serde_json::from_slice(&message.payload)?;
+    handle_event(event).await?;
+}
+```
+
+### **Queries** → `query.{domain}.{query_type}`
+Request-reply pattern for data retrieval:
+```rust
+// Find nodes by criteria
+let response = client.request(
+    "query.graph.find_nodes",
+    search_criteria
+).timeout(Duration::from_secs(5)).await?;
+
+// Get similarity matches
+let similar = client.request(
+    "query.conceptual.find_similar", 
+    similarity_query
+).await?;
+```
+
+### **Streams** → NATS JetStream
+Persistent event streams with replay capabilities:
+```rust
+// Create durable consumer for event processing
+let consumer = jetstream.create_consumer_on_stream(
+    consumer_config,
+    "CIM_EVENTS"
+).await?;
+
+// Process persistent events with acknowledgment
+let mut messages = consumer.messages().await?;
+while let Some(message) = messages.next().await {
+    process_event(&message.payload).await?;
+    message.ack().await?;
+}
+```
 
 ## Documentation Structure
 
