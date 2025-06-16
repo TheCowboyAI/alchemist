@@ -65,7 +65,7 @@
 	url = https://github.com/TheCowboyAI/cim-conceptgraph.git
 [submodule "cim-ipld-graph"]
 	path = cim-ipld-graph
-	url = /tmp/cim-ipld-graph
+	url = https://github.com/TheCowboyAI/cim-ipld-graph.git
 [submodule "cim-keys"]
 	path = cim-keys
-	url = /git/thecowboyai/cim-keys
+	url = https://github.com/TheCowboyAI/cim-keys.git
