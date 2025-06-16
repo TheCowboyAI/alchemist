@@ -36,6 +36,13 @@ pkgs.mkShell {
     # SSL/TLS support
     openssl
 
+    # Cryptographic and smart card support for cim-keys
+    pcsclite          # PC/SC smart card interface for YubiKey
+    gpgme             # GPG Made Easy library
+    libgpg-error      # GPG error handling library
+    nettle            # Low-level cryptographic library
+    gmp               # GNU Multiple Precision Arithmetic Library (required by nettle)
+
     # Development tools
     rust-analyzer
     bacon
@@ -43,7 +50,7 @@ pkgs.mkShell {
     # NATS for testing
     natscli
     nsc
-  ];
+  ] ++ nonRustDeps;
 
   nativeBuildInputs = with pkgs; [
     llvmPackages.clang
@@ -95,6 +102,11 @@ pkgs.mkShell {
     pkgs.vulkan-loader
     pkgs.libxkbcommon
     pkgs.openssl
+    pkgs.pcsclite
+    pkgs.gpgme
+    pkgs.libgpg-error
+    pkgs.nettle
+    pkgs.gmp
   ];
 
   # Disable experimental features that might cause issues
