@@ -59,6 +59,9 @@ proptest = "1.6"
 # Fixtures
 once_cell = "1.20"
 
+# Examples
+tracing-subscriber = "0.3"
+
 [features]
 default = []
 # Enable GitHub MCP integration

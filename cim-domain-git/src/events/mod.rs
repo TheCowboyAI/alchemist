@@ -42,6 +42,9 @@ pub enum GitDomainEvent {
 
     /// A file was analyzed
     FileAnalyzed(FileAnalyzed),
+
+    /// A repository was analyzed
+    RepositoryAnalyzed(RepositoryAnalyzed),
 }
 
 /// Event: A repository was cloned
@@ -320,6 +323,28 @@ pub struct FileMetrics {
 
     /// File size in bytes
     pub size_bytes: u64,
+}
+
+/// Event: A repository was analyzed
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepositoryAnalyzed {
+    /// Repository ID
+    pub repository_id: RepositoryId,
+
+    /// Repository path
+    pub path: String,
+
+    /// Repository name
+    pub name: String,
+
+    /// Number of branches found
+    pub branch_count: usize,
+
+    /// Number of commits analyzed
+    pub commit_count: usize,
+
+    /// Timestamp of the event
+    pub timestamp: DateTime<Utc>,
 }
 
 #[cfg(test)]
