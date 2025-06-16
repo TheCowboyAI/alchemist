@@ -7,6 +7,7 @@ These rules help Cursor agents understand and work effectively with the Composab
 ## Rule Structure
 
 ### Core Architecture Rules
+- **proven-patterns.mdc** - Validated patterns from 5/8 completed domains (62.5% complete)
 - **cim-architecture.mdc** - Foundation patterns and principles
 - **event-sourcing-cim.mdc** - Event store and CQRS implementation
 - **conceptual-spaces.mdc** - Knowledge representation patterns
@@ -228,3 +229,6 @@ alwaysApply: false
 ## Conclusion
 
 These rules form a comprehensive system for working with CIM. Use them together, follow the examples, and avoid the anti-patterns to ensure high-quality, consistent code that aligns with the CIM architecture.
+## PROJECT STATUS UPDATE: 62.5% COMPLETE
+NEW RULE: proven-patterns.mdc contains validated patterns from 5/8 completed domains
+USE proven-patterns.mdc FOR ALL NEW WORK - Contains validated architecture patterns
