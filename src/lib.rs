@@ -34,6 +34,7 @@ pub use cim_domain_workflow;
 // Re-export infrastructure
 pub use cim_ipld;
 pub use cim_subject;
+pub use cim_keys;
 
 // Re-export graph modules
 pub use cim_compose;

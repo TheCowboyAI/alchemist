@@ -66,3 +66,6 @@
 [submodule "cim-ipld-graph"]
 	path = cim-ipld-graph
 	url = /tmp/cim-ipld-graph
+[submodule "cim-keys"]
+	path = cim-keys
+	url = /git/thecowboyai/cim-keys
