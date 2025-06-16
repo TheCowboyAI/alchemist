@@ -71,6 +71,10 @@ pkgs.mkShell {
     echo "To run tests: cargo test --lib"
     echo "To build: nix build"
     echo "To run: nix run"
+    
+    # Set LIBCLANG_PATH for bindgen
+    export LIBCLANG_PATH="$(find /nix/store -name "*clang-19*-lib" -type d | head -1)/lib"
+    echo "LIBCLANG_PATH set to: $LIBCLANG_PATH"
   '';
 
   # Vulkan configuration
@@ -109,9 +113,6 @@ pkgs.mkShell {
     pkgs.nettle
     pkgs.gmp
   ];
-
-  # Clang configuration for bindgen
-  LIBCLANG_PATH = "${pkgs.clang.cc.lib}/lib";
 
   # Disable experimental features that might cause issues
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
