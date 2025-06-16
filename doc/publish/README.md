@@ -12,6 +12,22 @@ The Composable Information Machine (CIM) is a revolutionary distributed system a
 
 ## Documentation Structure
 
+### Business Documentation
+- [Business Overview](business/README.md) - Business value proposition and use cases
+- [Introduction](business/01-introduction.md) - What is CIM and why it matters
+- [Core Concepts](business/02-core-concepts.md) - Key business concepts and terminology
+- [Use Cases](business/03-use-cases.md) - Real-world applications and scenarios
+- [Getting Started](business/04-getting-started.md) - Business user quick start
+
+### Technical Documentation  
+- [Technical Overview](technical/README.md) - Technical architecture and implementation
+- [Architecture Overview](technical/01-architecture-overview.md) - System architecture and design principles
+- [Core Components](technical/02-core-components.md) - Key technical components and their roles
+- [Event System](technical/03-event-system.md) - Event sourcing and CQRS implementation
+- [Integration Guide](technical/04-integration-guide.md) - How to integrate with CIM
+- [Performance Guide](technical/05-performance-guide.md) - Performance optimization and monitoring
+- [Plugin Development](technical/06-plugin-development.md) - Developing plugins and extensions
+
 ### Core Architecture
 - [Architecture Overview](architecture/README.md) - High-level system architecture
 - [Domain-Driven Design](architecture/domain-driven-design.md) - DDD principles and implementation
@@ -36,6 +52,27 @@ The Composable Information Machine (CIM) is a revolutionary distributed system a
 - [Commands & Queries](api/commands-queries.md) - CQRS interface reference
 - [Graph Operations](api/graph-operations.md) - Graph manipulation APIs
 - [Conceptual Space APIs](api/conceptual-spaces.md) - Semantic operations
+
+## Quick Navigation
+
+### 🚀 **New to CIM?** Start Here:
+1. [Business Introduction](business/01-introduction.md) - Understand the value proposition
+2. [Getting Started Guide](guides/getting-started.md) - Set up your development environment
+3. [Core Concepts](business/02-core-concepts.md) - Learn the fundamentals
+
+### 💼 **Business Users:**
+- [Business Use Cases](business/03-use-cases.md) - See real-world applications
+- [Business Getting Started](business/04-getting-started.md) - 30-day implementation roadmap
+- [Domain Glossary](glossary.md) - Business terminology
+
+### 👨‍💻 **Developers:**
+- [Technical Architecture](technical/01-architecture-overview.md) - System design overview
+- [Core Components](technical/02-core-components.md) - Technical implementation details
+- [Integration Guide](technical/04-integration-guide.md) - Connect with CIM backend
+
+### 🔧 **DevOps & Administrators:**
+- [Performance Guide](technical/05-performance-guide.md) - Optimization and monitoring
+- [Architecture Overview](architecture/README.md) - Infrastructure and deployment
 
 ## Key Concepts
 

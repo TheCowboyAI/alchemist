@@ -4442,6 +4442,37 @@
           "Domain-driven issue categorization and routing"
         ]
       }
+    },
+    {
+      "id": "business-technical-docs-restored",
+      "label": "Business & Technical Documentation Restored",
+      "type": "milestone",
+      "position": {
+        "x": 900,
+        "y": 150,
+        "z": 0
+      },
+      "data": {
+        "status": "completed",
+        "date": "2025-01-16",
+        "description": "Restored missing business and technical documentation to publish directory",
+        "details": [
+          "Moved business documentation from archive to /doc/publish/business/",
+          "Moved technical documentation from archive to /doc/publish/technical/",
+          "Updated main publish README with business and technical sections",
+          "Added quick navigation guide for different user types",
+          "Comprehensive business documentation including introduction, concepts, use cases, and getting started",
+          "Detailed technical documentation including architecture, components, event system, integration, performance, and plugin development",
+          "Documentation now properly structured for both business and technical audiences"
+        ],
+        "progress": 100,
+        "completed_date": "2025-01-16",
+        "references": [
+          "/doc/publish/business/",
+          "/doc/publish/technical/",
+          "/doc/publish/README.md"
+        ]
+      }
     }
   ],
   "edges": [
