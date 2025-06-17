@@ -1,255 +1,472 @@
-//! Workflow graph implementation for CIM workflows
+//! Workflow Graph implementation for CIM workflows
 //!
-//! This module provides a graph structure for workflows using the simple
-//! workflow types from cim-domain-workflow.
+//! This module provides a graph structure that integrates the new CIM workflow domain
+//! with ContextGraph format for visualization and analysis.
 
-use cim_domain::GraphId;
 use cim_domain_workflow::{
-    StateId, StepId, TransitionInput, TransitionOutput, Workflow, WorkflowContext, WorkflowId,
-    WorkflowState, WorkflowStatus, WorkflowStep, WorkflowTransition,
+    aggregate::Workflow,
+    value_objects::{WorkflowId, StepId, WorkflowStatus, StepType, StepStatus},
+    projections::WorkflowContextGraph,
 };
-use petgraph::stable_graph::{EdgeIndex, NodeIndex, StableGraph};
-use petgraph::visit::EdgeRef;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::marker::PhantomData;
 
-/// Type of workflow execution pattern
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum WorkflowType {
-    /// Sequential workflow - one path at a time
-    Sequential,
-    /// Parallel workflow - multiple paths can execute simultaneously
-    Parallel,
-    /// State machine workflow - complex state transitions
-    StateMachine,
-    /// Event-driven workflow - triggered by events
-    EventDriven,
+pub use cim_domain_workflow::projections::{
+    WorkflowContextGraph as ContextGraph,
+    ContextGraphNode,
+    ContextGraphEdge,
+    ContextGraphNodeValue,
+    ContextGraphEdgeValue,
+    WorkflowGraphStatistics,
+};
+
+/// Enhanced workflow graph that bridges domain workflows with visualization
+#[derive(Debug, Clone)]
+pub struct WorkflowGraph {
+    /// The underlying workflow aggregate
+    pub workflow: Workflow,
+    /// ContextGraph representation for visualization
+    pub context_graph: WorkflowContextGraph,
+    /// Graph metadata
+    pub metadata: WorkflowGraphMetadata,
 }
 
-/// A simple workflow graph using WorkflowStep as nodes
-pub struct WorkflowGraph {
-    pub id: GraphId,
-    pub workflow_id: WorkflowId,
-    pub graph: StableGraph<WorkflowStep, String>, // String for edge labels
-    pub workflow_type: WorkflowType,
+/// Metadata for workflow graphs
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkflowGraphMetadata {
+    pub name: String,
+    pub description: String,
+    pub tags: Vec<String>,
+    pub properties: HashMap<String, serde_json::Value>,
+}
 
-    // Index structures for efficient lookups
-    step_to_node: HashMap<StepId, NodeIndex>,
-    node_to_step: HashMap<NodeIndex, StepId>,
+impl Default for WorkflowGraphMetadata {
+    fn default() -> Self {
+        Self {
+            name: "Untitled Workflow".to_string(),
+            description: String::new(),
+            tags: Vec::new(),
+            properties: HashMap::new(),
+        }
+    }
 }
 
 impl WorkflowGraph {
     /// Create a new workflow graph
-    pub fn new(workflow_id: WorkflowId, workflow_type: WorkflowType) -> Self {
+    pub fn new(name: String, description: String) -> Result<Self, WorkflowGraphError> {
+        let metadata = HashMap::new();
+        let (workflow, _events) = Workflow::new(
+            name.clone(),
+            description.clone(),
+            metadata,
+            None,
+        ).map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
+
+        let context_graph = WorkflowContextGraph::from_workflow(&workflow);
+
+        Ok(Self {
+            workflow,
+            context_graph,
+            metadata: WorkflowGraphMetadata {
+                name,
+                description,
+                tags: Vec::new(),
+                properties: HashMap::new(),
+            },
+        })
+    }
+
+    /// Create a workflow graph from an existing workflow
+    pub fn from_workflow(workflow: Workflow) -> Self {
+        let context_graph = WorkflowContextGraph::from_workflow(&workflow);
+        
         Self {
-            id: GraphId::new(),
-            workflow_id,
-            graph: StableGraph::new(),
-            workflow_type,
-            step_to_node: HashMap::new(),
-            node_to_step: HashMap::new(),
+            metadata: WorkflowGraphMetadata {
+                name: workflow.name.clone(),
+                description: workflow.description.clone(),
+                tags: Vec::new(),
+                properties: workflow.metadata.clone(),
+            },
+            workflow,
+            context_graph,
         }
     }
 
-    /// Create a workflow graph from a Workflow
-    pub fn from_workflow(workflow: &Workflow) -> Self {
-        let mut graph = Self::new(workflow.id, WorkflowType::Sequential);
+    /// Add a step to the workflow
+    pub fn add_step(
+        &mut self,
+        name: String,
+        description: String,
+        step_type: StepType,
+        config: HashMap<String, serde_json::Value>,
+        dependencies: Vec<StepId>,
+        estimated_duration_minutes: Option<u32>,
+        assigned_to: Option<String>,
+    ) -> Result<StepId, WorkflowGraphError> {
+        let events = self.workflow.add_step(
+            name,
+            description,
+            step_type,
+            config,
+            dependencies,
+            estimated_duration_minutes,
+            assigned_to,
+            Some("system".to_string()),
+        ).map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
 
-        // Add all steps as nodes
-        for step in &workflow.steps {
-            graph.add_step(step.clone());
+        // Extract the step ID from the events
+        if let Some(cim_domain_workflow::WorkflowDomainEvent::StepAdded(ref event)) = events.first() {
+            let step_id = event.step_id;
+            
+            // Refresh the context graph
+            self.refresh_context_graph();
+            
+            Ok(step_id)
+        } else {
+            Err(WorkflowGraphError::InvalidOperation("Failed to create step".to_string()))
         }
+    }
 
-        // For sequential workflows, connect steps in order
-        if workflow.steps.len() > 1 {
-            for i in 0..workflow.steps.len() - 1 {
-                let source = workflow.steps[i].id;
-                let target = workflow.steps[i + 1].id;
-                let _ = graph.add_connection(source, target, "next".to_string());
+    /// Start the workflow
+    pub fn start(&mut self, context: HashMap<String, serde_json::Value>) -> Result<(), WorkflowGraphError> {
+        let mut workflow_context = cim_domain_workflow::value_objects::WorkflowContext::new();
+        workflow_context.variables = context;
+        workflow_context.set_actor("system".to_string());
+
+        let _events = self.workflow.start(workflow_context, Some("system".to_string()))
+            .map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
+
+        // Refresh the context graph
+        self.refresh_context_graph();
+
+        Ok(())
+    }
+
+    /// Complete the workflow
+    pub fn complete(&mut self) -> Result<(), WorkflowGraphError> {
+        let _events = self.workflow.complete()
+            .map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
+
+        // Refresh the context graph
+        self.refresh_context_graph();
+
+        Ok(())
+    }
+
+    /// Get workflow status
+    pub fn status(&self) -> &WorkflowStatus {
+        &self.workflow.status
+    }
+
+    /// Get workflow ID
+    pub fn id(&self) -> WorkflowId {
+        self.workflow.id
+    }
+
+    /// Get the workflow name
+    pub fn name(&self) -> &str {
+        &self.metadata.name
+    }
+
+    /// Get the workflow description
+    pub fn description(&self) -> &str {
+        &self.metadata.description
+    }
+
+    /// Get all step nodes from the context graph
+    pub fn get_step_nodes(&self) -> Vec<&ContextGraphNode> {
+        self.context_graph.get_step_nodes()
+    }
+
+    /// Get all dependency edges from the context graph
+    pub fn get_dependency_edges(&self) -> Vec<&ContextGraphEdge> {
+        self.context_graph.get_dependency_edges()
+    }
+
+    /// Get workflow statistics
+    pub fn statistics(&self) -> WorkflowGraphStatistics {
+        self.context_graph.statistics()
+    }
+
+    /// Export as JSON
+    pub fn to_json(&self) -> Result<String, WorkflowGraphError> {
+        self.context_graph.to_json()
+            .map_err(|e| WorkflowGraphError::SerializationError(e.to_string()))
+    }
+
+    /// Import from JSON
+    pub fn from_json(json: &str) -> Result<WorkflowContextGraph, WorkflowGraphError> {
+        WorkflowContextGraph::from_json(json)
+            .map_err(|e| WorkflowGraphError::SerializationError(e.to_string()))
+    }
+
+    /// Export as DOT format for Graphviz
+    pub fn to_dot(&self) -> String {
+        self.context_graph.to_dot()
+    }
+
+    /// Get executable steps (steps that can be run now)
+    pub fn get_executable_steps(&self) -> Vec<StepId> {
+        self.workflow.get_executable_steps()
+            .into_iter()
+            .map(|step| step.id)
+            .collect()
+    }
+
+    /// Find steps by status
+    pub fn find_steps_by_status(&self, status: StepStatus) -> Vec<StepId> {
+        self.workflow.steps
+            .values()
+            .filter(|step| step.status == status)
+            .map(|step| step.id)
+            .collect()
+    }
+
+    /// Find steps by type
+    pub fn find_steps_by_type(&self, step_type: StepType) -> Vec<StepId> {
+        self.workflow.steps
+            .values()
+            .filter(|step| step.step_type == step_type)
+            .map(|step| step.id)
+            .collect()
+    }
+
+    /// Add metadata tag
+    pub fn add_tag(&mut self, tag: String) {
+        if !self.metadata.tags.contains(&tag) {
+            self.metadata.tags.push(tag);
+        }
+    }
+
+    /// Set metadata property
+    pub fn set_property(&mut self, key: String, value: serde_json::Value) {
+        self.metadata.properties.insert(key, value);
+    }
+
+    /// Get metadata property
+    pub fn get_property(&self, key: &str) -> Option<&serde_json::Value> {
+        self.metadata.properties.get(key)
+    }
+
+    /// Refresh the context graph representation
+    fn refresh_context_graph(&mut self) {
+        self.context_graph = WorkflowContextGraph::from_workflow(&self.workflow);
+    }
+
+    /// Validate the workflow graph
+    pub fn validate(&self) -> Result<(), WorkflowGraphError> {
+        // Check for circular dependencies
+        for (step_id, step) in &self.workflow.steps {
+            if self.has_circular_dependency(step_id, &step.dependencies) {
+                return Err(WorkflowGraphError::CircularDependency(format!(
+                    "Step {} has circular dependency", step_id.as_uuid()
+                )));
             }
         }
 
-        graph
-    }
-
-    /// Add a step to the workflow graph
-    pub fn add_step(&mut self, step: WorkflowStep) -> NodeIndex {
-        let step_id = step.id;
-
-        // Check if step already exists
-        if let Some(&node_idx) = self.step_to_node.get(&step_id) {
-            return node_idx;
+        // Check that all dependencies exist
+        for step in self.workflow.steps.values() {
+            for dep_id in &step.dependencies {
+                if !self.workflow.steps.contains_key(dep_id) {
+                    return Err(WorkflowGraphError::InvalidDependency(format!(
+                        "Step {} depends on non-existent step {}", 
+                        step.id.as_uuid(), 
+                        dep_id.as_uuid()
+                    )));
+                }
+            }
         }
 
-        // Add new step
-        let node_idx = self.graph.add_node(step);
-        self.step_to_node.insert(step_id, node_idx);
-        self.node_to_step.insert(node_idx, step_id);
-
-        node_idx
+        Ok(())
     }
 
-    /// Add a connection between steps
-    pub fn add_connection(
-        &mut self,
-        source_step: StepId,
-        target_step: StepId,
-        label: String,
-    ) -> Result<EdgeIndex, WorkflowGraphError> {
-        // Ensure both steps exist
-        let source_idx = self
-            .step_to_node
-            .get(&source_step)
-            .ok_or(WorkflowGraphError::StepNotFound(source_step))?;
-        let target_idx = self
-            .step_to_node
-            .get(&target_step)
-            .ok_or(WorkflowGraphError::StepNotFound(target_step))?;
-
-        // Add the connection
-        let edge_idx = self.graph.add_edge(*source_idx, *target_idx, label);
-        Ok(edge_idx)
-    }
-
-    /// Get a step by its ID
-    pub fn get_step(&self, step_id: &StepId) -> Option<&WorkflowStep> {
-        self.step_to_node
-            .get(step_id)
-            .and_then(|&idx| self.graph.node_weight(idx))
-    }
-
-    /// Get all steps in the workflow
-    pub fn steps(&self) -> impl Iterator<Item = &WorkflowStep> {
-        self.graph.node_weights()
-    }
-
-    /// Get the number of steps
-    pub fn step_count(&self) -> usize {
-        self.graph.node_count()
-    }
-
-    /// Get the number of connections
-    pub fn connection_count(&self) -> usize {
-        self.graph.edge_count()
-    }
-
-    /// Find initial steps (steps with no incoming edges)
-    pub fn initial_steps(&self) -> Vec<&WorkflowStep> {
-        self.graph
-            .node_indices()
-            .filter(|&idx| {
-                self.graph
-                    .edges_directed(idx, petgraph::Direction::Incoming)
-                    .count()
-                    == 0
-            })
-            .filter_map(|idx| self.graph.node_weight(idx))
-            .collect()
-    }
-
-    /// Find terminal steps (steps with no outgoing edges)
-    pub fn terminal_steps(&self) -> Vec<&WorkflowStep> {
-        self.graph
-            .node_indices()
-            .filter(|&idx| {
-                self.graph
-                    .edges_directed(idx, petgraph::Direction::Outgoing)
-                    .count()
-                    == 0
-            })
-            .filter_map(|idx| self.graph.node_weight(idx))
-            .collect()
-    }
-
-    /// Get the next steps from a given step
-    pub fn next_steps(&self, step_id: &StepId) -> Vec<&WorkflowStep> {
-        if let Some(&node_idx) = self.step_to_node.get(step_id) {
-            self.graph
-                .edges_directed(node_idx, petgraph::Direction::Outgoing)
-                .filter_map(|edge| self.graph.node_weight(edge.target()))
-                .collect()
-        } else {
-            Vec::new()
+    /// Check for circular dependencies
+    fn has_circular_dependency(&self, step_id: &StepId, dependencies: &[StepId]) -> bool {
+        for dep_id in dependencies {
+            if dep_id == step_id {
+                return true;
+            }
+            if let Some(dep_step) = self.workflow.steps.get(dep_id) {
+                if self.has_circular_dependency(step_id, &dep_step.dependencies) {
+                    return true;
+                }
+            }
         }
-    }
-
-    /// Get the previous steps from a given step
-    pub fn previous_steps(&self, step_id: &StepId) -> Vec<&WorkflowStep> {
-        if let Some(&node_idx) = self.step_to_node.get(step_id) {
-            self.graph
-                .edges_directed(node_idx, petgraph::Direction::Incoming)
-                .filter_map(|edge| self.graph.node_weight(edge.source()))
-                .collect()
-        } else {
-            Vec::new()
-        }
+        false
     }
 }
 
 /// Errors that can occur when working with workflow graphs
 #[derive(Debug, thiserror::Error)]
 pub enum WorkflowGraphError {
-    #[error("Step not found: {0:?}")]
-    StepNotFound(StepId),
+    #[error("Domain error: {0}")]
+    DomainError(String),
 
-    #[error("No initial step found in workflow")]
-    NoInitialStep,
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
 
-    #[error("No terminal step found in workflow")]
-    NoTerminalStep,
+    #[error("Invalid operation: {0}")]
+    InvalidOperation(String),
 
-    #[error("Invalid connection: {0}")]
-    InvalidConnection(String),
+    #[error("Circular dependency detected: {0}")]
+    CircularDependency(String),
+
+    #[error("Invalid dependency: {0}")]
+    InvalidDependency(String),
+
+    #[error("Step not found: {0}")]
+    StepNotFound(String),
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cim_domain_workflow::Workflow;
-    use std::collections::HashMap;
+    use cim_domain_workflow::value_objects::StepType;
 
     #[test]
     fn test_workflow_graph_creation() {
-        let workflow_id = WorkflowId::new();
-        let graph = WorkflowGraph::new(workflow_id, WorkflowType::Sequential);
+        let workflow_graph = WorkflowGraph::new(
+            "Test Workflow".to_string(),
+            "A test workflow".to_string(),
+        ).unwrap();
 
-        assert_eq!(graph.workflow_id, workflow_id);
-        assert_eq!(graph.step_count(), 0);
-        assert_eq!(graph.connection_count(), 0);
+        assert_eq!(workflow_graph.name(), "Test Workflow");
+        assert_eq!(workflow_graph.description(), "A test workflow");
+        assert_eq!(workflow_graph.status(), &WorkflowStatus::Draft);
     }
 
     #[test]
-    fn test_from_workflow() {
-        let mut workflow =
-            Workflow::new("Test Workflow".to_string(), "A test workflow".to_string());
+    fn test_add_step() {
+        let mut workflow_graph = WorkflowGraph::new(
+            "Test Workflow".to_string(),
+            "A test workflow".to_string(),
+        ).unwrap();
 
-        // Add some steps
-        let step1 = cim_domain_workflow::WorkflowStep {
-            id: StepId::new(),
-            name: "Step 1".to_string(),
-            description: "First step".to_string(),
-            step_type: "manual".to_string(),
-            config: HashMap::new(),
-        };
+        let step_id = workflow_graph.add_step(
+            "Test Step".to_string(),
+            "A test step".to_string(),
+            StepType::Manual,
+            HashMap::new(),
+            Vec::new(),
+            Some(30),
+            Some("test-user".to_string()),
+        ).unwrap();
 
-        let step2 = cim_domain_workflow::WorkflowStep {
-            id: StepId::new(),
-            name: "Step 2".to_string(),
-            description: "Second step".to_string(),
-            step_type: "automated".to_string(),
-            config: HashMap::new(),
-        };
+        let stats = workflow_graph.statistics();
+        assert_eq!(stats.step_nodes, 1);
+        assert!(workflow_graph.workflow.steps.contains_key(&step_id));
+    }
 
-        workflow.add_step(step1);
-        workflow.add_step(step2);
+    #[test]
+    fn test_step_dependencies() {
+        let mut workflow_graph = WorkflowGraph::new(
+            "Test Workflow".to_string(),
+            "A test workflow".to_string(),
+        ).unwrap();
 
-        let graph = WorkflowGraph::from_workflow(&workflow);
+        // Add first step
+        let step1_id = workflow_graph.add_step(
+            "Step 1".to_string(),
+            "First step".to_string(),
+            StepType::Manual,
+            HashMap::new(),
+            Vec::new(),
+            Some(30),
+            None,
+        ).unwrap();
 
-        assert_eq!(graph.step_count(), 2);
-        assert_eq!(graph.connection_count(), 1); // Sequential connection
-        assert_eq!(graph.initial_steps().len(), 1);
-        assert_eq!(graph.terminal_steps().len(), 1);
+        // Add second step that depends on first
+        let step2_id = workflow_graph.add_step(
+            "Step 2".to_string(),
+            "Second step".to_string(),
+            StepType::Automated,
+            HashMap::new(),
+            vec![step1_id],
+            Some(15),
+            None,
+        ).unwrap();
+
+        let stats = workflow_graph.statistics();
+        assert_eq!(stats.step_nodes, 2);
+        assert!(stats.dependency_edges > 0);
+
+        // Validate the graph
+        assert!(workflow_graph.validate().is_ok());
+    }
+
+    #[test]
+    fn test_json_export() {
+        let mut workflow_graph = WorkflowGraph::new(
+            "Export Test".to_string(),
+            "Testing JSON export".to_string(),
+        ).unwrap();
+
+        workflow_graph.add_step(
+            "Test Step".to_string(),
+            "A test step".to_string(),
+            StepType::Manual,
+            HashMap::new(),
+            Vec::new(),
+            Some(30),
+            None,
+        ).unwrap();
+
+        let json = workflow_graph.to_json().unwrap();
+        assert!(json.contains("Export Test"));
+        assert!(json.contains("Test Step"));
+
+        // Test round-trip
+        let _reconstructed = WorkflowGraph::from_json(&json).unwrap();
+    }
+
+    #[test]
+    fn test_dot_export() {
+        let mut workflow_graph = WorkflowGraph::new(
+            "DOT Test".to_string(),
+            "Testing DOT export".to_string(),
+        ).unwrap();
+
+        workflow_graph.add_step(
+            "Test Step".to_string(),
+            "A test step".to_string(),
+            StepType::Manual,
+            HashMap::new(),
+            Vec::new(),
+            Some(30),
+            None,
+        ).unwrap();
+
+        let dot = workflow_graph.to_dot();
+        assert!(dot.contains("digraph"));
+        assert!(dot.contains("DOT Test"));
+        assert!(dot.contains("Start"));
+        assert!(dot.contains("End"));
+    }
+
+    #[test]
+    fn test_workflow_lifecycle() {
+        let mut workflow_graph = WorkflowGraph::new(
+            "Lifecycle Test".to_string(),
+            "Testing workflow lifecycle".to_string(),
+        ).unwrap();
+
+        // Add a step
+        workflow_graph.add_step(
+            "Test Step".to_string(),
+            "A test step".to_string(),
+            StepType::Manual,
+            HashMap::new(),
+            Vec::new(),
+            Some(30),
+            None,
+        ).unwrap();
+
+        // Start the workflow
+        assert!(workflow_graph.start(HashMap::new()).is_ok());
+        assert_eq!(workflow_graph.status(), &WorkflowStatus::Running);
+
+        // Note: Complete would require all steps to be completed
+        // For now, just verify the workflow is in running state
     }
 }

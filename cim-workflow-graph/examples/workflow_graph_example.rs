@@ -1,295 +1,340 @@
 //! Example demonstrating WorkflowGraph with a document approval process
 //!
 //! This example shows:
-//! - Creating a workflow graph with multiple states
-//! - Adding transitions with guards and enrichment values
-//! - Finding optimal paths based on business value
+//! - Creating workflow graphs with the new domain model
+//! - Adding steps with dependencies
+//! - Exporting to JSON and DOT formats
 //! - Validating workflow structure
+//! - Using ContextGraph projection for visualization
 
-use cim_domain::{GraphId, StateId};
-use cim_domain_workflow::{
-    SimpleInput, SimpleOutput, SimpleState, SimpleTransitionImpl, WorkflowContext, WorkflowState,
-    value_objects::transition::{ActorGuard, ContextKeyGuard},
-};
-use cim_workflow_graph::{BusinessValue, EnrichmentType, WorkflowGraph, WorkflowType};
-use serde::{Deserialize, Serialize};
+use cim_workflow_graph::{WorkflowGraph, WorkflowGraphError};
+use cim_domain_workflow::value_objects::StepType;
 use std::collections::HashMap;
-use std::time::Duration;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Document Approval Workflow Example ===\n");
 
     // Create workflow graph
-    let mut workflow = WorkflowGraph::new_with_name(
+    let mut workflow = WorkflowGraph::new(
         "Document Approval Process".to_string(),
-        WorkflowType::Sequential,
-        EnrichmentType::BusinessValue,
-    );
+        "Complete document approval workflow with review and publishing steps".to_string(),
+    )?;
 
-    // Define states
-    let draft = SimpleState::new("Draft");
+    println!("📝 Creating Document Approval Workflow...");
+    println!("   Name: {}", workflow.name());
+    println!("   Description: {}", workflow.description());
+    println!("   Status: {:?}", workflow.status());
 
-    let review = SimpleState::new("UnderReview");
+    // Add metadata
+    workflow.add_tag("approval".to_string());
+    workflow.add_tag("document".to_string());
+    workflow.set_property("department".to_string(), serde_json::json!("content"));
+    workflow.set_property("priority".to_string(), serde_json::json!("high"));
 
-    let approved = SimpleState::new("Approved");
+    println!("\n🏗️  Adding workflow steps...");
 
-    let rejected = SimpleState::new("Rejected");
+    // Step 1: Draft Creation
+    let draft_step = workflow.add_step(
+        "Create Draft".to_string(),
+        "Author creates the initial document draft".to_string(),
+        StepType::Manual,
+        {
+            let mut config = HashMap::new();
+            config.insert("template".to_string(), serde_json::json!("standard_doc"));
+            config.insert("min_length".to_string(), serde_json::json!(500));
+            config
+        },
+        Vec::new(), // No dependencies
+        Some(120), // 2 hours
+        Some("content-author".to_string()),
+    )?;
 
-    let published = SimpleState::terminal("Published");
+    println!("   ✓ Added: Create Draft (Manual, 2 hours)");
 
-    let archived = SimpleState::terminal("Archived");
+    // Step 2: Technical Review  
+    let tech_review_step = workflow.add_step(
+        "Technical Review".to_string(),
+        "Technical expert reviews document for accuracy".to_string(),
+        StepType::Manual,
+        {
+            let mut config = HashMap::new();
+            config.insert("review_checklist".to_string(), serde_json::json!([
+                "Technical accuracy",
+                "Code examples work",
+                "Links are valid"
+            ]));
+            config.insert("required_score".to_string(), serde_json::json!(8));
+            config
+        },
+        vec![draft_step], // Depends on draft
+        Some(60), // 1 hour
+        Some("tech-reviewer".to_string()),
+    )?;
 
-    // Add states to workflow
-    println!("Adding states to workflow...");
-    workflow.add_state(draft.clone());
-    workflow.add_state(review.clone());
-    workflow.add_state(approved.clone());
-    workflow.add_state(rejected.clone());
-    workflow.add_state(published.clone());
-    workflow.add_state(archived.clone());
+    println!("   ✓ Added: Technical Review (Manual, 1 hour)");
 
-    // Create transitions with guards
-    println!("\nAdding transitions...");
+    // Step 3: Editorial Review
+    let editorial_step = workflow.add_step(
+        "Editorial Review".to_string(),
+        "Editor reviews document for style and clarity".to_string(),
+        StepType::Manual,
+        {
+            let mut config = HashMap::new();
+            config.insert("style_guide".to_string(), serde_json::json!("company_style_v2"));
+            config.insert("grammar_check".to_string(), serde_json::json!(true));
+            config
+        },
+        vec![draft_step], // Also depends on draft (parallel with tech review)
+        Some(45), // 45 minutes
+        Some("editor".to_string()),
+    )?;
 
-    // Draft -> Review (requires author)
-    let submit_for_review = SimpleTransitionImpl::new(
-        "submit_for_review",
-        draft.clone(),
-        review.clone(),
-        SimpleInput::new("submit"),
-        SimpleOutput::new("submitted"),
-    )
-    .with_guard(Box::new(ContextKeyGuard::new("author")))
-    .with_description("Submit document for review");
+    println!("   ✓ Added: Editorial Review (Manual, 45 minutes)");
 
-    workflow
-        .add_transition(
-            Box::new(submit_for_review),
-            BusinessValue {
-                monetary_value: 0.0,
-                time_cost: Duration::from_secs(60), // 1 minute
-                risk_factor: 0.1,
-            },
-        )
-        .unwrap();
+    // Step 4: Final Approval
+    let approval_step = workflow.add_step(
+        "Manager Approval".to_string(),
+        "Department manager gives final approval for publication".to_string(),
+        StepType::Approval,
+        {
+            let mut config = HashMap::new();
+            config.insert("approval_criteria".to_string(), serde_json::json!([
+                "Technical review passed",
+                "Editorial review passed",
+                "Aligns with business goals"
+            ]));
+            config.insert("escalation_hours".to_string(), serde_json::json!(24));
+            config
+        },
+        vec![tech_review_step, editorial_step], // Depends on both reviews
+        Some(30), // 30 minutes
+        Some("department-manager".to_string()),
+    )?;
 
-    // Review -> Approved (requires reviewer role)
-    let approve = SimpleTransitionImpl::new(
-        "approve",
-        review.clone(),
-        approved.clone(),
-        SimpleInput::new("approve"),
-        SimpleOutput::new("approved"),
-    )
-    .with_guard(Box::new(ActorGuard::single("reviewer")))
-    .with_description("Approve the document");
+    println!("   ✓ Added: Manager Approval (Approval, 30 minutes)");
 
-    workflow
-        .add_transition(
-            Box::new(approve),
-            BusinessValue {
-                monetary_value: 100.0,               // Value of approved document
-                time_cost: Duration::from_secs(300), // 5 minutes
-                risk_factor: 0.2,
-            },
-        )
-        .unwrap();
+    // Step 5: Publication
+    let publish_step = workflow.add_step(
+        "Publish Document".to_string(),
+        "Publish the approved document to the company portal".to_string(),
+        StepType::Automated,
+        {
+            let mut config = HashMap::new();
+            config.insert("target_platform".to_string(), serde_json::json!("company_portal"));
+            config.insert("notification_list".to_string(), serde_json::json!([
+                "all-staff@company.com",
+                "content-team@company.com"
+            ]));
+            config.insert("auto_index".to_string(), serde_json::json!(true));
+            config
+        },
+        vec![approval_step], // Depends on approval
+        Some(5), // 5 minutes automated
+        Some("publishing-system".to_string()),
+    )?;
 
-    // Review -> Rejected (requires reviewer role)
-    let reject = SimpleTransitionImpl::new(
-        "reject",
-        review.clone(),
-        rejected.clone(),
-        SimpleInput::new("reject"),
-        SimpleOutput::new("rejected"),
-    )
-    .with_guard(Box::new(ActorGuard::single("reviewer")))
-    .with_description("Reject the document");
-
-    workflow
-        .add_transition(
-            Box::new(reject),
-            BusinessValue {
-                monetary_value: -50.0,               // Cost of rejection
-                time_cost: Duration::from_secs(180), // 3 minutes
-                risk_factor: 0.5,
-            },
-        )
-        .unwrap();
-
-    // Rejected -> Draft (for revision)
-    let revise = SimpleTransitionImpl::new(
-        "revise",
-        rejected.clone(),
-        draft.clone(),
-        SimpleInput::new("revise"),
-        SimpleOutput::new("revision_started"),
-    )
-    .with_description("Send document back for revision");
-
-    workflow
-        .add_transition(
-            Box::new(revise),
-            BusinessValue {
-                monetary_value: 0.0,
-                time_cost: Duration::from_secs(600), // 10 minutes
-                risk_factor: 0.3,
-            },
-        )
-        .unwrap();
-
-    // Approved -> Published (requires publisher role)
-    let publish = SimpleTransitionImpl::new(
-        "publish",
-        approved.clone(),
-        published.clone(),
-        SimpleInput::new("publish"),
-        SimpleOutput::new("published"),
-    )
-    .with_guard(Box::new(ActorGuard::single("publisher")))
-    .with_description("Publish the approved document");
-
-    workflow
-        .add_transition(
-            Box::new(publish),
-            BusinessValue {
-                monetary_value: 500.0,               // Value of published document
-                time_cost: Duration::from_secs(120), // 2 minutes
-                risk_factor: 0.1,
-            },
-        )
-        .unwrap();
-
-    // Published -> Archived (automatic after time)
-    let archive = SimpleTransitionImpl::new(
-        "archive",
-        published.clone(),
-        archived.clone(),
-        SimpleInput::new("archive"),
-        SimpleOutput::new("archived"),
-    )
-    .with_description("Archive the published document");
-
-    workflow
-        .add_transition(
-            Box::new(archive),
-            BusinessValue {
-                monetary_value: 0.0,
-                time_cost: Duration::from_secs(30), // 30 seconds
-                risk_factor: 0.0,
-            },
-        )
-        .unwrap();
+    println!("   ✓ Added: Publish Document (Automated, 5 minutes)");
 
     // Validate workflow
-    println!("\nValidating workflow...");
+    println!("\n🔍 Validating workflow structure...");
     match workflow.validate() {
-        Ok(()) => println!("✓ Workflow is valid"),
-        Err(e) => println!("✗ Workflow validation failed: {}", e),
-    }
-
-    // Display workflow statistics
-    println!("\nWorkflow Statistics:");
-    println!("- Total states: {}", workflow.states().count());
-    println!("- Total transitions: {}", workflow.transitions().count());
-    println!(
-        "- Initial states: {:?}",
-        workflow
-            .initial_states()
-            .iter()
-            .map(|s| s.name())
-            .collect::<Vec<_>>()
-    );
-    println!(
-        "- Terminal states: {:?}",
-        workflow
-            .terminal_states()
-            .iter()
-            .map(|s| s.name())
-            .collect::<Vec<_>>()
-    );
-
-    // Simulate workflow execution
-    println!("\n=== Simulating Workflow Execution ===");
-
-    // Create context with author
-    let mut context = WorkflowContext::new();
-    context.set("author", "John Doe");
-    context.set("actor", "reviewer");
-
-    // Find transitions from Draft state
-    let draft_state = workflow.get_state(&draft.id()).unwrap();
-    let submit_input = SimpleInput::new("submit");
-
-    println!("\nFrom Draft state with 'submit' input:");
-    let transitions = workflow.find_transitions(draft_state, &submit_input, &context);
-
-    for (transition, value, _) in &transitions {
-        println!(
-            "  - {} -> {} (value: ${:.2}, time: {:?}, risk: {:.2})",
-            transition.source().name(),
-            transition.target().name(),
-            value.monetary_value,
-            value.time_cost,
-            value.risk_factor
-        );
-    }
-
-    // Find optimal transition
-    if let Some((optimal, value, _)) =
-        workflow.find_optimal_transition(draft_state, &submit_input, &context)
-    {
-        println!(
-            "\nOptimal transition: {} -> {} (business value score: {:.2})",
-            optimal.source().name(),
-            optimal.target().name(),
-            value.monetary_value - value.time_cost.as_secs_f64() - value.risk_factor * 1000.0
-        );
-    }
-
-    // Simulate approval path
-    println!("\n=== Simulating Approval Path ===");
-
-    let review_state = workflow.get_state(&review.id()).unwrap();
-    let approve_input = SimpleInput::new("approve");
-
-    let approval_transitions = workflow.find_transitions(review_state, &approve_input, &context);
-
-    if !approval_transitions.is_empty() {
-        println!("From Review state, reviewer can:");
-        for (transition, _, _) in &approval_transitions {
-            println!(
-                "  - {}: {}",
-                transition.id().to_string().split('_').last().unwrap_or(""),
-                transition.target().name()
-            );
+        Ok(()) => println!("   ✅ Workflow validation passed!"),
+        Err(e) => {
+            println!("   ❌ Workflow validation failed: {}", e);
+            return Err(e.into());
         }
     }
 
-    // Calculate total value of happy path
-    println!("\n=== Business Value Analysis ===");
+    // Display workflow statistics
+    let stats = workflow.statistics();
+    println!("\n📊 Workflow Statistics:");
+    println!("   • Total nodes: {}", stats.total_nodes);
+    println!("   • Step nodes: {}", stats.step_nodes);
+    println!("   • Total edges: {}", stats.total_edges);
+    println!("   • Dependency edges: {}", stats.dependency_edges);
+    println!("   • Max depth: {}", stats.max_depth);
+    println!("   • Is cyclic: {}", stats.is_cyclic);
 
-    let happy_path = vec![
-        ("Draft", "UnderReview", 0.0, 60, 0.1),
-        ("UnderReview", "Approved", 100.0, 300, 0.2),
-        ("Approved", "Published", 500.0, 120, 0.1),
-    ];
+    // Show step analysis
+    println!("\n📋 Step Analysis:");
+    for node in workflow.get_step_nodes() {
+        if let cim_workflow_graph::ContextGraphNodeValue::Step { 
+            name, 
+            step_type, 
+            status, 
+            estimated_duration_minutes,
+            assigned_to,
+            .. 
+        } = &node.value {
+            println!("   • {} ({:?})", name, step_type);
+            println!("     Status: {:?}", status);
+            if let Some(duration) = estimated_duration_minutes {
+                println!("     Duration: {} minutes", duration);
+            }
+            if let Some(assignee) = assigned_to {
+                println!("     Assigned to: {}", assignee);
+            }
+        }
+    }
 
-    let total_value: f64 = happy_path.iter().map(|(_, _, v, _, _)| v).sum();
-    let total_time: u64 = happy_path.iter().map(|(_, _, _, t, _)| t).sum();
-    let max_risk: f64 = happy_path
+    // Show dependency analysis
+    println!("\n🔗 Dependency Analysis:");
+    for edge in workflow.get_dependency_edges() {
+        println!("   • {} → {} ({})", edge.source, edge.target, edge.edge_type);
+    }
+
+    // Export to JSON
+    println!("\n📄 Exporting to JSON format...");
+    let json = workflow.to_json()?;
+    
+    // Show a snippet of the JSON
+    let json_lines: Vec<&str> = json.lines().take(10).collect();
+    println!("   JSON Preview (first 10 lines):");
+    for line in json_lines {
+        println!("   {}", line);
+    }
+    println!("   ... (truncated)");
+    
+    // Show JSON size
+    println!("   📏 JSON size: {} bytes", json.len());
+
+    // Export to DOT format
+    println!("\n🎨 Exporting to DOT format (for Graphviz)...");
+    let dot = workflow.to_dot();
+    
+    // Show DOT content
+    println!("   DOT content:");
+    for line in dot.lines().take(15) {
+        println!("   {}", line);
+    }
+    if dot.lines().count() > 15 {
+        println!("   ... (truncated)");
+    }
+
+    // Simulate workflow execution
+    println!("\n🚀 Simulating workflow execution...");
+
+    // Start the workflow
+    let mut context = HashMap::new();
+    context.insert("initiator".to_string(), serde_json::json!("john.doe"));
+    context.insert("document_type".to_string(), serde_json::json!("technical_guide"));
+
+    workflow.start(context)?;
+    println!("   ✅ Workflow started successfully!");
+    println!("   Status: {:?}", workflow.status());
+
+    // Find executable steps
+    let executable_steps = workflow.get_executable_steps();
+    println!("   📝 Executable steps: {} steps ready", executable_steps.len());
+
+    // Find steps by type
+    let manual_steps = workflow.find_steps_by_type(StepType::Manual);
+    let automated_steps = workflow.find_steps_by_type(StepType::Automated);
+    let approval_steps = workflow.find_steps_by_type(StepType::Approval);
+
+    println!("\n📊 Steps by Type:");
+    println!("   • Manual steps: {}", manual_steps.len());
+    println!("   • Automated steps: {}", automated_steps.len());
+    println!("   • Approval steps: {}", approval_steps.len());
+
+    // Calculate estimated total time
+    let total_time: u32 = workflow.get_step_nodes()
         .iter()
-        .map(|(_, _, _, _, r)| *r)
-        .fold(0.0, |acc, r| acc.max(r));
+        .filter_map(|node| {
+            if let cim_workflow_graph::ContextGraphNodeValue::Step { 
+                estimated_duration_minutes: Some(duration), 
+                .. 
+            } = &node.value {
+                Some(*duration)
+            } else {
+                None
+            }
+        })
+        .sum();
 
-    println!("Happy path (Draft -> Review -> Approved -> Published):");
-    println!("  - Total monetary value: ${:.2}", total_value);
-    println!("  - Total time cost: {} seconds", total_time);
-    println!("  - Maximum risk factor: {:.2}", max_risk);
-    println!(
-        "  - Net business value score: {:.2}",
-        total_value - total_time as f64 - max_risk * 1000.0
-    );
+    println!("\n⏱️  Time Analysis:");
+    println!("   • Total estimated time: {} minutes ({:.1} hours)", 
+             total_time, total_time as f32 / 60.0);
 
-    println!("\n=== Workflow Example Complete ===");
+    // Show critical path (longest dependency chain)
+    println!("   • Critical path: Draft → Reviews → Approval → Publishing");
+    
+    let critical_path_time = 120 + 60.max(45) + 30 + 5; // Draft + max(reviews) + approval + publish
+    println!("   • Critical path time: {} minutes ({:.1} hours)", 
+             critical_path_time, critical_path_time as f32 / 60.0);
+
+    // Test JSON round-trip
+    println!("\n🔄 Testing JSON round-trip...");
+    let reconstructed = WorkflowGraph::from_json(&json)?;
+    println!("   ✅ Successfully reconstructed ContextGraph from JSON");
+
+    println!("\n🎯 Business Value Analysis:");
+    println!("   • Parallel reviews save time (45 min vs 105 min sequential)");
+    println!("   • Automated publishing reduces manual effort");
+    println!("   • Clear approval gates ensure quality control");
+    println!("   • Estimated ROI: 40% time reduction vs manual process");
+
+    println!("\n✨ Document Approval Workflow Example Complete! ✨");
+    println!("\nNext steps:");
+    println!("   1. Save JSON to file for integration with other systems");
+    println!("   2. Use DOT file with Graphviz: `dot -Tpng workflow.dot -o workflow.png`");
+    println!("   3. Integrate with workflow execution engine");
+    println!("   4. Add monitoring and metrics collection");
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_document_approval_workflow() {
+        // Run the main example as a test
+        assert!(main().is_ok());
+    }
+
+    #[test]
+    fn test_workflow_creation_and_validation() {
+        let workflow = WorkflowGraph::new(
+            "Test Workflow".to_string(),
+            "Test workflow for validation".to_string(),
+        ).unwrap();
+
+        assert_eq!(workflow.name(), "Test Workflow");
+        assert!(workflow.validate().is_ok());
+    }
+
+    #[test]
+    fn test_step_dependencies() {
+        let mut workflow = WorkflowGraph::new(
+            "Dependency Test".to_string(),
+            "Testing step dependencies".to_string(),
+        ).unwrap();
+
+        let step1 = workflow.add_step(
+            "Step 1".to_string(),
+            "First step".to_string(),
+            StepType::Manual,
+            HashMap::new(),
+            Vec::new(),
+            Some(30),
+            None,
+        ).unwrap();
+
+        let _step2 = workflow.add_step(
+            "Step 2".to_string(),
+            "Second step".to_string(),
+            StepType::Automated,
+            HashMap::new(),
+            vec![step1],
+            Some(15),
+            None,
+        ).unwrap();
+
+        assert!(workflow.validate().is_ok());
+        let stats = workflow.statistics();
+        assert_eq!(stats.step_nodes, 2);
+        assert!(stats.dependency_edges > 0);
+    }
 }
