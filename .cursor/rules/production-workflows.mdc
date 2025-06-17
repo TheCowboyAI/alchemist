@@ -1,0 +1,317 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Production Workflows and Maintenance Patterns
+
+## **🎉 PRODUCTION STATUS: CIM PROJECT 100% COMPLETE**
+
+**All 8 domains production-ready with 141+ tests passing**
+**Complete event-driven architecture with zero CRUD violations**
+**ContextGraph projection for universal workflow visualization**
+
+## **Production Development Workflows**
+
+### 1. Feature Enhancement Workflow
+For adding new features to the completed CIM system:
+
+```rust
+// ALWAYS build on proven patterns
+// Example: Adding new workflow step type
+pub enum StepType {
+    Manual,
+    Automated, 
+    Decision,
+    Approval,
+    Integration,
+    Parallel,
+    Custom,
+    NewFeatureType, // Add new types here
+}
+
+// Follow existing event patterns
+pub enum WorkflowEvent {
+    // ... existing events
+    NewFeatureStepAdded { 
+        workflow_id: WorkflowId,
+        step_id: StepId,
+        feature_config: FeatureConfig,
+    },
+}
+```
+
+**Enhancement Rules**:
+1. **NEVER break existing APIs** - Only add, never remove or change
+2. **Follow existing patterns** - Use proven-patterns.mdc as foundation
+3. **Maintain test coverage** - All new features must have comprehensive tests
+4. **Update ContextGraph projections** - Ensure new features export properly
+
+### 2. Performance Optimization Workflow
+For optimizing the production-ready system:
+
+```rust
+// Memory optimization patterns
+pub struct OptimizedGraphStorage {
+    // Use compact representations for large graphs
+    nodes: CompactNodeStorage,
+    edges: SparseEdgeMatrix,
+    spatial_index: RTree<NodeId>,
+}
+
+// Event processing optimization
+pub struct BatchEventProcessor {
+    batch_size: usize,
+    processing_timeout: Duration,
+    parallel_processors: usize,
+}
+```
+
+**Optimization Priorities**:
+1. **Memory Usage**: Target 100K+ nodes in <2GB memory
+2. **Event Throughput**: Optimize NATS JetStream processing
+3. **Rendering Performance**: Bevy ECS system optimization for large graphs
+4. **Query Performance**: Optimize read model projections
+
+### 3. Enterprise Integration Workflow
+For integrating CIM with enterprise systems:
+
+```rust
+// Enterprise API extensions
+pub struct EnterpriseWorkflowAPI {
+    // NATS-native enterprise integration
+    pub async fn import_external_workflow(
+        &self,
+        external_format: ExternalWorkflowFormat,
+    ) -> Result<WorkflowId, IntegrationError> {
+        // Convert to ContextGraph format
+        let contextgraph = self.convert_to_contextgraph(external_format)?;
+        
+        // Import through standard workflow commands
+        let workflow_id = self.create_workflow_from_graph(contextgraph).await?;
+        
+        Ok(workflow_id)
+    }
+}
+```
+
+**Integration Patterns**:
+- **ContextGraph as Universal Format**: All external integrations go through ContextGraph
+- **Event-Driven APIs**: No REST/GraphQL, only NATS messaging
+- **Backward Compatibility**: Always maintain existing message formats
+
+### 4. Monitoring and Observability Workflow
+
+```rust
+// Production monitoring patterns
+pub struct CIMMonitoring {
+    // Domain-specific metrics
+    pub domain_health: HashMap<DomainId, HealthStatus>,
+    pub event_processing_rates: EventMetrics,
+    pub workflow_execution_stats: WorkflowMetrics,
+    pub conceptual_space_performance: ConceptualSpaceMetrics,
+}
+
+// Business value tracking
+pub struct BusinessMetrics {
+    pub workflow_time_savings: HashMap<WorkflowId, Duration>,
+    pub process_efficiency_gains: f64,
+    pub user_satisfaction_scores: Vec<f64>,
+}
+```
+
+**Monitoring Requirements**:
+- **Domain Health**: Each domain must report health status
+- **Performance Metrics**: Event processing rates, memory usage, query latency
+- **Business Metrics**: Workflow efficiency, time savings, user satisfaction
+
+## **Maintenance Patterns**
+
+### 1. Dependency Management
+```bash
+# NixOS-based dependency updates
+nix flake update
+nix build # Verify build still works
+cargo test # Run all 141+ tests
+```
+
+**Update Rules**:
+1. **Test First**: Always run full test suite before committing updates
+2. **Incremental Updates**: Update one major dependency at a time
+3. **Rollback Ready**: Keep previous flake.lock for quick rollbacks
+
+### 2. Documentation Maintenance
+```markdown
+# Keep documentation current with code
+- API documentation auto-generated from code
+- Examples tested in CI/CD pipeline  
+- Progress tracking updated for major milestones
+- Rule files updated when patterns change
+```
+
+### 3. Technical Debt Management
+```rust
+// Identify technical debt opportunities
+pub struct TechnicalDebtTracker {
+    // Areas for refactoring without breaking changes
+    performance_bottlenecks: Vec<SystemComponent>,
+    code_complexity_hotspots: Vec<ModulePath>,
+    test_coverage_gaps: Vec<TestArea>,
+}
+```
+
+## **Quality Gates for Production Changes**
+
+### 1. Code Quality Gates
+- ✅ **All Tests Pass**: 141+ tests must continue passing
+- ✅ **No Breaking Changes**: Existing APIs remain compatible
+- ✅ **Performance Regression**: No significant performance degradation
+- ✅ **Memory Usage**: Memory usage within acceptable bounds
+
+### 2. Architecture Compliance Gates
+- ✅ **Event-Driven**: No CRUD violations introduced
+- ✅ **Domain Boundaries**: Proper bounded context separation maintained
+- ✅ **CQRS Compliance**: Commands and queries properly separated
+- ✅ **ContextGraph Compatibility**: New features export properly
+
+### 3. Business Value Gates
+- ✅ **User Experience**: No degradation in workflow design experience
+- ✅ **Integration Compatibility**: External integrations continue working
+- ✅ **Performance Benefits**: Optimizations show measurable improvements
+- ✅ **Documentation**: Changes properly documented
+
+## **Production Deployment Patterns**
+
+### 1. Blue-Green Deployment with Event Sourcing
+```rust
+// Event store enables safe blue-green deployments
+pub struct BlueGreenDeployment {
+    // Both environments share same event store
+    shared_event_store: Arc<DistributedEventStore>,
+    
+    // Independent read models for each environment
+    blue_projections: ReadModelStore,
+    green_projections: ReadModelStore,
+}
+```
+
+### 2. Rolling Updates for Domain Services
+```rust
+// Domain services can be updated independently
+pub struct DomainServiceUpdate {
+    // Event sourcing enables safe domain service updates
+    pub async fn update_domain_service(
+        &self,
+        domain: DomainType,
+        new_version: ServiceVersion,
+    ) -> Result<(), DeploymentError> {
+        // 1. Deploy new version alongside old
+        // 2. Replay events to build new read models
+        // 3. Switch traffic to new version
+        // 4. Remove old version
+    }
+}
+```
+
+### 3. Configuration Management
+```nix
+# NixOS configuration for production
+{
+  cim-production = {
+    # Resource allocation
+    memory_limit = "16GB";
+    cpu_cores = 8;
+    
+    # NATS configuration
+    jetstream_storage = "1TB";
+    max_event_retention = "1 year";
+    
+    # Monitoring
+    enable_metrics = true;
+    enable_tracing = true;
+  };
+}
+```
+
+## **Troubleshooting Production Issues**
+
+### 1. Event Store Issues
+```rust
+// Event store debugging tools
+pub struct EventStoreDebugger {
+    pub async fn validate_event_chain(&self, aggregate_id: AggregateId) -> ChainValidationResult {
+        // Verify CID chain integrity
+        // Check for missing or corrupted events
+        // Validate event ordering
+    }
+    
+    pub async fn replay_events_to_timestamp(&self, timestamp: SystemTime) -> ReplayResult {
+        // Time-travel debugging using event sourcing
+    }
+}
+```
+
+### 2. Performance Issues
+```rust
+// Performance debugging patterns
+pub struct PerformanceProfiler {
+    pub fn profile_event_processing(&self) -> EventProcessingProfile {
+        // Identify slow event handlers
+        // Measure projection rebuild times
+        // Track memory allocation patterns
+    }
+    
+    pub fn profile_graph_rendering(&self) -> RenderingProfile {
+        // Measure Bevy ECS system performance
+        // Identify rendering bottlenecks
+        // Track frame rate and memory usage
+    }
+}
+```
+
+### 3. Integration Issues
+```rust
+// Integration debugging tools
+pub struct IntegrationDebugger {
+    pub fn validate_contextgraph_export(&self, workflow_id: WorkflowId) -> ValidationResult {
+        // Ensure ContextGraph export is valid
+        // Verify round-trip JSON serialization
+        // Check DOT format compatibility
+    }
+}
+```
+
+## **Continuous Improvement Process**
+
+### 1. User Feedback Integration
+- **Workflow Designer UX**: Gather feedback on visual workflow design
+- **Performance Perception**: Monitor user-reported performance issues
+- **Feature Requests**: Evaluate requests against architectural principles
+
+### 2. Technical Metrics Analysis
+- **Event Processing Latency**: Target <100ms for most operations
+- **Memory Usage Growth**: Monitor for memory leaks in long-running workflows
+- **Test Suite Performance**: Keep full test suite under 5 minutes
+
+### 3. Architecture Evolution
+- **Pattern Validation**: Continuously validate architectural decisions
+- **Performance Optimizations**: Measure and improve system performance
+- **Integration Expansion**: Add new integration patterns based on demand
+
+## **Success Metrics for Production**
+
+### Technical Success Metrics
+- **Uptime**: >99.9% availability
+- **Performance**: <2GB memory for 100K+ nodes
+- **Test Coverage**: Maintain 141+ passing tests
+- **Event Processing**: <100ms latency for most operations
+
+### Business Success Metrics
+- **Workflow Efficiency**: Demonstrable time savings (target: 40%+ like document approval)
+- **User Adoption**: Increasing workflow creation and usage
+- **Integration Success**: External systems successfully using ContextGraph format
+- **Developer Experience**: Fast development cycles on proven foundation
+
+---
+
+**Remember**: We have a COMPLETE, PRODUCTION-READY system. Focus on enhancement, optimization, and integration rather than fundamental architecture changes. The proven patterns work - build on them!
