@@ -200,14 +200,14 @@ fn handle_markdown_import(
     if keyboard.just_pressed(KeyCode::KeyM) {
         if let Ok(container) = graph_query.single() {
             let files = [
-                ("assets/models/KECO_DDD_Core_Model.md", "core"),
-                ("assets/models/KECO_DDD_LoanOriginationContext.md", "loan"),
+                ("assets/keco/KECO_DDD_Core_Model.md", "core"),
+                ("assets/keco/KECO_DDD_LoanOriginationContext.md", "loan"),
                 (
-                    "assets/models/KECO_DDD_UnderwritingContext.md",
+                    "assets/keco/KECO_DDD_UnderwritingContext.md",
                     "underwriting",
                 ),
-                ("assets/models/KECO_DDD_DocumentContext.md", "document"),
-                ("assets/models/KECO_DDD_ClosingContext.md", "closing"),
+                ("assets/keco/KECO_DDD_DocumentContext.md", "document"),
+                ("assets/keco/KECO_DDD_ClosingContext.md", "closing"),
             ];
 
             let (file_path, prefix) = files[*file_index % files.len()];

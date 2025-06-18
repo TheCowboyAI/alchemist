@@ -105,7 +105,7 @@ graph TB
 #[test]
 fn test_parse_ddd_markdown_file() {
     // Test parsing an actual DDD markdown file
-    let file_path = "assets/models/KECO_DDD_Core_Model.md";
+    let file_path = "assets/keco/KECO_DDD_Core_Model.md";
 
     if std::path::Path::new(file_path).exists() {
         let content = std::fs::read_to_string(file_path).expect("Should read markdown file");

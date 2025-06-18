@@ -1,0 +1,48 @@
+[package]
+name = "cim-bridge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core async runtime
+tokio = { version = "1.40", features = ["full"] }
+async-trait = "0.1"
+
+# NATS messaging
+async-nats = "0.35"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Utilities
+uuid = { version = "1.10", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2.0"
+anyhow = "1.0"
+
+# HTTP client for Ollama
+reqwest = { version = "0.12", features = ["json", "stream"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# CLI
+clap = { version = "4.5", features = ["derive"] }
+
+# Stream processing
+futures = "0.3"
+tokio-stream = "0.1"
+
+[[bin]]
+name = "cim-bridge"
+path = "src/main.rs"
+
+[[bin]]
+name = "cim-bridge-cli"
+path = "src/bin/cli.rs"
+
+[[example]]
+name = "test_bridge"
+path = "examples/test_bridge.rs"

@@ -2046,11 +2046,11 @@
           "/tests/integration/markdown_import_nats_replay_test.rs",
           "/scripts/demo_markdown_import.sh",
           "/doc/user-guide/markdown-import-nats-replay.md",
-          "/assets/models/KECO_DDD_Core_Model.md",
-          "/assets/models/KECO_DDD_LoanOriginationContext.md",
-          "/assets/models/KECO_DDD_UnderwritingContext.md",
-          "/assets/models/KECO_DDD_DocumentContext.md",
-          "/assets/models/KECO_DDD_ClosingContext.md"
+          "/assets/kecoO_DDD_Core_Model.md",
+          "/assets/keco/KECO_DDD_LoanOriginationContext.md",
+          "/assets/keco/KECO_DDD_UnderwritingContext.md",
+          "/assets/keco/KECO_DDD_DocumentContext.md",
+          "/assets/keco/KECO_DDD_ClosingContext.md"
         ]
       }
     },

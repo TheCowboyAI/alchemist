@@ -42,3 +42,11 @@ app_*.log
 # Test binaries (temporary debugging tools)
 src/bin/test_*.rs
 vendor/
+assets/keco/Keco Physical CIM.json
+assets/keco/KECO_DDD_ClosingContext.md
+assets/keco/KECO_DDD_Core_Model.md
+assets/keco/KECO_DDD_DocumentContext.md
+assets/keco/KECO_DDD_LoanOriginationContext.md
+assets/keco/KECO_DDD_UnderwritingContext.md
+assets/keco/KECO_Loan_Process_Flow.md
+assets/keco/KECO_v6_04012025.json

@@ -90,7 +90,7 @@ fn handle_markdown_import(
                 command: Command::Graph(GraphCommand::ImportGraph {
                     graph_id: container.graph_id,
                     source: ImportSource::File {
-                        path: "assets/models/KECO_DDD_Core_Model.md".to_string(),
+                        path: "assets/keco/KECO_DDD_Core_Model.md".to_string(),
                     },
                     format: "mermaid".to_string(),
                     options: ImportOptions {
@@ -116,14 +116,14 @@ fn handle_markdown_import(
         info!("Ctrl+D detected - cycling through files");
         if let Ok(container) = graph_query.single() {
             let ddd_files = [
-                ("assets/models/KECO_DDD_Core_Model.md", "core"),
-                ("assets/models/KECO_DDD_LoanOriginationContext.md", "loan"),
+                ("assets/keco/KECO_DDD_Core_Model.md", "core"),
+                ("assets/keco/KECO_DDD_LoanOriginationContext.md", "loan"),
                 (
-                    "assets/models/KECO_DDD_UnderwritingContext.md",
+                    "assets/keco/KECO_DDD_UnderwritingContext.md",
                     "underwriting",
                 ),
-                ("assets/models/KECO_DDD_DocumentContext.md", "document"),
-                ("assets/models/KECO_DDD_ClosingContext.md", "closing"),
+                ("assets/keco/KECO_DDD_DocumentContext.md", "document"),
+                ("assets/keco/KECO_DDD_ClosingContext.md", "closing"),
             ];
 
             let (file_path, prefix) = ddd_files[*file_index % ddd_files.len()];

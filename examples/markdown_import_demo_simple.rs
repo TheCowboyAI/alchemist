@@ -85,11 +85,11 @@ fn handle_markdown_import(
 ) {
     if keyboard.just_pressed(KeyCode::KeyM) {
         let files = vec![
-            "assets/models/KECO_DDD_Core_Model.md",
-            "assets/models/KECO_DDD_LoanOriginationContext.md",
-            "assets/models/KECO_DDD_UnderwritingContext.md",
-            "assets/models/KECO_DDD_DocumentContext.md",
-            "assets/models/KECO_DDD_ClosingContext.md",
+            "assets/keco/KECO_DDD_Core_Model.md",
+            "assets/keco/KECO_DDD_LoanOriginationContext.md",
+            "assets/keco/KECO_DDD_UnderwritingContext.md",
+            "assets/keco/KECO_DDD_DocumentContext.md",
+            "assets/keco/KECO_DDD_ClosingContext.md",
         ];
 
         let file_path = files[*file_index % files.len()];

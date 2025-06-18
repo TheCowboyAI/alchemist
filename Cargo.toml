@@ -17,30 +17,35 @@ all = { level = "warn", priority = -1 }
 [workspace]
 exclude = ["examples/", "bevy-patched"]
 members = [
-  "cim-component",
-  "cim-infrastructure",
   "cim-compose",
-  "cim-ipld",
-  "cim-contextgraph",
-  "cim-workflow-graph",
-  "cim-ipld-graph",
+  "cim-component",
   "cim-conceptgraph",
+  "cim-contextgraph",
   "cim-domain",
-  "cim-domain-person",
-  "cim-domain-organization",
   "cim-domain-agent",
-  "cim-domain-workflow",
-  "cim-domain-git",
-  "cim-domain-location",
-  "cim-domain-graph",
-  "cim-subject",
   "cim-domain-bevy",
   "cim-domain-conceptualspaces",
-  "cim-domain-identity",
-  "cim-domain-nix",
   "cim-domain-document",
+  "cim-domain-git",
+  "cim-domain-graph",
+  "cim-domain-identity",
+  "cim-domain-location",
+  "cim-domain-nix",
+  "cim-domain-organization",
+  "cim-domain-person",
+  "cim-domain-workflow",
+  "cim-infrastructure",
+  "cim-ipld",
+  "cim-ipld-graph",
+  "cim-subject",
+  "cim-workflow-graph",
   "cim-domain-policy",
   "cim-keys",
+  "cim-bridge",
+  "bevy-patched/crates/*",
+  "bevy-patched/errors",
+  "bevy-patched/tools/*",
+  "bevy-patched/tools/compile_fail_utils",
 ]
 resolver = "2"
 
@@ -64,6 +69,7 @@ uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde-xml-rs = "0.6"
+serde_yaml = "0.9"
 
 # Bevy - use default features for dev, minimal for production
 bevy = { path = "bevy-patched", default-features = false, features = [
@@ -102,7 +108,7 @@ petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
 
 # Async runtime
-tokio = { version = "1.45", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
 async-trait = "0.1"
 
 # NATS messaging
@@ -139,6 +145,7 @@ cim-domain-bevy = { path = "cim-domain-bevy" }
 cim-subject = { path = "cim-subject" }
 cim-domain-nix = { path = "cim-domain-nix" }
 cim-keys = { path = "cim-keys" }
+cim-bridge = { path = "cim-bridge" }
 cid = { version = "0.11", features = ["serde"] }
 multihash = { version = "0.19", features = ["std"] }
 blake3 = "1.5"
@@ -266,6 +273,21 @@ path = "examples/git_graph_visualization_demo.rs"
 [[example]]
 name = "progress_demo"
 path = "examples/progress_demo.rs"
+
+[[example]]
+name = "bridge_architecture_demo"
+path = "examples/bridge_architecture_demo.rs"
+required-features = ["dev"]
+
+[[example]]
+name = "bridge_cli_demo"
+path = "examples/bridge_cli_demo.rs"
+required-features = []
+
+[[example]]
+name = "keco_loan_process_demo"
+path = "examples/keco_loan_process_demo.rs"
+required-features = ["dev"]
 
 # Disable the problematic experimental features
 [package.metadata.bevy]

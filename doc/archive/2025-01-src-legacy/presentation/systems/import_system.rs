@@ -187,7 +187,7 @@ pub fn handle_import_shortcuts(
         import_file_to_graph(
             &mut commands,
             &graph_query,
-            "assets/models/sample_graph.json",
+            "assets/keco/sample_graph.json",
             ImportFormat::ArrowsApp,
             &mut import_state,
         );
@@ -210,11 +210,11 @@ pub fn handle_import_shortcuts(
         info!("Import DDD markdown shortcut triggered (Ctrl+D)");
         // Cycle through different DDD markdown files
         let ddd_files = [
-            "assets/models/KECO_DDD_Core_Model.md",
-            "assets/models/KECO_DDD_LoanOriginationContext.md",
-            "assets/models/KECO_DDD_UnderwritingContext.md",
-            "assets/models/KECO_DDD_DocumentContext.md",
-            "assets/models/KECO_DDD_ClosingContext.md",
+            "assets/keco/KECO_DDD_Core_Model.md",
+            "assets/keco/KECO_DDD_LoanOriginationContext.md",
+            "assets/keco/KECO_DDD_UnderwritingContext.md",
+            "assets/keco/KECO_DDD_DocumentContext.md",
+            "assets/keco/KECO_DDD_ClosingContext.md",
         ];
 
         let file_index = (import_state.import_count as usize) % ddd_files.len();

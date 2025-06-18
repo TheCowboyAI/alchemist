@@ -185,7 +185,7 @@ fn handle_import_input(
             command: Command::Graph(GraphCommand::ImportGraph {
                 graph_id,
                 source: ImportSource::File {
-                    path: "assets/models/KECO_DDD_Core_Model.md".to_string(),
+                    path: "assets/keco/KECO_DDD_Core_Model.md".to_string(),
                 },
                 format: "mermaid".to_string(),
                 options: ImportOptions {

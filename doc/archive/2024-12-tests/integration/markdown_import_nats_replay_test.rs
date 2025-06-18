@@ -93,7 +93,7 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
     let import_command = Command::Graph(GraphCommand::ImportGraph {
         graph_id,
         source: ImportSource::File {
-            path: "assets/models/KECO_DDD_Core_Model.md".to_string(),
+            path: "assets/keco/KECO_DDD_Core_Model.md".to_string(),
         },
         format: "mermaid".to_string(),
         options: ImportOptions {
@@ -122,7 +122,7 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
     recorded_events.push(DomainEvent::Graph(GraphEvent::GraphImportRequested {
         graph_id,
         source: ImportSource::File {
-            path: "assets/models/KECO_DDD_Core_Model.md".to_string(),
+            path: "assets/keco/KECO_DDD_Core_Model.md".to_string(),
         },
         format: "mermaid".to_string(),
         options: ImportOptions {
@@ -182,7 +182,7 @@ async fn test_markdown_import_and_nats_replay() -> Result<(), Box<dyn std::error
         imported_nodes: node_ids.len(),
         imported_edges: 1,
         source: ImportSource::File {
-            path: "assets/models/KECO_DDD_Core_Model.md".to_string(),
+            path: "assets/keco/KECO_DDD_Core_Model.md".to_string(),
         },
     }));
 
