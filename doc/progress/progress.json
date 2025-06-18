@@ -5096,6 +5096,10 @@
     },
     {
       "id": "edge-viz-cleanup-to-test-update",
+      "source": "visualization-cleanup-needed",
+      "target": "contextgraph-test-update-complete",
+      "relationship": "enables",
+      "label": "Cleanup enables test updates"
     },
     {
       "id": "edge-test-update-to-conceptualspaces-fix",

@@ -40,7 +40,7 @@ pkgs.mkShell {
     pcsclite # PC/SC smart card interface for YubiKey
     gpgme # GPG Made Easy library
     libgpg-error # GPG error handling library
-    nettle # Low-level cryptographic library
+    nettle.dev # Low-level cryptographic library with development headers
     gmp # GNU Multiple Precision Arithmetic Library (required by nettle)
     libclang # For bindgen support
 
@@ -110,7 +110,7 @@ pkgs.mkShell {
     pkgs.pcsclite
     pkgs.gpgme
     pkgs.libgpg-error
-    pkgs.nettle
+    pkgs.nettle.dev
     pkgs.gmp
   ];
 

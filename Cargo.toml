@@ -112,6 +112,9 @@ async-nats = { version = "0.41", features = ["service"] }
 thiserror = "2.0"
 anyhow = "1.0"
 
+# Git operations
+git2 = "0.19"
+
 # Utilities
 chrono = { version = "0.4", features = ["serde"] }
 tracing = "0.1"
@@ -132,6 +135,7 @@ cim-domain-policy = { path = "cim-domain-policy" }
 cim-domain-agent = { path = "cim-domain-agent" }
 cim-domain-organization = { path = "cim-domain-organization" }
 cim-domain-person = { path = "cim-domain-person" }
+cim-domain-bevy = { path = "cim-domain-bevy" }
 cim-subject = { path = "cim-subject" }
 cim-domain-nix = { path = "cim-domain-nix" }
 cim-keys = { path = "cim-keys" }
@@ -254,6 +258,14 @@ path = "examples/json_import_demo.rs"
 [[example]]
 name = "approval_workflow"
 path = "examples/approval_workflow.rs"
+
+[[example]]
+name = "git_graph_visualization_demo"
+path = "examples/git_graph_visualization_demo.rs"
+
+[[example]]
+name = "progress_demo"
+path = "examples/progress_demo.rs"
 
 # Disable the problematic experimental features
 [package.metadata.bevy]

@@ -27,14 +27,14 @@
 //! ```
 
 use cim_domain_git::{
+    GitDomainError,
     commands::{ExtractCommitGraph, ExtractDependencyGraph},
     handlers::RepositoryCommandHandler,
-    GitDomainError,
 };
 use cim_domain_graph::{
     commands::{GraphCommand, GraphCommandError},
-    handlers::{GraphCommandHandler, GraphCommandHandlerImpl, InMemoryGraphRepository},
     domain_events::GraphDomainEvent,
+    handlers::{GraphCommandHandler, GraphCommandHandlerImpl, InMemoryGraphRepository},
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -61,7 +61,8 @@ impl GitToGraphConverter {
         info!("Starting Git repository analysis and graph conversion");
 
         // Step 1: Analyze the current Git repository
-        let (repository_id, git_events) = self.git_handler
+        let (repository_id, git_events) = self
+            .git_handler
             .analyze_current_repository()
             .await
             .map_err(ConverterError::GitError)?;
@@ -104,32 +105,40 @@ impl GitToGraphConverter {
         // Collect analysis summary
         result.analysis_summary = self.collect_analysis_summary(&git_events);
 
-        info!("Git to Graph conversion completed: {} graphs created", result.graphs_created);
-        
+        info!(
+            "Git to Graph conversion completed: {} graphs created",
+            result.graphs_created
+        );
+
         Ok(result)
     }
 
     /// Extract commit graph from the repository
-    async fn extract_commit_graph(&self, repository_id: cim_domain_git::aggregate::RepositoryId) -> Result<cim_domain_graph::GraphId, ConverterError> {
+    async fn extract_commit_graph(
+        &self,
+        repository_id: cim_domain_git::aggregate::RepositoryId,
+    ) -> Result<cim_domain_graph::GraphId, ConverterError> {
         info!("Extracting commit graph from repository");
 
         // Create Git domain command to extract commit graph
         let extract_cmd = ExtractCommitGraph {
             repository_id,
-            start_commit: None, // Start from HEAD
+            start_commit: None,  // Start from HEAD
             max_depth: Some(50), // Limit to 50 commits for demo
             include_all_branches: true,
             include_tags: true,
         };
 
         // Execute Git domain command
-        let git_events = self.git_handler
+        let git_events = self
+            .git_handler
             .extract_commit_graph(extract_cmd)
             .await
             .map_err(ConverterError::GitError)?;
 
         // Find the commit graph extracted event
-        let commit_graph_event = git_events.iter()
+        let commit_graph_event = git_events
+            .iter()
             .find_map(|event| {
                 if let cim_domain_git::events::GitDomainEvent::CommitGraphExtracted(e) = event {
                     Some(e)
@@ -137,33 +146,48 @@ impl GitToGraphConverter {
                     None
                 }
             })
-            .ok_or_else(|| ConverterError::ConversionError("No commit graph extracted".to_string()))?;
+            .ok_or_else(|| {
+                ConverterError::ConversionError("No commit graph extracted".to_string())
+            })?;
 
         // Create corresponding graph in Graph domain
         let create_graph_cmd = GraphCommand::CreateGraph {
             name: format!("Commit Graph - Repository {}", repository_id.as_uuid()),
             description: format!(
                 "Git commit history graph with {} commits and {} edges",
-                commit_graph_event.commit_count,
-                commit_graph_event.edge_count
+                commit_graph_event.commit_count, commit_graph_event.edge_count
             ),
             metadata: {
                 let mut data = std::collections::HashMap::new();
-                data.insert("repository_id".to_string(), serde_json::Value::String(repository_id.as_uuid().to_string()));
-                data.insert("source".to_string(), serde_json::Value::String("git_commit_graph".to_string()));
-                data.insert("commit_count".to_string(), serde_json::Value::Number(commit_graph_event.commit_count.into()));
-                data.insert("created_by".to_string(), serde_json::Value::String("GitToGraphConverter".to_string()));
+                data.insert(
+                    "repository_id".to_string(),
+                    serde_json::Value::String(repository_id.as_uuid().to_string()),
+                );
+                data.insert(
+                    "source".to_string(),
+                    serde_json::Value::String("git_commit_graph".to_string()),
+                );
+                data.insert(
+                    "commit_count".to_string(),
+                    serde_json::Value::Number(commit_graph_event.commit_count.into()),
+                );
+                data.insert(
+                    "created_by".to_string(),
+                    serde_json::Value::String("GitToGraphConverter".to_string()),
+                );
                 data
             },
         };
 
-        let graph_events = self.graph_handler
+        let graph_events = self
+            .graph_handler
             .handle_graph_command(create_graph_cmd)
             .await
             .map_err(ConverterError::GraphError)?;
 
         // Extract graph ID from events
-        let graph_id = graph_events.iter()
+        let graph_id = graph_events
+            .iter()
             .find_map(|event| {
                 if let GraphDomainEvent::GraphCreated(e) = event {
                     Some(e.graph_id)
@@ -178,7 +202,10 @@ impl GitToGraphConverter {
     }
 
     /// Extract dependency graph from the repository
-    async fn extract_dependency_graph(&self, repository_id: cim_domain_git::aggregate::RepositoryId) -> Result<cim_domain_graph::GraphId, ConverterError> {
+    async fn extract_dependency_graph(
+        &self,
+        repository_id: cim_domain_git::aggregate::RepositoryId,
+    ) -> Result<cim_domain_graph::GraphId, ConverterError> {
         info!("Extracting dependency graph from repository");
 
         // Create Git domain command to extract dependency graph
@@ -208,21 +235,35 @@ impl GitToGraphConverter {
             description: "File dependency relationships extracted from Git repository".to_string(),
             metadata: {
                 let mut data = std::collections::HashMap::new();
-                data.insert("repository_id".to_string(), serde_json::Value::String(repository_id.as_uuid().to_string()));
-                data.insert("source".to_string(), serde_json::Value::String("git_dependency_graph".to_string()));
-                data.insert("analysis_type".to_string(), serde_json::Value::String("file_dependencies".to_string()));
-                data.insert("created_by".to_string(), serde_json::Value::String("GitToGraphConverter".to_string()));
+                data.insert(
+                    "repository_id".to_string(),
+                    serde_json::Value::String(repository_id.as_uuid().to_string()),
+                );
+                data.insert(
+                    "source".to_string(),
+                    serde_json::Value::String("git_dependency_graph".to_string()),
+                );
+                data.insert(
+                    "analysis_type".to_string(),
+                    serde_json::Value::String("file_dependencies".to_string()),
+                );
+                data.insert(
+                    "created_by".to_string(),
+                    serde_json::Value::String("GitToGraphConverter".to_string()),
+                );
                 data
             },
         };
 
-        let graph_events = self.graph_handler
+        let graph_events = self
+            .graph_handler
             .handle_graph_command(create_graph_cmd)
             .await
             .map_err(ConverterError::GraphError)?;
 
         // Extract graph ID from events
-        let graph_id = graph_events.iter()
+        let graph_id = graph_events
+            .iter()
             .find_map(|event| {
                 if let GraphDomainEvent::GraphCreated(e) = event {
                     Some(e.graph_id)
@@ -237,7 +278,10 @@ impl GitToGraphConverter {
     }
 
     /// Collect analysis summary from Git events
-    fn collect_analysis_summary(&self, events: &[cim_domain_git::events::GitDomainEvent]) -> AnalysisSummary {
+    fn collect_analysis_summary(
+        &self,
+        events: &[cim_domain_git::events::GitDomainEvent],
+    ) -> AnalysisSummary {
         let mut summary = AnalysisSummary::default();
 
         for event in events {
@@ -248,10 +292,14 @@ impl GitToGraphConverter {
                     summary.total_commits = e.commit_count;
                 }
                 cim_domain_git::events::GitDomainEvent::BranchCreated(e) => {
-                    summary.branches_analyzed.push(e.branch_name.as_str().to_string());
+                    summary
+                        .branches_analyzed
+                        .push(e.branch_name.as_str().to_string());
                 }
                 cim_domain_git::events::GitDomainEvent::CommitAnalyzed(e) => {
-                    summary.commits_analyzed.push(e.commit_hash.as_str().to_string());
+                    summary
+                        .commits_analyzed
+                        .push(e.commit_hash.as_str().to_string());
                     summary.unique_authors.insert(e.author.name.clone());
                 }
                 _ => {}
@@ -265,13 +313,16 @@ impl GitToGraphConverter {
     pub fn display_results(&self, result: &GitAnalysisResult) {
         println!("\n=== Git Repository Analysis Results ===");
         println!("Repository ID: {}", result.repository_id.as_uuid());
-        println!("Repository Name: {}", result.analysis_summary.repository_name);
+        println!(
+            "Repository Name: {}",
+            result.analysis_summary.repository_name
+        );
         println!("Graphs Created: {}", result.graphs_created);
-        
+
         if let Some(commit_graph_id) = result.commit_graph_id {
             println!("Commit Graph ID: {}", commit_graph_id.as_uuid());
         }
-        
+
         if let Some(dependency_graph_id) = result.dependency_graph_id {
             println!("Dependency Graph ID: {}", dependency_graph_id.as_uuid());
         }
@@ -279,9 +330,15 @@ impl GitToGraphConverter {
         println!("\n=== Analysis Summary ===");
         println!("Total Branches: {}", result.analysis_summary.total_branches);
         println!("Total Commits: {}", result.analysis_summary.total_commits);
-        println!("Commits Analyzed: {}", result.analysis_summary.commits_analyzed.len());
-        println!("Unique Authors: {}", result.analysis_summary.unique_authors.len());
-        
+        println!(
+            "Commits Analyzed: {}",
+            result.analysis_summary.commits_analyzed.len()
+        );
+        println!(
+            "Unique Authors: {}",
+            result.analysis_summary.unique_authors.len()
+        );
+
         if !result.analysis_summary.branches_analyzed.is_empty() {
             println!("Branches Found:");
             for branch in &result.analysis_summary.branches_analyzed {
@@ -335,10 +392,10 @@ pub struct AnalysisSummary {
 pub enum ConverterError {
     #[error("Git domain error: {0}")]
     GitError(#[from] GitDomainError),
-    
+
     #[error("Graph domain error: {0}")]
     GraphError(#[from] GraphCommandError),
-    
+
     #[error("Conversion error: {0}")]
     ConversionError(String),
 }
@@ -351,10 +408,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("🚀 Git to Graph Conversion Example");
     println!("This example analyzes the current Git repository and creates graph representations");
-    
+
     // Check if we're in a Git repository
     if !std::path::Path::new(".git").exists() {
-        eprintln!("❌ Error: Not in a Git repository. Please run this example from the root of a Git repository.");
+        eprintln!(
+            "❌ Error: Not in a Git repository. Please run this example from the root of a Git repository."
+        );
         std::process::exit(1);
     }
 
@@ -365,9 +424,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match converter.analyze_and_convert().await {
         Ok(result) => {
             converter.display_results(&result);
-            
+
             if result.graphs_created > 0 {
-                println!("\n✅ Success! Created {} graph(s) from Git repository data", result.graphs_created);
+                println!(
+                    "\n✅ Success! Created {} graph(s) from Git repository data",
+                    result.graphs_created
+                );
                 println!("\nNext steps:");
                 println!("1. Use the Graph domain queries to explore the created graphs");
                 println!("2. Visualize the graphs using the Bevy presentation layer");
@@ -404,11 +466,13 @@ mod tests {
             total_commits: 15,
             branches_analyzed: vec!["main".to_string(), "dev".to_string()],
             commits_analyzed: vec!["abc123".to_string()],
-            unique_authors: vec!["Alice".to_string(), "Bob".to_string()].into_iter().collect(),
+            unique_authors: vec!["Alice".to_string(), "Bob".to_string()]
+                .into_iter()
+                .collect(),
         };
 
         assert_eq!(summary.repository_name, "test-repo");
         assert_eq!(summary.total_branches, 3);
         assert_eq!(summary.unique_authors.len(), 2);
     }
-} 
+}

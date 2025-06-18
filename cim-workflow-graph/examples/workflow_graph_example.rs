@@ -7,8 +7,8 @@
 //! - Validating workflow structure
 //! - Using ContextGraph projection for visualization
 
-use cim_workflow_graph::{WorkflowGraph, WorkflowGraphError};
 use cim_domain_workflow::value_objects::StepType;
+use cim_workflow_graph::{WorkflowGraph, WorkflowGraphError};
 use std::collections::HashMap;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -45,29 +45,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             config
         },
         Vec::new(), // No dependencies
-        Some(120), // 2 hours
+        Some(120),  // 2 hours
         Some("content-author".to_string()),
     )?;
 
     println!("   ✓ Added: Create Draft (Manual, 2 hours)");
 
-    // Step 2: Technical Review  
+    // Step 2: Technical Review
     let tech_review_step = workflow.add_step(
         "Technical Review".to_string(),
         "Technical expert reviews document for accuracy".to_string(),
         StepType::Manual,
         {
             let mut config = HashMap::new();
-            config.insert("review_checklist".to_string(), serde_json::json!([
-                "Technical accuracy",
-                "Code examples work",
-                "Links are valid"
-            ]));
+            config.insert(
+                "review_checklist".to_string(),
+                serde_json::json!([
+                    "Technical accuracy",
+                    "Code examples work",
+                    "Links are valid"
+                ]),
+            );
             config.insert("required_score".to_string(), serde_json::json!(8));
             config
         },
         vec![draft_step], // Depends on draft
-        Some(60), // 1 hour
+        Some(60),         // 1 hour
         Some("tech-reviewer".to_string()),
     )?;
 
@@ -80,12 +83,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         StepType::Manual,
         {
             let mut config = HashMap::new();
-            config.insert("style_guide".to_string(), serde_json::json!("company_style_v2"));
+            config.insert(
+                "style_guide".to_string(),
+                serde_json::json!("company_style_v2"),
+            );
             config.insert("grammar_check".to_string(), serde_json::json!(true));
             config
         },
         vec![draft_step], // Also depends on draft (parallel with tech review)
-        Some(45), // 45 minutes
+        Some(45),         // 45 minutes
         Some("editor".to_string()),
     )?;
 
@@ -98,16 +104,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         StepType::Approval,
         {
             let mut config = HashMap::new();
-            config.insert("approval_criteria".to_string(), serde_json::json!([
-                "Technical review passed",
-                "Editorial review passed",
-                "Aligns with business goals"
-            ]));
+            config.insert(
+                "approval_criteria".to_string(),
+                serde_json::json!([
+                    "Technical review passed",
+                    "Editorial review passed",
+                    "Aligns with business goals"
+                ]),
+            );
             config.insert("escalation_hours".to_string(), serde_json::json!(24));
             config
         },
         vec![tech_review_step, editorial_step], // Depends on both reviews
-        Some(30), // 30 minutes
+        Some(30),                               // 30 minutes
         Some("department-manager".to_string()),
     )?;
 
@@ -120,16 +129,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         StepType::Automated,
         {
             let mut config = HashMap::new();
-            config.insert("target_platform".to_string(), serde_json::json!("company_portal"));
-            config.insert("notification_list".to_string(), serde_json::json!([
-                "all-staff@company.com",
-                "content-team@company.com"
-            ]));
+            config.insert(
+                "target_platform".to_string(),
+                serde_json::json!("company_portal"),
+            );
+            config.insert(
+                "notification_list".to_string(),
+                serde_json::json!(["all-staff@company.com", "content-team@company.com"]),
+            );
             config.insert("auto_index".to_string(), serde_json::json!(true));
             config
         },
         vec![approval_step], // Depends on approval
-        Some(5), // 5 minutes automated
+        Some(5),             // 5 minutes automated
         Some("publishing-system".to_string()),
     )?;
 
@@ -158,14 +170,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Show step analysis
     println!("\n📋 Step Analysis:");
     for node in workflow.get_step_nodes() {
-        if let cim_workflow_graph::ContextGraphNodeValue::Step { 
-            name, 
-            step_type, 
-            status, 
+        if let cim_workflow_graph::ContextGraphNodeValue::Step {
+            name,
+            step_type,
+            status,
             estimated_duration_minutes,
             assigned_to,
-            .. 
-        } = &node.value {
+            ..
+        } = &node.value
+        {
             println!("   • {} ({:?})", name, step_type);
             println!("     Status: {:?}", status);
             if let Some(duration) = estimated_duration_minutes {
@@ -180,13 +193,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Show dependency analysis
     println!("\n🔗 Dependency Analysis:");
     for edge in workflow.get_dependency_edges() {
-        println!("   • {} → {} ({})", edge.source, edge.target, edge.edge_type);
+        println!(
+            "   • {} → {} ({})",
+            edge.source, edge.target, edge.edge_type
+        );
     }
 
     // Export to JSON
     println!("\n📄 Exporting to JSON format...");
     let json = workflow.to_json()?;
-    
+
     // Show a snippet of the JSON
     let json_lines: Vec<&str> = json.lines().take(10).collect();
     println!("   JSON Preview (first 10 lines):");
@@ -194,14 +210,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("   {}", line);
     }
     println!("   ... (truncated)");
-    
+
     // Show JSON size
     println!("   📏 JSON size: {} bytes", json.len());
 
     // Export to DOT format
     println!("\n🎨 Exporting to DOT format (for Graphviz)...");
     let dot = workflow.to_dot();
-    
+
     // Show DOT content
     println!("   DOT content:");
     for line in dot.lines().take(15) {
@@ -217,7 +233,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start the workflow
     let mut context = HashMap::new();
     context.insert("initiator".to_string(), serde_json::json!("john.doe"));
-    context.insert("document_type".to_string(), serde_json::json!("technical_guide"));
+    context.insert(
+        "document_type".to_string(),
+        serde_json::json!("technical_guide"),
+    );
 
     workflow.start(context)?;
     println!("   ✅ Workflow started successfully!");
@@ -225,7 +244,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Find executable steps
     let executable_steps = workflow.get_executable_steps();
-    println!("   📝 Executable steps: {} steps ready", executable_steps.len());
+    println!(
+        "   📝 Executable steps: {} steps ready",
+        executable_steps.len()
+    );
 
     // Find steps by type
     let manual_steps = workflow.find_steps_by_type(StepType::Manual);
@@ -238,13 +260,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   • Approval steps: {}", approval_steps.len());
 
     // Calculate estimated total time
-    let total_time: u32 = workflow.get_step_nodes()
+    let total_time: u32 = workflow
+        .get_step_nodes()
         .iter()
         .filter_map(|node| {
-            if let cim_workflow_graph::ContextGraphNodeValue::Step { 
-                estimated_duration_minutes: Some(duration), 
-                .. 
-            } = &node.value {
+            if let cim_workflow_graph::ContextGraphNodeValue::Step {
+                estimated_duration_minutes: Some(duration),
+                ..
+            } = &node.value
+            {
                 Some(*duration)
             } else {
                 None
@@ -253,15 +277,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .sum();
 
     println!("\n⏱️  Time Analysis:");
-    println!("   • Total estimated time: {} minutes ({:.1} hours)", 
-             total_time, total_time as f32 / 60.0);
+    println!(
+        "   • Total estimated time: {} minutes ({:.1} hours)",
+        total_time,
+        total_time as f32 / 60.0
+    );
 
     // Show critical path (longest dependency chain)
     println!("   • Critical path: Draft → Reviews → Approval → Publishing");
-    
+
     let critical_path_time = 120 + 60.max(45) + 30 + 5; // Draft + max(reviews) + approval + publish
-    println!("   • Critical path time: {} minutes ({:.1} hours)", 
-             critical_path_time, critical_path_time as f32 / 60.0);
+    println!(
+        "   • Critical path time: {} minutes ({:.1} hours)",
+        critical_path_time,
+        critical_path_time as f32 / 60.0
+    );
 
     // Test JSON round-trip
     println!("\n🔄 Testing JSON round-trip...");
@@ -299,7 +329,8 @@ mod tests {
         let workflow = WorkflowGraph::new(
             "Test Workflow".to_string(),
             "Test workflow for validation".to_string(),
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(workflow.name(), "Test Workflow");
         assert!(workflow.validate().is_ok());
@@ -310,27 +341,32 @@ mod tests {
         let mut workflow = WorkflowGraph::new(
             "Dependency Test".to_string(),
             "Testing step dependencies".to_string(),
-        ).unwrap();
+        )
+        .unwrap();
 
-        let step1 = workflow.add_step(
-            "Step 1".to_string(),
-            "First step".to_string(),
-            StepType::Manual,
-            HashMap::new(),
-            Vec::new(),
-            Some(30),
-            None,
-        ).unwrap();
+        let step1 = workflow
+            .add_step(
+                "Step 1".to_string(),
+                "First step".to_string(),
+                StepType::Manual,
+                HashMap::new(),
+                Vec::new(),
+                Some(30),
+                None,
+            )
+            .unwrap();
 
-        let _step2 = workflow.add_step(
-            "Step 2".to_string(),
-            "Second step".to_string(),
-            StepType::Automated,
-            HashMap::new(),
-            vec![step1],
-            Some(15),
-            None,
-        ).unwrap();
+        let _step2 = workflow
+            .add_step(
+                "Step 2".to_string(),
+                "Second step".to_string(),
+                StepType::Automated,
+                HashMap::new(),
+                vec![step1],
+                Some(15),
+                None,
+            )
+            .unwrap();
 
         assert!(workflow.validate().is_ok());
         let stats = workflow.statistics();

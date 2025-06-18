@@ -5,20 +5,16 @@
 
 use cim_domain_workflow::{
     aggregate::Workflow,
-    value_objects::{WorkflowId, StepId, WorkflowStatus, StepType, StepStatus},
     projections::WorkflowContextGraph,
+    value_objects::{StepId, StepStatus, StepType, WorkflowId, WorkflowStatus},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
 
 pub use cim_domain_workflow::projections::{
-    WorkflowContextGraph as ContextGraph,
-    ContextGraphNode,
-    ContextGraphEdge,
-    ContextGraphNodeValue,
-    ContextGraphEdgeValue,
-    WorkflowGraphStatistics,
+    ContextGraphEdge, ContextGraphEdgeValue, ContextGraphNode, ContextGraphNodeValue,
+    WorkflowContextGraph as ContextGraph, WorkflowGraphStatistics,
 };
 
 /// Enhanced workflow graph that bridges domain workflows with visualization
@@ -56,12 +52,8 @@ impl WorkflowGraph {
     /// Create a new workflow graph
     pub fn new(name: String, description: String) -> Result<Self, WorkflowGraphError> {
         let metadata = HashMap::new();
-        let (workflow, _events) = Workflow::new(
-            name.clone(),
-            description.clone(),
-            metadata,
-            None,
-        ).map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
+        let (workflow, _events) = Workflow::new(name.clone(), description.clone(), metadata, None)
+            .map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
 
         let context_graph = WorkflowContextGraph::from_workflow(&workflow);
 
@@ -80,7 +72,7 @@ impl WorkflowGraph {
     /// Create a workflow graph from an existing workflow
     pub fn from_workflow(workflow: Workflow) -> Self {
         let context_graph = WorkflowContextGraph::from_workflow(&workflow);
-        
+
         Self {
             metadata: WorkflowGraphMetadata {
                 name: workflow.name.clone(),
@@ -104,37 +96,48 @@ impl WorkflowGraph {
         estimated_duration_minutes: Option<u32>,
         assigned_to: Option<String>,
     ) -> Result<StepId, WorkflowGraphError> {
-        let events = self.workflow.add_step(
-            name,
-            description,
-            step_type,
-            config,
-            dependencies,
-            estimated_duration_minutes,
-            assigned_to,
-            Some("system".to_string()),
-        ).map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
+        let events = self
+            .workflow
+            .add_step(
+                name,
+                description,
+                step_type,
+                config,
+                dependencies,
+                estimated_duration_minutes,
+                assigned_to,
+                Some("system".to_string()),
+            )
+            .map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
 
         // Extract the step ID from the events
-        if let Some(cim_domain_workflow::WorkflowDomainEvent::StepAdded(ref event)) = events.first() {
+        if let Some(cim_domain_workflow::WorkflowDomainEvent::StepAdded(ref event)) = events.first()
+        {
             let step_id = event.step_id;
-            
+
             // Refresh the context graph
             self.refresh_context_graph();
-            
+
             Ok(step_id)
         } else {
-            Err(WorkflowGraphError::InvalidOperation("Failed to create step".to_string()))
+            Err(WorkflowGraphError::InvalidOperation(
+                "Failed to create step".to_string(),
+            ))
         }
     }
 
     /// Start the workflow
-    pub fn start(&mut self, context: HashMap<String, serde_json::Value>) -> Result<(), WorkflowGraphError> {
+    pub fn start(
+        &mut self,
+        context: HashMap<String, serde_json::Value>,
+    ) -> Result<(), WorkflowGraphError> {
         let mut workflow_context = cim_domain_workflow::value_objects::WorkflowContext::new();
         workflow_context.variables = context;
         workflow_context.set_actor("system".to_string());
 
-        let _events = self.workflow.start(workflow_context, Some("system".to_string()))
+        let _events = self
+            .workflow
+            .start(workflow_context, Some("system".to_string()))
             .map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
 
         // Refresh the context graph
@@ -145,7 +148,9 @@ impl WorkflowGraph {
 
     /// Complete the workflow
     pub fn complete(&mut self) -> Result<(), WorkflowGraphError> {
-        let _events = self.workflow.complete()
+        let _events = self
+            .workflow
+            .complete()
             .map_err(|e| WorkflowGraphError::DomainError(e.to_string()))?;
 
         // Refresh the context graph
@@ -191,7 +196,8 @@ impl WorkflowGraph {
 
     /// Export as JSON
     pub fn to_json(&self) -> Result<String, WorkflowGraphError> {
-        self.context_graph.to_json()
+        self.context_graph
+            .to_json()
             .map_err(|e| WorkflowGraphError::SerializationError(e.to_string()))
     }
 
@@ -208,7 +214,8 @@ impl WorkflowGraph {
 
     /// Get executable steps (steps that can be run now)
     pub fn get_executable_steps(&self) -> Vec<StepId> {
-        self.workflow.get_executable_steps()
+        self.workflow
+            .get_executable_steps()
             .into_iter()
             .map(|step| step.id)
             .collect()
@@ -216,7 +223,8 @@ impl WorkflowGraph {
 
     /// Find steps by status
     pub fn find_steps_by_status(&self, status: StepStatus) -> Vec<StepId> {
-        self.workflow.steps
+        self.workflow
+            .steps
             .values()
             .filter(|step| step.status == status)
             .map(|step| step.id)
@@ -225,7 +233,8 @@ impl WorkflowGraph {
 
     /// Find steps by type
     pub fn find_steps_by_type(&self, step_type: StepType) -> Vec<StepId> {
-        self.workflow.steps
+        self.workflow
+            .steps
             .values()
             .filter(|step| step.step_type == step_type)
             .map(|step| step.id)
@@ -260,7 +269,8 @@ impl WorkflowGraph {
         for (step_id, step) in &self.workflow.steps {
             if self.has_circular_dependency(step_id, &step.dependencies) {
                 return Err(WorkflowGraphError::CircularDependency(format!(
-                    "Step {} has circular dependency", step_id.as_uuid()
+                    "Step {} has circular dependency",
+                    step_id.as_uuid()
                 )));
             }
         }
@@ -270,8 +280,8 @@ impl WorkflowGraph {
             for dep_id in &step.dependencies {
                 if !self.workflow.steps.contains_key(dep_id) {
                     return Err(WorkflowGraphError::InvalidDependency(format!(
-                        "Step {} depends on non-existent step {}", 
-                        step.id.as_uuid(), 
+                        "Step {} depends on non-existent step {}",
+                        step.id.as_uuid(),
                         dep_id.as_uuid()
                     )));
                 }
@@ -326,10 +336,8 @@ mod tests {
 
     #[test]
     fn test_workflow_graph_creation() {
-        let workflow_graph = WorkflowGraph::new(
-            "Test Workflow".to_string(),
-            "A test workflow".to_string(),
-        ).unwrap();
+        let workflow_graph =
+            WorkflowGraph::new("Test Workflow".to_string(), "A test workflow".to_string()).unwrap();
 
         assert_eq!(workflow_graph.name(), "Test Workflow");
         assert_eq!(workflow_graph.description(), "A test workflow");
@@ -338,20 +346,20 @@ mod tests {
 
     #[test]
     fn test_add_step() {
-        let mut workflow_graph = WorkflowGraph::new(
-            "Test Workflow".to_string(),
-            "A test workflow".to_string(),
-        ).unwrap();
+        let mut workflow_graph =
+            WorkflowGraph::new("Test Workflow".to_string(), "A test workflow".to_string()).unwrap();
 
-        let step_id = workflow_graph.add_step(
-            "Test Step".to_string(),
-            "A test step".to_string(),
-            StepType::Manual,
-            HashMap::new(),
-            Vec::new(),
-            Some(30),
-            Some("test-user".to_string()),
-        ).unwrap();
+        let step_id = workflow_graph
+            .add_step(
+                "Test Step".to_string(),
+                "A test step".to_string(),
+                StepType::Manual,
+                HashMap::new(),
+                Vec::new(),
+                Some(30),
+                Some("test-user".to_string()),
+            )
+            .unwrap();
 
         let stats = workflow_graph.statistics();
         assert_eq!(stats.step_nodes, 1);
@@ -360,32 +368,34 @@ mod tests {
 
     #[test]
     fn test_step_dependencies() {
-        let mut workflow_graph = WorkflowGraph::new(
-            "Test Workflow".to_string(),
-            "A test workflow".to_string(),
-        ).unwrap();
+        let mut workflow_graph =
+            WorkflowGraph::new("Test Workflow".to_string(), "A test workflow".to_string()).unwrap();
 
         // Add first step
-        let step1_id = workflow_graph.add_step(
-            "Step 1".to_string(),
-            "First step".to_string(),
-            StepType::Manual,
-            HashMap::new(),
-            Vec::new(),
-            Some(30),
-            None,
-        ).unwrap();
+        let step1_id = workflow_graph
+            .add_step(
+                "Step 1".to_string(),
+                "First step".to_string(),
+                StepType::Manual,
+                HashMap::new(),
+                Vec::new(),
+                Some(30),
+                None,
+            )
+            .unwrap();
 
         // Add second step that depends on first
-        let step2_id = workflow_graph.add_step(
-            "Step 2".to_string(),
-            "Second step".to_string(),
-            StepType::Automated,
-            HashMap::new(),
-            vec![step1_id],
-            Some(15),
-            None,
-        ).unwrap();
+        let step2_id = workflow_graph
+            .add_step(
+                "Step 2".to_string(),
+                "Second step".to_string(),
+                StepType::Automated,
+                HashMap::new(),
+                vec![step1_id],
+                Some(15),
+                None,
+            )
+            .unwrap();
 
         let stats = workflow_graph.statistics();
         assert_eq!(stats.step_nodes, 2);
@@ -397,20 +407,21 @@ mod tests {
 
     #[test]
     fn test_json_export() {
-        let mut workflow_graph = WorkflowGraph::new(
-            "Export Test".to_string(),
-            "Testing JSON export".to_string(),
-        ).unwrap();
+        let mut workflow_graph =
+            WorkflowGraph::new("Export Test".to_string(), "Testing JSON export".to_string())
+                .unwrap();
 
-        workflow_graph.add_step(
-            "Test Step".to_string(),
-            "A test step".to_string(),
-            StepType::Manual,
-            HashMap::new(),
-            Vec::new(),
-            Some(30),
-            None,
-        ).unwrap();
+        workflow_graph
+            .add_step(
+                "Test Step".to_string(),
+                "A test step".to_string(),
+                StepType::Manual,
+                HashMap::new(),
+                Vec::new(),
+                Some(30),
+                None,
+            )
+            .unwrap();
 
         let json = workflow_graph.to_json().unwrap();
         assert!(json.contains("Export Test"));
@@ -422,20 +433,20 @@ mod tests {
 
     #[test]
     fn test_dot_export() {
-        let mut workflow_graph = WorkflowGraph::new(
-            "DOT Test".to_string(),
-            "Testing DOT export".to_string(),
-        ).unwrap();
+        let mut workflow_graph =
+            WorkflowGraph::new("DOT Test".to_string(), "Testing DOT export".to_string()).unwrap();
 
-        workflow_graph.add_step(
-            "Test Step".to_string(),
-            "A test step".to_string(),
-            StepType::Manual,
-            HashMap::new(),
-            Vec::new(),
-            Some(30),
-            None,
-        ).unwrap();
+        workflow_graph
+            .add_step(
+                "Test Step".to_string(),
+                "A test step".to_string(),
+                StepType::Manual,
+                HashMap::new(),
+                Vec::new(),
+                Some(30),
+                None,
+            )
+            .unwrap();
 
         let dot = workflow_graph.to_dot();
         assert!(dot.contains("digraph"));
@@ -449,18 +460,21 @@ mod tests {
         let mut workflow_graph = WorkflowGraph::new(
             "Lifecycle Test".to_string(),
             "Testing workflow lifecycle".to_string(),
-        ).unwrap();
+        )
+        .unwrap();
 
         // Add a step
-        workflow_graph.add_step(
-            "Test Step".to_string(),
-            "A test step".to_string(),
-            StepType::Manual,
-            HashMap::new(),
-            Vec::new(),
-            Some(30),
-            None,
-        ).unwrap();
+        workflow_graph
+            .add_step(
+                "Test Step".to_string(),
+                "A test step".to_string(),
+                StepType::Manual,
+                HashMap::new(),
+                Vec::new(),
+                Some(30),
+                None,
+            )
+            .unwrap();
 
         // Start the workflow
         assert!(workflow_graph.start(HashMap::new()).is_ok());
