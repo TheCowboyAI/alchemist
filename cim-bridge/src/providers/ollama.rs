@@ -167,17 +167,17 @@ impl Provider for OllamaProvider {
             .json(&request)
             .send()
             .await
-            .map_err(|e| BridgeError::Provider(format!("Failed to send request: {}", e)))?;
+            .map_err(|e| BridgeError::Provider(format!("Failed to send request: {e}")))?;
         
         if !response.status().is_success() {
             let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(BridgeError::Provider(format!("Ollama API error: {}", error_text)));
+            return Err(BridgeError::Provider(format!("Ollama API error: {error_text}")));
         }
         
         let ollama_response: OllamaChatResponse = response
             .json()
             .await
-            .map_err(|e| BridgeError::Provider(format!("Failed to parse response: {}", e)))?;
+            .map_err(|e| BridgeError::Provider(format!("Failed to parse response: {e}")))?;
         
         // Log timing information if available
         if let Some(duration) = ollama_response.total_duration {
@@ -257,11 +257,11 @@ impl Provider for OllamaProvider {
             .json(&request)
             .send()
             .await
-            .map_err(|e| BridgeError::Provider(format!("Failed to send request: {}", e)))?;
+            .map_err(|e| BridgeError::Provider(format!("Failed to send request: {e}")))?;
         
         if !response.status().is_success() {
             let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(BridgeError::Provider(format!("Ollama API error: {}", error_text)));
+            return Err(BridgeError::Provider(format!("Ollama API error: {error_text}")));
         }
         
         // Create channel for streaming
@@ -339,7 +339,7 @@ impl Provider for OllamaProvider {
                         }
                     }
                     Err(e) => {
-                        let _ = tx.send(Err(BridgeError::Stream(format!("Stream error: {}", e))));
+                        let _ = tx.send(Err(BridgeError::Stream(format!("Stream error: {e}"))));
                         break;
                     }
                 }
@@ -356,17 +356,17 @@ impl Provider for OllamaProvider {
             .get(&url)
             .send()
             .await
-            .map_err(|e| BridgeError::Provider(format!("Failed to list models: {}", e)))?;
+            .map_err(|e| BridgeError::Provider(format!("Failed to list models: {e}")))?;
         
         if !response.status().is_success() {
             let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-            return Err(BridgeError::Provider(format!("Failed to list models: {}", error_text)));
+            return Err(BridgeError::Provider(format!("Failed to list models: {error_text}")));
         }
         
         let models_response: OllamaModelsResponse = response
             .json()
             .await
-            .map_err(|e| BridgeError::Provider(format!("Failed to parse models: {}", e)))?;
+            .map_err(|e| BridgeError::Provider(format!("Failed to parse models: {e}")))?;
         
         let models = models_response.models
             .into_iter()
@@ -396,8 +396,7 @@ impl Provider for OllamaProvider {
             }
             Err(e) => {
                 Ok(HealthStatus::Unhealthy(format!(
-                    "Cannot connect to Ollama: {}",
-                    e
+                    "Cannot connect to Ollama: {e}"
                 )))
             }
         }

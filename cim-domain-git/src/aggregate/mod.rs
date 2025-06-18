@@ -17,17 +17,17 @@ pub struct RepositoryId(Uuid);
 
 impl RepositoryId {
     /// Create a new repository ID
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
 
     /// Create from an existing UUID
-    pub fn from_uuid(uuid: Uuid) -> Self {
+    #[must_use] pub fn from_uuid(uuid: Uuid) -> Self {
         Self(uuid)
     }
 
     /// Get the inner UUID
-    pub fn as_uuid(&self) -> &Uuid {
+    #[must_use] pub fn as_uuid(&self) -> &Uuid {
         &self.0
     }
 }
@@ -93,7 +93,7 @@ pub struct RepositoryMetadata {
 
 impl Repository {
     /// Create a new repository aggregate
-    pub fn new(name: String) -> Self {
+    #[must_use] pub fn new(name: String) -> Self {
         let now = Utc::now();
         Self {
             id: RepositoryId::new(),

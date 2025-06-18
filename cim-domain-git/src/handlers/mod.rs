@@ -5,9 +5,9 @@
 
 use crate::GitDomainError;
 use crate::aggregate::{Repository, RepositoryId};
-use crate::commands::*;
-use crate::events::*;
-use crate::value_objects::*;
+use crate::commands::{ExtractCommitGraph, ExtractDependencyGraph};
+use crate::events::{GitDomainEvent, RepositoryAnalyzed, BranchCreated, CommitAnalyzed, CommitGraphExtracted, DependencyGraphExtracted};
+use crate::value_objects::{BranchName, CommitHash, AuthorInfo};
 use chrono::{DateTime, Utc};
 use cim_domain_graph::{GraphId, NodeId};
 use git2::{Oid, Repository as Git2Repository, Sort};
@@ -23,7 +23,7 @@ pub struct RepositoryCommandHandler {
 
 impl RepositoryCommandHandler {
     /// Create a new repository command handler
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self {
             repositories: std::sync::Mutex::new(HashMap::new()),
         }
@@ -34,7 +34,7 @@ impl RepositoryCommandHandler {
         &self,
     ) -> Result<(RepositoryId, Vec<GitDomainEvent>), GitDomainError> {
         let current_dir = std::env::current_dir().map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Cannot get current directory: {}", e))
+            GitDomainError::GitOperationFailed(format!("Cannot get current directory: {e}"))
         })?;
 
         self.analyze_repository_at_path(current_dir.to_string_lossy())
@@ -51,7 +51,7 @@ impl RepositoryCommandHandler {
 
         // Open repository with git2
         let git_repo = Git2Repository::open(path).map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to open repository: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to open repository: {e}"))
         })?;
 
         let repo_id = RepositoryId::new();
@@ -78,7 +78,7 @@ impl RepositoryCommandHandler {
 
         // Analyze branches
         let branches = git_repo.branches(None).map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to get branches: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to get branches: {e}"))
         })?;
 
         let mut branch_count = 0;
@@ -106,18 +106,18 @@ impl RepositoryCommandHandler {
 
         // Analyze commits
         let mut revwalk = git_repo.revwalk().map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to create revwalk: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to create revwalk: {e}"))
         })?;
 
         revwalk.set_sorting(Sort::TIME).map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to set sort: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to set sort: {e}"))
         })?;
 
         // Start from HEAD
         if let Ok(head) = git_repo.head() {
             if let Some(target) = head.target() {
                 revwalk.push(target).map_err(|e| {
-                    GitDomainError::GitOperationFailed(format!("Failed to push HEAD: {}", e))
+                    GitDomainError::GitOperationFailed(format!("Failed to push HEAD: {e}"))
                 })?;
             }
         }
@@ -128,7 +128,7 @@ impl RepositoryCommandHandler {
             if let Ok(oid) = commit_oid {
                 if let Ok(commit) = git_repo.find_commit(oid) {
                     let commit_hash = CommitHash::new(oid.to_string()).map_err(|e| {
-                        GitDomainError::GitOperationFailed(format!("Invalid commit hash: {}", e))
+                        GitDomainError::GitOperationFailed(format!("Invalid commit hash: {e}"))
                     })?;
 
                     let author = commit.author();
@@ -178,7 +178,7 @@ impl RepositoryCommandHandler {
         // Apply events to aggregate
         for event in &events {
             repository.apply_event(event).map_err(|e| {
-                GitDomainError::GitOperationFailed(format!("Failed to apply event: {}", e))
+                GitDomainError::GitOperationFailed(format!("Failed to apply event: {e}"))
             })?;
         }
 
@@ -215,7 +215,7 @@ impl RepositoryCommandHandler {
 
         // Open repository with git2
         let git_repo = Git2Repository::open(local_path).map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to open repository: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to open repository: {e}"))
         })?;
 
         // Create graph
@@ -225,25 +225,25 @@ impl RepositoryCommandHandler {
 
         // Walk commits
         let mut revwalk = git_repo.revwalk().map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to create revwalk: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to create revwalk: {e}"))
         })?;
 
         revwalk.set_sorting(Sort::TIME).map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to set sort: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to set sort: {e}"))
         })?;
 
         // Start from specified commit or HEAD
         if let Some(start_commit) = &cmd.start_commit {
             let oid = Oid::from_str(start_commit.as_str()).map_err(|e| {
-                GitDomainError::GitOperationFailed(format!("Invalid commit: {}", e))
+                GitDomainError::GitOperationFailed(format!("Invalid commit: {e}"))
             })?;
             revwalk.push(oid).map_err(|e| {
-                GitDomainError::GitOperationFailed(format!("Failed to push commit: {}", e))
+                GitDomainError::GitOperationFailed(format!("Failed to push commit: {e}"))
             })?;
         } else if let Ok(head) = git_repo.head() {
             if let Some(target) = head.target() {
                 revwalk.push(target).map_err(|e| {
-                    GitDomainError::GitOperationFailed(format!("Failed to push HEAD: {}", e))
+                    GitDomainError::GitOperationFailed(format!("Failed to push HEAD: {e}"))
                 })?;
             }
         }
@@ -329,22 +329,22 @@ impl DependencyAnalyzer {
         // Get HEAD commit or specified commit
         let commit = if let Some(commit_hash) = &cmd.commit_hash {
             let oid = Oid::from_str(commit_hash.as_str()).map_err(|e| {
-                GitDomainError::GitOperationFailed(format!("Invalid commit: {}", e))
+                GitDomainError::GitOperationFailed(format!("Invalid commit: {e}"))
             })?;
             git_repo.find_commit(oid).map_err(|e| {
-                GitDomainError::GitOperationFailed(format!("Commit not found: {}", e))
+                GitDomainError::GitOperationFailed(format!("Commit not found: {e}"))
             })?
         } else {
             let head = git_repo.head().map_err(|e| {
-                GitDomainError::GitOperationFailed(format!("Failed to get HEAD: {}", e))
+                GitDomainError::GitOperationFailed(format!("Failed to get HEAD: {e}"))
             })?;
             head.peel_to_commit().map_err(|e| {
-                GitDomainError::GitOperationFailed(format!("Failed to get HEAD commit: {}", e))
+                GitDomainError::GitOperationFailed(format!("Failed to get HEAD commit: {e}"))
             })?
         };
 
         let tree = commit.tree().map_err(|e| {
-            GitDomainError::GitOperationFailed(format!("Failed to get tree: {}", e))
+            GitDomainError::GitOperationFailed(format!("Failed to get tree: {e}"))
         })?;
 
         // Walk tree and analyze files
@@ -353,7 +353,7 @@ impl DependencyAnalyzer {
                 let full_path = if path.is_empty() {
                     name.to_string()
                 } else {
-                    format!("{}/{}", path, name)
+                    format!("{path}/{name}")
                 };
 
                 // Check against include/exclude patterns
@@ -382,7 +382,7 @@ impl DependencyAnalyzer {
             }
             git2::TreeWalkResult::Ok
         })
-        .map_err(|e| GitDomainError::GitOperationFailed(format!("Failed to walk tree: {}", e)))?;
+        .map_err(|e| GitDomainError::GitOperationFailed(format!("Failed to walk tree: {e}")))?;
 
         let graph_event = DependencyGraphExtracted {
             repository_id: cmd.repository_id,

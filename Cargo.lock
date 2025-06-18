@@ -2502,6 +2502,7 @@ dependencies = [
  "tokio",
  "tokio-test",
  "tracing",
+ "tracing-subscriber",
  "uuid",
  "webpki",
  "x509-parser",

@@ -482,7 +482,7 @@ impl BridgeService {
                 self.publish_event(BridgeEvent::ProviderHealth {
                     provider: provider_name,
                     status: HealthStatus::Unhealthy(e.to_string()),
-                    details: Some(format!("Health check error: {}", e)),
+                    details: Some(format!("Health check error: {e}")),
                 }, correlation_id).await?;
             }
         }

@@ -1,0 +1,1854 @@
+warning: output filename collision.
+The example target `basic_usage` in package `cim-keys v0.2.0 (/git/thecowboyai/alchemist/cim-keys)` has the same output filename as the example target `basic_usage` in package `cim-ipld v0.2.0 (/git/thecowboyai/alchemist/cim-ipld)`.
+Colliding filename is: /git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/examples/basic_usage
+The targets should have unique names.
+Consider changing their names to be unique or compiling them separately.
+This may become a hard error in the future; see <https://github.com/rust-lang/cargo/issues/6313>.
+warning: output filename collision.
+The example target `basic_usage` in package `cim-keys v0.2.0 (/git/thecowboyai/alchemist/cim-keys)` has the same output filename as the example target `basic_usage` in package `cim-ipld v0.2.0 (/git/thecowboyai/alchemist/cim-ipld)`.
+Colliding filename is: /git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/examples/basic_usage.dwp
+The targets should have unique names.
+Consider changing their names to be unique or compiling them separately.
+This may become a hard error in the future; see <https://github.com/rust-lang/cargo/issues/6313>.
+warning: output filename collision.
+The example target `simple_benchmark` in package `ia v0.2.0 (/git/thecowboyai/alchemist)` has the same output filename as the example target `simple_benchmark` in package `cim-contextgraph v0.2.0 (/git/thecowboyai/alchemist/cim-contextgraph)`.
+Colliding filename is: /git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/examples/simple_benchmark
+The targets should have unique names.
+Consider changing their names to be unique or compiling them separately.
+This may become a hard error in the future; see <https://github.com/rust-lang/cargo/issues/6313>.
+warning: output filename collision.
+The example target `simple_benchmark` in package `ia v0.2.0 (/git/thecowboyai/alchemist)` has the same output filename as the example target `simple_benchmark` in package `cim-contextgraph v0.2.0 (/git/thecowboyai/alchemist/cim-contextgraph)`.
+Colliding filename is: /git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/examples/simple_benchmark.dwp
+The targets should have unique names.
+Consider changing their names to be unique or compiling them separately.
+This may become a hard error in the future; see <https://github.com/rust-lang/cargo/issues/6313>.
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:25
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
+    |                         ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
+    = note: `#[warn(dangerous_implicit_autorefs)]` on by default
+help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
+    |
+759 |         bStillSame = if (&(*pg1).pTriMembers)[i] == (*pg2).pTriMembers[i] {
+    |                         ++                  +
+
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:50
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
+help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (&(*pg2).pTriMembers)[i] {
+    |                                                  ++                  +
+
+warning: `bevy_mikktspace` (lib) generated 2 warnings
+   Compiling bevy_text v0.16.1 (/git/thecowboyai/alchemist/bevy-patched/crates/bevy_text)
+   Compiling bevy_gizmos v0.16.1 (/git/thecowboyai/alchemist/bevy-patched/crates/bevy_gizmos)
+   Compiling bevy_gltf v0.16.1 (/git/thecowboyai/alchemist/bevy-patched/crates/bevy_gltf)
+warning: unused imports: `WorkflowId` and `WorkflowStatus`
+ --> cim-domain-workflow/src/handlers/workflow_query_handler.rs:6:21
+  |
+6 |     value_objects::{WorkflowId, WorkflowStatus},
+  |                     ^^^^^^^^^^  ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `StepStatus`
+ --> cim-domain-workflow/src/projections/workflow_projection.rs:4:57
+  |
+4 |     value_objects::{WorkflowId, WorkflowStatus, StepId, StepStatus},
+  |                                                         ^^^^^^^^^^
+
+warning: `cim-domain-workflow` (lib) generated 2 warnings (run `cargo fix --lib -p cim-domain-workflow` to apply 2 suggestions)
+warning: unused imports: `DocumentId`, `DocumentType`, `DocumentVersion`, and `Revision`
+  --> cim-domain-document/src/commands/mod.rs:13:5
+   |
+13 |     DocumentId, DocumentMetadata, DocumentType, 
+   |     ^^^^^^^^^^                    ^^^^^^^^^^^^
+14 |     DocumentVersion, Revision,
+   |     ^^^^^^^^^^^^^^^  ^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `cim_domain::DomainEvent`
+ --> cim-domain-document/src/events/mod.rs:4:5
+  |
+4 | use cim_domain::DomainEvent;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `uuid::Uuid`
+ --> cim-domain-document/src/events/mod.rs:6:5
+  |
+6 | use uuid::Uuid;
+  |     ^^^^^^^^^^
+
+warning: unused import: `std::path`
+  --> cim-domain-document/src/events/mod.rs:10:5
+   |
+10 | use std::path;
+   |     ^^^^^^^^^
+
+warning: unused imports: `CommandAcknowledgment`, `CommandEnvelope`, `CommandId`, `CommandStatus`, and `CorrelationId`
+ --> cim-domain-document/src/handlers/command_handler.rs:3:39
+  |
+3 | use cim_domain::{AggregateRepository, CommandEnvelope, CommandAcknowledgment, CommandStatus, DomainResult, CommandId, CorrelationId, Doma...
+  |                                       ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^                ^^^^^^^^^  ^^^^^^^^^^^^^
+
+warning: unused import: `uuid::Uuid`
+ --> cim-domain-document/src/handlers/command_handler.rs:6:5
+  |
+6 | use uuid::Uuid;
+  |     ^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> cim-domain-document/src/handlers/command_handler.rs:8:5
+  |
+8 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::value_objects::*`
+ --> cim-domain-document/src/handlers/event_handler.rs:4:5
+  |
+4 | use crate::value_objects::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::sync::Arc`
+ --> cim-domain-document/src/handlers/event_handler.rs:7:5
+  |
+7 | use std::sync::Arc;
+  |     ^^^^^^^^^^^^^^
+
+warning: enum `DocumentEvent` is never used
+   --> cim-domain-document/src/aggregate/document_aggregate.rs:245:10
+    |
+245 | pub enum DocumentEvent {
+    |          ^^^^^^^^^^^^^
+    |
+    = note: `DocumentEvent` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `cim-domain-document` (lib) generated 10 warnings (run `cargo fix --lib -p cim-domain-document` to apply 9 suggestions)
+warning: unused import: `Serialize`
+ --> cim-keys/src/storage/mod.rs:9:26
+  |
+9 | use serde::{Deserialize, Serialize};
+  |                          ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `bits`
+  --> cim-keys/src/tls/mod.rs:80:21
+   |
+80 |                 let bits = match size {
+   |                     ^^^^ help: if this is intentional, prefix it with an underscore: `_bits`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused import: `Deserialize`
+ --> cim-keys/src/storage/mod.rs:9:13
+  |
+9 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^
+
+warning: unused import: `AsyncWriteExt`
+  --> cim-keys/src/storage/mod.rs:14:31
+   |
+14 | use tokio::io::{AsyncReadExt, AsyncWriteExt};
+   |                               ^^^^^^^^^^^^^
+
+warning: unused import: `AsyncReadExt`
+  --> cim-keys/src/storage/mod.rs:14:17
+   |
+14 | use tokio::io::{AsyncReadExt, AsyncWriteExt};
+   |                 ^^^^^^^^^^^^
+
+warning: unused variable: `metadata`
+   --> cim-keys/src/tls/mod.rs:195:13
+    |
+195 |         let metadata = CertificateMetadata {
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_metadata`
+
+warning: unused variable: `include_chain`
+   --> cim-keys/src/tls/mod.rs:216:9
+    |
+216 |         include_chain: bool,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_include_chain`
+
+warning: unused variable: `ca_key_id`
+   --> cim-keys/src/pki/mod.rs:121:9
+    |
+121 |         ca_key_id: &KeyId,
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ca_key_id`
+
+warning: unused variable: `csr`
+   --> cim-keys/src/pki/mod.rs:122:9
+    |
+122 |         csr: &[u8],
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_csr`
+
+warning: unused variable: `validity_days`
+   --> cim-keys/src/pki/mod.rs:123:9
+    |
+123 |         validity_days: u32,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_validity_days`
+
+warning: unused variable: `is_ca`
+   --> cim-keys/src/pki/mod.rs:124:9
+    |
+124 |         is_ca: bool,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_is_ca`
+
+warning: unused variable: `path_len_constraint`
+   --> cim-keys/src/pki/mod.rs:125:9
+    |
+125 |         path_len_constraint: Option<u32>,
+    |         ^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_path_len_constraint`
+
+warning: unused variable: `cert_ids`
+   --> cim-keys/src/pki/mod.rs:133:9
+    |
+133 |         cert_ids: &[String],
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_cert_ids`
+
+warning: unused variable: `chain`
+   --> cim-keys/src/pki/mod.rs:141:9
+    |
+141 |         chain: &[u8],
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_chain`
+
+warning: unused variable: `trusted_roots`
+   --> cim-keys/src/pki/mod.rs:142:9
+    |
+142 |         trusted_roots: &[String],
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_trusted_roots`
+
+warning: unused variable: `algorithm`
+   --> cim-keys/src/pki/mod.rs:154:9
+    |
+154 |         algorithm: KeyAlgorithm,
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_algorithm`
+
+warning: unused variable: `label`
+   --> cim-keys/src/pki/mod.rs:155:9
+    |
+155 |         label: String,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_label`
+
+warning: unused variable: `usage`
+   --> cim-keys/src/pki/mod.rs:156:9
+    |
+156 |         usage: KeyUsage,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_usage`
+
+warning: unused variable: `key_data`
+   --> cim-keys/src/pki/mod.rs:164:9
+    |
+164 |         key_data: &[u8],
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_data`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:165:9
+    |
+165 |         format: KeyExportFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `label`
+   --> cim-keys/src/pki/mod.rs:166:9
+    |
+166 |         label: String,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_label`
+
+warning: unused variable: `key_id`
+   --> cim-keys/src/pki/mod.rs:173:9
+    |
+173 |         key_id: &KeyId,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_id`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:174:9
+    |
+174 |         format: KeyExportFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `include_private`
+   --> cim-keys/src/pki/mod.rs:175:9
+    |
+175 |         include_private: bool,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_include_private`
+
+warning: unused variable: `key_id`
+   --> cim-keys/src/pki/mod.rs:180:32
+    |
+180 |     async fn delete_key(&self, key_id: &KeyId) -> Result<()> {
+    |                                ^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_id`
+
+warning: unused variable: `key_id`
+   --> cim-keys/src/pki/mod.rs:188:38
+    |
+188 |     async fn get_key_metadata(&self, key_id: &KeyId) -> Result<KeyMetadata> {
+    |                                      ^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_id`
+
+warning: unused variable: `key_id`
+   --> cim-keys/src/pki/mod.rs:197:9
+    |
+197 |         key_id: &KeyId,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_id`
+
+warning: unused variable: `data`
+   --> cim-keys/src/pki/mod.rs:198:9
+    |
+198 |         data: &[u8],
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:199:9
+    |
+199 |         format: SignatureFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `key_id`
+   --> cim-keys/src/pki/mod.rs:206:9
+    |
+206 |         key_id: &KeyId,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_id`
+
+warning: unused variable: `data`
+   --> cim-keys/src/pki/mod.rs:207:9
+    |
+207 |         data: &[u8],
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+
+warning: unused variable: `signature`
+   --> cim-keys/src/pki/mod.rs:208:9
+    |
+208 |         signature: &[u8],
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_signature`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:209:9
+    |
+209 |         format: SignatureFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `recipient_keys`
+   --> cim-keys/src/pki/mod.rs:219:9
+    |
+219 |         recipient_keys: &[KeyId],
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_recipient_keys`
+
+warning: unused variable: `data`
+   --> cim-keys/src/pki/mod.rs:220:9
+    |
+220 |         data: &[u8],
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:221:9
+    |
+221 |         format: EncryptionFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `key_id`
+   --> cim-keys/src/pki/mod.rs:228:9
+    |
+228 |         key_id: &KeyId,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_id`
+
+warning: unused variable: `encrypted_data`
+   --> cim-keys/src/pki/mod.rs:229:9
+    |
+229 |         encrypted_data: &[u8],
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_encrypted_data`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:230:9
+    |
+230 |         format: EncryptionFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `key_id`
+   --> cim-keys/src/pki/mod.rs:240:9
+    |
+240 |         key_id: &KeyId,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_key_id`
+
+warning: unused variable: `subject`
+   --> cim-keys/src/pki/mod.rs:241:9
+    |
+241 |         subject: &str,
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_subject`
+
+warning: unused variable: `san`
+   --> cim-keys/src/pki/mod.rs:242:9
+    |
+242 |         san: Vec<String>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_san`
+
+warning: unused variable: `cert_data`
+   --> cim-keys/src/pki/mod.rs:249:9
+    |
+249 |         cert_data: &[u8],
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_cert_data`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:250:9
+    |
+250 |         format: CertificateFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `cert_id`
+   --> cim-keys/src/pki/mod.rs:257:9
+    |
+257 |         cert_id: &str,
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_cert_id`
+
+warning: unused variable: `format`
+   --> cim-keys/src/pki/mod.rs:258:9
+    |
+258 |         format: CertificateFormat,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_format`
+
+warning: unused variable: `include_chain`
+   --> cim-keys/src/pki/mod.rs:259:9
+    |
+259 |         include_chain: bool,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_include_chain`
+
+warning: unused variable: `cert_id`
+   --> cim-keys/src/pki/mod.rs:266:9
+    |
+266 |         cert_id: &str,
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_cert_id`
+
+warning: method `get_pcsc_context` is never used
+  --> cim-keys/src/yubikey/mod.rs:51:8
+   |
+30 | impl YubiKeyManager {
+   | ------------------- method in this implementation
+...
+51 |     fn get_pcsc_context(&self) -> Result<pcsc::Context> {
+   |        ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: field `keyring_path` is never read
+  --> cim-keys/src/gpg/mod.rs:17:5
+   |
+16 | pub struct GpgKeyManager {
+   |            ------------- field in this struct
+17 |     keyring_path: std::path::PathBuf,
+   |     ^^^^^^^^^^^^
+
+warning: field `keys` is never read
+  --> cim-keys/src/tls/mod.rs:22:5
+   |
+18 | pub struct TlsManager {
+   |            ---------- field in this struct
+...
+22 |     keys: Arc<RwLock<HashMap<KeyId, KeyPair>>>,
+   |     ^^^^
+
+warning: field `certificate` is never read
+  --> cim-keys/src/tls/mod.rs:27:5
+   |
+26 | struct TlsCertEntry {
+   |        ------------ field in this struct
+27 |     certificate: Certificate,
+   |     ^^^^^^^^^^^
+
+warning: fields `root_cas` and `intermediate_cas` are never read
+  --> cim-keys/src/pki/mod.rs:16:5
+   |
+14 | pub struct PkiManager {
+   |            ---------- fields in this struct
+15 |     /// Root CAs
+16 |     root_cas: Arc<RwLock<HashMap<String, CertificateAuthority>>>,
+   |     ^^^^^^^^
+17 |     /// Intermediate CAs
+18 |     intermediate_cas: Arc<RwLock<HashMap<String, CertificateAuthority>>>,
+   |     ^^^^^^^^^^^^^^^^
+
+warning: fields `cert_id`, `key_id`, `metadata`, and `issued_certs` are never read
+  --> cim-keys/src/pki/mod.rs:26:5
+   |
+24 | struct CertificateAuthority {
+   |        -------------------- fields in this struct
+25 |     /// CA certificate ID
+26 |     cert_id: String,
+   |     ^^^^^^^
+27 |     /// CA private key ID
+28 |     key_id: KeyId,
+   |     ^^^^^^
+29 |     /// CA metadata
+30 |     metadata: CertificateMetadata,
+   |     ^^^^^^^^
+31 |     /// Issued certificates
+32 |     issued_certs: Vec<String>,
+   |     ^^^^^^^^^^^^
+
+warning: `cim-keys` (lib) generated 54 warnings (run `cargo fix --lib -p cim-keys` to apply 1 suggestion)
+warning: unused import: `HashSet`
+  --> cim-domain-conceptualspaces/src/space.rs:12:33
+   |
+12 | use std::collections::{HashMap, HashSet};
+   |                                 ^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Hyperplane`
+   --> cim-domain-conceptualspaces/src/space.rs:113:27
+    |
+113 | use crate::{ConvexRegion, Hyperplane};
+    |                           ^^^^^^^^^^
+
+warning: unused import: `ConceptualError`
+ --> cim-domain-conceptualspaces/src/spatial_index.rs:6:30
+  |
+6 | use crate::{ConceptualPoint, ConceptualError, ConceptualResult, DistanceMetric};
+  |                              ^^^^^^^^^^^^^^^
+
+warning: unused import: `nalgebra::DVector`
+ --> cim-domain-conceptualspaces/src/spatial_index.rs:7:5
+  |
+7 | use nalgebra::DVector;
+  |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `nalgebra::DVector`
+ --> cim-domain-conceptualspaces/src/similarity.rs:7:5
+  |
+7 | use nalgebra::DVector;
+  |     ^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated struct `commands::update_weights::UpdateDimensionWeights`: Use ReplaceDimensionWeights instead - this violates event sourcing principles
+  --> cim-domain-conceptualspaces/src/commands/update_weights.rs:37:12
+   |
+37 | pub struct UpdateDimensionWeights {
+   |            ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated struct `commands::update_weights::UpdateDimensionWeights`: Use ReplaceDimensionWeights instead - this violates event sourcing principles
+  --> cim-domain-conceptualspaces/src/commands/update_weights.rs:37:12
+   |
+37 | pub struct UpdateDimensionWeights {
+   |            ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated struct `commands::update_weights::UpdateDimensionWeights`: Use ReplaceDimensionWeights instead - this violates event sourcing principles
+  --> cim-domain-conceptualspaces/src/commands/update_weights.rs:42:40
+   |
+42 | impl super::ConceptualSpaceCommand for UpdateDimensionWeights {
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated struct `commands::update_weights::UpdateDimensionWeights`: Use ReplaceDimensionWeights instead - this violates event sourcing principles
+  --> cim-domain-conceptualspaces/src/commands/update_weights.rs:48:18
+   |
+48 | impl Command for UpdateDimensionWeights {
+   |                  ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated field `commands::update_weights::UpdateDimensionWeights::space_id`: Use ReplaceDimensionWeights instead - this violates event sourcing principles
+  --> cim-domain-conceptualspaces/src/commands/update_weights.rs:44:9
+   |
+44 |         self.space_id
+   |         ^^^^^^^^^^^^^
+
+warning: use of deprecated field `commands::update_weights::UpdateDimensionWeights::space_id`: Use ReplaceDimensionWeights instead - this violates event sourcing principles
+  --> cim-domain-conceptualspaces/src/commands/update_weights.rs:52:34
+   |
+52 |         Some(EntityId::from_uuid(self.space_id.0))
+   |                                  ^^^^^^^^^^^^^
+
+warning: unused variable: `current_weights`
+   --> cim-domain-conceptualspaces/src/handlers/conceptual_space_command_handler.rs:217:13
+    |
+217 |         let current_weights = aggregate.get_metric_weights();
+    |             ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_weights`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: `cim-domain-conceptualspaces` (lib) generated 17 warnings (5 duplicates) (run `cargo fix --lib -p cim-domain-conceptualspaces` to apply 5 suggestions)
+warning: variable does not need to be mutable
+   --> cim-domain-identity/src/domain/person/aggregate.rs:100:21
+    |
+100 |                 let mut events = vec![
+    |                     ----^^^^^^
+    |                     |
+    |                     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `phone_number`
+   --> cim-domain-identity/src/domain/person/aggregate.rs:298:41
+    |
+298 |             PersonEvent::PhoneRemoved { phone_number, .. } => {
+    |                                         ^^^^^^^^^^^^-
+    |                                         |
+    |                                         help: try removing the field
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `address`
+   --> cim-domain-identity/src/domain/person/aggregate.rs:306:43
+    |
+306 |             PersonEvent::AddressRemoved { address, .. } => {
+    |                                           ^^^^^^^-
+    |                                           |
+    |                                           help: try removing the field
+
+warning: `cim-domain-identity` (lib) generated 3 warnings (run `cargo fix --lib -p cim-domain-identity` to apply 3 suggestions)
+   Compiling cim-domain v0.2.0 (/git/thecowboyai/alchemist/cim-domain)
+   Compiling cim-keys v0.2.0 (/git/thecowboyai/alchemist/cim-keys)
+warning: `cim-keys` (lib test) generated 54 warnings (54 duplicates)
+warning: unused import: `super::*`
+   --> cim-domain/src/command_handlers.rs:101:9
+    |
+101 |     use super::*;
+    |         ^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `super::*`
+   --> cim-domain/src/query_handlers.rs:116:9
+    |
+116 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused imports: `EventMetadata` and `PropagationScope`
+   --> cim-domain/src/bevy_bridge.rs:202:17
+    |
+202 |     use crate::{EventMetadata, PropagationScope};
+    |                 ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused import: `uuid::Uuid`
+  --> cim-domain/src/infrastructure/tests.rs:12:5
+   |
+12 | use uuid::Uuid;
+   |     ^^^^^^^^^^
+
+warning: field `data` is never read
+   --> cim-domain/src/entity.rs:356:9
+    |
+353 |     struct TestAggregate {
+    |            ------------- field in this struct
+...
+356 |         data: String,
+    |         ^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: field `name` is never read
+   --> cim-domain/src/cqrs.rs:408:9
+    |
+407 |     struct TestCommand {
+    |            ----------- field in this struct
+408 |         name: String,
+    |         ^^^^
+    |
+    = note: `TestCommand` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `filter` is never read
+   --> cim-domain/src/cqrs.rs:423:9
+    |
+422 |     struct TestQuery {
+    |            --------- field in this struct
+423 |         filter: String,
+    |         ^^^^^^
+    |
+    = note: `TestQuery` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: methods `set_expected_version_check` and `get_all_events` are never used
+  --> cim-domain/src/infrastructure/tests.rs:42:18
+   |
+28 | impl MockEventStore {
+   | ------------------- methods in this implementation
+...
+42 |     pub async fn set_expected_version_check(&self, check: bool) {
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+46 |     pub async fn get_all_events(&self) -> Vec<StoredEvent> {
+   |                  ^^^^^^^^^^^^^^
+
+warning: `cim-domain` (lib test) generated 8 warnings (run `cargo fix --lib -p cim-domain --tests` to apply 4 suggestions)
+error[E0432]: unresolved import `cim_domain::workflow`
+  --> cim-domain/examples/workflow_execution.rs:12:5
+   |
+12 |     workflow::{
+   |     ^^^^^^^^ could not find `workflow` in `cim_domain`
+
+error[E0432]: unresolved import `cim_domain::workflow`
+ --> cim-domain/examples/workflow_basics.rs:9:17
+  |
+9 | use cim_domain::workflow::{
+  |                 ^^^^^^^^ could not find `workflow` in `cim_domain`
+
+error[E0432]: unresolved import `cim_domain::infrastructure::JetStreamConfig`
+ --> cim-domain/examples/event_stream_example.rs:5:50
+  |
+5 |     NatsClient, NatsConfig, JetStreamEventStore, JetStreamConfig,
+  |                                                  ^^^^^^^^^^^^^^^ no `JetStreamConfig` in `infrastructure`
+  |
+  = help: consider importing this struct instead:
+          cim_domain::infrastructure::jetstream_event_store::JetStreamConfig
+
+error[E0432]: unresolved imports `cim_domain::PersonRegistered`, `cim_domain::OrganizationCreated`, `cim_domain::AgentDeployed`
+ --> cim-domain/examples/bevy_integration.rs:8:5
+  |
+8 |     PersonRegistered, OrganizationCreated, AgentDeployed,
+  |     ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^ no `AgentDeployed` in the root
+  |     |                 |
+  |     |                 no `OrganizationCreated` in the root
+  |     no `PersonRegistered` in the root
+
+error[E0432]: unresolved imports `cim_domain::PersonRegistered`, `cim_domain::OrganizationCreated`, `cim_domain::AgentDeployed`
+  --> cim-domain/tests/jetstream_event_store_tests.rs:13:18
+   |
+13 | use cim_domain::{PersonRegistered, OrganizationCreated, AgentDeployed};
+   |                  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^ no `AgentDeployed` in the root
+   |                  |                 |
+   |                  |                 no `OrganizationCreated` in the root
+   |                  no `PersonRegistered` in the root
+
+error[E0432]: unresolved imports `cim_domain::command_handlers::PersonCommandHandler`, `cim_domain::command_handlers::OrganizationCommandHandler`, `cim_domain::command_handlers::WorkflowCommandHandler`
+  --> cim-domain/examples/event_stream_example.rs:10:5
+   |
+10 |     PersonCommandHandler, OrganizationCommandHandler, WorkflowCommandHandler,
+   |     ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^ no `WorkflowCommandHandler` in `command_handlers`
+   |     |                     |
+   |     |                     no `OrganizationCommandHandler` in `command_handlers`
+   |     no `PersonCommandHandler` in `command_handlers`
+
+For more information about this error, try `rustc --explain E0432`.
+error[E0422]: cannot find struct, variant or union type `IdentityComponent` in crate `cim_domain`
+  --> cim-domain/examples/bevy_integration.rs:31:31
+   |
+31 |         identity: cim_domain::IdentityComponent {
+   |                               ^^^^^^^^^^^^^^^^^ not found in `cim_domain`
+
+error[E0422]: cannot find struct, variant or union type `ContactComponent` in crate `cim_domain`
+  --> cim-domain/examples/bevy_integration.rs:37:35
+   |
+37 |         contact: Some(cim_domain::ContactComponent {
+   |                                   ^^^^^^^^^^^^^^^^ not found in `cim_domain`
+
+error[E0422]: cannot find struct, variant or union type `EmailAddress` in crate `cim_domain`
+  --> cim-domain/examples/bevy_integration.rs:38:38
+   |
+38 |             emails: vec![cim_domain::EmailAddress {
+   |                                      ^^^^^^^^^^^^ not found in `cim_domain`
+
+error[E0432]: unresolved imports `cim_domain::PersonRegistered`, `cim_domain::OrganizationCreated`, `cim_domain::OrganizationMemberAdded`, `cim_domain::IdentityComponent`, `cim_domain::OrganizationType`, `cim_domain::OrganizationRole`, `cim_domain::RoleLevel`
+  --> cim-domain/examples/event_replay_example.rs:14:5
+   |
+14 |     PersonRegistered, OrganizationCreated, OrganizationMemberAdded,
+   |     ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^ no `OrganizationMemberAdded` in the root
+   |     |                 |
+   |     |                 no `OrganizationCreated` in the root
+   |     no `PersonRegistered` in the root
+15 |     IdentityComponent, OrganizationType, OrganizationRole, RoleLevel,
+   |     ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^ no `RoleLevel` in the root
+   |     |                  |                 |
+   |     |                  |                 no `OrganizationRole` in the root
+   |     |                  no `OrganizationType` in the root
+   |     no `IdentityComponent` in the root
+
+error[E0432]: unresolved imports `cim_domain::commands::PersonCommand`, `cim_domain::commands::OrganizationCommand`, `cim_domain::commands::WorkflowCommand`
+  --> cim-domain/examples/event_stream_example.rs:14:5
+   |
+14 |     PersonCommand, OrganizationCommand, WorkflowCommand,
+   |     ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^ no `WorkflowCommand` in `commands`
+   |     |              |
+   |     |              no `OrganizationCommand` in `commands`
+   |     no `PersonCommand` in `commands`
+
+error[E0432]: unresolved import `cim_domain::value_objects`
+  --> cim-domain/examples/event_stream_example.rs:16:17
+   |
+16 | use cim_domain::value_objects::{PersonName, Address, OrganizationType};
+   |                 ^^^^^^^^^^^^^ could not find `value_objects` in `cim_domain`
+
+error[E0432]: unresolved import `cim_domain::workflow`
+  --> cim-domain/examples/event_stream_example.rs:17:17
+   |
+17 | use cim_domain::workflow::{SimpleState, SimpleTransition};
+   |                 ^^^^^^^^ could not find `workflow` in `cim_domain`
+
+error[E0432]: unresolved imports `cim_domain::IdentityComponent`, `cim_domain::OrganizationType`, `cim_domain::AgentType`, `cim_domain::AgentMetadata`
+  --> cim-domain/tests/jetstream_event_store_tests.rs:14:18
+   |
+14 | use cim_domain::{IdentityComponent, OrganizationType, AgentType, AgentMetadata};
+   |                  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^^^^^^
+   |                  |                  |                 |          |
+   |                  |                  |                 |          no `AgentMetadata` in the root
+   |                  |                  |                 |          help: a similar name exists in the module: `EventMetadata`
+   |                  |                  |                 no `AgentType` in the root
+   |                  |                  no `OrganizationType` in the root
+   |                  no `IdentityComponent` in the root
+
+error: could not compile `cim-domain` (example "workflow_basics") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+warning: unused import: `std::sync::Arc`
+  --> cim-domain/tests/jetstream_event_store_tests.rs:15:5
+   |
+15 | use std::sync::Arc;
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+error[E0603]: module `command_handlers` is private
+  --> cim-domain/examples/event_stream_example.rs:9:17
+   |
+9  | use cim_domain::command_handlers::{
+   |                 ^^^^^^^^^^^^^^^^ private module
+   |
+note: the module `command_handlers` is defined here
+  --> /git/thecowboyai/alchemist/cim-domain/src/lib.rs:40:1
+   |
+40 | mod command_handlers;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+error[E0432]: unresolved imports `cim_domain::RegisterPerson`, `cim_domain::CreateOrganization`, `cim_domain::PersonCommandHandler`, `cim_domain::OrganizationCommandHandler`, `cim_domain::Person`, `cim_domain::Organization`, `cim_domain::IdentityComponent`, `cim_domain::ContactComponent`, `cim_domain::EmailAddress`, `cim_domain::OrganizationType`
+  --> cim-domain/examples/command_handler_example.rs:11:5
+   |
+11 |     RegisterPerson, CreateOrganization,
+   |     ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^ no `CreateOrganization` in the root
+   |     |
+   |     no `RegisterPerson` in the root
+...
+16 |     PersonCommandHandler, OrganizationCommandHandler,
+   |     ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^ no `OrganizationCommandHandler` in the root
+   |     |
+   |     no `PersonCommandHandler` in the root
+   |     help: a similar name exists in the module: `CommandHandler`
+...
+19 |     Person, Organization,
+   |     ^^^^^^  ^^^^^^^^^^^^ no `Organization` in the root
+   |     |
+   |     no `Person` in the root
+20 |     IdentityComponent, ContactComponent, EmailAddress,
+   |     ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^ no `EmailAddress` in the root
+   |     |                  |
+   |     |                  no `ContactComponent` in the root
+   |     no `IdentityComponent` in the root
+21 |     OrganizationType,
+   |     ^^^^^^^^^^^^^^^^ no `OrganizationType` in the root
+
+error[E0603]: module `command_handlers` is private
+  --> cim-domain/examples/event_stream_example.rs:9:17
+   |
+9  | use cim_domain::command_handlers::{
+   |                 ^^^^^^^^^^^^^^^^ private module
+   |
+help: consider importing this trait instead:
+      cim_domain::EventPublisher
+  --> cim-domain/examples/event_stream_example.rs:11:5
+   |
+11 |     EventPublisher, AggregateRepository, InMemoryRepository,
+   |     ^^^^^^^^^^^^^^
+note: the module `command_handlers` is defined here
+  --> /git/thecowboyai/alchemist/cim-domain/src/lib.rs:40:1
+   |
+40 | mod command_handlers;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+error[E0432]: unresolved import `tracing_subscriber`
+  --> cim-keys/examples/basic_usage.rs:14:5
+   |
+14 | use tracing_subscriber;
+   |     ^^^^^^^^^^^^^^^^^^ no external crate `tracing_subscriber`
+
+error[E0603]: module `command_handlers` is private
+  --> cim-domain/examples/event_stream_example.rs:9:17
+   |
+9  | use cim_domain::command_handlers::{
+   |                 ^^^^^^^^^^^^^^^^ private module
+   |
+help: consider importing this trait instead:
+      cim_domain::AggregateRepository
+  --> cim-domain/examples/event_stream_example.rs:11:21
+   |
+11 |     EventPublisher, AggregateRepository, InMemoryRepository,
+   |                     ^^^^^^^^^^^^^^^^^^^
+note: the module `command_handlers` is defined here
+  --> /git/thecowboyai/alchemist/cim-domain/src/lib.rs:40:1
+   |
+40 | mod command_handlers;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `EncryptionFormat`, `Encryptor`, and `RsaKeySize`
+ --> cim-keys/examples/basic_usage.rs:6:25
+  |
+6 |     KeyManager, Signer, Encryptor, CertificateManager,
+  |                         ^^^^^^^^^
+7 |     KeyAlgorithm, KeyUsage, SignatureFormat, EncryptionFormat,
+  |                                              ^^^^^^^^^^^^^^^^
+8 |     RsaKeySize, EcdsaCurve, KeyExportFormat,
+  |     ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: could not find `LocationCommandHandler` in `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:159:44
+    |
+159 |     let mut location_handler = cim_domain::LocationCommandHandler::new(
+    |                                            ^^^^^^^^^^^^^^^^^^^^^^ could not find `LocationCommandHandler` in `cim_domain`
+
+error[E0432]: unresolved import `cim_keys::yubikey::PivSlot`
+  --> cim-keys/examples/nats_tls_setup.rs:10:31
+   |
+10 |     yubikey::{YubiKeyManager, PivSlot},
+   |                               ^^^^^^^ no `PivSlot` in `yubikey`
+
+error[E0432]: unresolved import `tracing_subscriber`
+  --> cim-keys/examples/nats_tls_setup.rs:18:5
+   |
+18 | use tracing_subscriber;
+   |     ^^^^^^^^^^^^^^^^^^ no external crate `tracing_subscriber`
+
+error[E0603]: module `commands` is private
+  --> cim-domain/examples/event_stream_example.rs:13:17
+   |
+13 | use cim_domain::commands::{
+   |                 ^^^^^^^^ private module
+   |
+note: the module `commands` is defined here
+  --> /git/thecowboyai/alchemist/cim-domain/src/lib.rs:39:1
+   |
+39 | mod commands;
+   | ^^^^^^^^^^^^
+
+error[E0432]: unresolved imports `cim_domain::GetPersonById`, `cim_domain::FindPeopleByOrganization`, `cim_domain::FindLocationsByType`, `cim_domain::FindActivePolicies`, `cim_domain::FindAgentsByCapability`, `cim_domain::FindWorkflowsByStatus`, `cim_domain::PersonQueryHandler`, `cim_domain::LocationQueryHandler`, `cim_domain::PolicyQueryHandler`, `cim_domain::AgentQueryHandler`, `cim_domain::WorkflowQueryHandler`, `cim_domain::PersonView`, `cim_domain::LocationView`, `cim_domain::PolicyView`, `cim_domain::AgentView`, `cim_domain::WorkflowView`
+  --> cim-domain/examples/query_handler_example.rs:10:5
+   |
+10 |     GetPersonById, FindPeopleByOrganization,
+   |     ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^ no `FindPeopleByOrganization` in the root
+   |     |
+   |     no `GetPersonById` in the root
+11 |     FindLocationsByType, FindActivePolicies,
+   |     ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^ no `FindActivePolicies` in the root
+   |     |
+   |     no `FindLocationsByType` in the root
+12 |     FindAgentsByCapability, FindWorkflowsByStatus,
+   |     ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^ no `FindWorkflowsByStatus` in the root
+   |     |
+   |     no `FindAgentsByCapability` in the root
+...
+17 |     PersonQueryHandler, LocationQueryHandler,
+   |     ^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^ no `LocationQueryHandler` in the root
+   |     |
+   |     no `PersonQueryHandler` in the root
+18 |     PolicyQueryHandler, AgentQueryHandler,
+   |     ^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^ no `AgentQueryHandler` in the root
+   |     |
+   |     no `PolicyQueryHandler` in the root
+19 |     WorkflowQueryHandler,
+   |     ^^^^^^^^^^^^^^^^^^^^
+...
+22 |     PersonView, LocationView, PolicyView,
+   |     ^^^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^
+23 |     AgentView, WorkflowView,
+   |     ^^^^^^^^^  ^^^^^^^^^^^^
+   |
+help: a similar name exists in the module
+   |
+17 -     PersonQueryHandler, LocationQueryHandler,
+17 +     CqrsQueryHandler, LocationQueryHandler,
+   |
+help: a similar name exists in the module
+   |
+18 -     PolicyQueryHandler, AgentQueryHandler,
+18 +     DirectQueryHandler, AgentQueryHandler,
+   |
+help: a similar name exists in the module
+   |
+18 -     PolicyQueryHandler, AgentQueryHandler,
+18 +     PolicyQueryHandler, DirectQueryHandler,
+   |
+
+warning: unused imports: `KeyUsage`, `SignatureFormat`, `Signer`, and `YubiKeyManager`
+  --> cim-keys/examples/nats_tls_setup.rs:7:37
+   |
+7  |     CertificateManager, KeyManager, Signer,
+   |                                     ^^^^^^
+8  |     KeyAlgorithm, KeyUsage, SignatureFormat, CertificateFormat,
+   |                   ^^^^^^^^  ^^^^^^^^^^^^^^^
+9  |     RsaKeySize, EcdsaCurve,
+10 |     yubikey::{YubiKeyManager, PivSlot},
+   |               ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+error[E0432]: unresolved imports `cim_keys::yubikey::PivSlot`, `cim_keys::yubikey::TouchPolicy`, `cim_keys::yubikey::PinPolicy`
+  --> cim-keys/examples/cim_leaf_integration.rs:10:31
+   |
+10 |     yubikey::{YubiKeyManager, PivSlot, TouchPolicy, PinPolicy},
+   |                               ^^^^^^^  ^^^^^^^^^^^  ^^^^^^^^^ no `PinPolicy` in `yubikey`
+   |                               |        |
+   |                               |        no `TouchPolicy` in `yubikey`
+   |                               no `PivSlot` in `yubikey`
+   |
+   = help: consider importing this enum instead:
+           yubikey::TouchPolicy
+   = help: consider importing this enum instead:
+           yubikey::PinPolicy
+
+error[E0432]: unresolved import `tracing_subscriber`
+  --> cim-keys/examples/cim_leaf_integration.rs:18:5
+   |
+18 | use tracing_subscriber;
+   |     ^^^^^^^^^^^^^^^^^^ no external crate `tracing_subscriber`
+
+warning: unused imports: `QueryCriteria` and `ReadModelStorage`
+  --> cim-domain/examples/query_handler_example.rs:15:19
+   |
+15 |     QueryHandler, QueryCriteria,
+   |                   ^^^^^^^^^^^^^
+16 |     ReadModelStorage, InMemoryReadModel,
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: could not find `LocationType` in `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:167:36
+    |
+167 |         location_type: cim_domain::LocationType::Physical,
+    |                                    ^^^^^^^^^^^^ could not find `LocationType` in `cim_domain`
+
+error[E0432]: unresolved imports `cim_domain::RegisterPerson`, `cim_domain::CreateOrganization`, `cim_domain::AddOrganizationMember`, `cim_domain::DeployAgent`, `cim_domain::PersonRegistered`, `cim_domain::OrganizationCreated`, `cim_domain::OrganizationMemberAdded`, `cim_domain::AgentDeployed`, `cim_domain::Person`, `cim_domain::IdentityComponent`, `cim_domain::ContactComponent`, `cim_domain::EmailAddress`, `cim_domain::PhoneNumber`, `cim_domain::Organization`, `cim_domain::OrganizationType`, `cim_domain::OrganizationRole`, `cim_domain::RoleLevel`, `cim_domain::Agent`, `cim_domain::AgentType`, `cim_domain::AgentMetadata`
+  --> cim-domain/examples/demos/cqrs_pattern_demo.rs:8:5
+   |
+8  |     RegisterPerson, CreateOrganization, AddOrganizationMember, DeployAgent,
+   |     ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^ no `DeployAgent` in the root
+   |     |               |                   |
+   |     |               |                   no `AddOrganizationMember` in the root
+   |     |               no `CreateOrganization` in the root
+   |     no `RegisterPerson` in the root
+9  |     // Events
+10 |     PersonRegistered, OrganizationCreated, OrganizationMemberAdded, AgentDeployed,
+   |     ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^ no `AgentDeployed` in the root
+   |     |                 |                    |
+   |     |                 |                    no `OrganizationMemberAdded` in the root
+   |     |                 no `OrganizationCreated` in the root
+   |     no `PersonRegistered` in the root
+11 |     // Aggregates and components
+12 |     Person, IdentityComponent, ContactComponent, EmailAddress, PhoneNumber,
+   |     ^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^^
+   |     |       |
+   |     |       no `IdentityComponent` in the root
+   |     no `Person` in the root
+13 |     Organization, OrganizationType, OrganizationRole, RoleLevel,
+   |     ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^
+14 |     Agent, AgentType, AgentMetadata,
+   |     ^^^^^  ^^^^^^^^^  ^^^^^^^^^^^^^
+
+error[E0433]: failed to resolve: could not find `Address` in `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:168:35
+    |
+168 |         address: Some(cim_domain::Address::new(
+    |                                   ^^^^^^^ could not find `Address` in `cim_domain`
+
+error[E0433]: failed to resolve: could not find `OathType` in `cim_keys`
+   --> cim-keys/examples/cim_leaf_integration.rs:342:19
+    |
+342 |         cim_keys::OathType::Totp,
+    |                   ^^^^^^^^ could not find `OathType` in `cim_keys`
+
+error: could not compile `cim-domain` (example "workflow_execution") due to 1 previous error
+warning: unused imports: `EntityId` and `StoredEvent`
+  --> cim-domain/examples/demos/cqrs_pattern_demo.rs:17:35
+   |
+17 |         event_store::{EventStore, StoredEvent, EventMetadata},
+   |                                   ^^^^^^^^^^^
+...
+22 |     EntityId,
+   |     ^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `HashSet`
+  --> cim-domain/examples/demos/cqrs_pattern_demo.rs:26:33
+   |
+26 | use std::collections::{HashMap, HashSet};
+   |                                 ^^^^^^^
+
+error[E0432]: unresolved imports `cim_domain::PersonRegistered`, `cim_domain::OrganizationCreated`, `cim_domain::OrganizationMemberAdded`, `cim_domain::AgentDeployed`, `cim_domain::LocationDefined`, `cim_domain::PolicyEnacted`, `cim_domain::IdentityComponent`, `cim_domain::ContactComponent`, `cim_domain::EmailAddress`, `cim_domain::PhoneNumber`, `cim_domain::OrganizationType`, `cim_domain::OrganizationRole`, `cim_domain::RoleLevel`, `cim_domain::AgentType`, `cim_domain::AgentMetadata`, `cim_domain::LocationType`, `cim_domain::Address`, `cim_domain::GeoCoordinates`, `cim_domain::PolicyType`, `cim_domain::PolicyScope`, `cim_domain::PolicyMetadata`
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:8:5
+   |
+8  |     PersonRegistered, OrganizationCreated, OrganizationMemberAdded,
+   |     ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^ no `OrganizationMemberAdded` in the root
+   |     |                 |
+   |     |                 no `OrganizationCreated` in the root
+   |     no `PersonRegistered` in the root
+9  |     AgentDeployed, LocationDefined, PolicyEnacted,
+   |     ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^ no `PolicyEnacted` in the root
+   |     |              |
+   |     |              no `LocationDefined` in the root
+   |     no `AgentDeployed` in the root
+10 |     // Components and types
+11 |     IdentityComponent, ContactComponent, EmailAddress, PhoneNumber,
+   |     ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^^ no `PhoneNumber` in the root
+   |     |                  |                 |
+   |     |                  |                 no `EmailAddress` in the root
+   |     |                  no `ContactComponent` in the root
+   |     no `IdentityComponent` in the root
+12 |     OrganizationType, OrganizationRole, RoleLevel,
+   |     ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^
+13 |     AgentType, AgentMetadata,
+   |     ^^^^^^^^^  ^^^^^^^^^^^^^
+14 |     LocationType, Address, GeoCoordinates,
+   |     ^^^^^^^^^^^^  ^^^^^^^  ^^^^^^^^^^^^^^
+15 |     PolicyType, PolicyScope, PolicyMetadata,
+   |     ^^^^^^^^^^  ^^^^^^^^^^^  ^^^^^^^^^^^^^^
+
+warning: unused import: `EntityId`
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:24:5
+   |
+24 |     EntityId,
+   |     ^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `HashSet`
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:29:33
+   |
+29 | use std::collections::{HashMap, HashSet};
+   |                                 ^^^^^^^
+
+warning: unused variable: `root_key`
+  --> cim-keys/examples/nats_tls_setup.rs:76:10
+   |
+76 |     let (root_key, root_cert_id) = ca_manager.create_root_ca(
+   |          ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_root_key`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `int_key`
+  --> cim-keys/examples/nats_tls_setup.rs:84:10
+   |
+84 |     let (int_key, int_cert_id) = ca_manager.create_intermediate_ca(
+   |          ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_int_key`
+
+error[E0433]: failed to resolve: could not find `PolicyCommandHandler` in `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:193:42
+    |
+193 |     let mut policy_handler = cim_domain::PolicyCommandHandler::new(
+    |                                          ^^^^^^^^^^^^^^^^^^^^
+    |                                          |
+    |                                          could not find `PolicyCommandHandler` in `cim_domain`
+    |                                          help: a trait with a similar name exists: `CommandHandler`
+
+error[E0433]: failed to resolve: could not find `OathAlgorithm` in `cim_keys`
+   --> cim-keys/examples/cim_leaf_integration.rs:343:19
+    |
+343 |         cim_keys::OathAlgorithm::Sha1,
+    |                   ^^^^^^^^^^^^^
+    |                   |
+    |                   could not find `OathAlgorithm` in `cim_keys`
+    |                   help: an enum with a similar name exists: `KeyAlgorithm`
+
+error[E0615]: attempted to take value of method `event_type` on type `&StoredEvent`
+   --> cim-domain/examples/event_stream_example.rs:162:19
+    |
+162 |             event.event_type,
+    |                   ^^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+162 |             event.event_type(),
+    |                             ++
+
+error[E0615]: attempted to take value of method `timestamp` on type `&StoredEvent`
+   --> cim-domain/examples/event_stream_example.rs:164:19
+    |
+164 |             event.timestamp
+    |                   ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+164 |             event.timestamp()
+    |                            ++
+
+error[E0425]: cannot find value `operator_int_key` in this scope
+   --> cim-keys/examples/cim_leaf_integration.rs:187:18
+    |
+187 |                 &operator_int_key,
+    |                  ^^^^^^^^^^^^^^^^ not found in this scope
+
+warning: unused imports: `EncryptionFormat`, `Encryptor`, `KeyUsage`, `SignatureFormat`, and `Signer`
+ --> cim-keys/examples/cim_leaf_integration.rs:7:17
+  |
+7 |     KeyManager, Signer, Encryptor, CertificateManager, PkiOperations,
+  |                 ^^^^^^  ^^^^^^^^^
+8 |     KeyAlgorithm, KeyUsage, SignatureFormat, EncryptionFormat,
+  |                   ^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0433]: failed to resolve: could not find `PolicyType` in `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:200:34
+    |
+200 |         policy_type: cim_domain::PolicyType::AccessControl,
+    |                                  ^^^^^^^^^^ could not find `PolicyType` in `cim_domain`
+
+error[E0615]: attempted to take value of method `causation_id` on type `&StoredEvent`
+   --> cim-domain/examples/event_stream_example.rs:253:56
+    |
+253 |         let causation_info = if let Some(cid) = &event.causation_id {
+    |                                                        ^^^^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+253 |         let causation_info = if let Some(cid) = &event.causation_id() {
+    |                                                                    ++
+
+error[E0433]: failed to resolve: could not find `PolicyScope` in `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:201:28
+    |
+201 |         scope: cim_domain::PolicyScope::Global,
+    |                            ^^^^^^^^^^^ could not find `PolicyScope` in `cim_domain`
+
+error[E0599]: no function or associated item named `new` found for struct `cim_domain::EventMetadata` in the current scope
+  --> cim-domain/examples/bevy_integration.rs:51:35
+   |
+51 |     let metadata = EventMetadata::new("example-system".to_string())
+   |                                   ^^^ function or associated item not found in `EventMetadata`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Paint` which provides `new` is implemented but not in scope; perhaps you want to import it
+   |
+6  + use yansi::Paint;
+   |
+
+error[E0615]: attempted to take value of method `event_type` on type `&StoredEvent`
+   --> cim-domain/examples/event_stream_example.rs:258:49
+    |
+258 |         println!("   {}. {} - {}", i + 1, event.event_type, causation_info);
+    |                                                 ^^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+258 |         println!("   {}. {} - {}", i + 1, event.event_type(), causation_info);
+    |                                                           ++
+
+error[E0412]: cannot find type `Location` in crate `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:157:58
+    |
+157 |     let location_repo = InMemoryRepository::<cim_domain::Location>::new();
+    |                                                          ^^^^^^^^ not found in `cim_domain`
+    |
+help: consider importing this struct
+    |
+9   + use std::panic::Location;
+    |
+help: if you import `Location`, refer to it directly
+    |
+157 -     let location_repo = InMemoryRepository::<cim_domain::Location>::new();
+157 +     let location_repo = InMemoryRepository::<Location>::new();
+    |
+
+error[E0422]: cannot find struct, variant or union type `DefineLocation` in crate `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:164:36
+    |
+164 |     let location_cmd = cim_domain::DefineLocation {
+    |                                    ^^^^^^^^^^^^^^ not found in `cim_domain`
+
+error[E0412]: cannot find type `Policy` in crate `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:191:56
+    |
+191 |     let policy_repo = InMemoryRepository::<cim_domain::Policy>::new();
+    |                                                        ^^^^^^ not found in `cim_domain`
+    |
+help: consider importing this enum
+    |
+9   + use cim_subject::permissions::Policy;
+    |
+help: if you import `Policy`, refer to it directly
+    |
+191 -     let policy_repo = InMemoryRepository::<cim_domain::Policy>::new();
+191 +     let policy_repo = InMemoryRepository::<Policy>::new();
+    |
+
+error[E0422]: cannot find struct, variant or union type `EnactPolicy` in crate `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:198:34
+    |
+198 |     let policy_cmd = cim_domain::EnactPolicy {
+    |                                  ^^^^^^^^^^^ not found in `cim_domain`
+
+error[E0422]: cannot find struct, variant or union type `PolicyMetadata` in crate `cim_domain`
+   --> cim-domain/examples/command_handler_example.rs:203:31
+    |
+203 |         metadata: cim_domain::PolicyMetadata {
+    |                               ^^^^^^^^^^^^^^ not found in `cim_domain`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/event_replay_example.rs:49:30
+   |
+49 |             DomainEventEnum::OrganizationCreated(e) => {
+   |                              ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/tests/jetstream_event_store_tests.rs:77:26
+   |
+77 |         DomainEventEnum::PersonRegistered(PersonRegistered {
+   |                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no function or associated item named `new` found for struct `cim_domain::EventMetadata` in the current scope
+  --> cim-domain/examples/bevy_integration.rs:91:34
+   |
+91 |         metadata: EventMetadata::new("example-system".to_string()),
+   |                                  ^^^ function or associated item not found in `EventMetadata`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Paint` which provides `new` is implemented but not in scope; perhaps you want to import it
+   |
+6  + use yansi::Paint;
+   |
+
+Some errors have detailed explanations: E0432, E0603, E0615.
+For more information about an error, try `rustc --explain E0432`.
+error[E0599]: no variant or associated item named `OrganizationMemberAdded` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/event_replay_example.rs:54:30
+   |
+54 |             DomainEventEnum::OrganizationMemberAdded(e) => {
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no function or associated item named `new` found for struct `cim_domain::EventMetadata` in the current scope
+   --> cim-domain/examples/bevy_integration.rs:123:34
+    |
+123 |         metadata: EventMetadata::new("example-system".to_string()),
+    |                                  ^^^ function or associated item not found in `EventMetadata`
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `Paint` which provides `new` is implemented but not in scope; perhaps you want to import it
+    |
+6   + use yansi::Paint;
+    |
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/tests/jetstream_event_store_tests.rs:89:26
+   |
+89 |         DomainEventEnum::PersonRegistered(PersonRegistered {
+   |                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error: could not compile `cim-domain` (example "event_stream_example") due to 13 previous errors
+Some errors have detailed explanations: E0422, E0432, E0599.
+For more information about an error, try `rustc --explain E0422`.
+error[E0599]: no associated item named `Signing` found for struct `KeyUsage` in the current scope
+  --> cim-keys/examples/basic_usage.rs:33:19
+   |
+33 |         KeyUsage::Signing,
+   |                   ^^^^^^^ associated item not found in `KeyUsage`
+
+error: could not compile `cim-domain` (example "bevy_integration") due to 7 previous errors
+error[E0599]: no variant or associated item named `OpenSsh` found for enum `KeyExportFormat` in the current scope
+  --> cim-keys/examples/basic_usage.rs:41:26
+   |
+41 |         KeyExportFormat::OpenSsh,
+   |                          ^^^^^^^ variant or associated item not found in `KeyExportFormat`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:158:35
+    |
+158 |     let event1 = DomainEventEnum::OrganizationCreated(OrganizationCreated {
+    |                                   ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0609]: no field `metadata` on type `String`
+   --> cim-keys/examples/cim_leaf_integration.rs:148:28
+    |
+148 |         operator_root_cert.metadata,
+    |                            ^^^^^^^^ unknown field
+
+error[E0609]: no field `metadata` on type `String`
+   --> cim-keys/examples/cim_leaf_integration.rs:153:26
+    |
+153 |         domain_root_cert.metadata,
+    |                          ^^^^^^^^ unknown field
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:55:30
+   |
+55 |             DomainEventEnum::PersonRegistered(e) => {
+   |                              ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/cqrs_pattern_demo.rs:60:39
+   |
+60 |                 vec![DomainEventEnum::PersonRegistered(event.clone())],
+   |                                       ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/event_replay_example.rs:148:37
+    |
+148 |             event: DomainEventEnum::PersonRegistered(PersonRegistered {
+    |                                     ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:167:35
+    |
+167 |     let event2 = DomainEventEnum::OrganizationCreated(OrganizationCreated {
+    |                                   ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0560]: struct `KeyMetadata` has no field named `key_id`
+   --> cim-keys/examples/basic_usage.rs:103:9
+    |
+103 |         key_id: ssh_key_id,
+    |         ^^^^^^ `KeyMetadata` does not have this field
+    |
+    = note: available fields are: `id`, `description`, `email`, `fingerprint`, `hardware_serial`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:58:30
+   |
+58 |             DomainEventEnum::OrganizationCreated(e) => {
+   |                              ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/event_replay_example.rs:168:37
+    |
+168 |             event: DomainEventEnum::OrganizationCreated(OrganizationCreated {
+    |                                     ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no associated item named `Signing` found for struct `KeyUsage` in the current scope
+   --> cim-keys/examples/basic_usage.rs:106:26
+    |
+106 |         usage: KeyUsage::Signing,
+    |                          ^^^^^^^ associated item not found in `KeyUsage`
+
+error[E0599]: no variant or associated item named `AgentDeployed` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:232:30
+    |
+232 |             DomainEventEnum::AgentDeployed(AgentDeployed {
+    |                              ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0560]: struct `KeyMetadata` has no field named `attributes`
+   --> cim-keys/examples/basic_usage.rs:109:9
+    |
+109 |         attributes: std::collections::HashMap::new(),
+    |         ^^^^^^^^^^ `KeyMetadata` does not have this field
+    |
+    = note: available fields are: `id`, `description`, `email`, `fingerprint`, `hardware_serial`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/cqrs_pattern_demo.rs:66:34
+   |
+66 |         Ok(vec![DomainEventEnum::PersonRegistered(event)])
+   |                                  ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `AgentDeployed` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:61:30
+   |
+61 |             DomainEventEnum::AgentDeployed(e) => {
+   |                              ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `LocationDefined` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:64:30
+   |
+64 |             DomainEventEnum::LocationDefined(e) => {
+   |                              ^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/event_replay_example.rs:208:26
+    |
+208 |         DomainEventEnum::OrganizationCreated(OrganizationCreated {
+    |                          ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/cqrs_pattern_demo.rs:93:39
+   |
+93 |                 vec![DomainEventEnum::OrganizationCreated(event.clone())],
+   |                                       ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no method named `export_key` found for struct `TlsManager` in the current scope
+   --> cim-keys/examples/nats_tls_setup.rs:129:38
+    |
+129 |     let server_key_pem = tls_manager.export_key(
+    |                          ------------^^^^^^^^^^ method not found in `TlsManager`
+
+error[E0599]: no method named `store_key` found for struct `MemoryKeyStorage` in the current scope
+   --> cim-keys/examples/basic_usage.rs:112:13
+    |
+112 |     storage.store_key(
+    |     --------^^^^^^^^^ method not found in `MemoryKeyStorage`
+    |
+   ::: /git/thecowboyai/alchemist/cim-keys/src/traits.rs:202:14
+    |
+202 |     async fn store_key(
+    |              --------- the method is available for `MemoryKeyStorage` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `KeyStorage` which provides `store_key` is implemented but not in scope; perhaps you want to import it
+    |
+5   + use cim_keys::KeyStorage;
+    |
+
+error[E0599]: no variant or associated item named `PolicyEnacted` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/full_event_sourcing_demo.rs:67:30
+   |
+67 |             DomainEventEnum::PolicyEnacted(e) => {
+   |                              ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+Some errors have detailed explanations: E0412, E0422, E0432, E0433.
+For more information about an error, try `rustc --explain E0412`.
+error[E0599]: no function or associated item named `connect_by_serial` found for struct `YubiKeyManager` in the current scope
+   --> cim-keys/examples/cim_leaf_integration.rs:165:39
+    |
+165 |     let mut yubikey = YubiKeyManager::connect_by_serial(&config.serial)?;
+    |                                       ^^^^^^^^^^^^^^^^^ function or associated item not found in `YubiKeyManager`
+    |
+note: if you're trying to build a new `YubiKeyManager`, consider using `YubiKeyManager::new` which returns `Result<YubiKeyManager, KeyError>`
+   --> /git/thecowboyai/alchemist/cim-keys/src/yubikey/mod.rs:32:5
+    |
+32  |     pub fn new() -> Result<Self> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+  --> cim-domain/examples/demos/cqrs_pattern_demo.rs:99:34
+   |
+99 |         Ok(vec![DomainEventEnum::OrganizationCreated(event)])
+   |                                  ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/event_replay_example.rs:216:26
+    |
+216 |         DomainEventEnum::PersonRegistered(PersonRegistered {
+    |                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error: could not compile `cim-domain` (example "command_handler_example") due to 12 previous errors
+error[E0599]: no variant or associated item named `OrganizationMemberAdded` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:122:39
+    |
+122 |                 vec![DomainEventEnum::OrganizationMemberAdded(event.clone())],
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no method named `retrieve_key` found for struct `MemoryKeyStorage` in the current scope
+   --> cim-keys/examples/basic_usage.rs:122:56
+    |
+122 |     let (retrieved_data, retrieved_metadata) = storage.retrieve_key(&ssh_key_id).await?;
+    |                                                        ^^^^^^^^^^^^ method not found in `MemoryKeyStorage`
+    |
+   ::: /git/thecowboyai/alchemist/cim-keys/src/traits.rs:211:14
+    |
+211 |     async fn retrieve_key(
+    |              ------------ the method is available for `MemoryKeyStorage` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `KeyStorage` which provides `retrieve_key` is implemented but not in scope; perhaps you want to import it
+    |
+5   + use cim_keys::KeyStorage;
+    |
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:297:30
+    |
+297 |             DomainEventEnum::PersonRegistered(PersonRegistered {
+    |                              ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/event_replay_example.rs:228:26
+    |
+228 |         DomainEventEnum::PersonRegistered(PersonRegistered {
+    |                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationMemberAdded` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:128:34
+    |
+128 |         Ok(vec![DomainEventEnum::OrganizationMemberAdded(event)])
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationMemberAdded` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/event_replay_example.rs:240:26
+    |
+240 |         DomainEventEnum::OrganizationMemberAdded(OrganizationMemberAdded {
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `AgentDeployed` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:154:39
+    |
+154 |                 vec![DomainEventEnum::AgentDeployed(event.clone())],
+    |                                       ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0061]: this method takes 4 arguments but 5 arguments were supplied
+   --> cim-keys/examples/cim_leaf_integration.rs:186:41
+    |
+186 |             let auth_cert = pki_manager.issue_certificate(
+    |                                         ^^^^^^^^^^^^^^^^^
+...
+190 |                 false,
+    |                 ----- unexpected argument #4 of type `bool`
+    |
+note: method defined here
+   --> /git/thecowboyai/alchemist/cim-keys/src/pki/mod.rs:105:18
+    |
+105 |     pub async fn issue_certificate(
+    |                  ^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+189 -                 365, // 1 year
+190 -                 false,
+189 +                 365,
+    |
+
+error[E0599]: no variant or associated item named `OrganizationMemberAdded` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/event_replay_example.rs:253:26
+    |
+253 |         DomainEventEnum::OrganizationMemberAdded(OrganizationMemberAdded {
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `AgentDeployed` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:160:34
+    |
+160 |         Ok(vec![DomainEventEnum::AgentDeployed(event)])
+    |                                  ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:374:34
+    |
+374 |                 DomainEventEnum::PersonRegistered(PersonRegistered {
+    |                                  ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no method named `export_key` found for struct `TlsManager` in the current scope
+   --> cim-keys/examples/nats_tls_setup.rs:186:36
+    |
+186 |     let leaf_key_pem = tls_manager.export_key(
+    |                        ------------^^^^^^^^^^ method not found in `TlsManager`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/full_event_sourcing_demo.rs:135:31
+    |
+135 |         vec![DomainEventEnum::PersonRegistered(person_event.clone())],
+    |                               ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:388:34
+    |
+388 |                 DomainEventEnum::OrganizationCreated(OrganizationCreated {
+    |                                  ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+warning: unused variable: `ca_manager`
+   --> cim-keys/examples/nats_tls_setup.rs:201:5
+    |
+201 |     ca_manager: &PkiManager,
+    |     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ca_manager`
+
+warning: unused variable: `ca_cert_id`
+   --> cim-keys/examples/nats_tls_setup.rs:202:5
+    |
+202 |     ca_cert_id: &str,
+    |     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ca_cert_id`
+
+Some errors have detailed explanations: E0432, E0560, E0599.
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/full_event_sourcing_demo.rs:155:31
+    |
+155 |         vec![DomainEventEnum::OrganizationCreated(org_event.clone())],
+    |                               ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no method named `store_key` found for struct `FileKeyStorage` in the current scope
+   --> cim-keys/examples/cim_leaf_integration.rs:276:13
+    |
+276 |     storage.store_key(
+    |     --------^^^^^^^^^ method not found in `FileKeyStorage`
+    |
+   ::: /git/thecowboyai/alchemist/cim-keys/src/traits.rs:202:14
+    |
+202 |     async fn store_key(
+    |              --------- the method is available for `FileKeyStorage` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `KeyStorage` which provides `store_key` is implemented but not in scope; perhaps you want to import it
+    |
+6   + use cim_keys::KeyStorage;
+    |
+
+warning: `cim-keys` (example "basic_usage") generated 1 warning
+error: could not compile `cim-keys` (example "basic_usage") due to 8 previous errors; 1 warning emitted
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:441:35
+    |
+441 |     let event1 = DomainEventEnum::PersonRegistered(PersonRegistered {
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+Some errors have detailed explanations: E0432, E0599.
+warning: unused variable: `ca_manager`
+   --> cim-keys/examples/nats_tls_setup.rs:347:5
+    |
+347 |     ca_manager: &PkiManager,
+    |     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ca_manager`
+
+warning: unused variable: `server_cert`
+   --> cim-keys/examples/nats_tls_setup.rs:352:9
+    |
+352 |     let server_cert = fs::read("./secrets/generated/nats/tls/server-cert.pem")?;
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_server_cert`
+
+warning: unused variable: `ca_cert`
+   --> cim-keys/examples/nats_tls_setup.rs:353:9
+    |
+353 |     let ca_cert = fs::read("./secrets/generated/nats/tls/ca-cert.pem")?;
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_ca_cert`
+
+error: could not compile `cim-domain` (example "event_replay_example") due to 10 previous errors
+error[E0599]: no variant or associated item named `OrganizationMemberAdded` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/full_event_sourcing_demo.rs:181:31
+    |
+181 |         vec![DomainEventEnum::OrganizationMemberAdded(member_event)],
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/tests/jetstream_event_store_tests.rs:468:35
+    |
+468 |     let event2 = DomainEventEnum::PersonRegistered(PersonRegistered {
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `AgentDeployed` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/full_event_sourcing_demo.rs:206:31
+    |
+206 |         vec![DomainEventEnum::AgentDeployed(agent_event.clone())],
+    |                               ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `LocationDefined` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/full_event_sourcing_demo.rs:239:31
+    |
+239 |         vec![DomainEventEnum::LocationDefined(location_event.clone())],
+    |                               ^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no method named `to_der` found for struct `String` in the current scope
+   --> cim-keys/examples/cim_leaf_integration.rs:278:22
+    |
+278 |         &server_cert.to_der()?,
+    |                      ^^^^^^
+    |
+   ::: /home/steele/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/der-0.7.10/src/encode.rs:62:8
+    |
+62  |     fn to_der(&self) -> Result<Vec<u8>> {
+    |        ------ the method is available for `String` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `Encode` which provides `to_der` is implemented but not in scope; perhaps you want to import it
+    |
+6   + use der::encode::Encode;
+    |
+help: there is a method `to_der_len` with a similar name
+    |
+278 |         &server_cert.to_der_len()?,
+    |                            ++++
+
+error[E0599]: no variant or associated item named `PolicyEnacted` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/full_event_sourcing_demo.rs:266:31
+    |
+266 |         vec![DomainEventEnum::PolicyEnacted(policy_event.clone())],
+    |                               ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0609]: no field `metadata` on type `String`
+   --> cim-keys/examples/cim_leaf_integration.rs:279:21
+    |
+279 |         server_cert.metadata,
+    |                     ^^^^^^^^ unknown field
+
+warning: `cim-domain` (test "jetstream_event_store_tests") generated 1 warning
+error: could not compile `cim-domain` (test "jetstream_event_store_tests") due to 12 previous errors; 1 warning emitted
+error[E0599]: no variant or associated item named `PersonRegistered` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:242:30
+    |
+242 |             DomainEventEnum::PersonRegistered(e) => {
+    |                              ^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+warning: unused variable: `yubikey`
+   --> cim-keys/examples/cim_leaf_integration.rs:289:5
+    |
+289 |     yubikey: &YubiKeyManager,
+    |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_yubikey`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+error[E0599]: no variant or associated item named `OrganizationCreated` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:267:30
+    |
+267 |             DomainEventEnum::OrganizationCreated(e) => {
+    |                              ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+error[E0599]: no variant or associated item named `OrganizationMemberAdded` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:287:30
+    |
+287 |             DomainEventEnum::OrganizationMemberAdded(e) => {
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+warning: `cim-keys` (example "nats_tls_setup") generated 8 warnings
+error: could not compile `cim-keys` (example "nats_tls_setup") due to 4 previous errors; 8 warnings emitted
+error[E0599]: no variant or associated item named `AgentDeployed` found for enum `DomainEventEnum` in the current scope
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:315:30
+    |
+315 |             DomainEventEnum::AgentDeployed(e) => {
+    |                              ^^^^^^^^^^^^^ variant or associated item not found in `DomainEventEnum`
+
+warning: `cim-domain` (example "full_event_sourcing_demo") generated 2 warnings
+error: could not compile `cim-domain` (example "full_event_sourcing_demo") due to 12 previous errors; 2 warnings emitted
+error[E0063]: missing field `subject_prefix` in initializer of `JetStreamConfig`
+   --> cim-domain/examples/demos/cqrs_pattern_demo.rs:444:18
+    |
+444 |     let config = JetStreamConfig {
+    |                  ^^^^^^^^^^^^^^^ missing `subject_prefix`
+
+error[E0599]: no method named `generate_fido2_ssh_key` found for reference `&YubiKeyManager` in the current scope
+   --> cim-keys/examples/cim_leaf_integration.rs:306:27
+    |
+306 |     let ssh_key = yubikey.generate_fido2_ssh_key(
+    |                   --------^^^^^^^^^^^^^^^^^^^^^^ method not found in `&YubiKeyManager`
+
+error[E0599]: no variant or associated item named `OpenSsh` found for enum `KeyExportFormat` in the current scope
+   --> cim-keys/examples/cim_leaf_integration.rs:314:26
+    |
+314 |         KeyExportFormat::OpenSsh,
+    |                          ^^^^^^^ variant or associated item not found in `KeyExportFormat`
+
+Some errors have detailed explanations: E0063, E0432, E0599.
+For more information about an error, try `rustc --explain E0063`.
+warning: `cim-domain` (example "cqrs_pattern_demo") generated 2 warnings
+error: could not compile `cim-domain` (example "cqrs_pattern_demo") due to 14 previous errors; 2 warnings emitted
+error[E0599]: no method named `store_key` found for struct `FileKeyStorage` in the current scope
+   --> cim-keys/examples/cim_leaf_integration.rs:322:13
+    |
+322 |     storage.store_key(
+    |     --------^^^^^^^^^ method not found in `FileKeyStorage`
+    |
+   ::: /git/thecowboyai/alchemist/cim-keys/src/traits.rs:202:14
+    |
+202 |     async fn store_key(
+    |              --------- the method is available for `FileKeyStorage` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `KeyStorage` which provides `store_key` is implemented but not in scope; perhaps you want to import it
+    |
+6   + use cim_keys::KeyStorage;
+    |
+
+error[E0609]: no field `metadata` on type `KeyId`
+   --> cim-keys/examples/cim_leaf_integration.rs:325:17
+    |
+325 |         ssh_key.metadata,
+    |                 ^^^^^^^^ unknown field
+    |
+    = note: available field is: `0`
+
+warning: `cim-domain` (example "query_handler_example") generated 1 warning
+error: could not compile `cim-domain` (example "query_handler_example") due to 1 previous error; 1 warning emitted
+error[E0599]: no method named `add_oath_credential` found for reference `&YubiKeyManager` in the current scope
+   --> cim-keys/examples/cim_leaf_integration.rs:339:13
+    |
+339 |     yubikey.add_oath_credential(
+    |     --------^^^^^^^^^^^^^^^^^^^ method not found in `&YubiKeyManager`
+
+warning: unused import: `PkiOperations`
+ --> cim-keys/examples/cim_leaf_integration.rs:7:56
+  |
+7 |     KeyManager, Signer, Encryptor, CertificateManager, PkiOperations,
+  |                                                        ^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0061, E0425, E0432, E0433, E0599, E0609.
+For more information about an error, try `rustc --explain E0061`.
+warning: `cim-keys` (example "cim_leaf_integration") generated 3 warnings
+error: could not compile `cim-keys` (example "cim_leaf_integration") due to 17 previous errors; 3 warnings emitted

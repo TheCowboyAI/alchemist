@@ -17,9 +17,9 @@
 //!
 //! The module follows Domain-Driven Design principles with:
 //! - **Aggregates**: Repository, Commit, Branch
-//! - **Value Objects**: CommitHash, BranchName, AuthorInfo
-//! - **Events**: RepositoryCloned, CommitAnalyzed, BranchCreated
-//! - **Commands**: CloneRepository, AnalyzeCommit, ExtractGraph
+//! - **Value Objects**: `CommitHash`, `BranchName`, `AuthorInfo`
+//! - **Events**: `RepositoryCloned`, `CommitAnalyzed`, `BranchCreated`
+//! - **Commands**: `CloneRepository`, `AnalyzeCommit`, `ExtractGraph`
 //!
 //! ## Integration Points
 //!

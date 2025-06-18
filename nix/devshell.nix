@@ -9,6 +9,9 @@ pkgs.mkShell {
     rust-toolchain
     pkgs.cargo-watch
     pkgs.cargo-nextest
+    pkgs.pcsclite  # Add pcscd daemon
+    pkgs.pcsctools # PC/SC tools for testing
+    pkgs.yubikey-manager # YubiKey management tools
   ];
   buildInputs = with pkgs; [
     # Build tools
@@ -75,6 +78,28 @@ pkgs.mkShell {
     # Set LIBCLANG_PATH for bindgen
     export LIBCLANG_PATH="$(find /nix/store -name "*clang-19*-lib" -type d | head -1)/lib"
     echo "LIBCLANG_PATH set to: $LIBCLANG_PATH"
+    
+    # For YubiKey support, we need pcscd running
+    # On NixOS, this is typically handled by the system service
+    # For non-NixOS or testing, you can start pcscd manually:
+    echo ""
+    echo "YubiKey Support:"
+    echo "----------------"
+    if command -v systemctl &> /dev/null && systemctl is-active --quiet pcscd; then
+      echo "✓ PC/SC daemon is running (system service)"
+    else
+      echo "⚠ PC/SC daemon not detected"
+      echo "  For YubiKey support, start pcscd:"
+      echo "  - On NixOS: sudo systemctl start pcscd"
+      echo "  - Or run: sudo pcscd --foreground --debug"
+    fi
+    
+    # Check for connected YubiKeys
+    if command -v ykman &> /dev/null; then
+      echo ""
+      echo "Checking for YubiKeys..."
+      ykman list 2>/dev/null || echo "No YubiKeys detected (pcscd may not be running)"
+    fi
   '';
 
   # Vulkan configuration

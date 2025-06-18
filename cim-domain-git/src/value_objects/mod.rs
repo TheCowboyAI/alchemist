@@ -31,12 +31,12 @@ impl CommitHash {
     }
 
     /// Get the hash as a string
-    pub fn as_str(&self) -> &str {
+    #[must_use] pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Get a short version of the hash (first 7 characters)
-    pub fn short(&self) -> &str {
+    #[must_use] pub fn short(&self) -> &str {
         &self.0[..7.min(self.0.len())]
     }
 }
@@ -66,8 +66,7 @@ impl BranchName {
         // Git branch name restrictions
         if name.contains("..") || name.ends_with('.') || name.ends_with('/') {
             return Err(crate::GitDomainError::GitOperationFailed(format!(
-                "Invalid branch name: {}",
-                name
+                "Invalid branch name: {name}"
             )));
         }
 
@@ -75,12 +74,12 @@ impl BranchName {
     }
 
     /// Get the branch name as a string
-    pub fn as_str(&self) -> &str {
+    #[must_use] pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Check if this is the main/master branch
-    pub fn is_default(&self) -> bool {
+    #[must_use] pub fn is_default(&self) -> bool {
         matches!(self.0.as_str(), "main" | "master")
     }
 }
@@ -116,8 +115,7 @@ impl RemoteUrl {
         // git@github.com:user/repo.git
         {
             return Err(crate::GitDomainError::GitOperationFailed(format!(
-                "Invalid Git remote URL: {}",
-                url
+                "Invalid Git remote URL: {url}"
             )));
         }
 
@@ -125,20 +123,20 @@ impl RemoteUrl {
     }
 
     /// Get the URL as a string
-    pub fn as_str(&self) -> &str {
+    #[must_use] pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Extract the repository name from the URL
-    pub fn repository_name(&self) -> Option<&str> {
+    #[must_use] pub fn repository_name(&self) -> Option<&str> {
         self.0
             .split('/')
-            .last()
+            .next_back()
             .map(|name| name.trim_end_matches(".git"))
     }
 
     /// Check if this is a GitHub URL
-    pub fn is_github(&self) -> bool {
+    #[must_use] pub fn is_github(&self) -> bool {
         self.0.contains("github.com")
     }
 }
@@ -194,13 +192,13 @@ impl TagName {
     }
 
     /// Get the tag name as a string
-    pub fn as_str(&self) -> &str {
+    #[must_use] pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Check if this looks like a semantic version tag
-    pub fn is_semver(&self) -> bool {
-        self.0.starts_with('v') && self.0[1..].chars().next().map_or(false, |c| c.is_numeric())
+    #[must_use] pub fn is_semver(&self) -> bool {
+        self.0.starts_with('v') && self.0[1..].chars().next().is_some_and(char::is_numeric)
     }
 }
 
@@ -232,22 +230,22 @@ impl FilePath {
     }
 
     /// Get the path as a string
-    pub fn as_str(&self) -> &str {
+    #[must_use] pub fn as_str(&self) -> &str {
         &self.0
     }
 
     /// Get the file name (last component)
-    pub fn file_name(&self) -> Option<&str> {
-        self.0.split('/').last()
+    #[must_use] pub fn file_name(&self) -> Option<&str> {
+        self.0.split('/').next_back()
     }
 
     /// Get the directory path
-    pub fn directory(&self) -> Option<&str> {
+    #[must_use] pub fn directory(&self) -> Option<&str> {
         self.0.rfind('/').map(|idx| &self.0[..idx])
     }
 
     /// Get the file extension
-    pub fn extension(&self) -> Option<&str> {
+    #[must_use] pub fn extension(&self) -> Option<&str> {
         self.file_name()
             .and_then(|name| name.rfind('.'))
             .and_then(|idx| {

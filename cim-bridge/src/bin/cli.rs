@@ -135,7 +135,7 @@ async fn query_command(
     let mut sub = client.subscribe("bridge.event.query.>").await?;
     
     // Send command
-    println!("Sending query to model {}...", model);
+    println!("Sending query to model {model}...");
     client
         .publish(
             "bridge.command.query",
@@ -154,7 +154,7 @@ async fn query_command(
                     
                     match event.event {
                         BridgeEvent::QueryStarted { provider, model, .. } => {
-                            println!("✓ Query started with {} using model {}", provider, model);
+                            println!("✓ Query started with {provider} using model {model}");
                         }
                         BridgeEvent::QueryCompleted { response, .. } => {
                             println!("\n📝 Response:\n{}", response.content);
@@ -169,14 +169,14 @@ async fn query_command(
                             return Ok(());
                         }
                         BridgeEvent::QueryFailed { error, provider, .. } => {
-                            eprintln!("❌ Query failed on {}: {}", provider, error);
+                            eprintln!("❌ Query failed on {provider}: {error}");
                             return Err(error.into());
                         }
                         _ => {}
                     }
                 }
                 Err(e) => {
-                    eprintln!("Failed to parse event: {}", e);
+                    eprintln!("Failed to parse event: {e}");
                 }
             }
         }
@@ -222,7 +222,7 @@ async fn stream_command(
     let mut sub = client.subscribe("bridge.event.>").await?;
     
     // Send command
-    println!("Streaming from model {}...", model);
+    println!("Streaming from model {model}...");
     client
         .publish(
             "bridge.command.stream_query",
@@ -246,7 +246,7 @@ async fn stream_command(
                 
                 match event.event {
                     BridgeEvent::QueryStarted { provider, model, .. } => {
-                        println!("\n✓ Streaming from {} using model {}\n", provider, model);
+                        println!("\n✓ Streaming from {provider} using model {model}\n");
                     }
                     BridgeEvent::StreamChunk { chunk, .. } => {
                         print!("{}", chunk.content);
@@ -261,20 +261,20 @@ async fn stream_command(
                         }
                     }
                     BridgeEvent::QueryFailed { error, provider, .. } => {
-                        eprintln!("\n❌ Stream failed on {}: {}", provider, error);
+                        eprintln!("\n❌ Stream failed on {provider}: {error}");
                         return Err(error.into());
                     }
                     _ => {}
                 }
             }
             Err(e) => {
-                eprintln!("Failed to parse event: {}", e);
+                eprintln!("Failed to parse event: {e}");
             }
         }
     }
     
     if total_tokens > 0 {
-        println!("📊 Total tokens used: {}", total_tokens);
+        println!("📊 Total tokens used: {total_tokens}");
     }
     
     Ok(())
@@ -328,7 +328,7 @@ async fn list_providers(client: &Client) -> std::result::Result<(), Box<dyn std:
                     }
                 }
                 Err(e) => {
-                    eprintln!("Failed to parse event: {}", e);
+                    eprintln!("Failed to parse event: {e}");
                 }
             }
         }
@@ -363,7 +363,7 @@ async fn list_models(
     
     // Send command
     println!("Fetching available models{}...", 
-        provider.as_ref().map(|p| format!(" for {}", p)).unwrap_or_default()
+        provider.as_ref().map(|p| format!(" for {p}")).unwrap_or_default()
     );
     client
         .publish(
@@ -382,11 +382,11 @@ async fn list_models(
                     }
                     
                     if let BridgeEvent::ModelsListed { provider, models } = event.event {
-                        println!("\n📋 Available models for {}:", provider);
+                        println!("\n📋 Available models for {provider}:");
                         for model in models {
                             println!("  • {}", model.name);
                             if let Some(desc) = model.description {
-                                println!("    {}", desc);
+                                println!("    {desc}");
                             }
                             if !model.capabilities.is_empty() {
                                 println!("    Capabilities: {}", model.capabilities.join(", "));
@@ -396,7 +396,7 @@ async fn list_models(
                     }
                 }
                 Err(e) => {
-                    eprintln!("Failed to parse event: {}", e);
+                    eprintln!("Failed to parse event: {e}");
                 }
             }
         }
@@ -431,7 +431,7 @@ async fn health_check(
     
     // Send command
     println!("Checking health{}...", 
-        provider.as_ref().map(|p| format!(" for {}", p)).unwrap_or_default()
+        provider.as_ref().map(|p| format!(" for {p}")).unwrap_or_default()
     );
     client
         .publish(
@@ -450,22 +450,22 @@ async fn health_check(
                     }
                     
                     if let BridgeEvent::ProviderHealth { provider, status, details } = event.event {
-                        print!("\n🏥 Health status for {}: ", provider);
+                        print!("\n🏥 Health status for {provider}: ");
                         match status {
                             HealthStatus::Healthy => println!("✅ Healthy"),
-                            HealthStatus::Degraded(msg) => println!("⚠️  Degraded - {}", msg),
-                            HealthStatus::Unhealthy(msg) => println!("❌ Unhealthy - {}", msg),
+                            HealthStatus::Degraded(msg) => println!("⚠️  Degraded - {msg}"),
+                            HealthStatus::Unhealthy(msg) => println!("❌ Unhealthy - {msg}"),
                         }
                         
                         if let Some(details) = details {
-                            println!("   Details: {}", details);
+                            println!("   Details: {details}");
                         }
                         
                         return Ok(());
                     }
                 }
                 Err(e) => {
-                    eprintln!("Failed to parse event: {}", e);
+                    eprintln!("Failed to parse event: {e}");
                 }
             }
         }
