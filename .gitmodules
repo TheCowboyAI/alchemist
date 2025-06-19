@@ -69,3 +69,6 @@
 [submodule "cim-keys"]
 	path = cim-keys
 	url = https://github.com/TheCowboyAI/cim-keys.git
+[submodule "cim-domain-git"]
+	path = cim-domain-git
+	url = https://github.com/TheCowboyAI/cim-domain-git.git
