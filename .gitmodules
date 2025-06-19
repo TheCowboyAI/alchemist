@@ -72,3 +72,9 @@
 [submodule "cim-domain-git"]
 	path = cim-domain-git
 	url = https://github.com/TheCowboyAI/cim-domain-git.git
+[submodule "cim-bridge"]
+	path = cim-bridge
+	url = https://github.com/TheCowboyAI/cim-bridge.git
+[submodule "cim-workflow-graph"]
+	path = cim-workflow-graph
+	url = https://github.com/TheCowboyAI/cim-workflow-graph.git
