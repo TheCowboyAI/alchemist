@@ -1,0 +1,26 @@
+[package]
+name = "cim-domain-dialog"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Core dependencies
+cim-domain = { path = "../cim-domain" }
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2.0"
+anyhow = "1.0"
+tracing = "0.1"
+
+# For embeddings and semantic analysis
+cim-domain-conceptualspaces = { path = "../cim-domain-conceptualspaces" }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"
+tracing-subscriber = "0.3"

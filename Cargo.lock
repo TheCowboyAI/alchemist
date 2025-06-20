@@ -2214,6 +2214,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "cim-domain-dialog"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "cim-domain",
+ "cim-domain-conceptualspaces",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "cim-domain-document"
 version = "0.2.0"
 dependencies = [
@@ -4512,6 +4531,7 @@ dependencies = [
  "cim-domain",
  "cim-domain-agent",
  "cim-domain-bevy",
+ "cim-domain-dialog",
  "cim-domain-document",
  "cim-domain-git",
  "cim-domain-graph",
