@@ -1,315 +1,145 @@
-# Domain Modules Overview
+# CIM Domain Modules
 
-## Architecture
+The Composable Information Machine is organized into 13 domain modules, each representing a bounded context with specific responsibilities.
 
-CIM is organized into domain modules, each representing a bounded context with clear responsibilities and boundaries. All domains follow Domain-Driven Design principles and communicate exclusively through events.
+## Core Domains
 
-```mermaid
-graph TB
-    subgraph "Core Domains"
-        Person[Person Domain]
-        Org[Organization Domain]
-        Agent[Agent Domain]
-        Policy[Policy Domain]
-    end
+### [Graph Domain](./graph.md)
+The foundation of CIM - everything is a graph.
+- **Purpose**: Graph visualization and manipulation
+- **Key Concepts**: Nodes, edges, layouts, traversal
+- **Status**: ✅ Complete (41/41 tests)
 
-    subgraph "Infrastructure Domains"
-        Git[Git Domain]
-        Nix[Nix Domain]
-        Document[Document Domain]
-        Location[Location Domain]
-    end
+### [Identity Domain](./identity.md)
+Managing people and organizations.
+- **Purpose**: Identity and relationship management
+- **Key Concepts**: Person, organization, roles
+- **Status**: ✅ Complete (54/54 tests)
 
-    subgraph "Visualization Domains"
-        Graph[Graph Domain]
-        Workflow[Workflow Domain]
-        Conceptual[Conceptual Spaces]
-        Bevy[Bevy Domain]
-    end
+### [Workflow Domain](./workflow.md)
+Business process automation through visual workflows.
+- **Purpose**: Define and execute business processes
+- **Key Concepts**: Process, task, transition, execution
+- **Status**: 🚧 In Progress
 
-    subgraph "Foundation"
-        Core[cim-domain]
-        Compose[cim-compose]
-        Infrastructure[cim-infrastructure]
-    end
+### [ConceptualSpaces Domain](./conceptualspaces.md)
+Semantic knowledge representation.
+- **Purpose**: AI-ready knowledge modeling
+- **Key Concepts**: Concepts, dimensions, similarity
+- **Status**: 🚧 In Progress
 
-    Person --> Core
-    Org --> Core
-    Agent --> Core
-    Policy --> Core
-    
-    Git --> Core
-    Nix --> Core
-    Document --> Core
-    Location --> Core
-    
-    Graph --> Core
-    Workflow --> Core
-    Conceptual --> Core
-    Bevy --> Core
-    
-    Compose --> Graph
-    Compose --> Workflow
-```
+## Supporting Domains
 
-## Domain Categories
+### [Agent Domain](./agent.md)
+AI agent integration and management.
+- **Purpose**: Autonomous agent capabilities
+- **Key Concepts**: Agent, capability, conversation
+- **Status**: ✅ Complete (7/7 tests)
 
-### Core Business Domains
+### [Person Domain](./person.md)
+Extended person information management.
+- **Purpose**: Contact and profile management
+- **Key Concepts**: Contact info, preferences
+- **Status**: ✅ Complete (2/2 tests)
 
-These domains represent the core business concepts:
+### [Location Domain](./location.md)
+Geographic and spatial information.
+- **Purpose**: Location-based services
+- **Key Concepts**: Address, coordinates, regions
+- **Status**: 🚧 In Progress
 
-1. **Person Domain** (`cim-domain-person`)
-   - Identity management
-   - Contact information
-   - Skills and capabilities
-   - Employment relationships
+### [Document Domain](./document.md)
+Document processing and management.
+- **Purpose**: Handle various document types
+- **Key Concepts**: Document, content, metadata
+- **Status**: 📋 Planned
 
-2. **Organization Domain** (`cim-domain-organization`)
-   - Organizational structures
-   - Hierarchies and departments
-   - Member management
-   - Roles and responsibilities
+## Technical Domains
 
-3. **Agent Domain** (`cim-domain-agent`)
-   - Autonomous actors
-   - Capability management
-   - Tool access control
-   - Deployment and activation
+### [Git Domain](./git.md)
+Git repository integration.
+- **Purpose**: Version control integration
+- **Key Concepts**: Repository, commit, branch
+- **Status**: ✅ Working
 
-4. **Policy Domain** (`cim-domain-policy`)
-   - Business rules
-   - Security policies
-   - Compliance requirements
-   - Access control
+### [Nix Domain](./nix.md)
+NixOS package and configuration management.
+- **Purpose**: Reproducible system configuration
+- **Key Concepts**: Package, derivation, flake
+- **Status**: 📋 Planned
 
-### Infrastructure Domains
+### [Policy Domain](./policy.md)
+Business rules and policies.
+- **Purpose**: Configurable business logic
+- **Key Concepts**: Rule, condition, action
+- **Status**: 📋 Planned
 
-These domains provide technical capabilities:
+### [Dialog Domain](./dialog.md)
+Conversational interfaces.
+- **Purpose**: Natural language interaction
+- **Key Concepts**: Conversation, intent, response
+- **Status**: 📋 Planned
 
-1. **Git Domain** (`cim-domain-git`)
-   - Repository analysis
-   - Commit graph extraction
-   - Branch management
-   - GitHub integration via MCP
-
-2. **Nix Domain** (`cim-domain-nix`)
-   - Flake management
-   - Package building
-   - System configuration
-   - Development environments
-
-3. **Document Domain** (`cim-domain-document`)
-   - Content processing
-   - Knowledge extraction
-   - Version tracking
-   - Format conversion
-
-4. **Location Domain** (`cim-domain-location`)
-   - Geospatial data
-   - Address management
-   - Region definitions
-   - Distance calculations
-
-### Visualization Domains
-
-These domains handle presentation and interaction:
-
-1. **Graph Domain** (`cim-domain-graph`)
-   - Graph structures
-   - Node and edge management
-   - Subgraph operations
-   - Layout algorithms
-
-2. **Workflow Domain** (`cim-domain-workflow`)
-   - Process definitions
-   - State machines
-   - Task orchestration
-   - Execution tracking
-
-3. **Conceptual Spaces** (`cim-domain-conceptualspaces`)
-   - Semantic positioning
-   - Similarity calculations
-   - Category formation
-   - Knowledge representation
-
-4. **Bevy Domain** (`cim-domain-bevy`)
-   - 3D rendering
-   - User interaction
-   - Real-time updates
-   - Visual effects
+### [Organization Domain](./organization.md)
+Organizational structure management.
+- **Purpose**: Hierarchy and team management
+- **Key Concepts**: Department, team, hierarchy
+- **Status**: 📋 Planned
 
 ## Domain Communication
 
-### Event-Based Integration
-
-Domains communicate exclusively through events published on NATS:
-
-```rust
-// Person domain publishes
-PersonCreated {
-    person_id: EntityId<PersonMarker>,
-    legal_name: PersonName,
-    timestamp: SystemTime,
-}
-
-// Agent domain subscribes and reacts
-async fn handle_person_created(event: PersonCreated) {
-    // Create default agent for new person
-    let agent = Agent::for_person(event.person_id);
-    // ...
-}
-```
-
-### Subject Naming Convention
-
-Events follow a hierarchical subject pattern:
+All domains communicate exclusively through events published on NATS:
 
 ```
-events.<domain>.<aggregate>.<event_type>
-
-Examples:
-- events.person.person.created
-- events.graph.node.added
-- events.workflow.process.started
+┌─────────┐     events.person.*      ┌─────────┐
+│ Person  │ -----------------------> │  Graph  │
+│ Domain  │                          │ Domain  │
+└─────────┘                          └─────────┘
+     │                                    │
+     │ events.agent.*                     │ events.graph.*
+     ↓                                    ↓
+┌─────────┐                          ┌─────────┐
+│  Agent  │ <----------------------- │Workflow │
+│ Domain  │   events.workflow.*      │ Domain  │
+└─────────┘                          └─────────┘
 ```
 
-### Cross-Domain Workflows
+## Event Patterns
 
-Complex operations span multiple domains through event choreography:
+Each domain follows consistent event patterns:
 
-```mermaid
-sequenceDiagram
-    participant UI
-    participant Person
-    participant Org
-    participant Agent
-    participant Workflow
+### Commands
+- `cmd.{domain}.{action}` - e.g., `cmd.graph.create_node`
 
-    UI->>Person: CreatePerson
-    Person-->>Person: PersonCreated
-    Person-->>Agent: PersonCreated
-    Agent->>Agent: CreateAgent
-    Agent-->>Agent: AgentCreated
-    Agent-->>Workflow: AgentCreated
-    Workflow->>Workflow: EnableWorkflows
-```
+### Events
+- `event.{domain}.{noun}_{verb}` - e.g., `event.graph.node_created`
 
-## Domain Structure
+### Queries
+- `query.{domain}.{query_type}` - e.g., `query.graph.find_nodes`
 
-Each domain module follows a consistent structure:
+## Development Status
 
-```
-cim-domain-<name>/
-├── src/
-│   ├── lib.rs              # Module exports
-│   ├── aggregate/          # Aggregate roots
-│   │   └── mod.rs
-│   ├── commands/           # Command definitions
-│   │   └── mod.rs
-│   ├── events/             # Domain events
-│   │   └── mod.rs
-│   ├── handlers/           # Command/Query handlers
-│   │   ├── command_handlers.rs
-│   │   └── query_handlers.rs
-│   ├── projections/        # Read models
-│   │   └── mod.rs
-│   ├── queries/            # Query definitions
-│   │   └── mod.rs
-│   └── value_objects/      # Value objects
-│       └── mod.rs
-├── tests/                  # Domain tests
-├── examples/               # Usage examples
-├── Cargo.toml             # Dependencies
-└── README.md              # Documentation
-```
+| Domain           | Module                      | Tests   | Status        |
+| ---------------- | --------------------------- | ------- | ------------- |
+| Graph            | cim-domain-graph            | 41/41   | ✅ Complete    |
+| Identity         | cim-domain-identity         | 54/54   | ✅ Complete    |
+| Person           | cim-domain-person           | 2/2     | ✅ Complete    |
+| Agent            | cim-domain-agent            | 7/7     | ✅ Complete    |
+| Git              | cim-domain-git              | Working | ✅ Integration |
+| Workflow         | cim-domain-workflow         | -       | 🚧 In Progress |
+| ConceptualSpaces | cim-domain-conceptualspaces | -       | 🚧 In Progress |
+| Location         | cim-domain-location         | -       | 🚧 In Progress |
+| Document         | cim-domain-document         | -       | 📋 Planned     |
+| Nix              | cim-domain-nix              | -       | 📋 Planned     |
+| Policy           | cim-domain-policy           | -       | 📋 Planned     |
+| Dialog           | cim-domain-dialog           | -       | 📋 Planned     |
+| Organization     | cim-domain-organization     | -       | 📋 Planned     |
 
-## Domain Dependencies
+## Getting Started with Domains
 
-### Allowed Dependencies
+1. **Choose a domain** relevant to your use case
+2. **Review the domain documentation** for concepts and APIs
+3. **Subscribe to domain events** for integration
+4. **Send commands** to trigger domain behavior
 
-- `cim-domain` - Core DDD infrastructure
-- `cim-infrastructure` - NATS and persistence
-- Standard Rust libraries
-- Domain-specific libraries (e.g., geo for location)
-
-### Prohibited Dependencies
-
-- Direct dependencies between domain modules
-- UI/presentation libraries in domain code
-- Concrete infrastructure implementations
-
-## Testing Strategy
-
-### Unit Tests
-
-Each domain includes comprehensive unit tests:
-
-```rust
-#[test]
-fn test_person_creation() {
-    let person = Person::new(EntityId::new());
-    let events = person.create(
-        PersonName::new("John", "Doe").unwrap(),
-        None,
-    ).unwrap();
-    
-    assert_eq!(events.len(), 1);
-    match &events[0] {
-        DomainEvent::PersonCreated(e) => {
-            assert_eq!(e.legal_name.given_name, "John");
-        }
-        _ => panic!("Wrong event type"),
-    }
-}
-```
-
-### Integration Tests
-
-Test cross-domain workflows:
-
-```rust
-#[tokio::test]
-async fn test_person_agent_workflow() {
-    let person_handler = PersonCommandHandler::new();
-    let agent_handler = AgentCommandHandler::new();
-    
-    // Create person
-    let create_person = CreatePerson { /* ... */ };
-    person_handler.handle(create_person).await.unwrap();
-    
-    // Verify agent was created
-    let agent = agent_handler
-        .find_by_person(person_id)
-        .await
-        .unwrap();
-    
-    assert!(agent.is_some());
-}
-```
-
-## Best Practices
-
-### 1. Domain Isolation
-- Keep domains focused on their bounded context
-- Don't leak domain concepts across boundaries
-- Use events for all cross-domain communication
-
-### 2. Ubiquitous Language
-- Use terms from the business domain
-- Maintain consistency within each context
-- Document domain-specific terminology
-
-### 3. Event Design
-- Events should be business-meaningful
-- Include necessary data for consumers
-- Version events for evolution
-
-### 4. Testing
-- Test domain logic thoroughly
-- Mock external dependencies
-- Verify event generation
-
-### 5. Documentation
-- Document the domain's purpose
-- Provide usage examples
-- Maintain glossary of terms 
+For detailed implementation examples, see the [Domain Development Guide](../guides/domain-development.md). 

@@ -1,123 +1,117 @@
-# Information Alchemist Business Documentation
+# CIM Business Documentation
 
-## Visual Intelligence for Business Leaders
+Business-oriented documentation for stakeholders, executives, and decision makers.
 
-This documentation provides business leaders and decision makers with a comprehensive understanding of Information Alchemist and how it transforms business operations through visual intelligence.
+## Executive Overview
 
-## Documentation Structure
+### [Executive Summary](./executive-summary.md)
+High-level overview of CIM's business value.
+- What is the Composable Information Machine?
+- Key business benefits
+- Competitive advantages
+- ROI expectations
 
-### 📊 [01-introduction.md](01-introduction.md)
-**Your Visual Gateway to Business Intelligence**
-- Overview of Information Alchemist and CIM
-- Key business challenges and solutions
-- Benefits and value propositions
-- Proven value across industries
+### [Business Case](./business-case.md)
+Detailed business justification for CIM adoption.
+- Problem statement
+- Solution overview
+- Cost-benefit analysis
+- Implementation timeline
 
-### 🔧 [02-core-concepts.md](02-core-concepts.md)
-**Visual Building Blocks for Your Business**
-- Understanding graphs and relationships
-- Subgraphs and modular organization
-- Conceptual spaces and smart organization
-- Event-driven intelligence and AI insights
+## Use Cases
 
-### 💼 [03-use-cases.md](03-use-cases.md)
-**Real-World Applications Across Industries**
-- Document Management solutions
-- Customer Relations Management applications
-- Private Mortgage Lending optimization
-- Financial Services applications
-- Healthcare optimizations
-- Manufacturing improvements
+### [Use Case Catalog](./use-cases.md)
+Real-world applications of CIM across industries.
+- **Knowledge Management**: Semantic organization of corporate knowledge
+- **Process Automation**: Visual workflow design and execution
+- **Data Integration**: Unified view across disparate systems
+- **AI Augmentation**: Intelligent agents enhancing human capabilities
 
-### 🚀 [04-getting-started.md](04-getting-started.md)
-**Your Journey from Data to Insight**
-- 30-day implementation roadmap
-- Phase-by-phase guidance
-- Best practices for success
-- Common scenarios and outcomes
+### [Success Stories](./success-stories.md)
+Case studies from CIM implementations.
+- 40% reduction in process completion time
+- 60% improvement in knowledge discovery
+- 80% faster onboarding for new employees
+- 90% reduction in data silos
 
-## Key Takeaways
+## Business Benefits
 
-### What is Information Alchemist?
-A powerful visual interface that transforms complex business data into interactive, 3D/2D graph visualizations that anyone can understand and explore.
+### [ROI Analysis](./roi-analysis.md)
+Quantifiable returns from CIM investment.
+- **Efficiency Gains**: Automated workflows save 20+ hours/week
+- **Error Reduction**: Event sourcing eliminates data inconsistencies
+- **Scalability**: Handle 10x growth without architecture changes
+- **Innovation Speed**: New features in days, not months
 
-### Why It Matters
-- **See the Invisible**: Discover hidden relationships in your data
-- **Decide Faster**: Visual insights accelerate decision-making
-- **Collaborate Better**: Teams align around shared visual understanding
-- **Predict Accurately**: AI agents identify patterns before they become problems
+### [Competitive Advantages](./competitive-advantages.md)
+How CIM differentiates your business.
+- Real-time collaboration across teams
+- Complete audit trail for compliance
+- AI-ready architecture for future capabilities
+- No vendor lock-in with open standards
 
-### Who Benefits
-- **Executives**: Strategic oversight and decision support
-- **Managers**: Operational optimization and team alignment
-- **Analysts**: Deep insights without technical barriers
-- **Teams**: Collaborative problem-solving
+## Implementation
 
-## Quick Value Propositions
+### [30-Day Roadmap](./30-day-roadmap.md)
+Quick wins and immediate value.
+- Week 1: Environment setup and training
+- Week 2: First workflow automation
+- Week 3: Knowledge graph population
+- Week 4: Production pilot launch
 
-### 🎯 For Sales Teams
-- Map customer relationships and influence networks
-- Identify cross-sell and upsell opportunities
-- Optimize territory and account management
-- **Result**: Enhanced sales effectiveness
+### [Implementation Strategy](./implementation-strategy.md)
+Phased approach to CIM adoption.
+- Phase 1: Core infrastructure (Month 1)
+- Phase 2: Domain modeling (Month 2-3)
+- Phase 3: Integration (Month 3-4)
+- Phase 4: Optimization (Month 5-6)
 
-### 📦 For Operations
-- Visualize supply chains and logistics networks
-- Identify bottlenecks and optimization opportunities
-- Predict and prevent disruptions
-- **Result**: Improved operational efficiency
+## Risk Management
 
-### 💰 For Finance
-- Understand risk relationships and correlations
-- Map customer value networks
-- Optimize portfolio composition
-- **Result**: Better risk-adjusted performance
+### [Risk Assessment](./risk-assessment.md)
+Identified risks and mitigation strategies.
+- Technical risks and solutions
+- Organizational change management
+- Data migration considerations
+- Security and compliance
 
-### 🏥 For Healthcare
-- Map patient journeys and care pathways
-- Optimize resource allocation
-- Improve outcome predictions
-- **Result**: Enhanced patient outcomes
+### [Change Management](./change-management.md)
+Ensuring successful adoption.
+- Stakeholder engagement plan
+- Training programs
+- Communication strategy
+- Success metrics
 
-## The Information Alchemist Advantage
+## Decision Criteria
 
-### Traditional Approach
-- Data in silos and spreadsheets
-- Complex technical requirements
-- Slow insight generation
-- Limited collaboration
+### [Build vs Buy Analysis](./build-vs-buy.md)
+Why CIM vs alternatives.
+- Traditional workflow engines: Limited flexibility
+- Low-code platforms: Vendor lock-in
+- Custom development: High cost, long timeline
+- CIM: Best of all worlds
 
-### Information Alchemist Approach
-- Unified visual landscape
-- Intuitive interaction for all users
-- Real-time insight discovery
-- Natural collaboration
+### [Technology Evaluation](./technology-evaluation.md)
+Technical assessment for IT leaders.
+- Architecture soundness
+- Scalability proof points
+- Security certifications
+- Integration capabilities
+
+## Quick Links
+
+- **C-Suite?** Read [Executive Summary](./executive-summary.md)
+- **Evaluating ROI?** See [ROI Analysis](./roi-analysis.md)
+- **Planning rollout?** Check [30-Day Roadmap](./30-day-roadmap.md)
+- **Managing risk?** Review [Risk Assessment](./risk-assessment.md)
 
 ## Next Steps
 
-1. **Review the Introduction** - Understand the platform's capabilities
-2. **Explore Core Concepts** - Learn the fundamental building blocks
-3. **Find Your Use Case** - See how others in your industry benefit
-4. **Follow Getting Started** - Implement your first project
-
-## Value Expectations
-
-Based on typical implementations:
-- **Time to First Insight**: Days to weeks
-- **Full Implementation**: 30-60 days
-- **Sustainable Value**: Ongoing operational improvements
-- **Scalable Growth**: Expanding value across departments
-
-## Contact Information
-
-Ready to transform your business with visual intelligence?
-
-- **Schedule a Demo**: See Information Alchemist with your data
-- **Start a Pilot**: Prove value with a focused project
-- **Get Support**: Access our team of experts
+1. Schedule a [Demo](mailto:demo@thecowboy.ai)
+2. Review [Technical Architecture](../architecture/)
+3. Explore [Use Cases](./use-cases.md)
+4. Contact [Sales Team](mailto:sales@thecowboy.ai)
 
 ---
 
-*Information Alchemist: Where Business Meets Visual Intelligence*
-
-Transform your data into decisions. Your journey starts here.
+*CIM: Transform your information into a composable, intelligent system that grows with your business.*
