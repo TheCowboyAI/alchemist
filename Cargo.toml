@@ -43,6 +43,7 @@ members = [
   "cim-domain-policy",
   "cim-keys",
   "cim-bridge",
+  "cim-agent-alchemist",
   "bevy-patched/crates/*",
   "bevy-patched/errors",
   "bevy-patched/tools/*",
