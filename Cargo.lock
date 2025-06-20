@@ -2051,7 +2051,7 @@ dependencies = [
 
 [[package]]
 name = "cim-bridge"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-nats 0.35.1",
@@ -2072,7 +2072,7 @@ dependencies = [
 
 [[package]]
 name = "cim-component"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "serde",
  "tokio",
@@ -2081,7 +2081,7 @@ dependencies = [
 
 [[package]]
 name = "cim-compose"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "cim-domain",
  "cim-domain-agent",
@@ -2101,7 +2101,7 @@ dependencies = [
 
 [[package]]
 name = "cim-conceptgraph"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "cim-contextgraph",
@@ -2116,7 +2116,7 @@ dependencies = [
 
 [[package]]
 name = "cim-contextgraph"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "nalgebra",
  "petgraph 0.6.5",
@@ -2131,7 +2131,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-nats 0.41.0",
@@ -2159,7 +2159,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-agent"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2175,7 +2175,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-bevy"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "bevy",
@@ -2197,7 +2197,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-conceptualspaces"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-trait",
  "cid",
@@ -2215,7 +2215,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-dialog"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2234,7 +2234,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-document"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2254,7 +2254,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-git"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2284,7 +2284,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-graph"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2304,7 +2304,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-identity"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2319,7 +2319,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-location"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2339,7 +2339,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-nix"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2370,7 +2370,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-organization"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bevy_ecs",
  "chrono",
@@ -2385,7 +2385,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-person"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2404,7 +2404,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-policy"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2419,7 +2419,7 @@ dependencies = [
 
 [[package]]
 name = "cim-domain-workflow"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "cim-domain",
@@ -2432,7 +2432,7 @@ dependencies = [
 
 [[package]]
 name = "cim-infrastructure"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-nats 0.38.0",
  "async-trait",
@@ -2449,7 +2449,7 @@ dependencies = [
 
 [[package]]
 name = "cim-ipld"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-nats 0.41.0",
@@ -2480,7 +2480,7 @@ dependencies = [
 
 [[package]]
 name = "cim-ipld-graph"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "blake3",
  "cid",
@@ -2496,7 +2496,7 @@ dependencies = [
 
 [[package]]
 name = "cim-keys"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -2536,7 +2536,7 @@ dependencies = [
 
 [[package]]
 name = "cim-subject"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "criterion",
  "dashmap",
@@ -2550,7 +2550,7 @@ dependencies = [
 
 [[package]]
 name = "cim-workflow-graph"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "cim-contextgraph",
@@ -4517,7 +4517,7 @@ dependencies = [
 
 [[package]]
 name = "ia"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-nats 0.41.0",
