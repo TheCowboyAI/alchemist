@@ -1,0 +1,49 @@
+agent:
+  id: "alchemist-001"
+  name: "CIM Alchemist Assistant"
+  description: "AI agent that helps understand and work with CIM architecture"
+
+model_provider:
+  type: "ollama"
+  ollama:
+    base_url: "http://localhost:11434"
+    model: "vicuna:latest"
+    options:
+      temperature: 0.7
+      num_predict: 2048
+
+nats:
+  url: "nats://localhost:4222"
+  jetstream:
+    enabled: true
+    store_dir: "./data/jetstream"
+  subjects:
+    commands: "cim.agent.alchemist.commands"
+    queries: "cim.agent.alchemist.queries"
+    events: "cim.agent.alchemist.events"
+    dialogs: "cim.dialog.alchemist"
+    health: "cim.agent.alchemist.health"
+
+service:
+  health_check_interval: 30
+  max_concurrent_requests: 10
+  request_timeout: 60
+
+domains:
+  agent:
+    enabled: true
+  dialog:
+    enabled: true
+    max_context_messages: 20
+  identity:
+    enabled: true
+  graph:
+    enabled: true
+  conceptual_spaces:
+    enabled: true
+  workflow:
+    enabled: true
+
+logging:
+  level: "info"
+  format: "pretty" 
