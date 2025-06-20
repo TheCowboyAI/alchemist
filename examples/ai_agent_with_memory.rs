@@ -1,5 +1,5 @@
 //! AI Agent with Memory - Demonstrates how agents use Event/Object stores as memory
-//! 
+//!
 //! This example shows:
 //! - Creating an AI agent with memory capabilities
 //! - Storing experiences as events (episodic memory)
@@ -9,18 +9,18 @@
 
 use anyhow::Result;
 use async_nats::jetstream;
+use chrono::Utc;
 use cim_domain_agent::{
-    Agent, AgentType, AgentMetadata, DeployAgent, ActivateAgent, EnableAgentTools,
-    ToolDefinition, CapabilitiesComponent, AgentCommandHandler,
+    ActivateAgent, Agent, AgentCommandHandler, AgentMetadata, AgentType, CapabilitiesComponent,
+    DeployAgent, EnableAgentTools, ToolDefinition,
 };
 use cim_ipld::{ContentService, ContentType};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use tokio;
-use tracing::{info, debug};
+use tracing::{debug, info};
 use uuid::Uuid;
-use chrono::Utc;
 
 /// Events representing agent experiences (episodic memory)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -79,11 +79,7 @@ struct MemoryAgent {
 
 impl MemoryAgent {
     /// Create a new memory-enabled agent
-    async fn new(
-        agent_id: Uuid,
-        owner_id: Uuid,
-        nats_client: async_nats::Client,
-    ) -> Result<Self> {
+    async fn new(agent_id: Uuid, owner_id: Uuid, nats_client: async_nats::Client) -> Result<Self> {
         // Initialize stores
         let jetstream = jetstream::new(nats_client.clone());
         let event_store = Arc::new(DistributedEventStore::new(jetstream).await?);
@@ -120,7 +116,8 @@ impl MemoryAgent {
             query: query.to_string(),
             context: self.working_memory.current_context.clone(),
             timestamp: Utc::now(),
-        }).await?;
+        })
+        .await?;
 
         // 2. Search semantic memory for relevant knowledge
         let relevant_knowledge = self.search_knowledge(query).await?;
@@ -133,11 +130,14 @@ impl MemoryAgent {
                 knowledge_cid: cid.clone(),
                 relevance_score: *relevance,
                 timestamp: Utc::now(),
-            }).await?;
+            })
+            .await?;
             sources.push(cid.clone());
 
             // Update access patterns in working memory
-            *self.working_memory.knowledge_access_patterns
+            *self
+                .working_memory
+                .knowledge_access_patterns
                 .entry(cid.clone())
                 .or_insert(0.0) += 1.0;
         }
@@ -152,7 +152,8 @@ impl MemoryAgent {
             confidence: 0.85, // Example confidence
             sources,
             timestamp: Utc::now(),
-        }).await?;
+        })
+        .await?;
 
         // 6. Update working memory
         self.working_memory.recent_queries.push(query.to_string());
@@ -166,7 +167,7 @@ impl MemoryAgent {
     /// Store an experience in episodic memory (Event Store)
     async fn store_experience(&self, event: AgentMemoryEvent) -> Result<()> {
         debug!("Storing experience: {:?}", event);
-        
+
         // In a real implementation, this would serialize and store in Event Store
         // For now, we'll simulate it
         info!("Stored experience in Event Store");
@@ -184,19 +185,21 @@ impl MemoryAgent {
 
         // Simulate finding relevant knowledge
         let mock_results = vec![
-            ("bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku".to_string(), 0.92),
-            ("bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku".to_string(), 0.87),
+            (
+                "bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku".to_string(),
+                0.92,
+            ),
+            (
+                "bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku".to_string(),
+                0.87,
+            ),
         ];
 
         Ok(mock_results)
     }
 
     /// Generate a response using retrieved knowledge
-    async fn generate_response(
-        &self,
-        query: &str,
-        knowledge: &[(String, f32)],
-    ) -> Result<String> {
+    async fn generate_response(&self, query: &str, knowledge: &[(String, f32)]) -> Result<String> {
         // In a real implementation, this would:
         // 1. Retrieve content from Object Store using CIDs
         // 2. Use LLM to generate response based on knowledge
@@ -218,7 +221,8 @@ impl MemoryAgent {
             feedback_type: feedback_type.to_string(),
             value,
             timestamp: Utc::now(),
-        }).await?;
+        })
+        .await?;
 
         // Update working memory based on feedback
         if value > 0.8 {
@@ -238,11 +242,14 @@ impl MemoryAgent {
         info!("Storing knowledge in Object Store");
 
         // Store in Object Store and get CID
-        let cid = self.object_store.store_content(
-            content.as_bytes(),
-            content_type,
-            None, // Let it auto-detect domain
-        ).await?;
+        let cid = self
+            .object_store
+            .store_content(
+                content.as_bytes(),
+                content_type,
+                None, // Let it auto-detect domain
+            )
+            .await?;
 
         info!("Stored knowledge with CID: {}", cid);
         Ok(cid.to_string())
@@ -252,7 +259,8 @@ impl MemoryAgent {
 /// Extract topic from query (simplified)
 fn extract_topic(query: &str) -> String {
     // In a real implementation, this would use NLP
-    query.split_whitespace()
+    query
+        .split_whitespace()
         .next()
         .unwrap_or("general")
         .to_string()
@@ -269,27 +277,31 @@ async fn main() -> Result<()> {
     // Create agent
     let agent_id = Uuid::new_v4();
     let owner_id = Uuid::new_v4();
-    
+
     let mut agent = MemoryAgent::new(agent_id, owner_id, nats_client).await?;
     info!("Created memory-enabled AI agent: {}", agent_id);
 
     // Store some knowledge in semantic memory
-    let doc_cid = agent.store_knowledge(
-        "The Composable Information Machine (CIM) uses event sourcing and CQRS patterns.",
-        ContentType::Text,
-    ).await?;
+    let doc_cid = agent
+        .store_knowledge(
+            "The Composable Information Machine (CIM) uses event sourcing and CQRS patterns.",
+            ContentType::Text,
+        )
+        .await?;
     info!("Stored knowledge document: {}", doc_cid);
 
     // Simulate user interaction
     let user_id = Uuid::new_v4();
-    
+
     // Start conversation
-    agent.store_experience(AgentMemoryEvent::ConversationStarted {
-        agent_id,
-        user_id,
-        topic: "CIM Architecture".to_string(),
-        timestamp: Utc::now(),
-    }).await?;
+    agent
+        .store_experience(AgentMemoryEvent::ConversationStarted {
+            agent_id,
+            user_id,
+            topic: "CIM Architecture".to_string(),
+            timestamp: Utc::now(),
+        })
+        .await?;
 
     // Process queries
     let response1 = agent.process_query("What is CIM?", user_id).await?;
@@ -300,15 +312,23 @@ async fn main() -> Result<()> {
     agent.learn_from_feedback("helpful", 0.9).await?;
 
     // Another query building on context
-    let response2 = agent.process_query("How does it use event sourcing?", user_id).await?;
+    let response2 = agent
+        .process_query("How does it use event sourcing?", user_id)
+        .await?;
     println!("\nQuery: How does it use event sourcing?");
     println!("Response: {}", response2);
 
     // Show working memory state
     println!("\n=== Agent Working Memory ===");
     println!("Recent queries: {:?}", agent.working_memory.recent_queries);
-    println!("Expertise areas: {:?}", agent.working_memory.expertise_areas);
-    println!("Knowledge access patterns: {:?}", agent.working_memory.knowledge_access_patterns);
+    println!(
+        "Expertise areas: {:?}",
+        agent.working_memory.expertise_areas
+    );
+    println!(
+        "Knowledge access patterns: {:?}",
+        agent.working_memory.knowledge_access_patterns
+    );
 
     Ok(())
 }
@@ -327,4 +347,4 @@ impl DistributedEventStore {
     }
 }
 
-impl EventStore for DistributedEventStore {} 
+impl EventStore for DistributedEventStore {}

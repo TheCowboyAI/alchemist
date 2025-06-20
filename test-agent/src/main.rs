@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Test 1: Check Ollama connection
     println!("1. Testing Ollama connection...");
     let client = reqwest::Client::new();
-    
+
     match client.get("http://localhost:11434/api/tags").send().await {
         Ok(response) => {
             if response.status().is_success() {
@@ -106,7 +106,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Test 4: Test NATS messaging
     println!("\n4. Testing NATS pub/sub...");
-    
+
     // Subscribe to a test subject
     let mut sub = nats_client.subscribe("test.alchemist").await?;
     println!("   ✓ Subscribed to test.alchemist");
@@ -119,7 +119,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let payload = serde_json::to_vec(&message)?;
-    nats_client.publish("test.alchemist", payload.into()).await?;
+    nats_client
+        .publish("test.alchemist", payload.into())
+        .await?;
     println!("   ✓ Published test message");
 
     // Receive the message
@@ -132,24 +134,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Test 5: Simulate agent dialog
     println!("\n5. Simulating CIM Alchemist agent dialog over NATS...");
-    
+
     // Create dialog subjects
     let dialog_request = "cim.dialog.alchemist.request";
     let dialog_response = "cim.dialog.alchemist.response";
-    
+
     // Subscribe to responses
     let mut response_sub = nats_client.subscribe(dialog_response).await?;
-    
+
     // Spawn dialog processor (simulating the agent)
     let nats_clone = nats_client.clone();
     let client_clone = client.clone();
     tokio::spawn(async move {
         let mut request_sub = nats_clone.subscribe(dialog_request).await.unwrap();
-        
+
         while let Some(msg) = request_sub.next().await {
             if let Ok(request) = serde_json::from_slice::<AgentMessage>(&msg.payload) {
                 println!("   [Agent] Received question: {}", request.content);
-                
+
                 // Add CIM context to the prompt
                 let contextualized_prompt = format!(
                     "You are the Alchemist, an AI assistant specialized in the Composable Information Machine (CIM) architecture. \
@@ -157,14 +159,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                      Please answer this question concisely: {}",
                     request.content
                 );
-                
+
                 // Generate AI response
                 let ollama_request = OllamaGenerateRequest {
                     model: "vicuna:latest".to_string(),
                     prompt: contextualized_prompt,
                     stream: false,
                 };
-                
+
                 if let Ok(response) = client_clone
                     .post("http://localhost:11434/api/generate")
                     .json(&ollama_request)
@@ -177,7 +179,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             content: ollama_response.response.trim().to_string(),
                             timestamp: chrono::Utc::now(),
                         };
-                        
+
                         let payload = serde_json::to_vec(&reply).unwrap();
                         let _ = nats_clone.publish(dialog_response, payload.into()).await;
                     }
@@ -185,31 +187,33 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     });
-    
+
     // Give the processor time to start
     tokio::time::sleep(Duration::from_millis(100)).await;
-    
+
     // Test questions about CIM
     let questions = vec![
         "What is event sourcing in the context of CIM?",
         "How does CIM use graph workflows?",
         "What are the main benefits of CIM's architecture?",
     ];
-    
+
     for question in questions {
         println!("\n   Q: {}", question);
-        
+
         let dialog_message = AgentMessage {
             id: uuid::Uuid::new_v4().to_string(),
             content: question.to_string(),
             timestamp: chrono::Utc::now(),
         };
-        
+
         let payload = serde_json::to_vec(&dialog_message)?;
         nats_client.publish(dialog_request, payload.into()).await?;
-        
+
         // Wait for response
-        if let Ok(Some(msg)) = tokio::time::timeout(Duration::from_secs(15), response_sub.next()).await {
+        if let Ok(Some(msg)) =
+            tokio::time::timeout(Duration::from_secs(15), response_sub.next()).await
+        {
             let response: AgentMessage = serde_json::from_slice(&msg.payload)?;
             println!("   A: {}", response.content);
         } else {
@@ -225,4 +229,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("- Answer questions about CIM architecture");
 
     Ok(())
-} 
+}

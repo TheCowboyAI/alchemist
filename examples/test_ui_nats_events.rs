@@ -7,35 +7,30 @@
 
 use bevy::prelude::*;
 use ia::{
-    simple_agent::{AgentQuestionEvent, AgentResponseEvent, SimpleAgentPlugin},
     plugins::{AgentUiPlugin, NatsEventBridgePlugin},
+    simple_agent::{AgentQuestionEvent, AgentResponseEvent, SimpleAgentPlugin},
 };
 use std::time::Duration;
 
 fn main() {
     println!("=== Testing UI → NATS Event Flow ===\n");
-    
+
     App::new()
         .add_plugins(MinimalPlugins)
         .add_plugins(SimpleAgentPlugin)
         .add_plugins(NatsEventBridgePlugin)
         .add_systems(Startup, send_test_question)
-        .add_systems(Update, (
-            log_responses,
-            exit_after_delay,
-        ))
+        .add_systems(Update, (log_responses, exit_after_delay))
         .run();
 }
 
-fn send_test_question(
-    mut events: EventWriter<AgentQuestionEvent>,
-) {
+fn send_test_question(mut events: EventWriter<AgentQuestionEvent>) {
     println!("📤 Sending test question to UI event system...");
-    
+
     events.write(AgentQuestionEvent {
         question: "What is event sourcing in CIM?".to_string(),
     });
-    
+
     println!("✅ Question event sent!");
     println!("\n🔍 Check NATS JetStream for:");
     println!("   - Stream: CIM-UI-EVENTS");
@@ -48,9 +43,7 @@ fn send_test_question(
     println!("     • payload with question text");
 }
 
-fn log_responses(
-    mut events: EventReader<AgentResponseEvent>,
-) {
+fn log_responses(mut events: EventReader<AgentResponseEvent>) {
     for event in events.read() {
         println!("\n📨 Received response: {}", event.response);
         println!("\n🔍 Check NATS JetStream for:");
@@ -60,13 +53,10 @@ fn log_responses(
     }
 }
 
-fn exit_after_delay(
-    time: Res<Time>,
-    mut exit: EventWriter<AppExit>,
-) {
+fn exit_after_delay(time: Res<Time>, mut exit: EventWriter<AppExit>) {
     // Exit after 5 seconds to give time for processing
     if time.elapsed_secs() > 5.0 {
         println!("\n✨ Test complete! Check NATS streams for events.");
         exit.write(AppExit::Success);
     }
-} 
+}

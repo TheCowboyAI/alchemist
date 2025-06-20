@@ -1,6 +1,6 @@
 //! Test Ollama integration
 
-use ia::simple_agent::{OllamaClient, AgentResource};
+use ia::simple_agent::{AgentResource, OllamaClient};
 
 #[test]
 fn test_ollama_connection() {
@@ -9,10 +9,10 @@ fn test_ollama_connection() {
         "http://localhost:11434".to_string(),
         "vicuna:latest".to_string(),
     );
-    
+
     // Try a simple question
     let result = client.ask("What is 2+2?");
-    
+
     match result {
         Ok(response) => {
             println!("Ollama responded: {}", response);
@@ -29,7 +29,7 @@ fn test_ollama_connection() {
 fn test_agent_resource_creation() {
     // Test that AgentResource creation works
     let resource = AgentResource::default();
-    
+
     // The resource should be created successfully
     // It will either use Ollama or mock mode
     println!("Agent resource created successfully");
@@ -39,7 +39,7 @@ fn test_agent_resource_creation() {
 fn test_mock_mode() {
     // Test the mock mode directly
     let client = OllamaClient::new_mock();
-    
+
     // Test various questions
     let questions = vec![
         "What is CIM?",
@@ -48,7 +48,7 @@ fn test_mock_mode() {
         "How does event sourcing work?",
         "Random question",
     ];
-    
+
     for question in questions {
         let result = client.ask(question);
         assert!(result.is_ok(), "Mock mode should always succeed");
@@ -56,4 +56,4 @@ fn test_mock_mode() {
         assert!(!response.is_empty(), "Mock response should not be empty");
         println!("Q: {} -> A: {}", question, response);
     }
-} 
+}

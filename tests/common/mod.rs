@@ -3,8 +3,5 @@
 pub mod event_stream_validator;
 
 pub use event_stream_validator::{
-    EventStreamValidator, 
-    ValidationReport,
-    ExpectedEvent,
-    CapturedEvent,
-}; 
+    CapturedEvent, EventStreamValidator, ExpectedEvent, ValidationReport,
+};

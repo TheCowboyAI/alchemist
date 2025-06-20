@@ -6,4 +6,4 @@ pub mod nats_event_bridge;
 
 pub use agent_integration::AgentIntegrationPlugin;
 pub use agent_ui::AgentUiPlugin;
-pub use nats_event_bridge::NatsEventBridgePlugin; 
+pub use nats_event_bridge::NatsEventBridgePlugin;

@@ -24,4 +24,4 @@ impl WorkflowState {
     pub fn add_ai_guidance(&mut self, guidance: String) {
         self.ai_guidance.push(guidance);
     }
-} 
+}

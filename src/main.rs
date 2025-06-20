@@ -3,13 +3,13 @@
 //! A graph editor and workflow manager with AI assistance
 
 use bevy::prelude::*;
-use tracing::info;
 use ia::{
     graph::GraphState,
-    workflow::WorkflowState,
     plugins::{AgentIntegrationPlugin, AgentUiPlugin, NatsEventBridgePlugin},
     simple_agent::SimpleAgentPlugin,
+    workflow::WorkflowState,
 };
+use tracing::info;
 
 fn main() {
     // Initialize tracing
@@ -35,9 +35,7 @@ fn main() {
         .add_plugins(NatsEventBridgePlugin)
         // Add systems
         .add_systems(Startup, setup)
-        .add_systems(Update, (
-            show_help,
-        ))
+        .add_systems(Update, (show_help,))
         .run();
 }
 
@@ -79,9 +77,7 @@ fn setup(
 }
 
 /// Show help text
-fn show_help(
-    keyboard: Res<ButtonInput<KeyCode>>,
-) {
+fn show_help(keyboard: Res<ButtonInput<KeyCode>>) {
     if keyboard.just_pressed(KeyCode::KeyH) {
         info!("=== Information Alchemist Help ===");
         info!("F1 - Open AI Assistant");

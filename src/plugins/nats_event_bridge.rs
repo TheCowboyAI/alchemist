@@ -3,15 +3,15 @@
 //! This plugin ensures that all UI events are properly published to NATS
 //! with correlation IDs, causation IDs, and proper subjects.
 
-use bevy::prelude::*;
-use crate::simple_agent::{AgentQuestionEvent, AgentResponseEvent, AgentErrorEvent};
+use crate::simple_agent::{AgentErrorEvent, AgentQuestionEvent, AgentResponseEvent};
 use async_nats::jetstream;
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
+use bevy::prelude::*;
 use chrono::Utc;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
-use tracing::{info, error};
+use tracing::{error, info};
+use uuid::Uuid;
 
 /// Resource for NATS connection
 #[derive(Resource)]
@@ -25,7 +25,7 @@ impl NatsConnection {
     pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let client = async_nats::connect("nats://localhost:4222").await?;
         let jetstream = jetstream::new(client.clone());
-        
+
         // Ensure stream exists
         let stream_config = jetstream::stream::Config {
             name: "CIM-UI-EVENTS".to_string(),
@@ -33,12 +33,12 @@ impl NatsConnection {
             retention: jetstream::stream::RetentionPolicy::Limits,
             ..Default::default()
         };
-        
+
         match jetstream.get_or_create_stream(stream_config).await {
             Ok(_) => info!("CIM-UI-EVENTS stream ready"),
             Err(e) => error!("Failed to create stream: {}", e),
         }
-        
+
         Ok(Self {
             client,
             jetstream,
@@ -72,20 +72,26 @@ impl Plugin for NatsEventBridgePlugin {
         // Try to connect to NATS
         let runtime = Runtime::new().expect("Failed to create runtime");
         let nats_result = runtime.block_on(NatsConnection::new());
-        
+
         match nats_result {
             Ok(connection) => {
                 info!("NATS connection established for event bridge");
                 app.insert_resource(connection);
                 app.init_resource::<CorrelationTracker>();
-                app.add_systems(Update, (
-                    publish_question_events,
-                    publish_response_events,
-                    publish_error_events,
-                ));
+                app.add_systems(
+                    Update,
+                    (
+                        publish_question_events,
+                        publish_response_events,
+                        publish_error_events,
+                    ),
+                );
             }
             Err(e) => {
-                error!("Failed to connect to NATS: {}. Events will not be persisted.", e);
+                error!(
+                    "Failed to connect to NATS: {}. Events will not be persisted.",
+                    e
+                );
             }
         }
     }
@@ -98,17 +104,16 @@ fn publish_question_events(
     mut tracker: ResMut<CorrelationTracker>,
 ) {
     let Some(nats) = nats else { return };
-    
+
     for event in events.read() {
         let correlation_id = Uuid::new_v4();
         let event_id = Uuid::new_v4();
-        
+
         // Track correlation for response matching
-        tracker.active_correlations.insert(
-            event.question.clone(),
-            correlation_id,
-        );
-        
+        tracker
+            .active_correlations
+            .insert(event.question.clone(), correlation_id);
+
         let nats_event = NatsEvent {
             event_id,
             event_type: "AgentQuestionEvent".to_string(),
@@ -119,16 +124,19 @@ fn publish_question_events(
                 "question": event.question,
             }),
         };
-        
+
         let subject = "cim.ui.agent.question";
         let payload = serde_json::to_vec(&nats_event).unwrap_or_default();
-        
+
         let jetstream = nats.jetstream.clone();
         nats.runtime.spawn(async move {
             match jetstream.publish(subject, payload.into()).await {
                 Ok(ack) => {
-                    info!("Published question event {} to NATS (seq: {})", 
-                        event_id, ack.await.unwrap().sequence);
+                    info!(
+                        "Published question event {} to NATS (seq: {})",
+                        event_id,
+                        ack.await.unwrap().sequence
+                    );
                 }
                 Err(e) => {
                     error!("Failed to publish question event: {}", e);
@@ -145,17 +153,18 @@ fn publish_response_events(
     tracker: Res<CorrelationTracker>,
 ) {
     let Some(nats) = nats else { return };
-    
+
     for event in events.read() {
         let event_id = Uuid::new_v4();
-        
+
         // Try to find correlation ID from recent questions
-        let correlation_id = tracker.active_correlations
+        let correlation_id = tracker
+            .active_correlations
             .values()
             .next()
             .copied()
             .unwrap_or_else(Uuid::new_v4);
-        
+
         let nats_event = NatsEvent {
             event_id,
             event_type: "AgentResponseEvent".to_string(),
@@ -166,16 +175,19 @@ fn publish_response_events(
                 "response": event.response,
             }),
         };
-        
+
         let subject = "cim.ui.agent.response";
         let payload = serde_json::to_vec(&nats_event).unwrap_or_default();
-        
+
         let jetstream = nats.jetstream.clone();
         nats.runtime.spawn(async move {
             match jetstream.publish(subject, payload.into()).await {
                 Ok(ack) => {
-                    info!("Published response event {} to NATS (seq: {})", 
-                        event_id, ack.await.unwrap().sequence);
+                    info!(
+                        "Published response event {} to NATS (seq: {})",
+                        event_id,
+                        ack.await.unwrap().sequence
+                    );
                 }
                 Err(e) => {
                     error!("Failed to publish response event: {}", e);
@@ -192,17 +204,18 @@ fn publish_error_events(
     tracker: Res<CorrelationTracker>,
 ) {
     let Some(nats) = nats else { return };
-    
+
     for event in events.read() {
         let event_id = Uuid::new_v4();
-        
+
         // Try to find correlation ID
-        let correlation_id = tracker.active_correlations
+        let correlation_id = tracker
+            .active_correlations
             .values()
             .next()
             .copied()
             .unwrap_or_else(Uuid::new_v4);
-        
+
         let nats_event = NatsEvent {
             event_id,
             event_type: "AgentErrorEvent".to_string(),
@@ -213,16 +226,19 @@ fn publish_error_events(
                 "error": event.error,
             }),
         };
-        
+
         let subject = "cim.ui.agent.error";
         let payload = serde_json::to_vec(&nats_event).unwrap_or_default();
-        
+
         let jetstream = nats.jetstream.clone();
         nats.runtime.spawn(async move {
             match jetstream.publish(subject, payload.into()).await {
                 Ok(ack) => {
-                    info!("Published error event {} to NATS (seq: {})", 
-                        event_id, ack.await.unwrap().sequence);
+                    info!(
+                        "Published error event {} to NATS (seq: {})",
+                        event_id,
+                        ack.await.unwrap().sequence
+                    );
                 }
                 Err(e) => {
                     error!("Failed to publish error event: {}", e);
@@ -230,4 +246,4 @@ fn publish_error_events(
             }
         });
     }
-} 
+}

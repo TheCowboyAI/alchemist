@@ -1,5 +1,5 @@
 //! Event Stream Validator
-//! 
+//!
 //! Utility for validating event sequences in tests
 
 use async_nats::jetstream;
@@ -38,7 +38,7 @@ impl ValidationReport {
     pub fn is_valid(&self) -> bool {
         self.is_valid
     }
-    
+
     pub fn event_count(&self) -> usize {
         self.event_count
     }
@@ -58,13 +58,13 @@ impl EventStreamValidator {
             jetstream: None,
         }
     }
-    
+
     pub async fn with_nats(mut self) -> Result<Self, Box<dyn std::error::Error>> {
         let client = async_nats::connect("nats://localhost:4222").await?;
         self.jetstream = Some(jetstream::new(client));
         Ok(self)
     }
-    
+
     pub fn expect_sequence(mut self, events: Vec<&str>) -> Self {
         self.expected_events = events
             .into_iter()
@@ -75,7 +75,7 @@ impl EventStreamValidator {
             .collect();
         self
     }
-    
+
     pub fn expect_correlation_chain(mut self, events: Vec<(&str, Option<&str>)>) -> Self {
         self.expected_events = events
             .into_iter()
@@ -86,19 +86,18 @@ impl EventStreamValidator {
             .collect();
         self
     }
-    
+
     pub async fn capture_from_nats(
         &mut self,
         subject: &str,
         max_messages: usize,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let jetstream = self.jetstream.as_ref()
-            .ok_or("NATS not initialized")?;
-        
+        let jetstream = self.jetstream.as_ref().ok_or("NATS not initialized")?;
+
         // Get stream by subject
         let stream_name = jetstream.stream_by_subject(subject).await?;
         let stream = jetstream.get_stream(&stream_name).await?;
-        
+
         // Create consumer
         let consumer = stream
             .create_consumer(jetstream::consumer::pull::Config {
@@ -107,41 +106,41 @@ impl EventStreamValidator {
                 ..Default::default()
             })
             .await?;
-        
+
         // Fetch messages
         let mut messages = consumer
             .fetch()
             .max_messages(max_messages)
             .messages()
             .await?;
-        
+
         self.captured_events.clear();
         let mut seq = 0;
-        
+
         while let Some(msg) = messages.next().await {
             if let Ok(msg) = msg {
                 if let Ok(payload) = serde_json::from_slice::<serde_json::Value>(&msg.payload) {
                     seq += 1;
-                    
+
                     // Extract event info from payload
                     let event_type = payload["event_type"]
                         .as_str()
                         .unwrap_or("Unknown")
                         .to_string();
-                    
+
                     let event_id = payload["event_id"]
                         .as_str()
                         .and_then(|s| Uuid::parse_str(s).ok())
                         .unwrap_or_else(Uuid::new_v4);
-                    
+
                     let correlation_id = payload["correlation_id"]
                         .as_str()
                         .and_then(|s| Uuid::parse_str(s).ok());
-                    
+
                     let causation_id = payload["causation_id"]
                         .as_str()
                         .and_then(|s| Uuid::parse_str(s).ok());
-                    
+
                     self.captured_events.push(CapturedEvent {
                         event_type,
                         event_id,
@@ -153,17 +152,17 @@ impl EventStreamValidator {
                 }
             }
         }
-        
+
         // Cleanup
         consumer.delete().await.ok();
-        
+
         Ok(())
     }
-    
+
     pub fn capture_manual(&mut self, events: Vec<CapturedEvent>) {
         self.captured_events = events;
     }
-    
+
     pub fn validate(&self) -> ValidationReport {
         let mut report = ValidationReport {
             is_valid: true,
@@ -173,7 +172,7 @@ impl EventStreamValidator {
             missing_events: Vec::new(),
             unexpected_events: Vec::new(),
         };
-        
+
         // Check event count
         if self.expected_events.len() != self.captured_events.len() {
             report.is_valid = false;
@@ -183,9 +182,11 @@ impl EventStreamValidator {
                 self.captured_events.len()
             ));
         }
-        
+
         // Check event types match in order
-        for (i, (expected, captured)) in self.expected_events.iter()
+        for (i, (expected, captured)) in self
+            .expected_events
+            .iter()
             .zip(self.captured_events.iter())
             .enumerate()
         {
@@ -199,44 +200,44 @@ impl EventStreamValidator {
                 ));
             }
         }
-        
+
         // Check for missing events
-        let captured_types: Vec<_> = self.captured_events
+        let captured_types: Vec<_> = self
+            .captured_events
             .iter()
             .map(|e| e.event_type.as_str())
             .collect();
-        
+
         for expected in &self.expected_events {
             if !captured_types.contains(&expected.event_type.as_str()) {
                 report.is_valid = false;
                 report.missing_events.push(expected.event_type.clone());
             }
         }
-        
+
         // Check for unexpected events
-        let expected_types: Vec<_> = self.expected_events
+        let expected_types: Vec<_> = self
+            .expected_events
             .iter()
             .map(|e| e.event_type.as_str())
             .collect();
-        
+
         for captured in &self.captured_events {
             if !expected_types.contains(&captured.event_type.as_str()) {
                 report.unexpected_events.push(captured.event_type.clone());
             }
         }
-        
+
         // Validate correlation chains if specified
         let mut correlation_map: HashMap<Uuid, &CapturedEvent> = HashMap::new();
-        
+
         for event in &self.captured_events {
             if let Some(corr_id) = event.correlation_id {
                 correlation_map.insert(corr_id, event);
             }
         }
-        
-        for (expected, captured) in self.expected_events.iter()
-            .zip(self.captured_events.iter())
-        {
+
+        for (expected, captured) in self.expected_events.iter().zip(self.captured_events.iter()) {
             if let Some(expected_causation) = &expected.causation_id {
                 if captured.causation_id.is_none() {
                     report.is_valid = false;
@@ -247,46 +248,46 @@ impl EventStreamValidator {
                 }
             }
         }
-        
+
         report
     }
-    
+
     pub fn print_report(&self, report: &ValidationReport) {
         println!("\n📊 Event Stream Validation Report");
         println!("================================");
         println!("Valid: {}", if report.is_valid { "✅" } else { "❌" });
         println!("Event Count: {}", report.event_count);
-        
+
         if !report.sequence_errors.is_empty() {
             println!("\n❌ Sequence Errors:");
             for error in &report.sequence_errors {
                 println!("  - {}", error);
             }
         }
-        
+
         if !report.missing_events.is_empty() {
             println!("\n❌ Missing Events:");
             for event in &report.missing_events {
                 println!("  - {}", event);
             }
         }
-        
+
         if !report.unexpected_events.is_empty() {
             println!("\n⚠️  Unexpected Events:");
             for event in &report.unexpected_events {
                 println!("  - {}", event);
             }
         }
-        
+
         if !report.correlation_errors.is_empty() {
             println!("\n❌ Correlation Errors:");
             for error in &report.correlation_errors {
                 println!("  - {}", error);
             }
         }
-        
+
         if report.is_valid {
             println!("\n✅ All validations passed!");
         }
     }
-} 
+}

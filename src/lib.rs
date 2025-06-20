@@ -44,9 +44,9 @@ pub use cim_workflow_graph;
 
 // Application modules
 pub mod graph;
-pub mod workflow;
 pub mod plugins;
 pub mod simple_agent;
+pub mod workflow;
 
 /// Prelude module for convenient imports
 pub mod prelude {

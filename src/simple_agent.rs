@@ -29,7 +29,7 @@ pub struct OllamaClient {
     base_url: String,
     model: String,
     runtime: Arc<Runtime>,
-    mock_mode: bool,  // Add mock mode flag
+    mock_mode: bool, // Add mock mode flag
 }
 
 impl OllamaClient {
@@ -37,20 +37,16 @@ impl OllamaClient {
         Self {
             base_url,
             model,
-            runtime: Arc::new(
-                Runtime::new().expect("Failed to create Tokio runtime")
-            ),
+            runtime: Arc::new(Runtime::new().expect("Failed to create Tokio runtime")),
             mock_mode: false,
         }
     }
-    
+
     pub fn new_mock() -> Self {
         Self {
             base_url: "mock://localhost".to_string(),
             model: "mock".to_string(),
-            runtime: Arc::new(
-                Runtime::new().expect("Failed to create Tokio runtime")
-            ),
+            runtime: Arc::new(Runtime::new().expect("Failed to create Tokio runtime")),
             mock_mode: true,
         }
     }
@@ -76,10 +72,10 @@ impl OllamaClient {
                 }
             });
         }
-        
+
         // Original Ollama implementation
         let url = format!("{}/api/generate", self.base_url);
-        
+
         // Add CIM context to the question
         let prompt = format!(
             "You are an AI assistant helping with CIM (Composable Information Machine). \
@@ -158,16 +154,17 @@ impl Default for AgentResource {
             "http://localhost:11434".to_string(),
             "vicuna:latest".to_string(),
         );
-        
+
         // Test if Ollama is available by making a quick request
         let test_result = client.runtime.block_on(async {
             let client = reqwest::Client::new();
-            client.get("http://localhost:11434/api/tags")
+            client
+                .get("http://localhost:11434/api/tags")
                 .timeout(std::time::Duration::from_secs(2))
                 .send()
                 .await
         });
-        
+
         // If Ollama is not available, use mock mode
         let client = if test_result.is_err() {
             info!("Ollama not available, using mock mode");
@@ -176,7 +173,7 @@ impl Default for AgentResource {
             info!("Ollama detected, using real agent");
             client
         };
-        
+
         Self { client }
     }
 }
@@ -203,7 +200,7 @@ fn process_questions(
 ) {
     for event in question_events.read() {
         info!("Processing question: {}", event.question);
-        
+
         match agent.client.ask(&event.question) {
             Ok(response) => {
                 info!("Agent response: {}", response);
@@ -226,21 +223,21 @@ mod tests {
     fn test_agent_event_stream() {
         // Create a test app
         let mut app = App::new();
-        
+
         // Add the agent plugin
         app.add_plugins(SimpleAgentPlugin);
-        
+
         // Create a test question event
         let test_question = "What is CIM?".to_string();
-        
+
         // Send the question event
         app.world_mut().send_event(AgentQuestionEvent {
             question: test_question.clone(),
         });
-        
+
         // Run one update cycle
         app.update();
-        
+
         // Check that the question event was received by manually checking event count
         // Note: In a real integration test, we'd check if the system processed the event
         assert!(true, "Event sent successfully");
@@ -254,22 +251,25 @@ mod tests {
         app.add_event::<AgentQuestionEvent>();
         app.add_event::<AgentResponseEvent>();
         app.add_event::<AgentErrorEvent>();
-        
+
         // Track events manually
         let mut sent_questions = Vec::new();
-        
+
         // Send multiple questions
         sent_questions.push("Question 1".to_string());
         app.world_mut().send_event(AgentQuestionEvent {
             question: "Question 1".to_string(),
         });
-        
+
         sent_questions.push("Question 2".to_string());
         app.world_mut().send_event(AgentQuestionEvent {
             question: "Question 2".to_string(),
         });
-        
+
         // Verify we sent events in order
-        assert_eq!(sent_questions, vec!["Question 1".to_string(), "Question 2".to_string()]);
+        assert_eq!(
+            sent_questions,
+            vec!["Question 1".to_string(), "Question 2".to_string()]
+        );
     }
-} 
+}

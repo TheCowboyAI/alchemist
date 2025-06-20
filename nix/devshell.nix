@@ -9,7 +9,7 @@ pkgs.mkShell {
     rust-toolchain
     pkgs.cargo-watch
     pkgs.cargo-nextest
-    pkgs.pcsclite  # Add pcscd daemon
+    pkgs.pcsclite # Add pcscd daemon
     pkgs.pcsctools # PC/SC tools for testing
     pkgs.yubikey-manager # YubiKey management tools
   ];

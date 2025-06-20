@@ -52,15 +52,13 @@ Please provide helpful, accurate answers about CIM architecture, its domains (Gr
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_env_filter("info")
-        .init();
+    tracing_subscriber::fmt().with_env_filter("info").init();
 
     info!("CIM Alchemist Agent Service Starting...");
 
     // Connect to Ollama
     let client = reqwest::Client::new();
-    
+
     // Test Ollama connection
     match client.get("http://localhost:11434/api/tags").send().await {
         Ok(response) => {
@@ -104,8 +102,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Health check responder
     let health_client = nats_client.clone();
     tokio::spawn(async move {
-        let mut health_sub = health_client.subscribe("cim.agent.alchemist.health").await.unwrap();
-        
+        let mut health_sub = health_client
+            .subscribe("cim.agent.alchemist.health")
+            .await
+            .unwrap();
+
         while let Some(msg) = health_sub.next().await {
             let health_response = serde_json::json!({
                 "status": "healthy",
@@ -113,39 +114,45 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "version": "0.1.0",
                 "timestamp": chrono::Utc::now(),
             });
-            
+
             if let Some(reply) = msg.reply {
-                let _ = health_client.publish(reply, serde_json::to_vec(&health_response).unwrap().into()).await;
+                let _ = health_client
+                    .publish(reply, serde_json::to_vec(&health_response).unwrap().into())
+                    .await;
                 info!("Responded to health check");
             }
         }
     });
 
     // Main dialog processor
-    let mut dialog_sub = nats_client.subscribe("cim.dialog.alchemist.request").await?;
+    let mut dialog_sub = nats_client
+        .subscribe("cim.dialog.alchemist.request")
+        .await?;
     info!("Agent ready and listening for requests...");
 
     while let Some(msg) = dialog_sub.next().await {
         let nats_clone = nats_client.clone();
         let client_clone = client.clone();
-        
+
         // Process each message in a separate task
         tokio::spawn(async move {
             match serde_json::from_slice::<AgentMessage>(&msg.payload) {
                 Ok(request) => {
                     info!("Received question: {}", request.content);
-                    
+
                     // Build prompt with context
-                    let prompt = format!("{}\n\nUser Question: {}\n\nPlease provide a helpful and concise answer:", 
-                        CIM_CONTEXT, request.content);
-                    
+                    let prompt = format!(
+                        "{}\n\nUser Question: {}\n\nPlease provide a helpful and concise answer:",
+                        CIM_CONTEXT, request.content
+                    );
+
                     // Generate response
                     let ollama_request = OllamaGenerateRequest {
                         model: "vicuna:latest".to_string(),
                         prompt,
                         stream: false,
                     };
-                    
+
                     match client_clone
                         .post("http://localhost:11434/api/generate")
                         .json(&ollama_request)
@@ -161,11 +168,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         content: ollama_response.response.trim().to_string(),
                                         timestamp: chrono::Utc::now(),
                                     };
-                                    
+
                                     // Send to response channel if specified
                                     if let Some(reply_to) = msg.reply {
                                         let payload = serde_json::to_vec(&reply).unwrap();
-                                        if let Err(e) = nats_clone.publish(reply_to, payload.into()).await {
+                                        if let Err(e) =
+                                            nats_clone.publish(reply_to, payload.into()).await
+                                        {
                                             error!("Failed to send reply: {}", e);
                                         } else {
                                             info!("Sent response");
@@ -173,7 +182,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     } else {
                                         // Publish to general response channel
                                         let payload = serde_json::to_vec(&reply).unwrap();
-                                        if let Err(e) = nats_clone.publish("cim.dialog.alchemist.response", payload.into()).await {
+                                        if let Err(e) = nats_clone
+                                            .publish(
+                                                "cim.dialog.alchemist.response",
+                                                payload.into(),
+                                            )
+                                            .await
+                                        {
                                             error!("Failed to publish response: {}", e);
                                         } else {
                                             info!("Published response");
@@ -198,4 +213,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-} 
+}

@@ -40,4 +40,4 @@ impl GraphState {
     pub fn add_annotation(&mut self, annotation: String) {
         self.annotations.push(annotation);
     }
-} 
+}
