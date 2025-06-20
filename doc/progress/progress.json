@@ -3,8 +3,8 @@
     "name": "Information Alchemist Progress",
     "description": "Progress tracking for Information Alchemist, a UI for Building CIMs - A system where graphs are the fundamental building blocks of all domain models, composed through Applied Category Theory (ACT) principles. Every concept - from simple value objects to complex aggregates - is represented as a graph that can be composed with other graphs to build entire systems. 🎉 PROJECT 100% COMPLETE - ALL 8 DOMAINS PRODUCTION-READY!",
     "created": "2025-06-04T11:07:09-07:00",
-    "updated": "2025-01-19T15:00:00-07:00",
-    "version": "3.2.0"
+    "updated": "2025-01-21T12:00:00-07:00",
+    "version": "3.3.0"
   },
   "nodes": [
     {
@@ -5108,6 +5108,36 @@
         "completion_percentage": 100,
         "completed_date": "2025-01-19"
       }
+    },
+    {
+      "id": "event-driven-testing-framework",
+      "label": "Event-Driven Testing Framework",
+      "type": "milestone",
+      "position": {
+        "x": 2200,
+        "y": 0,
+        "z": 0
+      },
+      "data": {
+        "status": "in-progress",
+        "date": "2025-01-21",
+        "description": "Comprehensive event-driven testing framework to validate all events are published in proper sequence",
+        "details": [
+          "Created 5-layer bottom-up testing approach",
+          "Infrastructure tests for NATS connection and streams",
+          "Event stream validator framework for sequence validation",
+          "User stories for each test with expected event sequences",
+          "No CRUD operations - everything through events",
+          "Tests correlation and causation ID chains",
+          "Validates event persistence and replay capabilities"
+        ],
+        "progress": 5,
+        "references": [
+          "/doc/testing/event-driven-testing-plan.md",
+          "/tests/infrastructure/test_nats_connection.rs",
+          "/tests/common/event_stream_validator.rs"
+        ]
+      }
     }
   ],
   "edges": [
@@ -5565,6 +5595,13 @@
       "target": "cim-domain-dialog-implementation",
       "relationship": "enables",
       "label": "Person domain enables dialog/conversation tracking"
+    },
+    {
+      "id": "edge-dialog-to-testing-framework",
+      "source": "cim-domain-dialog-implementation",
+      "target": "event-driven-testing-framework",
+      "relationship": "requires_validation",
+      "label": "Dialog completion reveals need for comprehensive event validation"
     }
   ],
   "milestones": [
@@ -5612,38 +5649,34 @@
     }
   ],
   "current_focus": {
-    "task": "🎉 Dialog Domain Implementation Complete! ✅",
-    "status": "dialog-domain-complete",
+    "task": "🚨 CRITICAL: Event-Driven Testing Framework Implementation",
+    "status": "testing-framework-priority",
     "details": [
-      "🏆 LATEST ACHIEVEMENT: Dialog Domain for AI Agent Conversation Tracking",
-      "✅ Dialog Domain: Complete conversation management system",
-      "✅ Multi-participant support: Human, AI Agent, System, External",
-      "✅ Turn-based conversation tracking with intent classification",
-      "✅ Topic management with semantic relevance scoring",
-      "✅ Context variables with scoping (Turn, Topic, Dialog, Participant, Global)",
-      "✅ Conversation metrics and engagement tracking",
-      "✅ 6 comprehensive tests passing",
-      "📊 PROJECT STATUS: 🎯 9 DOMAINS COMPLETE",
-      "✅ Core Domains: Graph, Identity, Person, Agent, Git, Location, ConceptualSpaces, Workflow, Dialog",
-      "✅ Infrastructure: CIM-IPLD (content management), CIM-Keys (YubiKey support)",
-      "🏗️ DIALOG DOMAIN FEATURES:",
-      "- Conversation lifecycle: Start, Pause, Resume, End",
-      "- Topic switching with context preservation",
-      "- Message intent classification (Question, Answer, Statement, etc.)",
-      "- Participant role management (Primary, Assistant, Observer, Moderator)",
-      "- Context snapshots for conversation history",
-      "- Integration with Event Store and Object Store for AI memory",
-      "🎯 AI AGENT MEMORY SYSTEM:",
-      "- Event Store = Episodic memory (conversation history)",
-      "- Object Store = Semantic memory (knowledge storage)",
-      "- Projections = Working memory (current context)",
-      "- Dialog Domain = Conversation structure and context management",
-      "🚀 NEXT: AI agents can now track conversations with full context!"
+      "⚠️ ISSUE DISCOVERED: UI events not being published to NATS JetStream",
+      "🔍 Root Cause: 'Chicken and egg' problem - event system not working at base level",
+      "🎯 NEW PRIORITY: Implement comprehensive event-driven testing framework",
+      "📋 TESTING PLAN CREATED:",
+      "- Layer 1: Infrastructure (NATS connection, streams, publishing)",
+      "- Layer 2: Domain Fundamentals (aggregates, events, handlers)",
+      "- Layer 3: Domain Implementation (per-domain event flows)",
+      "- Layer 4: Cross-Domain Integration (event choreography)",
+      "- Layer 5: Full System (UI to persistence)",
+      "✅ COMPLETED SO FAR:",
+      "- Event-driven testing plan with user stories",
+      "- Infrastructure test framework",
+      "- Event stream validator for sequence validation",
+      "🔧 NEXT STEPS:",
+      "1. Implement infrastructure tests in EVERY submodule",
+      "2. Add domain-specific event tests to each domain",
+      "3. Validate cross-domain event flows",
+      "4. Fix UI→NATS event publishing",
+      "5. Ensure correlation/causation ID chains work",
+      "⚡ CRITICAL: No features work without proper event flow!"
     ],
-    "priority": "dialog-complete",
-    "estimated_completion": "achieved"
+    "priority": "critical-testing",
+    "estimated_completion": "2025-01-25"
   },
-  "current_task": "🎉 Dialog Domain Complete - AI agents can track conversations",
-  "next_task": "Integrate Dialog domain with AI agents for context-aware conversations",
-  "last_updated": "2025-01-19"
+  "current_task": "Implementing event-driven testing framework across ALL submodules",
+  "next_task": "Fix UI→NATS event publishing based on test results",
+  "last_updated": "2025-01-21"
 }

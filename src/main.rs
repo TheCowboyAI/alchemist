@@ -7,7 +7,7 @@ use tracing::info;
 use ia::{
     graph::GraphState,
     workflow::WorkflowState,
-    plugins::{AgentIntegrationPlugin, AgentUiPlugin},
+    plugins::{AgentIntegrationPlugin, AgentUiPlugin, NatsEventBridgePlugin},
     simple_agent::SimpleAgentPlugin,
 };
 
@@ -32,9 +32,12 @@ fn main() {
         .add_plugins(SimpleAgentPlugin)
         .add_plugins(AgentUiPlugin)
         .add_plugins(AgentIntegrationPlugin)
+        .add_plugins(NatsEventBridgePlugin)
         // Add systems
         .add_systems(Startup, setup)
-        .add_systems(Update, show_help)
+        .add_systems(Update, (
+            show_help,
+        ))
         .run();
 }
 

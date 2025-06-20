@@ -18,6 +18,7 @@ pub mod performance_benchmarks;
 pub mod projection_sync_tests;
 pub mod query_handler_tests;
 pub mod simple_test;
+pub mod ui_event_flow_tests;
 
 /// Common test configuration
 pub struct TestConfig {

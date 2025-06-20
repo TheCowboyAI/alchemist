@@ -290,6 +290,26 @@ path = "examples/bridge_cli_demo.rs"
 required-features = []
 
 [[example]]
+name = "test_ui_simple"
+path = "examples/test_ui_simple.rs"
+required-features = ["dev"]
+
+[[example]]
+name = "show_event_flow"
+path = "examples/show_event_flow.rs"
+required-features = []
+
+[[example]]
+name = "show_jetstream_events"
+path = "examples/show_jetstream_events.rs"
+required-features = []
+
+[[example]]
+name = "test_ui_nats_events"
+path = "examples/test_ui_nats_events.rs"
+required-features = []
+
+[[example]]
 name = "ai_agent_with_memory"
 path = "examples/ai_agent_with_memory.rs"
 required-features = []

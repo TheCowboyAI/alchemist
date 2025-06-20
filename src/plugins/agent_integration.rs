@@ -4,11 +4,7 @@
 //! providing context-aware help about the graph editor and workflow system.
 
 use bevy::prelude::*;
-use crate::simple_agent::{
-    AgentQuestionEvent,
-    AgentResponseEvent,
-    AgentErrorEvent,
-};
+use crate::simple_agent::AgentQuestionEvent;
 
 /// Plugin that integrates the AI assistant with the graph editor
 pub struct AgentIntegrationPlugin;
@@ -21,17 +17,11 @@ impl Plugin for AgentIntegrationPlugin {
 }
 
 /// System to handle keyboard shortcuts for common questions
+/// Note: F1 is used to toggle the AI Assistant window (handled in AgentUiPlugin)
 fn handle_keyboard_shortcuts(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut events: EventWriter<AgentQuestionEvent>,
 ) {
-    // F1 - What is CIM?
-    if keyboard.just_pressed(KeyCode::F1) {
-        events.write(AgentQuestionEvent {
-            question: "What is CIM?".to_string(),
-        });
-    }
-    
     // F2 - How does event sourcing work?
     if keyboard.just_pressed(KeyCode::F2) {
         events.write(AgentQuestionEvent {
