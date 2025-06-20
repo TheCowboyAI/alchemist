@@ -10,6 +10,7 @@ pub struct AgentChatState {
     input_text: String,
     messages: Vec<ChatMessage>,
     is_waiting: bool,
+    show_window: bool,  // Add flag to control window visibility
 }
 
 #[derive(Clone)]
@@ -31,10 +32,20 @@ impl Plugin for AgentUiPlugin {
 
         app.init_resource::<AgentChatState>()
             .add_systems(Update, (
-                render_agent_ui,
+                toggle_agent_window,
+                render_agent_ui.run_if(resource_exists_and_changed::<AgentChatState>),
                 handle_agent_responses,
                 handle_agent_errors,
             ));
+    }
+}
+
+fn toggle_agent_window(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut chat_state: ResMut<AgentChatState>,
+) {
+    if keyboard.just_pressed(KeyCode::F1) {
+        chat_state.show_window = !chat_state.show_window;
     }
 }
 
@@ -42,15 +53,18 @@ fn render_agent_ui(
     mut contexts: EguiContexts,
     mut chat_state: ResMut<AgentChatState>,
     mut question_events: EventWriter<AgentQuestionEvent>,
-    _keyboard: Res<ButtonInput<KeyCode>>,
 ) {
+    // Only render if window should be shown
+    if !chat_state.show_window {
+        return;
+    }
+
     let ctx = contexts.ctx_mut();
 
-    // Show/hide with F1
-    let mut show_window = true;
-
+    let mut show = chat_state.show_window;
+    
     egui::Window::new("🤖 Alchemist Assistant")
-        .open(&mut show_window)
+        .open(&mut show)
         .default_size([400.0, 600.0])
         .resizable(true)
         .show(ctx, |ui| {
@@ -139,6 +153,9 @@ fn render_agent_ui(
                 }
             });
         });
+    
+    // Update the show state if user closed the window
+    chat_state.show_window = show;
 }
 
 fn handle_agent_responses(
