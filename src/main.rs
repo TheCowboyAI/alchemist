@@ -1,14 +1,40 @@
 //! Information Alchemist - Main Application
 //!
-//! A minimal Bevy shell ready for domain integration
+//! A graph editor and workflow manager with AI assistance
 
 use bevy::prelude::*;
 use tracing::info;
+use ia::{
+    graph::GraphState,
+    workflow::WorkflowState,
+    plugins::{AgentIntegrationPlugin, AgentUiPlugin},
+    simple_agent::SimpleAgentPlugin,
+};
 
 fn main() {
+    // Initialize tracing
+    tracing_subscriber::fmt()
+        .with_env_filter("info,cim_agent_alchemist=debug")
+        .init();
+
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Information Alchemist".to_string(),
+                ..default()
+            }),
+            ..default()
+        }))
+        // Add resources
+        .init_resource::<GraphState>()
+        .init_resource::<WorkflowState>()
+        // Add agent plugins
+        .add_plugins(SimpleAgentPlugin)
+        .add_plugins(AgentUiPlugin)
+        .add_plugins(AgentIntegrationPlugin)
+        // Add systems
         .add_systems(Startup, setup)
+        .add_systems(Update, show_help)
         .run();
 }
 
@@ -44,5 +70,22 @@ fn setup(
         Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
-    info!("Information Alchemist started - clean slate");
+    info!("Information Alchemist started");
+    info!("Press F1 to open the AI Assistant");
+    info!("Press H for help");
+}
+
+/// Show help text
+fn show_help(
+    keyboard: Res<ButtonInput<KeyCode>>,
+) {
+    if keyboard.just_pressed(KeyCode::KeyH) {
+        info!("=== Information Alchemist Help ===");
+        info!("F1 - Open AI Assistant");
+        info!("F2 - Ask about current selection");
+        info!("F3 - Ask about workflow");
+        info!("H - Show this help");
+        info!("ESC - Exit");
+        info!("================================");
+    }
 }

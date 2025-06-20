@@ -42,6 +42,12 @@ pub use cim_contextgraph;
 pub use cim_ipld_graph;
 pub use cim_workflow_graph;
 
+// Application modules
+pub mod graph;
+pub mod workflow;
+pub mod plugins;
+pub mod simple_agent;
+
 /// Prelude module for convenient imports
 pub mod prelude {
     pub use bevy::prelude::*;
