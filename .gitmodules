@@ -78,3 +78,9 @@
 [submodule "cim-workflow-graph"]
 	path = cim-workflow-graph
 	url = https://github.com/TheCowboyAI/cim-workflow-graph.git
+[submodule "cim-domain-dialog"]
+	path = cim-domain-dialog
+	url = https://github.com/TheCowboyAI/cim-domain-dialog.git
+[submodule "cim-agent-alchemist"]
+	path = cim-agent-alchemist
+	url = https://github.com/TheCowboyAI/cim-agent-alchemist.git
