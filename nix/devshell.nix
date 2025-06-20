@@ -79,6 +79,17 @@ pkgs.mkShell {
     export LIBCLANG_PATH="$(find /nix/store -name "*clang-19*-lib" -type d | head -1)/lib"
     echo "LIBCLANG_PATH set to: $LIBCLANG_PATH"
     
+    # Export the library path so cargo run can find runtime libraries
+    export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath (nonRustDeps ++ [
+      pkgs.vulkan-loader
+      pkgs.pcsclite
+      pkgs.gpgme
+      pkgs.libgpg-error
+      pkgs.nettle
+      pkgs.gmp
+      rust-toolchain
+    ])}:${toString ../.}/target/debug/deps:${toString ../.}/target/release/deps:$LD_LIBRARY_PATH"
+    
     # For YubiKey support, we need pcscd running
     # On NixOS, this is typically handled by the system service
     # For non-NixOS or testing, you can start pcscd manually:
@@ -117,12 +128,8 @@ pkgs.mkShell {
   RUSTFLAGS = "-C link-arg=-fuse-ld=mold -C link-arg=-Wl,-rpath,${pkgs.vulkan-loader}/lib -Zshare-generics=y";
   BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.alsa-lib}/include";
 
-  # Library paths - include Rust standard library path
-  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath
-    (nonRustDeps ++ [
-      pkgs.vulkan-loader
-      rust-toolchain
-    ]) + ":${rust-toolchain}/lib:${toString ../.}/target/debug/deps:${toString ../.}/target/release/deps";
+  # Remove the LD_LIBRARY_PATH from here since we set it in shellHook
+  # LD_LIBRARY_PATH is now set in shellHook with proper interpolation
 
   # PKG_CONFIG_PATH for finding system libraries
   PKG_CONFIG_PATH = pkgs.lib.makeSearchPath "lib/pkgconfig" [

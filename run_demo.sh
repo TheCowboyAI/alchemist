@@ -16,8 +16,11 @@ echo "  F3 - Ask about the 8 domains (via F1 first)"
 echo "  F4 - Ask about graph editing (via F1 first)"
 echo "  ESC - Exit"
 echo ""
-echo "Starting the application..."
+echo "Building and starting the application..."
 echo ""
 
-# Run in nix develop environment which sets all the paths correctly
-exec nix develop -c cargo run --bin ia 
+# Build the nix package which properly wraps the binary with library paths
+nix build -L .#ia
+
+# Run the wrapped binary
+exec ./result/bin/ia 
