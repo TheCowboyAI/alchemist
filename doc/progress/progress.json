@@ -5129,13 +5129,27 @@
           "User stories for each test with expected event sequences",
           "No CRUD operations - everything through events",
           "Tests correlation and causation ID chains",
-          "Validates event persistence and replay capabilities"
+          "Validates event persistence and replay capabilities",
+          "✅ COMPLETED: cim-component infrastructure tests (11 tests passing)",
+          "✅ COMPLETED: cim-subject comprehensive tests (142 tests total)"
         ],
-        "progress": 5,
+        "progress": 10,
+        "modules_completed": {
+          "infrastructure_tests": [
+            "cim-component"
+          ],
+          "comprehensive_tests": [
+            "cim-subject"
+          ],
+          "total_modules_with_tests": 2,
+          "total_modules": 21
+        },
         "references": [
           "/doc/testing/event-driven-testing-plan.md",
           "/tests/infrastructure/test_nats_connection.rs",
-          "/tests/common/event_stream_validator.rs"
+          "/tests/common/event_stream_validator.rs",
+          "/cim-component/tests/infrastructure/",
+          "/cim-subject/tests/"
         ]
       }
     }
@@ -5677,6 +5691,6 @@
     "estimated_completion": "2025-01-25"
   },
   "current_task": "Implementing event-driven testing framework across ALL submodules",
-  "next_task": "Fix UI→NATS event publishing based on test results",
-  "last_updated": "2025-01-21"
+  "next_task": "Continue adding infrastructure tests to remaining modules (cim-infrastructure next)",
+  "last_updated": "2025-01-22"
 }
