@@ -5134,12 +5134,14 @@
           "✅ COMPLETED: cim-subject comprehensive tests (142 tests total)",
           "✅ COMPLETED: cim-infrastructure tests (19 tests passing)",
           "✅ COMPLETED: cim-domain tests (19 tests passing)",
-          "✅ COMPLETED: cim-ipld infrastructure tests (23 tests passing)",
-          "✅ COMPLETED: cim-keys infrastructure tests (22 tests passing)",
+          "✅ COMPLETED: cim-ipld infrastructure tests (44 tests passing)",
+          "✅ COMPLETED: cim-keys infrastructure tests (46 tests passing)",
           "✅ COMPLETED: cim-bridge infrastructure tests (23 tests passing)",
+          "✅ COMPLETED: cim-workflow-graph infrastructure tests (25 tests passing)",
+          "✅ COMPLETED: cim-compose infrastructure tests (26 tests passing)",
           "⚠️  CREATED: cim-agent-alchemist infrastructure tests (24 tests written, module compilation issues)"
         ],
-        "progress": 38,
+        "progress": 45,
         "modules_completed": {
           "infrastructure_tests": [
             "cim-component",
@@ -5147,7 +5149,9 @@
             "cim-domain",
             "cim-ipld",
             "cim-keys",
-            "cim-bridge"
+            "cim-bridge",
+            "cim-workflow-graph",
+            "cim-compose"
           ],
           "comprehensive_tests": [
             "cim-subject"
@@ -5155,7 +5159,7 @@
           "tests_created_but_blocked": [
             "cim-agent-alchemist"
           ],
-          "total_modules_with_tests": 8,
+          "total_modules_with_tests": 10,
           "total_modules": 21
         },
         "references": [
@@ -5164,9 +5168,17 @@
           "/tests/common/event_stream_validator.rs",
           "/cim-component/tests/infrastructure/",
           "/cim-subject/tests/",
-          "/cim-ipld/tests/infrastructure/"
+          "/cim-ipld/tests/infrastructure/",
+          "/cim-keys/tests/infrastructure/"
         ]
       }
+    },
+    {
+      "id": "cim-workflow-graph",
+      "name": "cim-workflow-graph",
+      "status": "pending",
+      "tests_passing": 25,
+      "description": "Workflow graph visualization integration"
     }
   ],
   "edges": [
@@ -5679,7 +5691,7 @@
   ],
   "current_focus": {
     "task": "🚨 CRITICAL: Event-Driven Testing Framework Implementation",
-    "status": "testing-framework-priority",
+    "status": "testing-framework-in-progress",
     "details": [
       "⚠️ ISSUE DISCOVERED: UI events not being published to NATS JetStream",
       "🔍 Root Cause: 'Chicken and egg' problem - event system not working at base level",
@@ -5694,8 +5706,14 @@
       "- Event-driven testing plan with user stories",
       "- Infrastructure test framework",
       "- Event stream validator for sequence validation",
+      "- cim-infrastructure: Infrastructure tests implemented",
+      "- cim-ipld: Infrastructure tests implemented (44 tests passing)",
+      "- cim-keys: Infrastructure tests implemented (46 tests passing)",
+      "- cim-workflow-graph: Infrastructure tests implemented (25 tests passing)",
+      "- cim-compose: Infrastructure tests implemented (26 tests passing)",
+      "- cim-contextgraph: Infrastructure tests implemented (38 tests passing - fixed with correlation IDs)",
       "🔧 NEXT STEPS:",
-      "1. Implement infrastructure tests in EVERY submodule",
+      "1. Continue infrastructure tests in remaining submodules",
       "2. Add domain-specific event tests to each domain",
       "3. Validate cross-domain event flows",
       "4. Fix UI→NATS event publishing",
@@ -5706,6 +5724,6 @@
     "estimated_completion": "2025-01-25"
   },
   "current_task": "Implementing event-driven testing framework across ALL submodules",
-  "next_task": "Continue adding infrastructure tests to remaining modules (cim-ipld next)",
+  "next_task": "Continue adding infrastructure tests to remaining modules (cim-conceptgraph next)",
   "last_updated": "2025-01-22"
 }

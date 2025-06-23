@@ -22,6 +22,45 @@ impl Persistable for PaymentProcessed { /* ... */ }
 struct CacheInvalidated { /* ... */ } // No persistence
 ```
 
+## Event Correlation and Causation Requirements
+
+### MANDATORY: All Events Must Include Correlation/Causation IDs
+
+Every event, command, and query in the system MUST include correlation and causation IDs:
+
+```rust
+pub struct MessageIdentity {
+    pub message_id: MessageId,        // Unique for this message
+    pub correlation_id: CorrelationId, // Groups related messages (REQUIRED)
+    pub causation_id: CausationId,    // What caused this message (REQUIRED)
+}
+
+// Timestamp is separate metadata, NOT part of the correlation algebra
+pub struct EventMetadata {
+    pub identity: MessageIdentity,
+    pub timestamp: SystemTime,
+    pub actor: Option<ActorId>,
+}
+```
+
+### Correlation/Causation Rules:
+1. **Root Messages**: `MessageId = CorrelationId = CausationId` (self-correlation)
+2. **Caused Messages**: Inherit `CorrelationId` from parent, `CausationId = parent.MessageId`
+3. **All NATS Messages**: Must include correlation headers (X-Correlation-ID, X-Causation-ID)
+4. **Event Streams**: Must validate correlation chains and detect cycles
+
+### Implementation Pattern:
+```rust
+// ALWAYS use MessageFactory for creating messages
+let root_cmd = MessageFactory::create_root(CreateOrder { ... });
+let caused_event = MessageFactory::create_caused_by(OrderCreated { ... }, &root_cmd);
+
+// NEVER create messages directly
+let bad = Event { correlation_id: Uuid::new_v4(), ... }; // ❌ WRONG
+```
+
+See `/doc/design/event-correlation-causation-algebra.md` for complete specification.
+
 ## Event Design Principles
 
 ### 1. Event Structure with CID Chains
@@ -44,8 +83,8 @@ pub struct DomainEvent {
 
     // Metadata
     pub timestamp: SystemTime,
-    pub correlation_id: Option<CorrelationId>,
-    pub causation_id: Option<CausationId>,
+    pub correlation_id: CorrelationId,  // REQUIRED, not optional
+    pub causation_id: CausationId,      // REQUIRED, not optional
     pub actor: Option<ActorId>,
 }
 ```
