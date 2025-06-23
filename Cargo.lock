@@ -2312,6 +2312,7 @@ dependencies = [
  "once_cell",
  "pretty_assertions",
  "proptest",
+ "regex",
  "serde",
  "serde_json",
  "tempfile",
