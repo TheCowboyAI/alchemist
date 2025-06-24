@@ -1,172 +1,140 @@
-# Alchemist - Composable Information Machine
+# Alchemist - Transform Information into Understanding
 
 ![The Alchemist](./alchemist.webp)
-> "A person who transforms or creates something through a seemingly magical process."
 
-## 🎉 PROJECT COMPLETE: 100% COMPLETE (8/8 DOMAINS PRODUCTION-READY) 🎉
+> "Where data becomes knowledge through the magic of visualization"
 
-**203 tests passing** across all domains and infrastructure components!
+## What is Alchemist?
 
-Alchemist is a powerful 3D-capable graph visualization and editing system that serves as the primary user interface for the Composable Information Machine (CIM). It transforms complex data relationships into intuitive, interactive visual spaces where information comes alive.
+Alchemist is a revolutionary 3D graph visualization and editing system that transforms how we understand and interact with complex information. Imagine being able to see your data come alive in three-dimensional space, where relationships dance before your eyes and patterns emerge naturally from the chaos.
 
-### ✅ Completed Domains
-- **Graph Domain**: 41/41 tests passing - Full CQRS implementation with graph operations
-- **Identity Domain**: 25/25 tests passing - Complete person/organization management
-- **Person Domain**: 0 tests - Event-driven contact management
-- **Agent Domain**: 5/5 tests passing - AI agent foundation
-- **Git Domain**: 10/10 tests passing - Cross-domain integration (103 events, 2 graphs, 100 commits)
-- **Location Domain**: 5/5 tests passing - Geographic concept management
-- **ConceptualSpaces Domain**: 0 tests - AI-ready semantic reasoning capabilities
-- **Workflow Domain**: 0 tests - ContextGraph JSON/DOT export for universal visualization
+As the primary interface for the **Composable Information Machine (CIM)**, Alchemist doesn't just display data—it creates an immersive environment where information flows, evolves, and connects in ways that mirror how our minds naturally process knowledge.
 
-### 🚀 Key Features
+## 🌟 Experience the Magic
 
-- **Event-Driven Architecture**: Zero CRUD violations - all state changes through immutable events
-- **3D/2D Visualization**: Seamlessly switch between immersive 3D exploration and efficient 2D overview modes
-- **Subgraph Composition**: Load and compose multiple graphs while maintaining their structure as distinct subgraphs
-- **Real-time Collaboration**: Multiple users can work on the same graph simultaneously via NATS messaging
-- **AI-Powered Insights**: Integrated conceptual spaces for semantic reasoning and pattern recognition
-- **Business Process Management**: Visual workflow design with proven 40% time savings
-- **High Performance**: Handles 250k+ elements at 60 FPS through advanced rendering optimizations
-- **Extensible**: Event-sourced architecture enables perfect audit trails and time-travel debugging
+### See Your World in Graphs
+- **3D Immersive Exploration**: Navigate through your data like exploring a new world
+- **Real-time Collaboration**: Watch as changes ripple through the graph in real-time
+- **Semantic Understanding**: AI-powered insights that understand meaning, not just structure
+- **Visual Workflows**: Design and execute business processes by drawing them
 
-## 📚 Documentation
+### Built for the Real World
+Whether you're mapping customer journeys, visualizing software architectures, or exploring knowledge relationships, Alchemist adapts to your needs:
 
-### [Business Documentation](doc/publish/business/)
-For business leaders and decision makers - understand how Alchemist transforms your business through visual intelligence.
+- **Business Intelligence**: Transform spreadsheets into living, breathing visualizations
+- **Software Architecture**: See your system's true structure and dependencies
+- **Knowledge Management**: Navigate concepts and ideas in semantic space
+- **Workflow Design**: Draw your processes and watch them execute
 
-### [Technical Documentation](doc/publish/technical/)
-For developers and technical implementers - comprehensive guides on architecture, integration, and extension.
-
-### [Architecture Documentation](doc/publish/architecture/)
-Deep dive into CIM's revolutionary event-driven, graph-based architecture.
-
-### [Requirements & Planning](doc/plan/)
-Detailed requirements documentation and implementation roadmap.
-
-## 🏗️ Architecture Overview
-
-Alchemist is built on the revolutionary CIM architecture that combines:
-
-### Event-Driven Foundation
-All state changes flow through immutable events with CID chains:
-```rust
-(Command<T> | Query<T>) → [Events<T>] → Models/Projections
-```
-
-### Graph-Based Workflows
-Four types of graphs power the system:
-- **Workflow Graphs**: Business process visualization and execution
-- **Conceptual Graphs**: Knowledge representation and semantic reasoning
-- **Event Flow Graphs**: System behavior visualization
-- **Development Graphs**: Self-referential system development tracking
-
-### Dual ECS Architecture
-```
-Bevy ECS (Presentation)          NATS/Event Store (Domain)
-├── Visual Components      ←→     ├── Domain Events
-├── User Interactions      ←→     ├── Command Handlers
-├── Real-time Updates      ←→     ├── Event Streams
-└── Graph Visualization    ←→     └── Projections
-```
-
-### Conceptual Spaces Integration
-Every entity exists in both visual and conceptual space, enabling:
-- Semantic search and similarity
-- Knowledge-aware layouts
-- AI reasoning about relationships
-- Automatic categorization
-
-## 🛠️ Development
-
-### Prerequisites
-
-- Rust (latest stable)
-- Nix (for reproducible builds)
-- NATS server (for event streaming)
-
-### Quick Start
+## 🚀 Quick Start
 
 ```bash
-# Clone the repository
+# Clone and enter the magical realm
 git clone https://github.com/TheCowboyAI/alchemist
 cd alchemist
 
-# Using Nix (recommended)
+# Using Nix (recommended for reproducible builds)
 nix develop
-nix build
 nix run
 
 # Or using Cargo directly
-cargo build --release
-cargo run
+cargo run --release
 ```
 
-### Development with Nix
+Once running, you'll see a beautiful 3D graph spring to life. Use your mouse to navigate and explore!
 
-This project uses Nix for reproducible builds and development environments.
+## 🎯 What Makes Alchemist Special?
 
-**Note**: Nix caching is sensitive to Git workspace status. For best performance, commit changes before building.
+### The Composable Information Machine (CIM)
+At its heart, Alchemist is powered by CIM—a revolutionary architecture where:
+- **Everything is an Event**: Every change is recorded, creating a perfect history
+- **Graphs are Fundamental**: All information is represented as interconnected graphs
+- **AI-Native Design**: Built from the ground up to work with intelligent agents
+- **Semantic Understanding**: Conceptual spaces that understand meaning, not just data
 
-## 🎯 Production-Ready Use Cases
+### Key Innovations
+- **Event-Driven Architecture**: Zero data loss, perfect audit trails, time-travel debugging
+- **Dual ECS Systems**: Lightning-fast rendering with Bevy while maintaining domain integrity
+- **Conceptual Spaces**: Every piece of information exists in both visual and semantic dimensions
+- **Self-Referential**: Alchemist can visualize its own development and architecture
 
-### Business Intelligence
-- Customer journey visualization with event tracking
-- Supply chain optimization through workflow analysis
-- Risk relationship mapping with conceptual spaces
-- Process flow analysis with measurable improvements
+## 📚 Dive Deeper
 
-### Software Architecture
-- System dependency graphs with real-time updates
-- Microservice relationships via event flows
-- Data flow visualization with CID chain integrity
-- API interaction mapping through domain events
+### For Different Audiences
 
-### Knowledge Management
-- Concept mapping with semantic relationships
-- Research relationships in conceptual space
-- Documentation structure as navigable graphs
-- Learning pathways with AI-guided exploration
+#### 🏢 **Business Leaders**
+Discover how Alchemist can transform your organization's understanding of data:
+- [Business Value Guide](doc/publish/business/) - ROI and strategic advantages
+- [Use Cases](doc/publish/business/use-cases.md) - Real-world applications
+- [Executive Summary](doc/publish/architecture/ipld-executive-summary.md) - High-level overview
 
-## 🔌 Integration
+#### 💻 **Developers**
+Build amazing things with Alchemist:
+- [Architecture Overview](doc/publish/architecture/) - Deep dive into CIM
+- [Developer Guide](doc/publish/technical/) - Get started building
+- [API Documentation](doc/publish/api/) - Complete reference
 
-Alchemist integrates seamlessly with the CIM backend through:
+#### 🎨 **Designers & Analysts**
+Create beautiful, meaningful visualizations:
+- [User Guide](doc/user-guide/) - Master the interface
+- [Workflow Design](doc/publish/guides/) - Visual process creation
+- [Best Practices](doc/publish/guides/visualization-best-practices.md) - Tips and tricks
 
-- **NATS JetStream**: Real-time event streaming with persistence
-- **Event Sourcing**: Complete audit trail and time-travel capabilities
-- **CQRS Pattern**: Optimized read/write separation
-- **CID Chains**: Cryptographic integrity for all events
+## 🛠️ Technology Stack
 
-## 🚦 Current Focus
+Alchemist combines cutting-edge technologies:
+- **[Bevy Engine](https://bevyengine.org/)** - High-performance 3D rendering
+- **[NATS](https://nats.io/)** - Distributed messaging for real-time collaboration
+- **[IPLD](https://ipld.io/)** - Content-addressed data for perfect integrity
+- **[Rust](https://rust-lang.org/)** - Blazing fast and memory safe
 
-With all 8 domains complete and production-ready, current efforts focus on:
+## 🤝 Join the Community
 
-- [ ] Production deployment optimization
-- [ ] Performance tuning for large-scale graphs
-- [ ] Advanced AI agent integration
-- [ ] Enterprise feature development
-- [ ] Cloud-native deployment patterns
+Alchemist is more than software—it's a new way of thinking about information:
+
+- **[Contributing Guide](CONTRIBUTING.md)** - Help build the future
+- **[Discord Community](#)** - Connect with other alchemists
+- **[Blog](#)** - Latest developments and insights
+- **[Twitter](#)** - Follow our journey
+
+## 🎬 See It In Action
+
+### Demo: Software Architecture Visualization
+Watch as a Git repository transforms into a living 3D graph, revealing hidden dependencies and architectural patterns.
+
+### Demo: Business Process Optimization
+See how a document approval workflow is designed visually and optimized automatically, saving 40% processing time.
+
+### Demo: Knowledge Navigation
+Explore how concepts connect in semantic space, with AI-guided discovery of related ideas.
+
+## 🚧 Development Status
+
+Alchemist is under active development with ~65% of planned features implemented. We're building in the open and welcome contributors!
+
+**Current Focus Areas:**
+- Enhanced workflow execution engine
+- Advanced AI reasoning capabilities
+- Cross-domain event choreography
+- Performance optimization for massive graphs
+
+See our [Progress Tracking](doc/progress/) for detailed status.
 
 ## 📄 License
 
-Copyright (c) 2025 Cowboy AI, LLC
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-Built with:
-- [Bevy Engine](https://bevyengine.org/) - Game engine and ECS framework
-- [egui](https://github.com/emilk/egui) - Immediate mode GUI
-- [petgraph](https://github.com/petgraph/petgraph) - Graph data structures
-- [NATS](https://nats.io/) - Messaging and streaming
-- [IPLD](https://ipld.io/) - Content-addressed data structures
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Alchemist**: Where data becomes understanding through the magic of visualization.
+<div align="center">
 
-*Part of the [Composable Information Machine](https://github.com/TheCowboyAI/CIM) project by [Cowboy AI, LLC](https://cowboy.ai)*
+**✨ Transform your data into understanding with Alchemist ✨**
+
+*Part of the [Composable Information Machine](https://github.com/TheCowboyAI/CIM) ecosystem*
+
+Built to succeed by [Cowboy AI, LLC](https://cowboy.ai)
+
+</div>
 
 
 
