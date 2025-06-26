@@ -2440,16 +2440,20 @@ dependencies = [
 name = "cim-domain-person"
 version = "0.3.0"
 dependencies = [
- "anyhow",
+ "async-nats 0.35.1",
  "async-trait",
+ "bevy_app",
+ "bevy_ecs",
  "chrono",
  "cim-domain",
  "cim-domain-location",
+ "futures",
  "pretty_assertions",
+ "regex",
  "rstest",
  "serde",
  "serde_json",
- "thiserror 2.0.12",
+ "thiserror 1.0.69",
  "tokio",
  "tokio-test",
  "tracing",

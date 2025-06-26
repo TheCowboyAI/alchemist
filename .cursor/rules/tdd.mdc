@@ -7,9 +7,9 @@ alwaysApply: true
 # STRICT TDD-DDD IMPLEMENTATION RULES
 
 ## Mandatory Testing Practices
-1. **Test-First Development** - Never write production code without failing test first[2][10]
-2. **Domain Isolation** - All domain logic tests MUST NOT contain Bevy/NATS dependencies[1][4]
-3. **Headless Execution** - All tests must run in BEVY_HEADLESS=1 mode with Wayland disabled[3][7]
+1. **Test-First Development** - Never write production code without failing test first
+2. **Domain Isolation** - All domain logic tests MUST NOT contain Bevy/NATS dependencies
+3. **Headless Execution** - All tests must run in BEVY_HEADLESS=1 mode with Wayland disabled
 4. **Test Coverage** - 95%+
 
 We operate on Events and Event Handlers.
@@ -92,9 +92,9 @@ cargo test --lib -- domain
 ```
 
 ## Verification Matrix
-| Test Type        | Execution Time | Must Pass |
-|------------------|----------------|-----------|
-| Unit (Domain)    | ,
+| Test Type     | Execution Time | Must Pass |
+| ------------- | -------------- | --------- |
+| Unit (Domain) | ,              |
     payload: JsonValue
 }
 ```
