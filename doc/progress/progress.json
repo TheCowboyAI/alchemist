@@ -5664,6 +5664,113 @@
           "/doc/plan/person-domain-implementation.md"
         ]
       }
+    },
+    {
+      "id": "cim-module-hierarchy-documentation",
+      "label": "CIM Module Hierarchy Documentation",
+      "type": "milestone",
+      "position": {
+        "x": 2050,
+        "y": 600,
+        "z": 0
+      },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-23",
+        "description": "Created comprehensive CIM module hierarchy documentation",
+        "details": [
+          "Documented 5-layer architecture (Core, Domain, Composition, Reasoning, Client)",
+          "Established 6 core abstractions: ipld, infrastructure, component, domain, bridge, subject",
+          "Defined module assembly patterns and dependencies",
+          "Created deployment topology diagram",
+          "Documented CQRS event flow and security model",
+          "Published to /doc/publish/architecture/cim-module-hierarchy.md"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-23",
+        "references": [
+          "/doc/publish/architecture/cim-module-hierarchy.md"
+        ]
+      }
+    },
+    {
+      "id": "cim-security-core-abstraction",
+      "label": "CIM Security Core Abstraction Design",
+      "type": "milestone",
+      "position": {
+        "x": 2075,
+        "y": 600,
+        "z": 0
+      },
+      "data": {
+        "status": "completed",
+        "date": "2025-06-23",
+        "description": "Designed cim-security as new 7th core abstraction",
+        "details": [
+          "Created comprehensive security abstraction design",
+          "Defined traits for crypto operations (Sign, Verify, Encrypt, Decrypt)",
+          "Designed claims-based authentication abstractions",
+          "Created secrets management interfaces",
+          "Added security policy and context abstractions",
+          "Established authentication/authorization patterns",
+          "Updated all documentation to reflect 7 core abstractions",
+          "cim-keys becomes implementation layer for cim-security"
+        ],
+        "progress": 100,
+        "completed_date": "2025-06-23",
+        "references": [
+          "/doc/design/cim-security-core-abstraction.md",
+          "/doc/design/core-abstractions-alignment.md",
+          "/doc/publish/architecture/cim-module-hierarchy.md"
+        ]
+      }
+    },
+    {
+      "id": "policy-domain-ecs-refactoring",
+      "title": "Policy Domain ECS Refactoring",
+      "description": "Refactor cim-domain-policy to use ECS architecture",
+      "status": "in-progress",
+      "progress": 85,
+      "created_at": "2025-01-03T00:00:00Z",
+      "updated_at": "2025-01-03T00:00:00Z",
+      "tasks": [
+        {
+          "id": "ecs-components",
+          "title": "Create ECS components",
+          "status": "completed",
+          "notes": "Created rules, approval, enforcement, authentication, and metadata components"
+        },
+        {
+          "id": "ecs-systems",
+          "title": "Implement ECS systems",
+          "status": "completed",
+          "notes": "Implemented all systems: policy lifecycle, approval workflow, enforcement, and authentication"
+        },
+        {
+          "id": "event-refactoring",
+          "title": "Refactor events for ECS",
+          "status": "completed",
+          "notes": "Added Bevy Event derives and fixed DomainEvent implementations"
+        },
+        {
+          "id": "command-handlers",
+          "title": "Update command handlers",
+          "status": "completed",
+          "notes": "Simplified handlers to match CQRS pattern"
+        },
+        {
+          "id": "fix-compilation",
+          "title": "Fix compilation issues",
+          "status": "in-progress",
+          "notes": "Fixing type conflicts, duplicate definitions, and import issues"
+        },
+        {
+          "id": "integration-tests",
+          "title": "Add integration tests",
+          "status": "pending",
+          "notes": "Need to create comprehensive tests for ECS implementation"
+        }
+      ]
     }
   ],
   "edges": [
@@ -6212,6 +6319,27 @@
       "target": "person-domain-phase4-implementation",
       "relationship": "enhanced_by",
       "label": "Person domain enhanced with query & projections system"
+    },
+    {
+      "id": "edge-workflow-completion-to-module-hierarchy",
+      "source": "project-100-percent-complete",
+      "target": "cim-module-hierarchy-documentation",
+      "relationship": "documented_by",
+      "label": "Complete project documented with module hierarchy"
+    },
+    {
+      "id": "edge-module-hierarchy-to-cim-overview",
+      "source": "cim-module-hierarchy-documentation",
+      "target": "cim-overview-documentation",
+      "relationship": "complemented_by",
+      "label": "Module hierarchy complemented by conceptual overview"
+    },
+    {
+      "id": "edge-cim-overview-to-core-abstractions-review",
+      "source": "cim-overview-documentation",
+      "target": "core-abstractions-review",
+      "relationship": "analyzed_by",
+      "label": "Overview leads to core abstractions review and alignment"
     }
   ],
   "milestones": [

@@ -42,6 +42,7 @@ members = [
   "cim-workflow-graph",
   "cim-domain-policy",
   "cim-keys",
+  "cim-security",
   "cim-bridge",
   # "cim-agent-alchemist", # Temporarily disabled due to API mismatches
   "bevy-patched/crates/*",
