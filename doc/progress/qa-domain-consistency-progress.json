@@ -1,0 +1,205 @@
+{
+    "metadata": {
+        "name": "QA Domain Consistency Progress",
+        "description": "Progress tracking for domain consistency improvements and documentation standardization",
+        "created": "2025-01-24T22:50:00-07:00",
+        "updated": "2025-01-24T23:30:00-07:00",
+        "version": "1.0.0"
+    },
+    "summary": {
+        "total_domains": 14,
+        "domains_with_complete_structure": 13,
+        "domains_with_api_docs": 1,
+        "domains_with_user_stories": 14,
+        "domains_with_examples": 8,
+        "domains_with_readme": 11,
+        "overall_consistency": "14%"
+    },
+    "domains": [
+        {
+            "name": "cim-domain-agent",
+            "structure": "complete",
+            "api_doc": "complete",
+            "user_stories": "complete",
+            "examples": "complete",
+            "readme": "complete",
+            "tests": 2,
+            "notes": "Fully documented with comprehensive API documentation"
+        },
+        {
+            "name": "cim-domain-bevy",
+            "structure": "non-standard",
+            "api_doc": "missing",
+            "user_stories": "missing",
+            "examples": "complete",
+            "readme": "complete",
+            "tests": 1,
+            "notes": "Non-DDD structure, may be intentional for Bevy integration"
+        },
+        {
+            "name": "cim-domain-conceptualspaces",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "complete",
+            "readme": "complete",
+            "tests": 2,
+            "notes": "README added during QA review"
+        },
+        {
+            "name": "cim-domain-dialog",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "missing",
+            "readme": "complete",
+            "tests": 1,
+            "notes": "README added during QA review"
+        },
+        {
+            "name": "cim-domain-document",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "missing",
+            "readme": "complete",
+            "tests": 1,
+            "notes": "README added during QA review"
+        },
+        {
+            "name": "cim-domain-git",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "missing",
+            "examples": "complete",
+            "readme": "complete",
+            "tests": 4,
+            "notes": "One of two fully consistent domains"
+        },
+        {
+            "name": "cim-domain-graph",
+            "structure": "missing-tests-dir",
+            "api_doc": "missing",
+            "user_stories": "missing",
+            "examples": "missing",
+            "readme": "complete",
+            "tests": 0,
+            "notes": "Missing tests directory"
+        },
+        {
+            "name": "cim-domain-identity",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "missing",
+            "readme": "complete",
+            "tests": 5,
+            "notes": "value_objects directory added during QA review (ECS refactored)"
+        },
+        {
+            "name": "cim-domain-location",
+            "structure": "incomplete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "missing",
+            "readme": "complete",
+            "tests": 1,
+            "notes": "Missing queries and projections directories"
+        },
+        {
+            "name": "cim-domain-nix",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "missing",
+            "examples": "complete",
+            "readme": "complete",
+            "tests": 5,
+            "notes": "One of two fully consistent domains"
+        },
+        {
+            "name": "cim-domain-organization",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "missing",
+            "readme": "complete",
+            "tests": 1,
+            "notes": ""
+        },
+        {
+            "name": "cim-domain-person",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "complete",
+            "readme": "complete",
+            "tests": 11,
+            "notes": "Has user stories in both standard and legacy locations"
+        },
+        {
+            "name": "cim-domain-policy",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "missing",
+            "readme": "complete",
+            "tests": 2,
+            "notes": "README added during QA review"
+        },
+        {
+            "name": "cim-domain-workflow",
+            "structure": "complete",
+            "api_doc": "missing",
+            "user_stories": "complete",
+            "examples": "complete",
+            "readme": "complete",
+            "tests": 2,
+            "notes": ""
+        }
+    ],
+    "improvements_made": {
+        "documentation": [
+            "Created QA review script (scripts/qa-domain-review.sh)",
+            "Generated comprehensive domain consistency report",
+            "Created documentation templates (user-stories.md, api.md)",
+            "Distributed existing user stories to all domains",
+            "Added API documentation for agent domain",
+            "Created README files for conceptualspaces, dialog, document, policy domains"
+        ],
+        "structure": [
+            "Added value_objects directory to identity domain",
+            "Created example for agent domain"
+        ],
+        "automation": [
+            "Created script to copy user stories (scripts/copy-user-stories.sh)",
+            "Created script to generate API docs (scripts/generate-api-docs.sh)"
+        ]
+    },
+    "next_steps": [
+        {
+            "priority": 1,
+            "task": "Generate API documentation for remaining 13 domains",
+            "effort": "1-2 days"
+        },
+        {
+            "priority": 2,
+            "task": "Create examples for 6 domains lacking them",
+            "effort": "2-3 days"
+        },
+        {
+            "priority": 3,
+            "task": "Fix structural issues in 3 domains",
+            "effort": "1 day",
+            "details": [
+                "cim-domain-bevy: Document non-standard structure or refactor",
+                "cim-domain-graph: Add tests directory",
+                "cim-domain-location: Add queries and projections"
+            ]
+        },
+        {
+            "priority": 4,
+            "task": "Add user stories for git and nix domains",
+            "effort": "0.5 days"
+        }
+    ]
+}
