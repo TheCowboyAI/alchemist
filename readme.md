@@ -76,8 +76,8 @@ At its heart, Alchemist is powered by CIM—a revolutionary architecture where:
 #### 🏢 **Business Leaders**
 Discover how Alchemist can transform your organization's understanding of data:
 - [Business Value Guide](doc/publish/business/) - ROI and strategic advantages
-- [Use Cases](doc/publish/business/use-cases.md) - Real-world applications
-- [Executive Summary](doc/publish/architecture/ipld-executive-summary.md) - High-level overview
+- [Use Cases](doc/publish/business/03-use-cases.md) - Real-world applications
+- [Executive Summary](doc/publish/business/executive-summary.md) - High-level overview
 
 #### 💻 **Developers**
 Build amazing things with Alchemist:

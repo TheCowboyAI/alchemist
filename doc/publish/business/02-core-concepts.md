@@ -1,8 +1,8 @@
-# Core Concepts: Understanding Information Alchemist
+# Core Concepts: Understanding Alchemist
 
 ## Visual Building Blocks for Your Business
 
-Information Alchemist transforms complex business data into visual, interactive elements that anyone can understand and manipulate. Let's explore the core concepts that make this possible.
+Alchemist transforms complex business data into visual, interactive elements that anyone can understand and manipulate. Let's explore the core concepts that make this possible.
 
 ## 1. The Graph: Your Business Map
 
@@ -75,7 +75,7 @@ graph TB
 
 ## 3. Conceptual Spaces: Smart Organization
 
-Information Alchemist uses "conceptual spaces" to intelligently organize your information. Imagine a 3D space where similar things naturally cluster together:
+Alchemist uses "conceptual spaces" to intelligently organize your information. Imagine a 3D space where similar things naturally cluster together:
 
 ```mermaid
 graph TD
@@ -102,7 +102,7 @@ graph TD
 
 ## 4. Event-Driven Intelligence
 
-Your business doesn't stand still, and neither does Information Alchemist. Every change in your business triggers an event that updates your visual landscape in real-time:
+Your business doesn't stand still, and neither does Alchemist. Every change in your business triggers an event that updates your visual landscape in real-time:
 
 ### Event Flow Example
 
@@ -200,7 +200,7 @@ graph TB
 Transform data into understanding through visual analysis:
 
 ### Layout Algorithms
-Information Alchemist automatically organizes your data for clarity:
+Alchemist automatically organizes your data for clarity:
 
 - **Force-Directed**: Related items naturally cluster together
 - **Hierarchical**: See organizational structures clearly
@@ -215,7 +215,7 @@ Information Alchemist automatically organizes your data for clarity:
 
 ## Putting It All Together
 
-Information Alchemist combines these concepts to create a powerful business intelligence platform:
+Alchemist combines these concepts to create a powerful business intelligence platform:
 
 1. **Import** your business data from multiple sources
 2. **Visualize** relationships automatically
@@ -238,7 +238,7 @@ graph LR
 
 ## Summary
 
-Information Alchemist makes the invisible visible. By transforming abstract business data into interactive visual landscapes, it empowers everyone in your organization to:
+Alchemist makes the invisible visible. By transforming abstract business data into interactive visual landscapes, it empowers everyone in your organization to:
 
 - **See** the complete picture
 - **Understand** complex relationships
@@ -246,8 +246,8 @@ Information Alchemist makes the invisible visible. By transforming abstract busi
 - **Make** better decisions
 - **Drive** business growth
 
-The future of business intelligence is visual, intuitive, and intelligent. Welcome to Information Alchemist.
+The future of business intelligence is visual, intuitive, and intelligent. Welcome to Alchemist.
 
 ---
 
-*Next: Learn about specific use cases and how Information Alchemist transforms different industries →*
+*Next: Learn about specific use cases and how Alchemist transforms different industries →*

@@ -1,12 +1,12 @@
-# Information Alchemist: Your Visual Gateway to Business Intelligence
+# Alchemist: Your Visual Gateway to Business Intelligence
 
 ## Transform Your Business with the Power of Visual Information Management
 
-Information Alchemist is the intuitive visual interface for the Composable Information Machine (CIM) - a revolutionary platform that transforms how businesses understand, organize, and leverage their information assets.
+Alchemist is the intuitive visual interface for the Composable Information Machine (CIM) - a revolutionary platform that transforms how businesses understand, organize, and leverage their information assets.
 
-## What is Information Alchemist?
+## What is Alchemist?
 
-Information Alchemist is a powerful graph visualization tool that makes complex business relationships visible and manageable. Think of it as a "Google Maps" for your business information - where you can see how customers, products, processes, and outcomes connect and influence each other.
+Alchemist is a powerful graph visualization tool that makes complex business relationships visible and manageable. Think of it as a "Google Maps" for your business information - where you can see how customers, products, processes, and outcomes connect and influence each other.
 
 ```mermaid
 graph TB
@@ -41,9 +41,9 @@ In today's data-driven world, businesses face several critical challenges:
 - **Slow Decision Making**: Lack of real-time insights delays critical business decisions
 - **Complex Analysis**: Understanding multi-dimensional business relationships requires technical expertise
 
-## The Information Alchemist Solution
+## The Alchemist Solution
 
-Information Alchemist transforms these challenges into competitive advantages:
+Alchemist transforms these challenges into competitive advantages:
 
 ### 1. **Visual Intelligence**
 See your entire business ecosystem in interactive 3D or 2D views. Zoom from high-level overviews down to specific details with a click.
@@ -81,7 +81,7 @@ AI-powered agents analyze your business patterns and suggest optimizations, oppo
 
 ## Proven Value Across Industries
 
-Information Alchemist delivers measurable value across diverse sectors:
+Alchemist delivers measurable value across diverse sectors:
 
 - **Document Management**: Streamline approval workflows and enhance compliance tracking
 - **Customer Relations**: Optimize relationship networks and improve account management
@@ -92,14 +92,14 @@ Information Alchemist delivers measurable value across diverse sectors:
 
 ## Getting Started is Simple
 
-1. **Connect Your Data**: Information Alchemist integrates with your existing systems
+1. **Connect Your Data**: Alchemist integrates with your existing systems
 2. **Visualize Instantly**: See your business relationships come to life
 3. **Discover Insights**: Let AI help you find patterns and opportunities
 4. **Take Action**: Make informed decisions based on clear visual evidence
 
 ## The Power of Composable Business
 
-Information Alchemist is built on CIM's composable architecture, meaning:
+Alchemist is built on CIM's composable architecture, meaning:
 
 - **Start Small**: Begin with one department or process
 - **Scale Naturally**: Expand as you see value
@@ -113,7 +113,7 @@ graph LR
         A2 -->|Results in| A3[Slow Change]
     end
 
-    subgraph "Information Alchemist Approach"
+    subgraph "Alchemist Approach"
         B1[Modular Components] -->|Enable| B2[Flexible Processes]
         B2 -->|Results in| B3[Rapid Innovation]
     end
@@ -126,10 +126,10 @@ graph LR
 
 Ready to transform how you see and manage your business information?
 
-1. **Schedule a Demo**: See Information Alchemist in action with your business scenarios
+1. **Schedule a Demo**: See Alchemist in action with your business scenarios
 2. **Start a Pilot**: Begin with a focused project to prove value
 3. **Scale Success**: Expand across your organization as you see results
 
 ---
 
-*Information Alchemist: Where Business Insight Meets Visual Intelligence*
+*Alchemist: Where Business Insight Meets Visual Intelligence*
