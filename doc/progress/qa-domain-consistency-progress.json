@@ -1,9 +1,9 @@
 {
     "metadata": {
         "name": "QA Domain Consistency Progress",
-        "description": "Progress tracking for domain consistency improvements and documentation standardization",
-        "created": "2025-01-24T22:50:00-07:00",
-        "updated": "2025-01-24T23:30:00-07:00",
+        "description": "Tracking progress on ensuring all refactored domains meet consistency standards",
+        "created": "2025-01-23",
+        "updated": "2025-01-23",
         "version": "1.0.0"
     },
     "summary": {
@@ -178,28 +178,52 @@
     "next_steps": [
         {
             "priority": 1,
-            "task": "Generate API documentation for remaining 13 domains",
-            "effort": "1-2 days"
+            "task": "Create API documentation for remaining 11 domains",
+            "domains": [
+                "bevy",
+                "conceptualspaces",
+                "dialog",
+                "document",
+                "graph",
+                "identity",
+                "location",
+                "organization",
+                "person",
+                "policy",
+                "workflow"
+            ]
         },
         {
             "priority": 2,
-            "task": "Create examples for 6 domains lacking them",
-            "effort": "2-3 days"
+            "task": "Add examples for remaining domains",
+            "domains": [
+                "bevy",
+                "graph",
+                "identity",
+                "location",
+                "organization"
+            ]
         },
         {
             "priority": 3,
-            "task": "Fix structural issues in 3 domains",
-            "effort": "1 day",
-            "details": [
-                "cim-domain-bevy: Document non-standard structure or refactor",
-                "cim-domain-graph: Add tests directory",
-                "cim-domain-location: Add queries and projections"
+            "task": "Fix structural issues",
+            "domains": [
+                "bevy",
+                "graph",
+                "location"
             ]
         },
         {
             "priority": 4,
-            "task": "Add user stories for git and nix domains",
-            "effort": "0.5 days"
+            "task": "Add missing README files",
+            "domains": [
+                "bevy",
+                "dialog"
+            ]
+        },
+        {
+            "priority": 5,
+            "task": "Run comprehensive tests on all domains"
         }
     ]
 }
