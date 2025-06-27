@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-01-24 - Identity Domain ECS Refactoring
+
+### Changed
+- **Identity Domain**: Complete refactoring to pure ECS architecture
+  - Removed all legacy non-ECS code for cleaner architecture
+  - Created comprehensive ECS components for identity, relationships, and workflows
+  - Implemented all systems: lifecycle, relationship, workflow, projection, and verification
+  - Built aggregate for business rule enforcement while leveraging ECS
+  - Created query operations for read-only access patterns
+  - Developed projection systems for optimized read models
+  - Fixed all compilation errors and warnings
+
+### Added
+- Comprehensive documentation suite for Identity domain
+  - User stories covering all identity domain functionality
+  - Complete API documentation with code examples
+  - Developer guide with architecture overview and integration patterns
+  - Working demo application showing complex verification workflows
+- Identity domain README with quick start guide
+
+### Infrastructure
+- Updated progress tracking to version 0.4.0
+- Successfully merged identity domain refactoring to main branch
+- 72 files changed, 10,880 insertions, 706 deletions
+
+### Previous Unreleased Changes
+
 ### Added
 - Comprehensive GitHub contributor infrastructure
 - EGALITARIAN Code of Conduct emphasizing merit-based contribution
