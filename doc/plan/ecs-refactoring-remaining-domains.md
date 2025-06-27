@@ -2,16 +2,16 @@
 
 ## Status Overview
 
-### ✅ Completed Domains (3/14)
+### ✅ Completed Domains (4/14)
 1. **cim-domain-identity** - 100% Complete
 2. **cim-domain-policy** - 100% Complete
 3. **cim-domain-bevy** - Already ECS (presentation layer)
+4. **cim-domain-graph** - 100% Complete (48 tests passing)
 
 ### 🔄 In Progress (1/14)
-4. **cim-domain-person** - Has ECS structure but needs verification
+5. **cim-domain-person** - Has ECS structure but needs verification
 
-### ❌ Not Started (10/14)
-5. **cim-domain-graph** - Has abstraction layer, needs ECS refactoring
+### ❌ Not Started (9/14)
 6. **cim-domain-organization** - Not started
 7. **cim-domain-location** - Not started
 8. **cim-domain-dialog** - Not started
