@@ -12,7 +12,7 @@ pkgs.mkShell {
     pkgs.pcsclite # Add pcscd daemon
     pkgs.pcsctools # PC/SC tools for testing
     pkgs.yubikey-manager # YubiKey management tools
-    gh
+    pkgs.gh
   ];
   buildInputs = with pkgs; [
     # Build tools
