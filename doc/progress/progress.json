@@ -5729,10 +5729,10 @@
       "id": "policy-domain-ecs-refactoring",
       "title": "Policy Domain ECS Refactoring",
       "description": "Refactor cim-domain-policy to use ECS architecture",
-      "status": "in-progress",
-      "progress": 85,
+      "status": "completed",
+      "progress": 100,
       "created_at": "2025-01-03T00:00:00Z",
-      "updated_at": "2025-01-03T00:00:00Z",
+      "updated_at": "2025-01-24T00:00:00Z",
       "tasks": [
         {
           "id": "ecs-components",
@@ -5761,14 +5761,14 @@
         {
           "id": "fix-compilation",
           "title": "Fix compilation issues",
-          "status": "in-progress",
-          "notes": "Fixing type conflicts, duplicate definitions, and import issues"
+          "status": "completed",
+          "notes": "Fixed type conflicts, duplicate definitions, and import issues - domain now compiles successfully"
         },
         {
           "id": "integration-tests",
           "title": "Add integration tests",
-          "status": "pending",
-          "notes": "Need to create comprehensive tests for ECS implementation"
+          "status": "completed",
+          "notes": "7 comprehensive integration tests covering all systems"
         }
       ]
     },
