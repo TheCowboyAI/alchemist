@@ -31,6 +31,11 @@ pkgs.rustPlatform.buildRustPackage rec {
     makeWrapper
   ];
 
+  packages = [
+    nativeBuildInputs
+    gh
+  ];
+
   # Production build flags - build without dynamic linking to avoid Bevy 0.16.1 issues
   cargoBuildFlags = "";
 
