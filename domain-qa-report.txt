@@ -1,0 +1,421 @@
+=== CIM Domain QA Review ===
+Date: Thu Jun 26 10:49:59 PM MST 2025
+
+find: warning: you have specified the global option -maxdepth after the argument -name, but global options are not positional, i.e., -maxdepth affects tests specified before it as well as those specified after it.  Please specify global options before other arguments.
+Checking domain structure consistency...
+========================================
+
+Checking: cim-domain-agent
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;31m✗[0m examples (missing)
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 2 test files
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-bevy
+----------------------------
+[0;31m✗[0m src/aggregate (missing)
+[0;31m✗[0m src/commands (missing)
+[0;31m✗[0m src/events (missing)
+[0;31m✗[0m src/handlers (missing)
+[0;31m✗[0m src/value_objects (missing)
+[0;31m✗[0m src/queries (missing)
+[0;31m✗[0m src/projections (missing)
+[0;32m✓[0m tests
+[0;32m✓[0m examples
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 1 test files
+[0;32m✓[0m Examples found: 5 example files
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-conceptualspaces
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;32m✓[0m examples
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;31m✗[0m README.md (missing)
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 2 test files
+[0;32m✓[0m Examples found: 1 example files
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-dialog
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;31m✗[0m examples (missing)
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;31m✗[0m README.md (missing)
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 1 test files
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-document
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;31m✗[0m examples (missing)
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;31m✗[0m README.md (missing)
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 1 test files
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-git
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;32m✓[0m examples
+[0;32m✓[0m doc
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 4 test files
+[0;32m✓[0m Examples found: 1 example files
+[0;32mDomain structure complete![0m
+
+Checking: cim-domain-graph
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;31m✗[0m tests (missing)
+[0;31m✗[0m examples (missing)
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[1;33m⚠[0m No test files found
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-identity
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;31m✗[0m src/value_objects (missing)
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;31m✗[0m examples (missing)
+[0;32m✓[0m doc
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 5 test files
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-location
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;31m✗[0m src/queries (missing)
+[0;31m✗[0m src/projections (missing)
+[0;32m✓[0m tests
+[0;31m✗[0m examples (missing)
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 1 test files
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-nix
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;32m✓[0m examples
+[0;32m✓[0m doc
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 5 test files
+[0;32m✓[0m Examples found: 11 example files
+[0;32mDomain structure complete![0m
+
+Checking: cim-domain-organization
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;31m✗[0m examples (missing)
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 1 test files
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-person
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;32m✓[0m examples
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 11 test files
+[0;32m✓[0m Examples found: 1 example files
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-policy
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;31m✗[0m examples (missing)
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;31m✗[0m README.md (missing)
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 2 test files
+[1;33m⚠[0m No example files found
+[0;31mDomain structure incomplete![0m
+
+Checking: cim-domain-workflow
+----------------------------
+[0;32m✓[0m src/aggregate
+[0;32m✓[0m src/commands
+[0;32m✓[0m src/events
+[0;32m✓[0m src/handlers
+[0;32m✓[0m src/value_objects
+[0;32m✓[0m src/queries
+[0;32m✓[0m src/projections
+[0;32m✓[0m tests
+[0;32m✓[0m examples
+[0;31m✗[0m doc (missing)
+[0;32m✓[0m src/lib.rs
+[0;32m✓[0m Cargo.toml
+[0;32m✓[0m README.md
+[1;33m⚠[0m doc/user-stories.md (missing documentation)
+[1;33m⚠[0m doc/api.md (missing documentation)
+[0;32m✓[0m Tests found: 2 test files
+[0;32m✓[0m Examples found: 1 example files
+[0;31mDomain structure incomplete![0m
+
+========================================
+Summary:
+Total domains: 14
+Complete domains: 2
+Incomplete domains: 12
+
+Missing items by domain:
+
+
+cim-domain-agent:
+  - examples
+  - doc
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-bevy:
+  - src/aggregate
+  - src/commands
+  - src/events
+  - src/handlers
+  - src/value_objects
+  - src/queries
+  - src/projections
+  - doc
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-conceptualspaces:
+  - doc
+  - README.md
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-dialog:
+  - examples
+  - doc
+  - README.md
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-document:
+  - examples
+  - doc
+  - README.md
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-graph:
+  - tests
+  - examples
+  - doc
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-identity:
+  - src/value_objects
+  - examples
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-location:
+  - src/queries
+  - src/projections
+  - examples
+  - doc
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-organization:
+  - examples
+  - doc
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-person:
+  - doc
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-policy:
+  - examples
+  - doc
+  - README.md
+  - doc/user-stories.md
+  - doc/api.md
+
+cim-domain-workflow:
+  - doc
+  - doc/user-stories.md
+  - doc/api.md
+
+========================================
+Cross-Domain Consistency Checks:
+
+Checking naming conventions...
+
+conceptualspaces commands:
+  - add_concept.rs
+  - add_region.rs
+  - create_space.rs
+  - update_weights.rs
+
+location commands:
+  - commands.rs
+
+organization commands:
+  - component_commands.rs
+
+person commands:
+  - component_commands.rs
+
+policy commands:
+  - authentication.rs
+
+workflow commands:
+  - step_commands.rs
+  - workflow_commands.rs
+
+========================================
+QA Review Complete!
