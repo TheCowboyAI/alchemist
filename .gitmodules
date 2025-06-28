@@ -84,3 +84,6 @@
 [submodule "cim-agent-alchemist"]
 	path = cim-agent-alchemist
 	url = https://github.com/TheCowboyAI/cim-agent-alchemist.git
+[submodule "cim-security"]
+	path = cim-security
+	url = https://github.com/TheCowboyAI/cim-security.git
