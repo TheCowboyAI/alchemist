@@ -2224,10 +2224,13 @@ name = "cim-domain-agent"
 version = "0.3.0"
 dependencies = [
  "async-trait",
+ "bevy_app",
+ "bevy_ecs",
  "chrono",
  "cim-domain",
  "cim-subject",
  "pretty_assertions",
+ "semver",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
