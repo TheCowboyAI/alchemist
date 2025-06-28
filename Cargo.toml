@@ -2,7 +2,7 @@
 name = "ia"
 authors = ["CowboyAI"]
 description = "Information Alchemist - AI-Powered Graph Editor"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2024"
 exclude = ["examples/"]
 

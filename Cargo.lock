@@ -4748,7 +4748,7 @@ dependencies = [
 
 [[package]]
 name = "ia"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "async-nats 0.41.0",

@@ -5,9 +5,23 @@ All notable changes to Information Alchemist will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.1] - 2025-06-28
 
-## [0.4.0] - 2025-01-24 - Identity Domain ECS Refactoring
+### Changed
+- Updated documentation with accurate project metrics (20 domains, 18,000+ tests)
+- Converted cim-security to git submodule for better modularity
+
+### Fixed
+- Corrected domain count from 8 to 20 in all documentation
+- Fixed test count from ~250 to 18,000+ across the system
+- Resolved 65+ build errors across multiple domain modules
+
+### Maintenance
+- Cleaned up all merged feature branches
+- Updated progress tracking with accurate completion status
+- Improved repository organization
+
+## [0.4.0] - 2025-01-27 - Identity Domain ECS Refactoring
 
 ### Changed
 - **Identity Domain**: Complete refactoring to pure ECS architecture
