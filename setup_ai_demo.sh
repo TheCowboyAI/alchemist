@@ -1,0 +1,28 @@
+#!/bin/bash
+
+echo "=== CIM 3D Chat Interface Setup ==="
+echo ""
+echo "To use real AI providers, you need to set up API keys:"
+echo ""
+echo "Option 1: Claude (Anthropic)"
+echo "  export ANTHROPIC_API_KEY='your-api-key-here'"
+echo ""
+echo "Option 2: OpenAI"
+echo "  export OPENAI_API_KEY='your-api-key-here'"
+echo ""
+echo "Option 3: Ollama (local)"
+echo "  1. Install Ollama: curl -fsSL https://ollama.com/install.sh | sh"
+echo "  2. Start Ollama: ollama serve"
+echo "  3. Pull a model: ollama pull llama2:7b"
+echo "  4. Set environment: export OLLAMA_HOST='http://localhost:11434'"
+echo ""
+echo "After setting up your preferred provider, run:"
+echo "  cargo run --package cim-domain-agent --example bevy_3d_chat_interface --features \"all-ai-providers\""
+echo ""
+echo "The demo will automatically detect which provider is available."
+echo ""
+echo "For now, running with Mock provider..."
+echo ""
+
+# Run with mock provider
+cargo run --package cim-domain-agent --example bevy_3d_chat_interface --features "all-ai-providers"

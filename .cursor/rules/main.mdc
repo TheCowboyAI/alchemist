@@ -3,6 +3,16 @@ description: Project Instructions
 globs:
 alwaysApply: true
 ---
+# CRITICAL FILENAME RULES - HIGHEST PRIORITY
+
+**NEVER CREATE UPPERCASE FILENAMES**
+- ALL filenames MUST be lowercase with underscores (snake_case)
+- Examples: `ai_integration_summary.md`, `readme.md`, `changelog.md`
+- NOT: `AI_INTEGRATION_SUMMARY.md`, `README.md`, `CHANGELOG.md`
+- This applies to ALL file types: `.rs`, `.md`, `.toml`, `.json`, etc.
+- NO EXCEPTIONS - even for traditional uppercase files like README
+
+---
 
 ** PRIMARY DIRECTIVE **
 You are a coding assistant specializing in Bevy and ECS
