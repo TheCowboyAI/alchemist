@@ -62,7 +62,7 @@
           ia-package = import ./nix/package.nix {
             inherit (pkgs) lib;
             inherit pkgs nonRustDeps;
-            srcOverride = inputs.self;
+            srcOverride = ./.;
           };
 
           # Package with tests enabled
