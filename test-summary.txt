@@ -1,0 +1,60 @@
+=== Comprehensive Domain Test Summary ===
+
+--- cim-domain-agent/ ---
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+warning: unused import: `Vec3`
+
+--- cim-domain-bevy/ ---
+error[E0433]: failed to resolve: use of undeclared type `NodeId`
+error[E0412]: cannot find type `Color` in this scope
+error[E0412]: cannot find type `Visibility` in this scope
+
+--- cim-domain-conceptualspaces/ ---
+warning: unused import: `ConceptualSpaceId`
+warning: field `category_formation` is never read
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- cim-domain-dialog/ ---
+warning: field `category_formation` is never read
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- cim-domain-document/ ---
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- cim-domain-git/ ---
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+warning: unused import: `Vec3`
+
+--- cim-domain-graph/ ---
+test result: ok. 100 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+--- cim-domain-identity/ ---
+warning: field `category_formation` is never read
+warning: unused variable: `data`
+warning: unused import: `AggregateRoot`
+
+--- cim-domain-location/ ---
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- cim-domain-nix/ ---
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+warning: unused import: `Vec3`
+
+--- cim-domain-organization/ ---
+test result: ok. 56 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+--- cim-domain-person/ ---
+warning: unused variable: `data`
+warning: unused import: `AggregateRoot`
+warning: field `person_repository` is never read
+
+--- cim-domain-policy/ ---
+warning: unused import: `crate::components::*`
+warning: unused import: `crate::events::*`
+warning: unused import: `crate::components::*`
+
+--- cim-domain-workflow/ ---
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
