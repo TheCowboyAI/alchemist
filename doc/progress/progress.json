@@ -119,9 +119,9 @@
       "tests": "unknown"
     },
     "document": {
-      "status": "ENHANCED",
-      "progress": 60,
-      "tests": 18,
+      "status": "ADVANCED",
+      "progress": 80,
+      "tests": 34,
       "features": [
         "Core commands implemented",
         "Value objects defined",
@@ -130,7 +130,13 @@
         "Versioning system added",
         "Collaboration features implemented",
         "Document linking supported",
-        "Comprehensive integration tests"
+        "Comprehensive integration tests",
+        "Content intelligence services",
+        "Entity extraction (NER)",
+        "Document summarization",
+        "Multi-category classification",
+        "Merge and conflict resolution",
+        "Version rollback capability"
       ]
     },
     "nix": {
@@ -276,8 +282,8 @@
     "impact": "minimal"
   },
   "metrics": {
-    "total_tests": 452,
-    "passing_tests": 452,
+    "total_tests": 468,
+    "passing_tests": 468,
     "code_files": 450,
     "documentation_files": 125,
     "domains_complete": 14,
@@ -344,6 +350,11 @@
       "date": "2025-07-02",
       "change": "Major Document domain enhancements with versioning and collaboration",
       "impact": "Added ForkDocument, TagVersion, AddComment, LinkDocuments commands; 18 total tests (was 5); progress 40% → 60%"
+    },
+    {
+      "date": "2025-07-02",
+      "change": "Content intelligence services added to Document domain",
+      "impact": "Entity extraction, summarization, classification, merge/rollback; 34 total tests (was 18); progress 60% → 80%"
     }
   ],
   "validation": {
