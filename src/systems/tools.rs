@@ -1,9 +1,9 @@
 //! Tool management systems
 
-use bevy::prelude::*;
-use bevy_app::prelude::*;
 use crate::components::*;
 use crate::events::*;
+use bevy::prelude::*;
+use bevy_app::prelude::*;
 use uuid::Uuid;
 
 /// System for enabling/disabling agent tools
@@ -22,7 +22,8 @@ pub fn toggle_tools_system(
     mut disabled_events: EventWriter<AgentToolsDisabled>,
 ) {
     for toggle_cmd in toggle_commands.read() {
-        let agent_found = agent_query.iter_mut()
+        let agent_found = agent_query
+            .iter_mut()
             .find(|(entity, _)| entity.agent_id == toggle_cmd.agent_id);
 
         if let Some((_, mut tool_access)) = agent_found {
@@ -54,4 +55,4 @@ pub struct ToggleToolCommand {
     pub agent_id: Uuid,
     pub tool_id: String,
     pub enable: bool,
-} 
+}

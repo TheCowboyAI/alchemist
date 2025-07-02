@@ -10,8 +10,7 @@ pub mod analysis_result;
 
 pub use ai_capabilities::{AICapabilities, AnalysisCapability, ModelParameters};
 pub use analysis_result::{
-    AnalysisResult, Recommendation, RecommendedAction, 
-    Insight, Impact, Priority, EffortLevel
+    AnalysisResult, EffortLevel, Impact, Insight, Priority, Recommendation, RecommendedAction,
 };
 
 // Note: The types below are defined in this module, so they're automatically available
@@ -206,4 +205,4 @@ pub struct Position3D {
     pub y: f32,
     /// Z coordinate
     pub z: f32,
-} 
+}

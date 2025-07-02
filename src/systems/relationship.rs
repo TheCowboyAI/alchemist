@@ -1,17 +1,17 @@
 //! Identity relationship systems
 
 use bevy::prelude::*;
-use uuid::Uuid;
 use std::time::SystemTime;
+use uuid::Uuid;
 
 use crate::{
-    components::{
-        IdentityEntity, IdentityRelationship,
-    },
-    value_objects::RelationshipType,
-    events::{RelationshipEstablished, RelationshipValidated, RelationshipExpired},
-    commands::{EstablishRelationshipCommand, ValidateRelationshipCommand, ExpireRelationshipCommand},
     aggregate::IdentityAggregate,
+    commands::{
+        EstablishRelationshipCommand, ExpireRelationshipCommand, ValidateRelationshipCommand,
+    },
+    components::{IdentityEntity, IdentityRelationship},
+    events::{RelationshipEstablished, RelationshipExpired, RelationshipValidated},
+    value_objects::RelationshipType,
 };
 
 /// System to establish relationships between identities
@@ -34,9 +34,9 @@ pub fn establish_relationship_system(
 
         // Check for duplicate relationships
         let duplicate = existing_relationships.iter().any(|r| {
-            r.source_identity == event.source_identity &&
-            r.target_identity == event.target_identity &&
-            r.relationship_type == event.relationship_type
+            r.source_identity == event.source_identity
+                && r.target_identity == event.target_identity
+                && r.relationship_type == event.relationship_type
         });
 
         if duplicate {
@@ -88,12 +88,14 @@ pub fn validate_relationship_system(
     identities: Query<&IdentityEntity>,
 ) {
     for event in events.read() {
-        if let Some(relationship) = relationships.iter()
-            .find(|r| r.id == event.relationship_id)
-        {
+        if let Some(relationship) = relationships.iter().find(|r| r.id == event.relationship_id) {
             // Check if both identities still exist
-            let source_exists = identities.iter().any(|i| i.id == relationship.source_identity);
-            let target_exists = identities.iter().any(|i| i.id == relationship.target_identity);
+            let source_exists = identities
+                .iter()
+                .any(|i| i.id == relationship.source_identity);
+            let target_exists = identities
+                .iter()
+                .any(|i| i.id == relationship.target_identity);
 
             let is_valid = source_exists && target_exists;
 
@@ -116,13 +118,20 @@ pub fn traverse_relationships_system(
     relationships: Query<&IdentityRelationship>,
     identities: Query<&IdentityEntity>,
 ) -> Vec<(Uuid, Uuid, RelationshipType)> {
-    relationships.iter()
+    relationships
+        .iter()
         .filter(|r| {
             // Only include relationships where both identities exist
-            identities.iter().any(|i| i.id == r.source_identity) &&
-            identities.iter().any(|i| i.id == r.target_identity)
+            identities.iter().any(|i| i.id == r.source_identity)
+                && identities.iter().any(|i| i.id == r.target_identity)
         })
-        .map(|r| (r.source_identity, r.target_identity, r.relationship_type.clone()))
+        .map(|r| {
+            (
+                r.source_identity,
+                r.target_identity,
+                r.relationship_type.clone(),
+            )
+        })
         .collect()
 }
 
@@ -136,12 +145,12 @@ pub fn expire_relationships_system(
     // Only check for expiration periodically to improve performance
     let check_interval = 5.0; // Check every 5 seconds
     let elapsed = time.elapsed_secs();
-    
+
     // Skip if not time to check
     if elapsed % check_interval > time.delta_secs() {
         return;
     }
-    
+
     let current_time = SystemTime::now();
 
     for (entity, relationship) in relationships.iter() {
@@ -149,13 +158,15 @@ pub fn expire_relationships_system(
             if current_time > expires_at {
                 // Remove the expired relationship
                 commands.entity(entity).despawn();
-                
+
                 // Emit expiration event
                 expired_events.write(RelationshipExpired {
                     relationship_id: relationship.id,
                     expired_at: current_time,
-                    reason: format!("Expired after {} seconds", 
-                        current_time.duration_since(relationship.established_at)
+                    reason: format!(
+                        "Expired after {} seconds",
+                        current_time
+                            .duration_since(relationship.established_at)
                             .unwrap_or_default()
                             .as_secs()
                     ),
@@ -163,4 +174,4 @@ pub fn expire_relationships_system(
             }
         }
     }
-} 
+}

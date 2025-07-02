@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 use ia::{
     graph::GraphState,
-    plugins::{AgentIntegrationPlugin, AgentUiPlugin, NatsEventBridgePlugin, GraphEditorPlugin},
+    plugins::{AgentIntegrationPlugin, AgentUiPlugin, GraphEditorPlugin, NatsEventBridgePlugin},
     simple_agent::SimpleAgentPlugin,
     workflow::WorkflowState,
 };

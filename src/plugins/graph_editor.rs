@@ -1,14 +1,14 @@
 //! Graph Editor Plugin - Complete graph editing functionality
 
-use bevy::prelude::*;
-use bevy_egui::{egui, EguiContexts};
 use crate::{
-    components::{NodeEntity, EdgeEntity, Selected},
-    events::{NodeAdded, EdgeAdded, NodeRemoved, EdgeRemoved},
-    value_objects::{NodeId, EdgeId, GraphId, Position3D, NodeType, EdgeRelationship},
+    components::{EdgeEntity, NodeEntity, Selected},
+    events::{EdgeAdded, EdgeRemoved, NodeAdded, NodeRemoved},
+    value_objects::{EdgeId, EdgeRelationship, GraphId, NodeId, NodeType, Position3D},
 };
-use uuid::Uuid;
+use bevy::prelude::*;
+use bevy_egui::{EguiContexts, egui};
 use tracing::{info, warn};
+use uuid::Uuid;
 
 /// Plugin for graph editing functionality
 pub struct GraphEditorPlugin;
@@ -31,23 +31,26 @@ impl Plugin for GraphEditorPlugin {
             .add_event::<EdgeRemoved>()
             // Systems
             .add_systems(Startup, setup_graph_editor)
-            .add_systems(Update, (
-                // Input handling
-                handle_mouse_input,
-                handle_keyboard_input,
-                // Graph operations
-                create_nodes_system,
-                create_edges_system,
-                delete_selected_system,
-                // Selection
-                update_selection_system,
-                // Statistics must run before UI
-                update_graph_stats,
-                // Visualization
-                visualize_nodes,
-                visualize_edges,
-                highlight_selected,
-            ))
+            .add_systems(
+                Update,
+                (
+                    // Input handling
+                    handle_mouse_input,
+                    handle_keyboard_input,
+                    // Graph operations
+                    create_nodes_system,
+                    create_edges_system,
+                    delete_selected_system,
+                    // Selection
+                    update_selection_system,
+                    // Statistics must run before UI
+                    update_graph_stats,
+                    // Visualization
+                    visualize_nodes,
+                    visualize_edges,
+                    highlight_selected,
+                ),
+            )
             // UI runs separately to ensure proper ordering
             .add_systems(Update, render_graph_ui);
     }
@@ -148,13 +151,13 @@ fn handle_mouse_input(
     mut create_edge_events: EventWriter<CreateEdgeCommand>,
     nodes: Query<(Entity, &Transform), With<NodeEntity>>,
 ) {
-    let Ok(window) = windows.single() else { 
+    let Ok(window) = windows.single() else {
         warn!("No window found");
-        return; 
+        return;
     };
-    let Ok((camera, camera_transform)) = cameras.single() else { 
+    let Ok((camera, camera_transform)) = cameras.single() else {
         warn!("No camera found");
-        return; 
+        return;
     };
 
     if let Some(cursor_position) = window.cursor_position() {
@@ -162,7 +165,7 @@ fn handle_mouse_input(
         if mouse_button.just_pressed(MouseButton::Left) {
             info!("Mouse clicked at screen position: {:?}", cursor_position);
         }
-        
+
         // Convert screen position to world position
         if let Ok(ray) = camera.viewport_to_world(camera_transform, cursor_position) {
             // Project onto XZ plane (Y=0)
@@ -172,15 +175,15 @@ fn handle_mouse_input(
                 10.0 // Default distance if ray is parallel to plane
             };
             let world_position = ray.origin + ray.direction * distance;
-            
+
             if mouse_button.just_pressed(MouseButton::Left) {
                 info!("World position: {:?}", world_position);
             }
-            
+
             // Find entity under cursor
             let mut closest_entity = None;
             let mut closest_distance = f32::MAX;
-            
+
             for (entity, transform) in nodes.iter() {
                 let distance = transform.translation.distance(world_position);
                 if distance < 0.5 && distance < closest_distance {
@@ -188,9 +191,9 @@ fn handle_mouse_input(
                     closest_distance = distance;
                 }
             }
-            
+
             editor_state.hover_entity = closest_entity;
-            
+
             // Handle mouse clicks based on mode
             if mouse_button.just_pressed(MouseButton::Left) {
                 info!("Current mode: {:?}", editor_state.mode);
@@ -218,7 +221,7 @@ fn handle_mouse_input(
                         } else {
                             world_position
                         };
-                        
+
                         create_node_events.write(CreateNodeCommand {
                             position,
                             node_type: NodeType::Process,
@@ -247,7 +250,7 @@ fn handle_mouse_input(
                     }
                 }
             }
-            
+
             // Cancel edge creation on right click
             if mouse_button.just_pressed(MouseButton::Right) {
                 editor_state.dragging_from = None;
@@ -266,7 +269,7 @@ fn handle_keyboard_input(
     for key in keyboard.get_just_pressed() {
         info!("Key pressed: {:?}", key);
     }
-    
+
     // Mode switching
     if keyboard.just_pressed(KeyCode::KeyS) {
         info!("Switching to Select mode");
@@ -284,17 +287,17 @@ fn handle_keyboard_input(
     if keyboard.just_pressed(KeyCode::KeyD) {
         editor_state.mode = EditorMode::Delete;
     }
-    
+
     // Grid snap toggle
     if keyboard.just_pressed(KeyCode::KeyG) {
         editor_state.grid_snap = !editor_state.grid_snap;
     }
-    
+
     // Delete selected
     if keyboard.just_pressed(KeyCode::Delete) {
         delete_events.write(DeleteSelectedCommand);
     }
-    
+
     // Select all
     if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::KeyA) {
         // This would need to be implemented
@@ -312,21 +315,23 @@ fn create_nodes_system(
     for event in create_events.read() {
         let node_id = NodeId(Uuid::new_v4());
         let graph_id = GraphId(Uuid::new_v4()); // Should come from current graph
-        
+
         // Spawn visual representation
-        let entity = commands.spawn((
-            NodeEntity { node_id, graph_id },
-            Mesh3d(meshes.add(Sphere::new(0.3).mesh())),
-            MeshMaterial3d(materials.add(StandardMaterial {
-                base_color: Color::srgb(0.2, 0.5, 0.8),
-                ..default()
-            })),
-            Transform::from_translation(event.position),
-        )).id();
-        
+        let entity = commands
+            .spawn((
+                NodeEntity { node_id, graph_id },
+                Mesh3d(meshes.add(Sphere::new(0.3).mesh())),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: Color::srgb(0.2, 0.5, 0.8),
+                    ..default()
+                })),
+                Transform::from_translation(event.position),
+            ))
+            .id();
+
         // Store entity reference for future operations
         info!("Created node entity {:?} for node {:?}", entity, node_id);
-        
+
         // Emit domain event
         node_events.write(NodeAdded {
             node_id,
@@ -339,7 +344,7 @@ fn create_nodes_system(
             },
             metadata: Default::default(),
         });
-        
+
         info!("Created node {:?} at {:?}", node_id, event.position);
     }
 }
@@ -354,24 +359,24 @@ fn create_edges_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in create_events.read() {
-        if let (Ok((source_node, source_transform)), Ok((target_node, target_transform))) = 
-            (nodes.get(event.source), nodes.get(event.target)) 
+        if let (Ok((source_node, source_transform)), Ok((target_node, target_transform))) =
+            (nodes.get(event.source), nodes.get(event.target))
         {
             let edge_id = EdgeId(Uuid::new_v4());
-            
+
             // Calculate edge position and rotation
             let start = source_transform.translation;
             let end = target_transform.translation;
             let direction = end - start;
             let distance = direction.length();
             let midpoint = start + direction * 0.5;
-            
+
             // Create cylinder mesh for edge
             let mesh = meshes.add(Cylinder::new(0.05, distance).mesh());
-            
+
             // Calculate rotation to align cylinder
             let rotation = Quat::from_rotation_arc(Vec3::Y, direction.normalize());
-            
+
             // Spawn edge entity
             commands.spawn((
                 EdgeEntity {
@@ -386,7 +391,7 @@ fn create_edges_system(
                 })),
                 Transform::from_translation(midpoint).with_rotation(rotation),
             ));
-            
+
             // Emit domain event
             edge_events.write(EdgeAdded {
                 edge_id,
@@ -395,8 +400,11 @@ fn create_edges_system(
                 target: target_node.node_id,
                 relationship: EdgeRelationship::Connects,
             });
-            
-            info!("Created edge from {:?} to {:?}", source_node.node_id, target_node.node_id);
+
+            info!(
+                "Created edge from {:?} to {:?}",
+                source_node.node_id, target_node.node_id
+            );
         }
     }
 }
@@ -422,7 +430,7 @@ fn delete_selected_system(
                 commands.entity(entity).despawn();
                 info!("Deleted node {:?}", node.node_id);
             }
-            
+
             // Check if it's an edge
             if let Ok(edge) = edges.get(entity) {
                 edge_events.write(EdgeRemoved {
@@ -433,7 +441,7 @@ fn delete_selected_system(
                 info!("Deleted edge {:?}", edge.edge_id);
             }
         }
-        
+
         editor_state.selected_entities.clear();
     }
 }
@@ -468,57 +476,69 @@ fn render_graph_ui(
     if frame_counter.count < 3 {
         return;
     }
-    
+
     let ctx = contexts.ctx_mut();
-    
+
     egui::Window::new("Graph Editor")
         .default_pos(egui::Pos2::new(10.0, 10.0))
         .show(ctx, |ui| {
             ui.heading("Graph Editor Controls");
-            
+
             ui.separator();
-            
+
             // Mode selection
             ui.label("Mode:");
             ui.horizontal(|ui| {
-                if ui.selectable_label(editor_state.mode == EditorMode::Select, "Select (S)").clicked() {
+                if ui
+                    .selectable_label(editor_state.mode == EditorMode::Select, "Select (S)")
+                    .clicked()
+                {
                     info!("UI: Switching to Select mode");
                     editor_state.mode = EditorMode::Select;
                     editor_state.dragging_from = None;
                 }
-                if ui.selectable_label(editor_state.mode == EditorMode::CreateNode, "Node (N)").clicked() {
+                if ui
+                    .selectable_label(editor_state.mode == EditorMode::CreateNode, "Node (N)")
+                    .clicked()
+                {
                     info!("UI: Switching to CreateNode mode");
                     editor_state.mode = EditorMode::CreateNode;
                     editor_state.dragging_from = None;
                 }
-                if ui.selectable_label(editor_state.mode == EditorMode::CreateEdge, "Edge (E)").clicked() {
+                if ui
+                    .selectable_label(editor_state.mode == EditorMode::CreateEdge, "Edge (E)")
+                    .clicked()
+                {
                     info!("UI: Switching to CreateEdge mode");
                     editor_state.mode = EditorMode::CreateEdge;
                 }
-                if ui.selectable_label(editor_state.mode == EditorMode::Delete, "Delete (D)").clicked() {
+                if ui
+                    .selectable_label(editor_state.mode == EditorMode::Delete, "Delete (D)")
+                    .clicked()
+                {
                     info!("UI: Switching to Delete mode");
                     editor_state.mode = EditorMode::Delete;
                 }
             });
-            
+
             ui.separator();
-            
+
             // Grid settings
             ui.checkbox(&mut editor_state.grid_snap, "Grid Snap (G)");
             if editor_state.grid_snap {
                 ui.add(egui::Slider::new(&mut editor_state.grid_size, 0.1..=2.0).text("Grid Size"));
             }
-            
+
             ui.separator();
-            
+
             // Statistics
             ui.label("Graph Statistics:");
             ui.label(format!("Nodes: {}", graph_stats.node_count));
             ui.label(format!("Edges: {}", graph_stats.edge_count));
             ui.label(format!("Selected: {}", graph_stats.selected_count));
-            
+
             ui.separator();
-            
+
             // Help
             ui.collapsing("Help", |ui| {
                 ui.label("S - Select mode");
@@ -556,10 +576,11 @@ fn visualize_nodes(
             // Adjust material properties based on node position
             let height_factor = (transform.translation.y + 5.0) / 10.0;
             let brightness = height_factor.clamp(0.5, 1.0);
-            
+
             // Only update if not selected (selected nodes have their own color)
             if material.base_color != Color::srgb(1.0, 0.8, 0.2) {
-                material.base_color = Color::srgb(0.2 * brightness, 0.5 * brightness, 0.8 * brightness);
+                material.base_color =
+                    Color::srgb(0.2 * brightness, 0.5 * brightness, 0.8 * brightness);
             }
         }
     }
@@ -575,7 +596,7 @@ fn visualize_edges(
         // Find source and target nodes
         let mut source_pos = None;
         let mut target_pos = None;
-        
+
         for (node, node_transform) in nodes.iter() {
             if node.node_id == edge.source {
                 source_pos = Some(node_transform.translation);
@@ -584,21 +605,21 @@ fn visualize_edges(
                 target_pos = Some(node_transform.translation);
             }
         }
-        
+
         // Update edge position and rotation if both nodes found
         if let (Some(start), Some(end)) = (source_pos, target_pos) {
             let direction = end - start;
             let distance = direction.length();
             let midpoint = start + direction * 0.5;
-            
+
             // Update position
             edge_transform.translation = midpoint;
-            
+
             // Update rotation to align with new direction
             if distance > 0.001 {
                 edge_transform.rotation = Quat::from_rotation_arc(Vec3::Y, direction.normalize());
             }
-            
+
             // Update scale to match new distance
             edge_transform.scale.y = distance;
         }
@@ -642,4 +663,4 @@ fn setup_graph_editor(
         })),
         Transform::from_xyz(0.0, -0.01, 0.0),
     ));
-} 
+}

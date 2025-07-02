@@ -2,9 +2,9 @@
 
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use std::time::SystemTime;
 use std::collections::HashMap;
+use std::time::SystemTime;
+use uuid::Uuid;
 
 pub mod visualization_3d;
 pub use visualization_3d::*;
@@ -12,12 +12,11 @@ pub use visualization_3d::*;
 pub mod graph;
 pub use graph::*;
 
-use crate::value_objects::{
-    IdentityType, VerificationLevel, VerificationMethod,
-    RelationshipType, WorkflowType, WorkflowStatus,
-    ProjectionType, ProjectionContext, AgentType,
-};
 use crate::aggregate::AgentId;
+use crate::value_objects::{
+    AgentType, IdentityType, ProjectionContext, ProjectionType, RelationshipType,
+    VerificationLevel, VerificationMethod, WorkflowStatus, WorkflowType,
+};
 
 // Agent components
 /// Agent entity component
@@ -136,4 +135,4 @@ pub struct RelationshipGraph {
 
 /// Selected component for graph editor
 #[derive(Component)]
-pub struct Selected; 
+pub struct Selected;

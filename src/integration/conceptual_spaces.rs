@@ -4,8 +4,7 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use cim_domain_conceptualspaces::{
-    ConceptId, ConceptualPoint, ConceptualSpaceId,
-    QualityDimension, DimensionType, DistanceMetric,
+    ConceptId, ConceptualPoint, ConceptualSpaceId, DimensionType, DistanceMetric, QualityDimension,
 };
 
 use cim_domain_graph::GraphId;
@@ -15,10 +14,10 @@ use cim_domain_graph::GraphId;
 pub struct ConceptualReasoningCapability {
     /// The conceptual space this capability operates in
     pub space_id: Uuid,
-    
+
     /// Mapping of analysis types to quality dimensions
     pub dimension_mappings: HashMap<String, Vec<String>>,
-    
+
     /// Thresholds for various analysis operations
     pub analysis_thresholds: HashMap<String, f32>,
 }
@@ -38,31 +37,40 @@ impl ConceptualReasoningCapability {
 
     fn create_default_mappings() -> HashMap<String, Vec<String>> {
         let mut mappings = HashMap::new();
-        
+
         // Graph analysis dimensions
-        mappings.insert("graph_analysis".to_string(), vec![
-            "complexity".to_string(),
-            "connectivity".to_string(),
-            "centrality".to_string(),
-            "modularity".to_string(),
-        ]);
-        
-        // Workflow optimization dimensions  
-        mappings.insert("workflow_optimization".to_string(), vec![
-            "efficiency".to_string(),
-            "reliability".to_string(),
-            "scalability".to_string(),
-            "maintainability".to_string(),
-        ]);
-        
+        mappings.insert(
+            "graph_analysis".to_string(),
+            vec![
+                "complexity".to_string(),
+                "connectivity".to_string(),
+                "centrality".to_string(),
+                "modularity".to_string(),
+            ],
+        );
+
+        // Workflow optimization dimensions
+        mappings.insert(
+            "workflow_optimization".to_string(),
+            vec![
+                "efficiency".to_string(),
+                "reliability".to_string(),
+                "scalability".to_string(),
+                "maintainability".to_string(),
+            ],
+        );
+
         // Semantic analysis dimensions
-        mappings.insert("semantic_analysis".to_string(), vec![
-            "relevance".to_string(),
-            "coherence".to_string(),
-            "specificity".to_string(),
-            "completeness".to_string(),
-        ]);
-        
+        mappings.insert(
+            "semantic_analysis".to_string(),
+            vec![
+                "relevance".to_string(),
+                "coherence".to_string(),
+                "specificity".to_string(),
+                "completeness".to_string(),
+            ],
+        );
+
         mappings
     }
 
@@ -74,17 +82,15 @@ impl ConceptualReasoningCapability {
     ) -> Result<Vec<ConceptCluster>, Box<dyn std::error::Error>> {
         // Simple clustering implementation
         // In a real implementation, this would use proper clustering algorithms
-        let clusters = vec![
-            ConceptCluster {
-                id: Uuid::new_v4(),
-                members: concepts.clone(),
-                centroid: ConceptualPoint {
-                    coordinates: vec![0.5; 4],
-                },
-                cohesion_score: 0.8,
-            }
-        ];
-        
+        let clusters = vec![ConceptCluster {
+            id: Uuid::new_v4(),
+            members: concepts.clone(),
+            centroid: ConceptualPoint {
+                coordinates: vec![0.5; 4],
+            },
+            cohesion_score: 0.8,
+        }];
+
         Ok(clusters)
     }
 }
@@ -97,20 +103,20 @@ pub trait ConceptualAgent {
         concept_a: ConceptId,
         concept_b: ConceptId,
     ) -> Result<f32, Box<dyn std::error::Error>>;
-    
+
     /// Find concepts similar to a given concept
     async fn find_similar_concepts(
         &self,
         concept: ConceptId,
         threshold: f32,
     ) -> Result<Vec<(ConceptId, f32)>, Box<dyn std::error::Error>>;
-    
+
     /// Detect outlier concepts
     async fn detect_outliers(
         &self,
         concepts: Vec<ConceptId>,
     ) -> Result<Vec<ConceptId>, Box<dyn std::error::Error>>;
-    
+
     /// Find semantic path between concepts
     async fn find_semantic_path(
         &self,
@@ -178,10 +184,10 @@ pub struct SemanticPath {
 pub struct CrossDomainMapping {
     /// Map graph elements to conceptual points
     pub graph_to_concept: HashMap<GraphId, ConceptId>,
-    
+
     /// Map concepts back to graph elements
     pub concept_to_graph: HashMap<ConceptId, GraphId>,
-    
+
     /// Quality dimensions used for mapping
     pub mapping_dimensions: Vec<QualityDimension>,
 }
@@ -194,7 +200,7 @@ impl CrossDomainMapping {
             mapping_dimensions: Vec::new(),
         }
     }
-    
+
     /// Add a mapping between graph and concept
     pub fn add_mapping(&mut self, graph_id: GraphId, concept_id: ConceptId) {
         self.graph_to_concept.insert(graph_id, concept_id);
@@ -220,16 +226,16 @@ mod tests {
         assert_eq!(mappings.get("workflow_optimization").unwrap().len(), 4);
         assert_eq!(mappings.get("semantic_analysis").unwrap().len(), 4);
     }
-    
+
     #[test]
     fn test_cross_domain_mapping() {
         let mut mapping = CrossDomainMapping::new();
         let graph_id = GraphId::new();
         let concept_id = ConceptId::new();
-        
+
         mapping.add_mapping(graph_id, concept_id);
-        
+
         assert_eq!(mapping.graph_to_concept.get(&graph_id), Some(&concept_id));
         assert_eq!(mapping.concept_to_graph.get(&concept_id), Some(&graph_id));
     }
-} 
+}

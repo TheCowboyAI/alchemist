@@ -208,7 +208,7 @@ fn process_questions(
     if event_count > 0 {
         info!("Processing {} question events", event_count);
     }
-    
+
     for event in question_events.read() {
         info!("Processing question: {}", event.question);
 

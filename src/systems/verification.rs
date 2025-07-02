@@ -1,9 +1,9 @@
 //! Verification systems
 
-use bevy::prelude::*;
-use std::time::SystemTime;
 use crate::components::{IdentityEntity, IdentityVerification};
 use crate::value_objects::{VerificationLevel, VerificationMethod};
+use bevy::prelude::*;
+use std::time::SystemTime;
 
 /// Start verification system
 pub fn start_verification_system(
@@ -12,20 +12,24 @@ pub fn start_verification_system(
     mut pending_events: EventWriter<VerificationPendingEvent>,
 ) {
     for event in verification_events.read() {
-        if let Some((_entity, mut verification)) = identities.iter_mut()
+        if let Some((_entity, mut verification)) = identities
+            .iter_mut()
             .find(|(e, _)| e.id == event.identity_id)
         {
             // Set verification method
             verification.verification_method = Some(event.method.clone());
-            
+
             // Emit pending event
             pending_events.write(VerificationPendingEvent {
                 identity_id: event.identity_id,
                 method: event.method.clone(),
                 started_at: SystemTime::now(),
             });
-            
-            info!("Started verification for identity {} using {:?}", event.identity_id, event.method);
+
+            info!(
+                "Started verification for identity {} using {:?}",
+                event.identity_id, event.method
+            );
         }
     }
 }
@@ -37,7 +41,8 @@ pub fn process_verification_system(
     mut complete_events: EventWriter<VerificationCompleteEvent>,
 ) {
     for event in process_events.read() {
-        if let Some((_entity, mut verification)) = identities.iter_mut()
+        if let Some((_entity, mut verification)) = identities
+            .iter_mut()
             .find(|(e, _)| e.id == event.identity_id)
         {
             // Update verification based on result
@@ -49,20 +54,20 @@ pub fn process_verification_system(
                     VerificationMethod::Document => VerificationLevel::Advanced,
                     VerificationMethod::Biometric => VerificationLevel::Full,
                 };
-                
+
                 // Only upgrade, never downgrade
                 if new_level > verification.verification_level {
                     verification.verification_level = new_level;
                 }
-                
+
                 verification.last_verified = Some(SystemTime::now());
-                
+
                 complete_events.write(VerificationCompleteEvent {
                     identity_id: event.identity_id,
                     new_level: verification.verification_level.clone(),
                     verified_at: SystemTime::now(),
                 });
-                
+
                 info!("Verification successful for identity {}", event.identity_id);
             } else {
                 warn!("Verification failed for identity {}", event.identity_id);
@@ -78,8 +83,8 @@ pub fn complete_verification_system(
 ) {
     for event in complete_events.read() {
         // Find the verified identity to validate the completion
-        if let Some((_entity, verification)) = identities.iter()
-            .find(|(e, _)| e.id == event.identity_id)
+        if let Some((_entity, verification)) =
+            identities.iter().find(|(e, _)| e.id == event.identity_id)
         {
             // Verify that the verification level matches what we expect
             if verification.verification_level != event.new_level {
@@ -88,15 +93,13 @@ pub fn complete_verification_system(
                     event.identity_id, event.new_level, verification.verification_level
                 );
             }
-            
+
             // Log successful completion with actual data
             info!(
                 "Verification completed for identity {} with level {:?}, last verified: {:?}",
-                event.identity_id, 
-                verification.verification_level,
-                verification.last_verified
+                event.identity_id, verification.verification_level, verification.last_verified
             );
-            
+
             // In production, you might:
             // - Send notifications
             // - Update access permissions based on new verification level
@@ -120,14 +123,14 @@ pub fn expire_verifications_system(
     // Check every 60 seconds
     let check_interval = 60.0;
     let elapsed = time.elapsed_secs();
-    
+
     if elapsed % check_interval > time.delta_secs() {
         return;
     }
-    
+
     let now = SystemTime::now();
     let expiry_duration = std::time::Duration::from_secs(90 * 24 * 60 * 60); // 90 days
-    
+
     for (entity, mut verification) in identities.iter_mut() {
         if let Some(last_verified) = verification.last_verified {
             if let Ok(duration) = now.duration_since(last_verified) {
@@ -135,12 +138,12 @@ pub fn expire_verifications_system(
                     // Downgrade verification level
                     verification.verification_level = VerificationLevel::None;
                     verification.last_verified = None;
-                    
+
                     expired_events.write(VerificationExpiredEvent {
                         identity_id: entity.id,
                         expired_at: now,
                     });
-                    
+
                     warn!("Verification expired for identity {}", entity.id);
                 }
             }
@@ -198,4 +201,4 @@ pub struct VerificationExpiredEvent {
     pub identity_id: uuid::Uuid,
     /// When it expired
     pub expired_at: SystemTime,
-} 
+}

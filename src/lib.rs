@@ -84,24 +84,22 @@ pub mod systems;
 
 // Re-export main types
 pub use aggregate::{
-    Agent, AgentMarker, AgentMetadata, AgentStatus,
-    AuthenticationComponent, CapabilitiesComponent,
-    ConfigurationComponent, PermissionsComponent, ToolAccessComponent,
-    ToolDefinition, ToolUsageStats,
+    Agent, AgentMarker, AgentMetadata, AgentStatus, AuthenticationComponent, CapabilitiesComponent,
+    ConfigurationComponent, PermissionsComponent, ToolAccessComponent, ToolDefinition,
+    ToolUsageStats,
 };
 
 pub use commands::{
-    ActivateAgent, DecommissionAgent, DeployAgent, DisableAgentTools,
-    EnableAgentTools, GrantAgentPermissions, RemoveAgentConfiguration,
-    RevokeAgentPermissions, SetAgentConfiguration, SetAgentOffline,
-    SuspendAgent, ChangeAgentCapabilities,
+    ActivateAgent, ChangeAgentCapabilities, DecommissionAgent, DeployAgent, DisableAgentTools,
+    EnableAgentTools, GrantAgentPermissions, RemoveAgentConfiguration, RevokeAgentPermissions,
+    SetAgentConfiguration, SetAgentOffline, SuspendAgent,
 };
 
 pub use events::{
-    AgentActivated, AgentCapabilitiesAdded, AgentCapabilitiesRemoved,
-    AgentConfigurationRemoved, AgentConfigurationSet, AgentDecommissioned,
-    AgentDeployed, AgentPermissionsGranted, AgentPermissionsRevoked,
-    AgentSuspended, AgentToolsDisabled, AgentToolsEnabled, AgentWentOffline,
+    AgentActivated, AgentCapabilitiesAdded, AgentCapabilitiesRemoved, AgentConfigurationRemoved,
+    AgentConfigurationSet, AgentDecommissioned, AgentDeployed, AgentPermissionsGranted,
+    AgentPermissionsRevoked, AgentSuspended, AgentToolsDisabled, AgentToolsEnabled,
+    AgentWentOffline,
 };
 
 pub use handlers::{AgentCommandHandler, AgentEventHandler};

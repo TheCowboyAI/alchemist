@@ -78,7 +78,7 @@ fn toggle_agent_window(
     for key in keyboard.get_just_pressed() {
         info!("Agent UI detected key press: {:?}", key);
     }
-    
+
     if keyboard.just_pressed(KeyCode::F1) {
         info!("F1 pressed - toggling agent window");
         chat_state.show_window = !chat_state.show_window;
@@ -97,12 +97,13 @@ fn render_agent_ui(
     }
 
     let ctx = contexts.ctx_mut();
-    
+
     // Debug: Log that we're rendering
     use std::sync::atomic::{AtomicU32, Ordering};
     static FRAME_COUNT: AtomicU32 = AtomicU32::new(0);
     let frame = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
-    if frame % 60 == 0 {  // Log every second
+    if frame % 60 == 0 {
+        // Log every second
         info!("Agent UI rendering, frame {}", frame);
     }
 
@@ -258,7 +259,7 @@ fn render_agent_ui(
             let send_button = ui.button("Send");
             let should_send = send_button.clicked()
                 || (response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
-                
+
             if should_send {
                 info!("Send triggered! Input text: '{}'", chat_state.input_text);
                 if !chat_state.input_text.is_empty() {
@@ -365,7 +366,7 @@ fn handle_agent_responses(
     if response_count > 0 {
         info!("Handling {} agent response events", response_count);
     }
-    
+
     for event in response_events.read() {
         info!("Received agent response: {}", event.response);
         chat_state.messages.push(ChatMessage {

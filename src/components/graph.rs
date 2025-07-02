@@ -1,7 +1,7 @@
 //! Graph components for the editor
 
+use crate::value_objects::{EdgeId, GraphId, NodeId};
 use bevy::prelude::*;
-use crate::value_objects::{NodeId, EdgeId, GraphId};
 
 /// Node entity component
 #[derive(Component, Debug, Clone)]
@@ -21,4 +21,4 @@ pub struct EdgeEntity {
     pub source: NodeId,
     /// Target node ID
     pub target: NodeId,
-} 
+}

@@ -1,7 +1,7 @@
 //! Event definitions for the application
 
-use serde::{Deserialize, Serialize};
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// AI-related events
@@ -186,7 +186,7 @@ pub struct IdentityLinkedToOrganization {
 }
 
 // Import value objects for graph events
-use crate::value_objects::{NodeId, EdgeId, GraphId, NodeType, EdgeRelationship, Position3D};
+use crate::value_objects::{EdgeId, EdgeRelationship, GraphId, NodeId, NodeType, Position3D};
 
 // Graph events
 /// Node added event
@@ -235,4 +235,4 @@ pub struct EdgeRemoved {
     pub edge_id: EdgeId,
     /// Graph ID
     pub graph_id: GraphId,
-} 
+}

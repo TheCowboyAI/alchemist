@@ -46,24 +46,33 @@ impl NatsConnection {
             runtime: Arc::new(Runtime::new()?),
         })
     }
-    
+
     /// Publishes a message to a core NATS subject (non-JetStream)
-    pub async fn publish_core(&self, subject: &str, payload: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-        self.client.publish(subject.to_string(), payload.into()).await?;
+    pub async fn publish_core(
+        &self,
+        subject: &str,
+        payload: Vec<u8>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.client
+            .publish(subject.to_string(), payload.into())
+            .await?;
         Ok(())
     }
-    
+
     /// Subscribes to a core NATS subject for real-time updates
-    pub async fn subscribe_core(&self, subject: &str) -> Result<async_nats::Subscriber, Box<dyn std::error::Error>> {
+    pub async fn subscribe_core(
+        &self,
+        subject: &str,
+    ) -> Result<async_nats::Subscriber, Box<dyn std::error::Error>> {
         Ok(self.client.subscribe(subject.to_string()).await?)
     }
-    
+
     /// Gets the server info to check connection status
     pub fn server_info(&self) -> async_nats::ServerInfo {
         // Return the server info directly
         self.client.server_info()
     }
-    
+
     /// Flushes all pending messages to ensure they're sent
     pub async fn flush(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.client.flush().await?;

@@ -2,11 +2,11 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
 
-use crate::value_objects::{
-    IdentityType, VerificationLevel, VerificationMethod,
-    RelationshipType, WorkflowType, ProjectionType, ProjectionContext,
-};
 use crate::aggregate::AgentId;
+use crate::value_objects::{
+    IdentityType, ProjectionContext, ProjectionType, RelationshipType, VerificationLevel,
+    VerificationMethod, WorkflowType,
+};
 
 // Agent commands
 /// Activate agent command
@@ -181,4 +181,4 @@ pub struct CreateProjectionCommand {
     pub projection_type: ProjectionType,
     /// Context
     pub context: ProjectionContext,
-} 
+}

@@ -1,10 +1,10 @@
 //! Aggregate definitions for the application
 
 use bevy::prelude::*;
-use uuid::Uuid;
-use std::time::SystemTime;
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::time::SystemTime;
+use uuid::Uuid;
 
 use crate::value_objects::*;
 
@@ -152,14 +152,14 @@ impl IdentityAggregate {
         if source_id == target_id {
             return Err("Cannot create relationship with self".to_string());
         }
-        
+
         // Additional validation could go here based on relationship type
         match relationship_type {
             crate::value_objects::RelationshipType::ParentChild => {
                 // Could add age/type validation here
                 Ok(())
             }
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
-} 
+}

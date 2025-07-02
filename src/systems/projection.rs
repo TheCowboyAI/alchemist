@@ -2,16 +2,10 @@ use bevy::prelude::*;
 use uuid::Uuid;
 
 use crate::{
-    components::{
-        IdentityEntity, IdentityVerification,
-        IdentityProjection,
-    },
-    value_objects::{ProjectionType, ProjectionContext},
-    events::{
-        ProjectionCreated,
-        IdentityLinkedToPerson, IdentityLinkedToOrganization,
-    },
-    commands::{CreateProjectionCommand},
+    commands::CreateProjectionCommand,
+    components::{IdentityEntity, IdentityProjection, IdentityVerification},
+    events::{IdentityLinkedToOrganization, IdentityLinkedToPerson, ProjectionCreated},
+    value_objects::{ProjectionContext, ProjectionType},
 };
 
 /// Create projection system
@@ -27,18 +21,18 @@ pub fn create_projection_system(
             projection_type: event.projection_type.clone(),
             context: event.context.clone(),
         };
-        
+
         // Add projection to all identities (simplified - in production you'd be more selective)
         for entity in identities.iter() {
             commands.entity(entity).insert(projection.clone());
         }
-        
+
         // Emit created event
         created_events.write(ProjectionCreated {
             projection_id: Uuid::new_v4().to_string(),
             projection_type: format!("{:?}", event.projection_type),
         });
-        
+
         info!("Created projection of type {:?}", event.projection_type);
     }
 }
@@ -59,13 +53,16 @@ pub fn sync_projections_system(
                         id: event.person_id.clone(),
                         name: format!("Person {}", event.person_id),
                     };
-                    
-                    info!("Synced identity {} with person {}", event.identity_id, event.person_id);
+
+                    info!(
+                        "Synced identity {} with person {}",
+                        event.identity_id, event.person_id
+                    );
                 }
             }
         }
     }
-    
+
     // Sync organization links
     for event in link_org_events.read() {
         if let Ok(identity_id) = Uuid::parse_str(&event.identity_id) {
@@ -76,8 +73,11 @@ pub fn sync_projections_system(
                         id: event.organization_id.clone(),
                         name: format!("Organization {}", event.organization_id),
                     };
-                    
-                    info!("Synced identity {} with organization {}", event.identity_id, event.organization_id);
+
+                    info!(
+                        "Synced identity {} with organization {}",
+                        event.identity_id, event.organization_id
+                    );
                 }
             }
         }
@@ -101,13 +101,16 @@ pub fn validate_projections_system(
                 verification.verification_level >= crate::value_objects::VerificationLevel::Advanced
             }
         };
-        
+
         if !is_valid {
             validation_events.write(ProjectionValidationEvent {
                 identity_id: entity.id,
                 projection_type: projection.projection_type.clone(),
                 is_valid,
-                reason: format!("Insufficient verification level: {:?}", verification.verification_level),
+                reason: format!(
+                    "Insufficient verification level: {:?}",
+                    verification.verification_level
+                ),
             });
         }
     }
@@ -124,4 +127,4 @@ pub struct ProjectionValidationEvent {
     pub is_valid: bool,
     /// Reason for validation result
     pub reason: String,
-} 
+}

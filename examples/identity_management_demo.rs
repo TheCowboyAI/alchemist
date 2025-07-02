@@ -1,5 +1,5 @@
 //! Identity Management Demo
-//! 
+//!
 //! This example demonstrates how to use the Identity Domain for:
 //! - Creating and managing identities
 //! - Establishing relationships
@@ -16,7 +16,7 @@ use uuid::Uuid;
 fn main() {
     // Create a Bevy app with identity domain
     let mut app = App::new();
-    
+
     // Add identity domain plugin (hypothetical)
     app.add_plugins(MinimalPlugins)
         .add_event::<CreateIdentityCommand>()
@@ -26,16 +26,19 @@ fn main() {
         .add_event::<IdentityCreated>()
         .add_event::<RelationshipEstablished>()
         .add_event::<VerificationCompleted>()
-        .add_systems(Update, (
-            create_identity_system,
-            update_identity_system,
-            establish_relationship_system,
-            start_verification_system,
-        ))
-        .add_systems(PostUpdate, (
-            print_identity_events,
-            print_relationship_events,
-        ));
+        .add_systems(
+            Update,
+            (
+                create_identity_system,
+                update_identity_system,
+                establish_relationship_system,
+                start_verification_system,
+            ),
+        )
+        .add_systems(
+            PostUpdate,
+            (print_identity_events, print_relationship_events),
+        );
 
     // Run demo scenario
     run_demo_scenario(&mut app);
@@ -115,17 +118,15 @@ fn create_organization_identity(app: &mut App) -> Uuid {
         identity_type: IdentityType::Organization,
         external_reference: external_ref.to_string(),
         initial_verification_level: VerificationLevel::Enhanced, // Pre-verified org
-        claims: vec![
-            IdentityClaim {
-                claim_id: Uuid::new_v4(),
-                identity_id: org_id,
-                claim_type: ClaimType::Domain,
-                value: "example.com".to_string(),
-                verified: true,
-                issued_at: SystemTime::now(),
-                verified_at: Some(SystemTime::now()),
-            },
-        ],
+        claims: vec![IdentityClaim {
+            claim_id: Uuid::new_v4(),
+            identity_id: org_id,
+            claim_type: ClaimType::Domain,
+            value: "example.com".to_string(),
+            verified: true,
+            issued_at: SystemTime::now(),
+            verified_at: Some(SystemTime::now()),
+        }],
     });
 
     org_id
@@ -177,16 +178,18 @@ fn display_identity_state(world: &mut World, identity_id: Uuid) {
         println!("  External Reference: {}", identity.external_reference);
         println!("  Verification Level: {:?}", identity.verification_level);
         println!("  Created: {:?}", identity.created_at);
-        
+
         // Display claims
-        let claims: Vec<_> = world.query::<&IdentityClaim>()
+        let claims: Vec<_> = world
+            .query::<&IdentityClaim>()
             .iter(world)
             .filter(|claim| claim.identity_id == identity_id)
             .collect();
-            
+
         println!("  Claims ({}):", claims.len());
         for claim in claims {
-            println!("    - {} ({}): {} [{}]",
+            println!(
+                "    - {} ({}): {} [{}]",
                 match claim.claim_type {
                     ClaimType::Email => "Email",
                     ClaimType::Phone => "Phone",
@@ -195,7 +198,11 @@ fn display_identity_state(world: &mut World, identity_id: Uuid) {
                 },
                 claim.claim_id,
                 claim.value,
-                if claim.verified { "Verified" } else { "Unverified" }
+                if claim.verified {
+                    "Verified"
+                } else {
+                    "Unverified"
+                }
             );
         }
     } else {
@@ -206,7 +213,7 @@ fn display_identity_state(world: &mut World, identity_id: Uuid) {
 /// Display relationships
 fn display_relationships(world: &mut World, identity_id: Uuid) {
     let relationships = find_relationships_by_identity(world, identity_id);
-    
+
     println!("\nRelationships ({}):", relationships.len());
     for rel in relationships {
         let direction = if rel.source_identity == identity_id {
@@ -214,12 +221,12 @@ fn display_relationships(world: &mut World, identity_id: Uuid) {
         } else {
             "incoming"
         };
-        
+
         println!("  - {} ({}):", rel.relationship_type.to_string(), direction);
         println!("    ID: {}", rel.id);
         println!("    Source: {}", rel.source_identity);
         println!("    Target: {}", rel.target_identity);
-        
+
         if !rel.metadata.is_empty() {
             println!("    Metadata:");
             for (key, value) in &rel.metadata {
@@ -232,9 +239,9 @@ fn display_relationships(world: &mut World, identity_id: Uuid) {
 /// System to print identity events
 fn print_identity_events(mut events: EventReader<IdentityCreated>) {
     for event in events.read() {
-        println!("  [EVENT] Identity created: {} (Type: {:?})",
-            event.identity_id,
-            event.identity_type
+        println!(
+            "  [EVENT] Identity created: {} (Type: {:?})",
+            event.identity_id, event.identity_type
         );
     }
 }
@@ -242,10 +249,9 @@ fn print_identity_events(mut events: EventReader<IdentityCreated>) {
 /// System to print relationship events
 fn print_relationship_events(mut events: EventReader<RelationshipEstablished>) {
     for event in events.read() {
-        println!("  [EVENT] Relationship established: {} -> {} (Type: {:?})",
-            event.source_identity,
-            event.target_identity,
-            event.relationship_type
+        println!(
+            "  [EVENT] Relationship established: {} -> {} (Type: {:?})",
+            event.source_identity, event.target_identity, event.relationship_type
         );
     }
 }
@@ -253,7 +259,7 @@ fn print_relationship_events(mut events: EventReader<RelationshipEstablished>) {
 /// Example: Complex verification workflow
 fn complex_verification_workflow(app: &mut App, identity_id: Uuid) {
     println!("\n=== Complex Verification Workflow ===");
-    
+
     // Step 1: Email verification
     println!("Step 1: Email verification");
     app.world.send_event(StartVerificationCommand {
@@ -262,7 +268,7 @@ fn complex_verification_workflow(app: &mut App, identity_id: Uuid) {
         initiated_by: Uuid::new_v4(),
     });
     app.update();
-    
+
     // Step 2: Phone verification
     println!("Step 2: Phone verification");
     app.world.send_event(StartVerificationCommand {
@@ -271,7 +277,7 @@ fn complex_verification_workflow(app: &mut App, identity_id: Uuid) {
         initiated_by: Uuid::new_v4(),
     });
     app.update();
-    
+
     // Step 3: Document verification
     println!("Step 3: Document verification");
     app.world.send_event(StartVerificationCommand {
@@ -280,7 +286,7 @@ fn complex_verification_workflow(app: &mut App, identity_id: Uuid) {
         initiated_by: Uuid::new_v4(),
     });
     app.update();
-    
+
     // Update to full verification
     app.world.send_event(UpdateIdentityCommand {
         identity_id,
@@ -294,38 +300,38 @@ fn complex_verification_workflow(app: &mut App, identity_id: Uuid) {
 /// Example: Building an organization hierarchy
 fn build_organization_hierarchy(app: &mut App) {
     println!("\n=== Building Organization Hierarchy ===");
-    
+
     // Create organization identities
     let parent_org = create_identity(app, IdentityType::Organization, "ACME Corp");
     let subsidiary1 = create_identity(app, IdentityType::Organization, "ACME Tech");
     let subsidiary2 = create_identity(app, IdentityType::Organization, "ACME Finance");
     let department = create_identity(app, IdentityType::Organization, "Tech R&D");
-    
+
     app.update();
-    
+
     // Establish parent-subsidiary relationships
     establish_relationship(app, subsidiary1, parent_org, RelationshipType::SubsidiaryOf);
     establish_relationship(app, subsidiary2, parent_org, RelationshipType::SubsidiaryOf);
     establish_relationship(app, department, subsidiary1, RelationshipType::DepartmentOf);
-    
+
     app.update();
-    
+
     // Create employee identities
     let ceo = create_identity(app, IdentityType::Person, "CEO");
     let cto = create_identity(app, IdentityType::Person, "CTO");
     let developer = create_identity(app, IdentityType::Person, "Developer");
-    
+
     app.update();
-    
+
     // Establish employment relationships
     establish_relationship(app, ceo, parent_org, RelationshipType::EmployedBy);
     establish_relationship(app, cto, subsidiary1, RelationshipType::EmployedBy);
     establish_relationship(app, developer, department, RelationshipType::EmployedBy);
-    
+
     // Establish reporting relationships
     establish_relationship(app, cto, ceo, RelationshipType::ReportsTo);
     establish_relationship(app, developer, cto, RelationshipType::ReportsTo);
-    
+
     app.update();
 }
 
@@ -342,12 +348,7 @@ fn create_identity(app: &mut App, identity_type: IdentityType, name: &str) -> Uu
 }
 
 /// Helper: Establish relationship
-fn establish_relationship(
-    app: &mut App,
-    source: Uuid,
-    target: Uuid,
-    rel_type: RelationshipType,
-) {
+fn establish_relationship(app: &mut App, source: Uuid, target: Uuid, rel_type: RelationshipType) {
     app.world.send_event(EstablishRelationshipCommand {
         source_identity: source,
         target_identity: target,
@@ -368,6 +369,7 @@ impl ToString for RelationshipType {
             RelationshipType::DepartmentOf => "Department Of",
             RelationshipType::ReportsTo => "Reports To",
             RelationshipType::Custom(s) => s,
-        }.to_string()
+        }
+        .to_string()
     }
-} 
+}

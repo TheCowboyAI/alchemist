@@ -12,15 +12,15 @@ pub fn start_workflow_system(
     for event in start_events.read() {
         // Clear previous workflow by resetting state
         *workflow_state = crate::workflow::WorkflowState::default();
-        
+
         // Add steps from the event
         for step_name in &event.steps {
             workflow_state.add_step(step_name.clone());
         }
-        
+
         // Advance to the first step
         workflow_state.advance_to_next_step();
-        
+
         info!("Started workflow with {} steps", event.steps.len());
     }
 }
@@ -33,10 +33,10 @@ pub fn process_workflow_steps_system(
     for event in step_events.read() {
         // Complete the current step
         workflow_state.complete_step(&event.step_name);
-        
+
         // Advance to next step
         workflow_state.advance_to_next_step();
-        
+
         // Log progress
         let progress = workflow_state.completion_percentage();
         info!("Workflow progress: {:.1}%", progress);
@@ -50,16 +50,16 @@ pub fn complete_workflow_system(
 ) {
     // Check if all steps are completed
     let all_completed = workflow_state.steps().iter().all(|s| s.completed);
-    
+
     if all_completed && !workflow_state.steps().is_empty() {
         // Workflow is already completed, advance_to_next_step will set current_step to None
-        
+
         // Emit completion event
         complete_events.write(WorkflowCompletedEvent {
             completed_at: SystemTime::now(),
             total_steps: workflow_state.steps().len(),
         });
-        
+
         info!("Workflow completed!");
     }
 }
@@ -72,23 +72,23 @@ pub fn handle_workflow_timeouts_system(
 ) {
     // Check for workflow timeout (example: 30 minutes)
     let timeout_duration = 30.0 * 60.0; // 30 minutes in seconds
-    
+
     // This is a simplified timeout check
     // In production, you'd track when the workflow started
     if workflow_state.current_step().is_some() {
         // For now, we'll use the time resource to track elapsed time
         // In a real implementation, you'd store the workflow start time
         let elapsed = time.elapsed_secs();
-        
+
         if elapsed > timeout_duration {
             timeout_events.write(WorkflowTimeoutEvent {
                 timed_out_at: SystemTime::now(),
                 current_step: workflow_state.current_step().map(|s| s.to_string()),
             });
-            
+
             // Clear the workflow by resetting to default
             *workflow_state = crate::workflow::WorkflowState::default();
-            
+
             warn!("Workflow timed out!");
         }
     }
@@ -125,4 +125,4 @@ pub struct WorkflowTimeoutEvent {
     pub timed_out_at: SystemTime,
     /// Current step when timeout occurred
     pub current_step: Option<String>,
-} 
+}

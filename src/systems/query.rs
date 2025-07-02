@@ -1,8 +1,8 @@
 //! Query systems for agent information
 
+use crate::components::*;
 use bevy::prelude::*;
 use bevy_app::prelude::*;
-use crate::components::*;
 use uuid::Uuid;
 
 /// Query for finding agents by type
@@ -25,9 +25,7 @@ pub fn find_agents_by_type(
 }
 
 /// Query for finding active agents
-pub fn find_active_agents(
-    agent_query: &Query<(&AgentEntity, &AgentStatus)>,
-) -> Vec<Uuid> {
+pub fn find_active_agents(agent_query: &Query<(&AgentEntity, &AgentStatus)>) -> Vec<Uuid> {
     agent_query
         .iter()
         .filter(|(_, status)| status.state == AgentState::Active)
@@ -45,4 +43,4 @@ pub fn find_agents_with_capability(
         .filter(|(_, caps)| caps.has(capability))
         .map(|(entity, _)| entity.agent_id)
         .collect()
-} 
+}

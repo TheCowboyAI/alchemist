@@ -1,8 +1,8 @@
 //! Authentication systems
 
+use crate::components::*;
 use bevy::prelude::*;
 use bevy_app::prelude::*;
-use crate::components::*;
 use uuid::Uuid;
 
 /// System for authenticating agents
@@ -29,7 +29,8 @@ pub fn authenticate_agent_system(
 ) {
     for auth_cmd in auth_commands.read() {
         // Find the agent
-        let agent_found = agent_query.iter_mut()
+        let agent_found = agent_query
+            .iter_mut()
             .find(|(entity, _, _, _)| entity.agent_id == auth_cmd.agent_id);
 
         if let Some((_, mut auth, audit, policy)) = agent_found {
@@ -118,7 +119,8 @@ pub fn refresh_token_system(
 ) {
     for refresh_cmd in refresh_commands.read() {
         // Find the agent
-        let agent_found = agent_query.iter_mut()
+        let agent_found = agent_query
+            .iter_mut()
             .find(|(entity, _, _, _)| entity.agent_id == refresh_cmd.agent_id);
 
         if let Some((_, auth, token, audit)) = agent_found {
@@ -130,7 +132,7 @@ pub fn refresh_token_system(
             // Update token
             if let Some(mut tok) = token {
                 tok.expires_at = Some(chrono::Utc::now() + chrono::Duration::hours(24));
-                
+
                 // Add audit event
                 if let Some(mut audit_log) = audit {
                     audit_log.add_event(AuthenticationEvent {
@@ -240,4 +242,4 @@ pub struct TokenExpiredEvent {
     pub agent_id: Uuid,
     pub expired_at: chrono::DateTime<chrono::Utc>,
     pub timestamp: chrono::DateTime<chrono::Utc>,
-} 
+}

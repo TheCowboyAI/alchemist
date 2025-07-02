@@ -1,9 +1,9 @@
 //! Permissions management systems
 
-use bevy::prelude::*;
-use bevy_app::prelude::*;
 use crate::components::*;
 use crate::events::*;
+use bevy::prelude::*;
+use bevy_app::prelude::*;
 use uuid::Uuid;
 
 /// System for granting permissions to agents
@@ -18,12 +18,17 @@ use uuid::Uuid;
 /// ```
 pub fn grant_permissions_system(
     mut grant_commands: EventReader<GrantPermissionsCommand>,
-    mut agent_query: Query<(&AgentEntity, &mut AgentPermissions, Option<&mut PermissionAudit>)>,
+    mut agent_query: Query<(
+        &AgentEntity,
+        &mut AgentPermissions,
+        Option<&mut PermissionAudit>,
+    )>,
     mut granted_events: EventWriter<AgentPermissionsGranted>,
 ) {
     for grant_cmd in grant_commands.read() {
         // Find the agent
-        let agent_found = agent_query.iter_mut()
+        let agent_found = agent_query
+            .iter_mut()
             .find(|(entity, _, _)| entity.agent_id == grant_cmd.agent_id);
 
         if let Some((_, mut permissions, audit)) = agent_found {
@@ -73,12 +78,17 @@ pub fn grant_permissions_system(
 /// ```
 pub fn revoke_permissions_system(
     mut revoke_commands: EventReader<RevokePermissionsCommand>,
-    mut agent_query: Query<(&AgentEntity, &mut AgentPermissions, Option<&mut PermissionAudit>)>,
+    mut agent_query: Query<(
+        &AgentEntity,
+        &mut AgentPermissions,
+        Option<&mut PermissionAudit>,
+    )>,
     mut revoked_events: EventWriter<AgentPermissionsRevoked>,
 ) {
     for revoke_cmd in revoke_commands.read() {
         // Find the agent
-        let agent_found = agent_query.iter_mut()
+        let agent_found = agent_query
+            .iter_mut()
             .find(|(entity, _, _)| entity.agent_id == revoke_cmd.agent_id);
 
         if let Some((_, mut permissions, audit)) = agent_found {
@@ -127,13 +137,18 @@ pub fn revoke_permissions_system(
 /// ```
 pub fn check_permission_system(
     mut check_commands: EventReader<CheckPermissionCommand>,
-    agent_query: Query<(&AgentEntity, &AgentPermissions, Option<&PermissionInheritance>)>,
+    agent_query: Query<(
+        &AgentEntity,
+        &AgentPermissions,
+        Option<&PermissionInheritance>,
+    )>,
     mut allowed_events: EventWriter<PermissionAllowedEvent>,
     mut denied_events: EventWriter<PermissionDeniedEvent>,
 ) {
     for check_cmd in check_commands.read() {
         // Find the agent
-        let agent_found = agent_query.iter()
+        let agent_found = agent_query
+            .iter()
             .find(|(entity, _, _)| entity.agent_id == check_cmd.agent_id);
 
         if let Some((_, permissions, inheritance)) = agent_found {
@@ -144,7 +159,8 @@ pub fn check_permission_system(
                 if let Some(inherit) = inheritance {
                     // In a real implementation, we would check parent roles
                     // For now, we'll just check if inheritance is enabled
-                    has_permission = inherit.allow_override && !permissions.denied.contains(&check_cmd.permission);
+                    has_permission = inherit.allow_override
+                        && !permissions.denied.contains(&check_cmd.permission);
                 }
             }
 
@@ -180,12 +196,17 @@ pub fn check_permission_system(
 /// ```
 pub fn manage_roles_system(
     mut role_commands: EventReader<AssignRoleCommand>,
-    mut agent_query: Query<(&AgentEntity, &mut AgentPermissions, Option<&mut PermissionAudit>)>,
+    mut agent_query: Query<(
+        &AgentEntity,
+        &mut AgentPermissions,
+        Option<&mut PermissionAudit>,
+    )>,
     mut role_events: EventWriter<RoleAssignedEvent>,
 ) {
     for role_cmd in role_commands.read() {
         // Find the agent
-        let agent_found = agent_query.iter_mut()
+        let agent_found = agent_query
+            .iter_mut()
             .find(|(entity, _, _)| entity.agent_id == role_cmd.agent_id);
 
         if let Some((_, mut permissions, audit)) = agent_found {
@@ -269,4 +290,4 @@ pub struct RoleAssignedEvent {
     pub role: String,
     pub assigned_by: Uuid,
     pub timestamp: chrono::DateTime<chrono::Utc>,
-} 
+}

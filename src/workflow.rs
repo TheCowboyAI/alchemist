@@ -29,7 +29,7 @@ impl WorkflowState {
     pub fn add_ai_guidance(&mut self, guidance: String) {
         self.ai_guidance.push(guidance);
     }
-    
+
     /// Adds a new workflow step
     pub fn add_step(&mut self, name: String) {
         self.steps.push(WorkflowStep {
@@ -37,19 +37,19 @@ impl WorkflowState {
             completed: false,
         });
     }
-    
+
     /// Marks a step as completed
     pub fn complete_step(&mut self, name: &str) {
         if let Some(step) = self.steps.iter_mut().find(|s| s.name == name) {
             step.completed = true;
         }
     }
-    
+
     /// Gets all workflow steps
     pub fn steps(&self) -> &[WorkflowStep] {
         &self.steps
     }
-    
+
     /// Advances to the next incomplete step
     pub fn advance_to_next_step(&mut self) {
         if let Some(next_step) = self.steps.iter().find(|s| !s.completed) {
@@ -58,13 +58,13 @@ impl WorkflowState {
             self.current_step = None; // All steps completed
         }
     }
-    
+
     /// Gets the completion percentage of the workflow
     pub fn completion_percentage(&self) -> f32 {
         if self.steps.is_empty() {
             return 0.0;
         }
-        
+
         let completed = self.steps.iter().filter(|s| s.completed).count() as f32;
         let total = self.steps.len() as f32;
         (completed / total) * 100.0

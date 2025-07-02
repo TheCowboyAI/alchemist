@@ -1,10 +1,10 @@
 //! Projection types for the application
 
 use bevy::prelude::*;
-use uuid::Uuid;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::SystemTime;
+use uuid::Uuid;
 
 use crate::aggregate::{AgentId, AgentStatus};
 use crate::value_objects::AgentType;
@@ -62,4 +62,4 @@ pub struct RelationshipView {
     pub expires_at: Option<SystemTime>,
     /// Metadata
     pub metadata: std::collections::HashMap<String, String>,
-} 
+}
