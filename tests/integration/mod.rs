@@ -7,6 +7,7 @@
 //! - Bevy ECS synchronization
 
 pub mod cid_chain_tests;
+pub mod cross_domain_integration_test;
 pub mod domain_integration_tests;
 pub mod end_to_end_workflow_tests;
 pub mod event_flow_tests;
