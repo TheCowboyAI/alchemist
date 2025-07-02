@@ -119,9 +119,15 @@
       "tests": "unknown"
     },
     "document": {
-      "status": "basic structure",
-      "progress": 20,
-      "tests": "unknown"
+      "status": "IMPROVED",
+      "progress": 40,
+      "tests": 5,
+      "features": [
+        "Core commands implemented",
+        "Value objects defined",
+        "Query handlers working",
+        "Event handling complete"
+      ]
     },
     "nix": {
       "status": "basic structure",
@@ -280,6 +286,11 @@
     "aggregates": 24
   },
   "recent_changes": [
+    {
+      "date": "2025-07-02",
+      "change": "Enhanced Document domain with core functionality",
+      "impact": "Added commands, value objects, queries, and event handling - 5 tests passing, progress 20% → 40%"
+    },
     {
       "date": "2025-07-02",
       "change": "Added comprehensive production deployment documentation",
