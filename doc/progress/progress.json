@@ -282,6 +282,11 @@
   "recent_changes": [
     {
       "date": "2025-07-02",
+      "change": "Added comprehensive production deployment documentation",
+      "impact": "Complete guides for production deployment, monitoring, and performance optimization"
+    },
+    {
+      "date": "2025-07-02",
       "change": "Enhanced Bevy 3D visualization with camera controls and visual effects",
       "impact": "Improved user experience with smooth animations, hover effects, and intuitive camera navigation"
     },
