@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 use ia::{
     graph::GraphState,
-    plugins::{AgentIntegrationPlugin, AgentUiPlugin, NatsEventBridgePlugin},
+    plugins::{AgentIntegrationPlugin, AgentUiPlugin, NatsEventBridgePlugin, GraphEditorPlugin},
     simple_agent::SimpleAgentPlugin,
     workflow::WorkflowState,
 };
@@ -33,6 +33,8 @@ fn main() {
         .add_plugins(AgentUiPlugin)
         .add_plugins(AgentIntegrationPlugin)
         .add_plugins(NatsEventBridgePlugin)
+        // Add graph editor
+        .add_plugins(GraphEditorPlugin)
         // Add systems
         .add_systems(Startup, setup)
         .add_systems(Update, (show_help,))
@@ -69,6 +71,8 @@ fn setup(
     commands.spawn((
         Camera3d::default(),
         Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        // Add name for debugging
+        Name::new("Main Camera"),
     ));
 
     info!("Information Alchemist started");

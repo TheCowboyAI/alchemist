@@ -3060,6 +3060,7 @@ dependencies = [
  "parking_lot",
  "petgraph 0.6.5",
  "proptest",
+ "rstar",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -8785,6 +8786,17 @@ dependencies = [
  "spki",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "rstar"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "421400d13ccfd26dfa5858199c30a5d76f9c54e0dba7575273025b43c5175dbb"
+dependencies = [
+ "heapless",
+ "num-traits",
+ "smallvec",
 ]
 
 [[package]]

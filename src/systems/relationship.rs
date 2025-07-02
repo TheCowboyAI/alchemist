@@ -1,13 +1,14 @@
 //! Identity relationship systems
 
-use bevy_ecs::prelude::*;
+use bevy::prelude::*;
 use uuid::Uuid;
 use std::time::SystemTime;
 
 use crate::{
     components::{
-        IdentityEntity, IdentityRelationship, RelationshipType,
+        IdentityEntity, IdentityRelationship,
     },
+    value_objects::RelationshipType,
     events::{RelationshipEstablished, RelationshipValidated, RelationshipExpired},
     commands::{EstablishRelationshipCommand, ValidateRelationshipCommand, ExpireRelationshipCommand},
     aggregate::IdentityAggregate,
@@ -127,20 +128,37 @@ pub fn traverse_relationships_system(
 
 /// System to expire relationships
 pub fn expire_relationships_system(
-    _commands: Commands,
+    mut commands: Commands,
     mut expired_events: EventWriter<RelationshipExpired>,
     relationships: Query<(Entity, &IdentityRelationship)>,
-    time: Res<bevy_time::Time>,
+    time: Res<Time>,
 ) {
+    // Only check for expiration periodically to improve performance
+    let check_interval = 5.0; // Check every 5 seconds
+    let elapsed = time.elapsed_secs();
+    
+    // Skip if not time to check
+    if elapsed % check_interval > time.delta_secs() {
+        return;
+    }
+    
     let current_time = SystemTime::now();
 
-    for (_entity, relationship) in relationships.iter() {
+    for (entity, relationship) in relationships.iter() {
         if let Some(expires_at) = relationship.expires_at {
             if current_time > expires_at {
+                // Remove the expired relationship
+                commands.entity(entity).despawn();
+                
+                // Emit expiration event
                 expired_events.write(RelationshipExpired {
                     relationship_id: relationship.id,
                     expired_at: current_time,
-                    reason: "Time expiration".to_string(),
+                    reason: format!("Expired after {} seconds", 
+                        current_time.duration_since(relationship.established_at)
+                            .unwrap_or_default()
+                            .as_secs()
+                    ),
                 });
             }
         }

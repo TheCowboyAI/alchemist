@@ -22,6 +22,7 @@ pub struct NatsConnection {
 }
 
 impl NatsConnection {
+    /// Creates a new NATS connection with JetStream context
     pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let client = async_nats::connect("nats://localhost:4222").await?;
         let jetstream = jetstream::new(client.clone());
@@ -45,16 +46,45 @@ impl NatsConnection {
             runtime: Arc::new(Runtime::new()?),
         })
     }
+    
+    /// Publishes a message to a core NATS subject (non-JetStream)
+    pub async fn publish_core(&self, subject: &str, payload: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        self.client.publish(subject.to_string(), payload.into()).await?;
+        Ok(())
+    }
+    
+    /// Subscribes to a core NATS subject for real-time updates
+    pub async fn subscribe_core(&self, subject: &str) -> Result<async_nats::Subscriber, Box<dyn std::error::Error>> {
+        Ok(self.client.subscribe(subject.to_string()).await?)
+    }
+    
+    /// Gets the server info to check connection status
+    pub fn server_info(&self) -> async_nats::ServerInfo {
+        // Return the server info directly
+        self.client.server_info()
+    }
+    
+    /// Flushes all pending messages to ensure they're sent
+    pub async fn flush(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.client.flush().await?;
+        Ok(())
+    }
 }
 
 /// Event wrapper with metadata for NATS
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NatsEvent<T> {
+    /// Unique identifier for this event
     pub event_id: Uuid,
+    /// Type name of the event
     pub event_type: String,
+    /// ISO 8601 timestamp when the event occurred
     pub timestamp: String,
+    /// Correlation ID to track related events
     pub correlation_id: Uuid,
+    /// ID of the event that caused this one (None for root events)
     pub causation_id: Option<Uuid>,
+    /// The actual event payload
     pub payload: T,
 }
 

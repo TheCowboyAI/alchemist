@@ -31,10 +31,8 @@ pkgs.rustPlatform.buildRustPackage rec {
     makeWrapper
   ];
 
-  packages = [
-    nativeBuildInputs
-    gh
-  ];
+  # Additional packages needed for development
+  # (nativeBuildInputs are already included in the build environment)
 
   # Production build flags - build without dynamic linking to avoid Bevy 0.16.1 issues
   cargoBuildFlags = "";

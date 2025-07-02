@@ -16,12 +16,18 @@ pub struct AgentChatState {
     window_size: egui::Vec2,
 }
 
+/// Docking position for the agent UI window
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum DockSide {
+    /// Floating window that can be moved
     Floating,
+    /// Docked to the left side of the screen
     Left,
+    /// Docked to the right side of the screen
     Right,
+    /// Docked to the top of the screen
     Top,
+    /// Docked to the bottom of the screen
     Bottom,
 }
 
@@ -31,10 +37,14 @@ impl Default for DockSide {
     }
 }
 
+/// Represents a message in the chat history
 #[derive(Clone)]
 pub struct ChatMessage {
+    /// The text content of the message
     pub text: String,
+    /// Whether this message is from the user (true) or agent (false)
     pub is_user: bool,
+    /// Timestamp when the message was sent
     pub timestamp: String,
 }
 
@@ -64,8 +74,15 @@ fn toggle_agent_window(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut chat_state: ResMut<AgentChatState>,
 ) {
+    // Log any key press for debugging
+    for key in keyboard.get_just_pressed() {
+        info!("Agent UI detected key press: {:?}", key);
+    }
+    
     if keyboard.just_pressed(KeyCode::F1) {
+        info!("F1 pressed - toggling agent window");
         chat_state.show_window = !chat_state.show_window;
+        info!("Agent window show state: {}", chat_state.show_window);
     }
 }
 
@@ -80,6 +97,14 @@ fn render_agent_ui(
     }
 
     let ctx = contexts.ctx_mut();
+    
+    // Debug: Log that we're rendering
+    use std::sync::atomic::{AtomicU32, Ordering};
+    static FRAME_COUNT: AtomicU32 = AtomicU32::new(0);
+    let frame = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
+    if frame % 60 == 0 {  // Log every second
+        info!("Agent UI rendering, frame {}", frame);
+    }
 
     // Initialize window size if not set
     if chat_state.window_size == egui::Vec2::ZERO {
@@ -230,9 +255,12 @@ fn render_agent_ui(
                 response.request_focus();
             }
 
-            if ui.button("Send").clicked()
-                || (response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)))
-            {
+            let send_button = ui.button("Send");
+            let should_send = send_button.clicked()
+                || (response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
+                
+            if should_send {
+                info!("Send triggered! Input text: '{}'", chat_state.input_text);
                 if !chat_state.input_text.is_empty() {
                     let question_text = chat_state.input_text.clone();
 
@@ -263,7 +291,8 @@ fn render_agent_ui(
         // Quick actions
         ui.label("Quick Questions:");
         ui.horizontal(|ui| {
-            if ui.button("What is CIM?").clicked() {
+            let button = ui.button("What is CIM?");
+            if button.clicked() {
                 let question = "What is CIM?".to_string();
                 info!("Quick action button clicked: {}", question);
 
@@ -332,13 +361,20 @@ fn handle_agent_responses(
     mut response_events: EventReader<AgentResponseEvent>,
     mut chat_state: ResMut<AgentChatState>,
 ) {
+    let response_count = response_events.len();
+    if response_count > 0 {
+        info!("Handling {} agent response events", response_count);
+    }
+    
     for event in response_events.read() {
+        info!("Received agent response: {}", event.response);
         chat_state.messages.push(ChatMessage {
             text: event.response.clone(),
             is_user: false,
             timestamp: chrono::Local::now().format("%H:%M").to_string(),
         });
         chat_state.is_waiting = false;
+        info!("Response added to chat");
     }
 }
 

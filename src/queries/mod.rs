@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::*;
+use bevy::prelude::*;
 use uuid::Uuid;
 use std::time::{SystemTime, Duration};
 use serde::{Deserialize, Serialize};
@@ -14,8 +14,10 @@ use crate::{
         WorkflowType, WorkflowStatus, ProjectionType,
         RelationshipId,
     },
+    projections::{IdentityView, RelationshipView},
 };
 
+/// Find an identity by its unique ID
 pub fn find_identity_by_id(
     world: &mut World,
     identity_id: Uuid,
@@ -34,6 +36,7 @@ pub fn find_identity_by_id(
         })
 }
 
+/// Find all identities of a specific type
 pub fn find_identities_by_type(
     world: &mut World,
     identity_type: IdentityType,
@@ -53,6 +56,7 @@ pub fn find_identities_by_type(
         .collect()
 }
 
+/// Find all relationships associated with a specific identity
 pub fn find_relationships_by_identity(
     world: &mut World,
     identity_id: Uuid,
@@ -72,6 +76,7 @@ pub fn find_relationships_by_identity(
         .collect()
 }
 
+/// Find all identities with a minimum verification level
 pub fn find_identities_by_verification_level(
     world: &mut World,
     min_level: VerificationLevel,
@@ -91,6 +96,7 @@ pub fn find_identities_by_verification_level(
         .collect()
 }
 
+/// Find all identities with expired verifications
 pub fn find_expired_verifications(
     world: &mut World,
     current_time: SystemTime,
@@ -114,4 +120,86 @@ pub fn find_expired_verifications(
             updated_at: metadata.updated_at,
         })
         .collect()
+}
+
+/// Agent query type
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AgentQuery {
+    /// Find by ID
+    FindById(Uuid),
+    /// Find by type
+    FindByType(crate::value_objects::AgentType),
+    /// Find by status
+    FindByStatus(crate::aggregate::AgentStatus),
+}
+
+/// Agent query handler
+pub struct AgentQueryHandler;
+
+impl AgentQueryHandler {
+    /// Execute a query
+    pub fn execute(query: AgentQuery, world: &mut World) -> Vec<crate::projections::AgentView> {
+        use crate::components::{AgentEntity, AgentOwner};
+        
+        match query {
+            AgentQuery::FindById(agent_id) => {
+                // Query for agents with the matching ID
+                // In a real implementation, we would query from a proper read model/projection
+                // For now, we create a basic view from the entity components
+                world.query::<&AgentEntity>()
+                    .iter(world)
+                    .filter(|entity| entity.id.0 == agent_id)
+                    .map(|entity| {
+                        // Create view with default data
+                        // In production, this would come from a proper projection
+                        crate::projections::AgentView {
+                            id: entity.id,
+                            agent_type: entity.agent_type.clone(),
+                            status: crate::aggregate::AgentStatus::Active, // Default status
+                            name: format!("Agent {}", entity.id.0),
+                            capabilities: vec!["basic".to_string()], // Default capabilities
+                            permissions: vec!["read".to_string()], // Default permissions
+                        }
+                    })
+                    .collect()
+            }
+            AgentQuery::FindByType(agent_type) => {
+                world.query::<&AgentEntity>()
+                    .iter(world)
+                    .filter(|entity| entity.agent_type == agent_type)
+                    .map(|entity| {
+                        crate::projections::AgentView {
+                            id: entity.id,
+                            agent_type: entity.agent_type.clone(),
+                            status: crate::aggregate::AgentStatus::Active,
+                            name: format!("Agent {}", entity.id.0),
+                            capabilities: vec!["basic".to_string()],
+                            permissions: vec!["read".to_string()],
+                        }
+                    })
+                    .collect()
+            }
+            AgentQuery::FindByStatus(status) => {
+                // Since we don't store status in the component, we return empty for non-Active status
+                if status != crate::aggregate::AgentStatus::Active {
+                    return Vec::new();
+                }
+                
+                // Return all agents as "Active" for now
+                world.query::<&AgentEntity>()
+                    .iter(world)
+                    .map(|entity| {
+                        crate::projections::AgentView {
+                            id: entity.id,
+                            agent_type: entity.agent_type.clone(),
+                            status: crate::aggregate::AgentStatus::Active,
+                            name: format!("Agent {}", entity.id.0),
+                            capabilities: vec!["basic".to_string()],
+                            permissions: vec!["read".to_string()],
+                        }
+                    })
+                    .collect()
+            }
+        }
+    }
 } 

@@ -1,6 +1,6 @@
 //! Agent monitoring systems
 
-use bevy_ecs::prelude::*;
+use bevy::prelude::*;
 use bevy_app::prelude::*;
 use crate::components::*;
 

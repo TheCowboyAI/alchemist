@@ -1,10 +1,15 @@
+/// Lifecycle management systems
 pub mod lifecycle;
+/// Relationship management systems
 pub mod relationship;
+/// Workflow processing systems
 pub mod workflow;
+/// Verification systems
 pub mod verification;
+/// Projection synchronization systems
 pub mod projection;
 
-use bevy_ecs::prelude::*;
+use bevy::prelude::*;
 
 // Re-export specific items to avoid name conflicts
 pub use lifecycle::{

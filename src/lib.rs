@@ -54,29 +54,38 @@ pub mod prelude {
     pub use bevy_egui::*;
 }
 
-//! Agent domain module
-//!
-//! This module contains all agent-related domain logic including:
-//! - Agent aggregate and components
-//! - Agent commands and events
-//! - Agent command and query handlers
+// Agent domain module
+//
+// This module contains all agent-related domain logic including:
+// - Agent aggregate and components
+// - Agent commands and events
+// - Agent command and query handlers
 
+/// Aggregate root definitions for domain entities
 pub mod aggregate;
+/// Command definitions for domain operations
 pub mod commands;
+/// Domain event definitions
 pub mod events;
+/// Command and event handlers
 pub mod handlers;
+/// Read model projections
 pub mod projections;
+/// Query definitions and handlers
 pub mod queries;
+/// Value objects for domain modeling
 pub mod value_objects;
 
 // ECS modules
+/// ECS component definitions
 pub mod components;
+/// ECS system implementations
 pub mod systems;
 
 // Re-export main types
 pub use aggregate::{
-    Agent, AgentMarker, AgentMetadata, AgentStatus, AgentType,
-    AuthMethod, AuthenticationComponent, CapabilitiesComponent,
+    Agent, AgentMarker, AgentMetadata, AgentStatus,
+    AuthenticationComponent, CapabilitiesComponent,
     ConfigurationComponent, PermissionsComponent, ToolAccessComponent,
     ToolDefinition, ToolUsageStats,
 };
@@ -98,6 +107,9 @@ pub use events::{
 pub use handlers::{AgentCommandHandler, AgentEventHandler};
 pub use projections::AgentView;
 pub use queries::{AgentQuery, AgentQueryHandler};
+
+// Re-export value objects
+pub use value_objects::{AgentType, AuthMethod};
 
 // Re-export ECS types
 pub use components::*;
