@@ -34,6 +34,15 @@ pkgs.rustPlatform.buildRustPackage rec {
   # Additional packages needed for development
   # (nativeBuildInputs are already included in the build environment)
 
+  # Pre-build phase to ensure submodules are available
+  preBuild = ''
+    # Check if we're in a git repository and handle submodules
+    if [ -d .git ] && [ -f .gitmodules ]; then
+      echo "Initializing git submodules..."
+      ${pkgs.git}/bin/git submodule update --init --recursive || true
+    fi
+  '';
+
   # Production build flags - build without dynamic linking to avoid Bevy 0.16.1 issues
   cargoBuildFlags = "";
 
