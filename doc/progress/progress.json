@@ -22,7 +22,7 @@
       "features": [
         "Full CQRS implementation",
         "Event-driven architecture",
-        "11/18 queries implemented",
+        "21/21 queries implemented",
         "Cross-domain integration"
       ]
     },
@@ -259,7 +259,6 @@
   ],
   "technical_debt": {
     "items": [
-      "Some queries in Graph domain not yet implemented (11/18)",
       "Minor linter warnings in Bevy integration",
       "Some async trait warnings in agent domain"
     ],
@@ -284,7 +283,7 @@
     {
       "date": "2025-07-02",
       "change": "Implemented find_source_nodes and find_sink_nodes queries in Graph domain",
-      "impact": "Improved graph analysis capabilities - now 11/18 queries implemented with 101 tests passing"
+      "impact": "Completed graph analysis capabilities - all 21/21 queries now implemented with 101 tests passing"
     },
     {
       "date": "2025-07-02",
