@@ -145,6 +145,7 @@ cim-domain-policy = { path = "cim-domain-policy" }
 cim-domain-agent = { path = "cim-domain-agent" }
 cim-domain-organization = { path = "cim-domain-organization" }
 cim-domain-person = { path = "cim-domain-person" }
+cim-domain-conceptualspaces = { path = "cim-domain-conceptualspaces" }
 cim-domain-bevy = { path = "cim-domain-bevy" }
 cim-subject = { path = "cim-subject" }
 cim-domain-nix = { path = "cim-domain-nix" }
@@ -331,6 +332,10 @@ required-features = []
 [[example]]
 name = "cross_domain_nats_demo"
 path = "examples/cross_domain_nats_demo.rs"
+
+[[example]]
+name = "conceptual_reasoning_demo"
+path = "examples/conceptual_reasoning_demo.rs"
 required-features = []
 
 [[example]]

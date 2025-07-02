@@ -10,16 +10,16 @@
 //!     Org -->|Enriched Views| UI[User Interface]
 //! ```
 
+use chrono::Utc;
 use std::sync::Arc;
 use uuid::Uuid;
-use chrono::Utc;
 
 use cim_domain_organization::{
     cross_domain::{
-        CrossDomainResolver, InMemoryCrossDomainResolver,
-        CrossDomainIntegrationService, PersonDetails, LocationDetails,
+        CrossDomainIntegrationService, CrossDomainResolver, InMemoryCrossDomainResolver,
+        LocationDetails, PersonDetails,
     },
-    projections::views::{OrganizationView, MemberView},
+    projections::views::{MemberView, OrganizationView},
 };
 
 #[tokio::main]
@@ -37,33 +37,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let eng1_id = Uuid::new_v4();
     let eng2_id = Uuid::new_v4();
 
-    resolver.add_person(PersonDetails {
-        person_id: ceo_id,
-        full_name: "Sarah Johnson".to_string(),
-        email: Some("sarah.johnson@techcorp.com".to_string()),
-        title: Some("Chief Executive Officer".to_string()),
-    }).await;
+    resolver
+        .add_person(PersonDetails {
+            person_id: ceo_id,
+            full_name: "Sarah Johnson".to_string(),
+            email: Some("sarah.johnson@techcorp.com".to_string()),
+            title: Some("Chief Executive Officer".to_string()),
+        })
+        .await;
 
-    resolver.add_person(PersonDetails {
-        person_id: cto_id,
-        full_name: "Michael Chen".to_string(),
-        email: Some("michael.chen@techcorp.com".to_string()),
-        title: Some("Chief Technology Officer".to_string()),
-    }).await;
+    resolver
+        .add_person(PersonDetails {
+            person_id: cto_id,
+            full_name: "Michael Chen".to_string(),
+            email: Some("michael.chen@techcorp.com".to_string()),
+            title: Some("Chief Technology Officer".to_string()),
+        })
+        .await;
 
-    resolver.add_person(PersonDetails {
-        person_id: eng1_id,
-        full_name: "Emily Rodriguez".to_string(),
-        email: Some("emily.rodriguez@techcorp.com".to_string()),
-        title: Some("Senior Software Engineer".to_string()),
-    }).await;
+    resolver
+        .add_person(PersonDetails {
+            person_id: eng1_id,
+            full_name: "Emily Rodriguez".to_string(),
+            email: Some("emily.rodriguez@techcorp.com".to_string()),
+            title: Some("Senior Software Engineer".to_string()),
+        })
+        .await;
 
-    resolver.add_person(PersonDetails {
-        person_id: eng2_id,
-        full_name: "David Kim".to_string(),
-        email: Some("david.kim@techcorp.com".to_string()),
-        title: Some("Software Engineer".to_string()),
-    }).await;
+    resolver
+        .add_person(PersonDetails {
+            person_id: eng2_id,
+            full_name: "David Kim".to_string(),
+            email: Some("david.kim@techcorp.com".to_string()),
+            title: Some("Software Engineer".to_string()),
+        })
+        .await;
 
     println!("   ✓ Added 4 persons to Person Domain\n");
 
@@ -72,28 +80,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let hq_location_id = Uuid::new_v4();
     let dev_office_id = Uuid::new_v4();
 
-    resolver.add_location(LocationDetails {
-        location_id: hq_location_id,
-        name: "Tech Corp Headquarters".to_string(),
-        address: "100 Innovation Drive".to_string(),
-        city: "San Francisco".to_string(),
-        country: "USA".to_string(),
-    }).await;
+    resolver
+        .add_location(LocationDetails {
+            location_id: hq_location_id,
+            name: "Tech Corp Headquarters".to_string(),
+            address: "100 Innovation Drive".to_string(),
+            city: "San Francisco".to_string(),
+            country: "USA".to_string(),
+        })
+        .await;
 
-    resolver.add_location(LocationDetails {
-        location_id: dev_office_id,
-        name: "Development Center".to_string(),
-        address: "200 Code Street".to_string(),
-        city: "Austin".to_string(),
-        country: "USA".to_string(),
-    }).await;
+    resolver
+        .add_location(LocationDetails {
+            location_id: dev_office_id,
+            name: "Development Center".to_string(),
+            address: "200 Code Street".to_string(),
+            city: "Austin".to_string(),
+            country: "USA".to_string(),
+        })
+        .await;
 
     println!("   ✓ Added 2 locations to Location Domain\n");
 
     // Create Organization with members
     println!("3. Creating Organization with members...");
     let org_id = Uuid::new_v4();
-    
+
     let mut members = vec![
         MemberView {
             person_id: ceo_id,
@@ -133,11 +145,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Demonstrate cross-domain enrichment
     println!("4. Enriching organization data with cross-domain information...");
-    
+
     // Enrich member names from Person Domain
     println!("   - Resolving member names from Person Domain...");
     service.enrich_with_person_names(&mut members).await?;
-    
+
     println!("   ✓ Member names resolved:");
     for member in &members {
         println!("     • {} - {}", member.person_name, member.role);
@@ -154,16 +166,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         founded_date: Some(chrono::NaiveDate::from_ymd_opt(2018, 1, 1).unwrap()),
         member_count: members.len(),
         average_tenure_days: Some(
-            members.iter().map(|m| m.tenure_days).sum::<i64>() as f64 / members.len() as f64
+            members.iter().map(|m| m.tenure_days).sum::<i64>() as f64 / members.len() as f64,
         ),
         primary_location_name: None, // Will be enriched
     };
 
     // Enrich location name from Location Domain
     println!("   - Resolving headquarters location from Location Domain...");
-    service.enrich_with_location_name(&mut org, hq_location_id).await?;
-    
-    println!("   ✓ Location resolved: {}", org.primary_location_name.as_ref().unwrap());
+    service
+        .enrich_with_location_name(&mut org, hq_location_id)
+        .await?;
+
+    println!(
+        "   ✓ Location resolved: {}",
+        org.primary_location_name.as_ref().unwrap()
+    );
     println!();
 
     // Display final enriched organization view
@@ -172,10 +189,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("   ║ Organization: {:44} ║", org.name);
     println!("   ╠════════════════════════════════════════════════════════════╣");
     println!("   ║ Category: {:48} ║", org.category);
-    println!("   ║ Founded: {:49} ║", org.founded_date.unwrap().format("%B %d, %Y"));
+    println!(
+        "   ║ Founded: {:49} ║",
+        org.founded_date.unwrap().format("%B %d, %Y")
+    );
     println!("   ║ Size: {:52} employees ║", org.size);
-    println!("   ║ Average Tenure: {:42} days ║", org.average_tenure_days.unwrap() as i64);
-    println!("   ║ Headquarters: {:44} ║", org.primary_location_name.as_ref().unwrap());
+    println!(
+        "   ║ Average Tenure: {:42} days ║",
+        org.average_tenure_days.unwrap() as i64
+    );
+    println!(
+        "   ║ Headquarters: {:44} ║",
+        org.primary_location_name.as_ref().unwrap()
+    );
     println!("   ╠════════════════════════════════════════════════════════════╣");
     println!("   ║ Team Members:                                              ║");
     for member in &members {
@@ -188,7 +214,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("6. Testing batch resolution capabilities...");
     let person_ids: Vec<Uuid> = members.iter().map(|m| m.person_id).collect();
     let batch_results = resolver.get_person_details_batch(person_ids).await?;
-    
+
     println!("   ✓ Batch resolved {} person records", batch_results.len());
     println!();
 
@@ -196,8 +222,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("7. Cross-Domain Statistics:");
     println!("   - Total persons in system: 4");
     println!("   - Total locations in system: 2");
-    println!("   - Average member tenure: {:.1} years", org.average_tenure_days.unwrap() / 365.0);
-    println!("   - Organization age: {:.1} years", 
+    println!(
+        "   - Average member tenure: {:.1} years",
+        org.average_tenure_days.unwrap() / 365.0
+    );
+    println!(
+        "   - Organization age: {:.1} years",
         (Utc::now().naive_utc().date() - org.founded_date.unwrap()).num_days() as f64 / 365.0
     );
     println!();
@@ -211,4 +241,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("• Views can be enriched with data from other domains");
 
     Ok(())
-} 
+}

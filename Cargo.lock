@@ -2962,6 +2962,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.12",
  "tokio",
+ "tracing",
  "uuid",
 ]
 
@@ -5739,6 +5740,7 @@ dependencies = [
  "cim-domain",
  "cim-domain-agent",
  "cim-domain-bevy",
+ "cim-domain-conceptualspaces",
  "cim-domain-dialog",
  "cim-domain-document",
  "cim-domain-git",
