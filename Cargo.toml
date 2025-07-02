@@ -329,6 +329,11 @@ path = "examples/cross_domain_demo.rs"
 required-features = []
 
 [[example]]
+name = "cross_domain_nats_demo"
+path = "examples/cross_domain_nats_demo.rs"
+required-features = []
+
+[[example]]
 name = "keco_loan_process_demo"
 path = "examples/keco_loan_process_demo.rs"
 required-features = ["dev"]
