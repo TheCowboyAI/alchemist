@@ -3160,6 +3160,7 @@ dependencies = [
 name = "cim-domain-organization"
 version = "0.3.0"
 dependencies = [
+ "async-nats 0.38.0",
  "async-trait",
  "bevy_ecs 0.16.1",
  "chrono",
