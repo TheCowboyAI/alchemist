@@ -120,8 +120,8 @@
     },
     "document": {
       "status": "ADVANCED",
-      "progress": 80,
-      "tests": 34,
+      "progress": 85,
+      "tests": 46,
       "features": [
         "Core commands implemented",
         "Value objects defined",
@@ -136,7 +136,11 @@
         "Document summarization",
         "Multi-category classification",
         "Merge and conflict resolution",
-        "Version rollback capability"
+        "Version rollback capability",
+        "Template system with variables",
+        "Advanced search with filters",
+        "Import/export (Markdown, HTML, JSON)",
+        "Document collections management"
       ]
     },
     "nix": {
@@ -355,6 +359,11 @@
       "date": "2025-07-02",
       "change": "Content intelligence services added to Document domain",
       "impact": "Entity extraction, summarization, classification, merge/rollback; 34 total tests (was 18); progress 60% → 80%"
+    },
+    {
+      "date": "2025-07-02",
+      "change": "Advanced Document features: templates, search, import/export",
+      "impact": "Template system with typed variables, full-text search with filters, import/export for multiple formats; 46 total tests (was 34); progress 80% → 85%"
     }
   ],
   "validation": {
