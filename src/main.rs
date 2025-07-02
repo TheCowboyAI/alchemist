@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 use ia::{
     graph::GraphState,
-    plugins::{AgentIntegrationPlugin, AgentUiPlugin, GraphEditorPlugin, NatsEventBridgePlugin},
+    plugins::{AgentIntegrationPlugin, AgentUiPlugin, CameraControllerPlugin, GraphEditorPlugin, NatsEventBridgePlugin},
     simple_agent::SimpleAgentPlugin,
     workflow::WorkflowState,
 };
@@ -33,8 +33,9 @@ fn main() {
         .add_plugins(AgentUiPlugin)
         .add_plugins(AgentIntegrationPlugin)
         .add_plugins(NatsEventBridgePlugin)
-        // Add graph editor
+        // Add graph editor and camera
         .add_plugins(GraphEditorPlugin)
+        .add_plugins(CameraControllerPlugin)
         // Add systems
         .add_systems(Startup, setup)
         .add_systems(Update, (show_help,))
@@ -84,9 +85,25 @@ fn setup(
 fn show_help(keyboard: Res<ButtonInput<KeyCode>>) {
     if keyboard.just_pressed(KeyCode::KeyH) {
         info!("=== Information Alchemist Help ===");
+        info!("== AI Assistant ==");
         info!("F1 - Open AI Assistant");
-        info!("F2 - Ask about current selection");
-        info!("F3 - Ask about workflow");
+        info!("F2 - Ask about event sourcing");
+        info!("F3 - Ask about domains");
+        info!("F4 - Help with graph editing");
+        info!("");
+        info!("== Graph Editor ==");
+        info!("S - Select mode");
+        info!("N - Create node mode");
+        info!("E - Create edge mode");
+        info!("D - Delete mode");
+        info!("G - Toggle grid snap");
+        info!("Delete - Delete selected");
+        info!("");
+        info!("== Camera Controls ==");
+        info!("Right Mouse - Orbit camera");
+        info!("Middle Mouse - Pan camera");
+        info!("Mouse Wheel - Zoom in/out");
+        info!("");
         info!("H - Show this help");
         info!("ESC - Exit");
         info!("================================");

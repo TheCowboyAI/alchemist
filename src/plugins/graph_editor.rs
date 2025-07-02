@@ -49,6 +49,10 @@ impl Plugin for GraphEditorPlugin {
                     visualize_nodes,
                     visualize_edges,
                     highlight_selected,
+                    // Animation and effects
+                    update_hover_effects,
+                    animate_scale_transitions,
+                    update_material_effects,
                 ),
             )
             // UI runs separately to ensure proper ordering
@@ -139,6 +143,51 @@ pub struct CreateEdgeCommand {
 /// Command to delete selected entities
 #[derive(Event)]
 pub struct DeleteSelectedCommand;
+
+/// Animation state for smooth transitions
+#[derive(Component)]
+pub struct AnimationState {
+    /// Original scale
+    pub base_scale: Vec3,
+    /// Target scale
+    pub target_scale: Vec3,
+    /// Animation progress (0.0 to 1.0)
+    pub progress: f32,
+    /// Animation speed
+    pub speed: f32,
+}
+
+impl Default for AnimationState {
+    fn default() -> Self {
+        Self {
+            base_scale: Vec3::ONE,
+            target_scale: Vec3::ONE,
+            progress: 1.0,
+            speed: 5.0,
+        }
+    }
+}
+
+/// Hover effect component
+#[derive(Component)]
+pub struct HoverEffect {
+    /// Whether the entity is currently hovered
+    pub is_hovered: bool,
+    /// Glow intensity
+    pub glow_intensity: f32,
+    /// Target glow intensity
+    pub target_glow: f32,
+}
+
+impl Default for HoverEffect {
+    fn default() -> Self {
+        Self {
+            is_hovered: false,
+            glow_intensity: 0.0,
+            target_glow: 0.0,
+        }
+    }
+}
 
 /// Handle mouse input for graph editing
 fn handle_mouse_input(
@@ -323,9 +372,17 @@ fn create_nodes_system(
                 Mesh3d(meshes.add(Sphere::new(0.3).mesh())),
                 MeshMaterial3d(materials.add(StandardMaterial {
                     base_color: Color::srgb(0.2, 0.5, 0.8),
+                    emissive: LinearRgba::BLACK,
                     ..default()
                 })),
-                Transform::from_translation(event.position),
+                Transform::from_translation(event.position).with_scale(Vec3::ZERO),
+                AnimationState {
+                    base_scale: Vec3::ONE,
+                    target_scale: Vec3::ONE,
+                    progress: 0.0,
+                    speed: 5.0,
+                },
+                HoverEffect::default(),
             ))
             .id();
 
@@ -663,4 +720,65 @@ fn setup_graph_editor(
         })),
         Transform::from_xyz(0.0, -0.01, 0.0),
     ));
+}
+
+/// Update hover effects based on editor state
+fn update_hover_effects(
+    editor_state: Res<GraphEditorState>,
+    mut nodes: Query<(Entity, &mut HoverEffect)>,
+) {
+    for (entity, mut hover) in nodes.iter_mut() {
+        hover.is_hovered = Some(entity) == editor_state.hover_entity;
+        hover.target_glow = if hover.is_hovered { 0.3 } else { 0.0 };
+    }
+}
+
+/// Animate scale transitions for smooth appearance
+fn animate_scale_transitions(
+    mut nodes: Query<(&mut Transform, &mut AnimationState)>,
+    time: Res<Time>,
+) {
+    for (mut transform, mut anim) in nodes.iter_mut() {
+        if anim.progress < 1.0 {
+            anim.progress += time.delta_secs() * anim.speed;
+            anim.progress = anim.progress.clamp(0.0, 1.0);
+
+            // Smooth easing function
+            let t = ease_out_cubic(anim.progress);
+            transform.scale = anim.base_scale.lerp(anim.target_scale, t);
+        }
+    }
+}
+
+/// Update material effects based on hover and selection state
+fn update_material_effects(
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    nodes: Query<(&MeshMaterial3d<StandardMaterial>, &HoverEffect, Option<&Selected>)>,
+    time: Res<Time>,
+) {
+    for (material_handle, hover, selected) in nodes.iter() {
+        if let Some(material) = materials.get_mut(&material_handle.0) {
+            // Smooth hover glow transition
+            let current_glow = material.emissive.to_f32_array()[0];
+            let target_glow = if selected.is_some() {
+                0.4 // Selected glow
+            } else {
+                hover.target_glow
+            };
+
+            let new_glow = current_glow + (target_glow - current_glow) * time.delta_secs() * 5.0;
+            material.emissive = LinearRgba::rgb(new_glow * 0.8, new_glow * 0.6, new_glow * 0.2);
+
+            // Pulse effect for selected nodes
+            if selected.is_some() {
+                let pulse = (time.elapsed_secs() * 2.0).sin() * 0.1 + 0.9;
+                material.emissive = material.emissive * pulse;
+            }
+        }
+    }
+}
+
+/// Easing function for smooth animations
+fn ease_out_cubic(t: f32) -> f32 {
+    1.0 - (1.0 - t).powi(3)
 }
