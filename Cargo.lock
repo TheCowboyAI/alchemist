@@ -2997,6 +2997,7 @@ dependencies = [
  "cim-infrastructure",
  "cim-ipld",
  "proptest",
+ "regex",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
