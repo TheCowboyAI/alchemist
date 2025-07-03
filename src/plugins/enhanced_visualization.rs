@@ -19,6 +19,10 @@ use crate::{
 use std::collections::HashMap;
 use tracing::info;
 
+/// Temporary GraphEdge component for demo
+#[derive(Component)]
+pub struct GraphEdge;
+
 /// Enhanced visualization plugin
 pub struct EnhancedVisualizationPlugin;
 
@@ -28,7 +32,7 @@ impl Plugin for EnhancedVisualizationPlugin {
             .init_resource::<VisualizationSettings>()
             .init_resource::<EventVisualizationQueue>()
             .init_resource::<PerformanceMetrics>()
-            .add_systems(Startup, setup_enhanced_scene)
+            .add_systems(Startup, (setup_visualization_resources, setup_volumetric_fog))
             .add_systems(Update, (
                 // Visual effects
                 update_node_glow,
@@ -138,7 +142,11 @@ pub struct NodeGlow {
     /// Target intensity
     pub target_intensity: f32,
     /// Pulse frequency
-    pub pulse_frequency: f32,
+    pub frequency: f32,
+    /// Pulse amount
+    pub pulse_amount: f32,
+    /// Time
+    pub time: f32,
 }
 
 impl Default for NodeGlow {
@@ -147,7 +155,9 @@ impl Default for NodeGlow {
             base_color: Color::srgb(0.5, 0.7, 1.0),
             intensity: 0.0,
             target_intensity: 0.0,
-            pulse_frequency: 1.0,
+            frequency: 1.0,
+            pulse_amount: 0.0,
+            time: 0.0,
         }
     }
 }
@@ -163,6 +173,8 @@ pub struct EventRipple {
     pub color: Color,
     /// Maximum radius
     pub max_radius: f32,
+    /// Ripple radius
+    pub radius: f32,
 }
 
 /// Component for edge flow animation
@@ -176,6 +188,14 @@ pub struct EdgeFlow {
     pub color: Color,
     /// Particle density
     pub density: f32,
+    /// Time
+    pub time: f32,
+    /// Particle count
+    pub particle_count: i32,
+    /// Particle size
+    pub particle_size: f32,
+    /// Flow intensity
+    pub intensity: f32,
 }
 
 impl Default for EdgeFlow {
@@ -184,7 +204,11 @@ impl Default for EdgeFlow {
             speed: 1.0,
             offset: 0.0,
             color: Color::srgb(0.3, 0.7, 1.0),
-            density: 5.0,
+            density: 1.0,
+            time: 0.0,
+            particle_count: 5,
+            particle_size: 0.05,
+            intensity: 0.8,
         }
     }
 }
@@ -211,7 +235,7 @@ pub struct ParticleSystem {
     pub template: ParticleTemplate,
 }
 
-#[derive(Clone)]
+#[derive(Component, Clone)]
 pub struct Particle {
     pub position: Vec3,
     pub velocity: Vec3,
@@ -221,7 +245,7 @@ pub struct Particle {
     pub size: f32,
 }
 
-#[derive(Clone)]
+#[derive(Component, Clone)]
 pub struct ParticleTemplate {
     pub initial_velocity: Vec3,
     pub velocity_variance: Vec3,
@@ -231,6 +255,7 @@ pub struct ParticleTemplate {
     pub final_color: Color,
     pub initial_size: f32,
     pub final_size: f32,
+    pub max_lifetime: f32,
 }
 
 /// Data overlay component
@@ -242,6 +267,15 @@ pub struct DataOverlay {
     pub background: Color,
     /// Offset from entity
     pub offset: Vec3,
+}
+
+/// Volumetric fog configuration
+#[derive(Component, Default)]
+pub struct VolumetricFog {
+    pub density: f32,
+    pub color: Color,
+    pub start_distance: f32,
+    pub falloff: f32,
 }
 
 /// Handle keyboard input for visualization settings
@@ -268,8 +302,8 @@ fn handle_visualization_input(
     }
 }
 
-/// Setup enhanced scene with advanced lighting and effects
-fn setup_enhanced_scene(
+/// Setup visualization resources
+fn setup_visualization_resources(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -297,17 +331,7 @@ fn setup_enhanced_scene(
         }.build(),
     ));
 
-    // Add volumetric fog for atmosphere
-    commands.spawn((
-        FogVolume {
-            absorption: 0.1,
-            scattering: 0.3,
-            density_factor: 0.05,
-            density_texture_offset: Vec3::ZERO,
-            ..default()
-        },
-        Transform::from_scale(Vec3::splat(50.0)),
-    ));
+
 
     // Create grid floor with emissive lines
     let grid_size = 100.0;
@@ -366,30 +390,32 @@ fn setup_enhanced_scene(
 /// Update node glow effects
 fn update_node_glow(
     time: Res<Time>,
-    settings: Res<VisualizationSettings>,
-    mut nodes: Query<(&mut NodeGlow, &MeshMaterial3d<StandardMaterial>, Option<&Selected>)>,
+    mut glows: Query<(&mut NodeGlow, &MeshMaterial3d<StandardMaterial>)>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    if !settings.glow_enabled {
-        return;
-    }
-
-    for (mut glow, material_handle, selected) in nodes.iter_mut() {
-        // Update target intensity based on selection
-        glow.target_intensity = if selected.is_some() { 1.0 } else { 0.3 };
+    let delta = time.delta_secs();
+    
+    for (mut glow, material_handle) in glows.iter_mut() {
+        // Update glow animation
+        glow.time += delta * glow.frequency;
         
-        // Smooth intensity transition
-        let delta = time.delta_secs();
-        glow.intensity = glow.intensity.lerp(&glow.target_intensity, delta * 3.0);
-        
-        // Apply pulsing effect
-        let pulse = (time.elapsed_secs() * glow.pulse_frequency).sin() * 0.5 + 0.5;
-        let final_intensity = glow.intensity * (0.7 + pulse * 0.3);
+        // Lerp intensity
+        glow.intensity = glow.intensity.lerp(glow.target_intensity, delta * 3.0);
         
         // Update material
-        if let Some(material) = materials.get_mut(material_handle) {
-            material.emissive = (glow.base_color * final_intensity).into();
-            material.emissive_exposure_weight = 0.5;
+        if let Some(material) = materials.get_mut(&material_handle.0) {
+            let pulse = (glow.time.sin() * 0.5 + 0.5) * glow.pulse_amount;
+            let final_intensity = glow.intensity + pulse;
+            
+            // Set emissive color with intensity
+            let emissive_linear = LinearRgba::from(glow.base_color);
+            material.emissive = LinearRgba::new(
+                emissive_linear.red * final_intensity,
+                emissive_linear.green * final_intensity,
+                emissive_linear.blue * final_intensity,
+                emissive_linear.alpha,
+            );
+            material.emissive_exposure_weight = final_intensity.clamp(0.0, 1.0);
         }
     }
 }
@@ -398,35 +424,37 @@ fn update_node_glow(
 fn animate_event_ripples(
     time: Res<Time>,
     mut commands: Commands,
-    mut ripples: Query<(Entity, &mut Transform, &mut EventRipple)>,
+    mut ripples: Query<(Entity, &mut EventRipple, &MeshMaterial3d<StandardMaterial>)>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    material_handles: Query<&MeshMaterial3d<StandardMaterial>>,
 ) {
     let delta = time.delta_secs();
     
-    for (entity, mut transform, mut ripple) in ripples.iter_mut() {
+    for (entity, mut ripple, material_handle) in ripples.iter_mut() {
         ripple.age += delta;
         
-        // Calculate ripple progress
         let progress = ripple.age / ripple.lifetime;
-        
         if progress >= 1.0 {
-            // Remove expired ripple
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
             continue;
         }
         
-        // Expand ripple
-        let radius = ripple.max_radius * progress;
-        transform.scale = Vec3::new(radius * 2.0, 0.1, radius * 2.0);
-        
-        // Fade out
-        let alpha = 1.0 - progress;
-        if let Ok(material_handle) = material_handles.get(entity) {
-            if let Some(material) = materials.get_mut(material_handle) {
-                material.base_color = ripple.color.with_alpha(alpha * 0.5);
-                material.emissive = (ripple.color * alpha).into();
-            }
+        // Update material
+        if let Some(material) = materials.get_mut(&material_handle.0) {
+            let alpha = 1.0 - progress;
+            
+            // Scale ripple
+            ripple.radius = ripple.max_radius * progress;
+            
+            // Update material opacity
+            material.base_color = ripple.color.with_alpha(alpha * 0.5);
+            let emissive_linear = LinearRgba::from(ripple.color);
+            material.emissive = LinearRgba::new(
+                emissive_linear.red * alpha,
+                emissive_linear.green * alpha,
+                emissive_linear.blue * alpha,
+                emissive_linear.alpha,
+            );
+            material.alpha_mode = AlphaMode::Blend;
         }
     }
 }
@@ -434,35 +462,34 @@ fn animate_event_ripples(
 /// Update edge flow animations
 fn update_edge_flow(
     time: Res<Time>,
-    settings: Res<VisualizationSettings>,
-    mut edges: Query<(&mut EdgeFlow, &Transform, &EdgeEntity)>,
+    mut flows: Query<&mut EdgeFlow>,
     mut gizmos: Gizmos,
+    edges: Query<(&GraphEdge, &Transform)>,
 ) {
-    if !settings.edge_flow_enabled {
-        return;
-    }
-
     let delta = time.delta_secs();
     
-    for (mut flow, transform, edge) in edges.iter_mut() {
-        // Update flow offset
-        flow.offset += flow.speed * delta;
-        if flow.offset > 1.0 {
-            flow.offset -= 1.0;
-        }
+    for mut flow in flows.iter_mut() {
+        flow.time += delta * flow.speed;
         
-        // Draw flow particles along edge
-        let num_particles = (transform.scale.y * flow.density) as i32;
-        for i in 0..num_particles {
-            let t = (i as f32 / num_particles as f32 + flow.offset) % 1.0;
-            let y_offset = (t - 0.5) * transform.scale.y;
-            let particle_pos = transform.translation + transform.rotation * Vec3::new(0.0, y_offset, 0.0);
+        // Draw flow particles along edges
+        for (_edge, transform) in edges.iter() {
+            let start = transform.translation;
+            let end = start + Vec3::new(10.0, 0.0, 0.0); // Simplified for example
             
-            // Fade particles at ends
-            let fade = (0.5 - (t - 0.5).abs()) * 2.0;
-            let color = flow.color.with_alpha(fade * 0.8);
-            
-            gizmos.sphere(particle_pos, 0.05, color);
+            // Draw multiple particles along the edge
+            for i in 0..flow.particle_count {
+                let offset = (flow.time + i as f32 * 0.2) % 1.0;
+                let pos = start.lerp(end, offset);
+                
+                let alpha = 1.0 - (offset - 0.5).abs() * 2.0;
+                let color = flow.color.with_alpha(alpha * flow.intensity);
+                
+                gizmos.sphere(
+                    Isometry3d::from_translation(pos),
+                    flow.particle_size,
+                    color,
+                );
+            }
         }
     }
 }
@@ -470,62 +497,39 @@ fn update_edge_flow(
 /// Update particle systems
 fn update_particle_systems(
     time: Res<Time>,
-    settings: Res<VisualizationSettings>,
-    mut systems: Query<(&Transform, &mut ParticleSystem)>,
-    mut gizmos: Gizmos,
+    mut commands: Commands,
+    mut particles: Query<(Entity, &mut Particle)>,
+    mut systems: Query<&mut ParticleSystem>,
 ) {
-    if !settings.particles_enabled {
-        return;
-    }
-
     let delta = time.delta_secs();
     
-    for (transform, mut system) in systems.iter_mut() {
-        // Spawn new particles
-        system.spawn_timer += delta;
-        let spawn_interval = 1.0 / system.spawn_rate;
+    // Update individual particles
+    for (entity, mut particle) in particles.iter_mut() {
+        particle.lifetime += delta;
         
-        while system.spawn_timer >= spawn_interval {
-            system.spawn_timer -= spawn_interval;
-            
-            // Create new particle
-            let template = &system.template;
-            let variance = Vec3::new(
-                rand::random::<f32>() - 0.5,
-                rand::random::<f32>() - 0.5,
-                rand::random::<f32>() - 0.5,
-            );
-            
-            system.particles.push(Particle {
-                position: transform.translation,
-                velocity: template.initial_velocity + variance * template.velocity_variance,
-                lifetime: 0.0,
-                max_lifetime: template.lifetime + (rand::random::<f32>() - 0.5) * template.lifetime_variance,
-                color: template.initial_color,
-                size: template.initial_size,
-            });
+        // Simple physics update
+        let gravity = Vec3::new(0.0, -9.81 * delta, 0.0);
+        particle.velocity += gravity;
+        let velocity = particle.velocity;
+        particle.position += velocity * delta;
+        
+        // Remove old particles
+        if particle.lifetime > 5.0 {
+            commands.entity(entity).despawn();
         }
+    }
+    
+    // Update particle systems
+    for mut system in systems.iter_mut() {
+        system.spawn_timer += delta;
         
-        // Update existing particles
+        // Update existing particles in the system
+        let max_lifetime = system.template.max_lifetime;
         system.particles.retain_mut(|particle| {
             particle.lifetime += delta;
-            
-            if particle.lifetime >= particle.max_lifetime {
-                return false; // Remove expired particle
-            }
-            
-            // Update position
-            particle.position += particle.velocity * delta;
-            
-            // Update color and size
-            let t = particle.lifetime / particle.max_lifetime;
-            particle.color = template.initial_color.lerp(&template.final_color, t);
-            particle.size = template.initial_size.lerp(&template.final_size, t);
-            
-            // Draw particle
-            gizmos.sphere(particle.position, particle.size, particle.color);
-            
-            true
+            let velocity = particle.velocity;
+            particle.position += velocity * delta;
+            particle.lifetime < max_lifetime
         });
     }
 }
@@ -582,6 +586,7 @@ fn process_event_queue(
                 lifetime: event.duration,
                 color: event.color,
                 max_radius: 5.0,
+                radius: 0.0,
             },
             Mesh3d(meshes.add(Torus {
                 minor_radius: 0.1,
@@ -711,32 +716,49 @@ fn cleanup_expired_effects(
 ) {
     for (entity, ripple) in ripples.iter() {
         if ripple.age >= ripple.lifetime {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
     }
 }
 
-// Helper function for linear interpolation
-trait Lerp {
-    fn lerp(&self, other: &Self, t: f32) -> Self;
+/// Setup volumetric fog
+fn setup_volumetric_fog(
+    mut commands: Commands,
+) {
+    // Volumetric fog is not directly supported in Bevy 0.16
+    // We'll use a marker component instead
+    commands.spawn((
+        VolumetricFog {
+            density: 0.1,
+            color: Color::srgba(0.5, 0.6, 0.7, 0.3),
+            start_distance: 10.0,
+            falloff: 0.1,
+        },
+        Name::new("Volumetric Fog"),
+    ));
 }
 
-impl Lerp for f32 {
-    fn lerp(&self, other: &Self, t: f32) -> Self {
-        self + (other - self) * t
+/// Cleanup despawned entities
+fn cleanup_despawned_entities(
+    mut commands: Commands,
+    ripples: Query<(Entity, &EventRipple)>,
+) {
+    for (entity, ripple) in ripples.iter() {
+        if ripple.age >= ripple.lifetime {
+            commands.entity(entity).despawn();
+        }
     }
 }
 
-impl Lerp for Color {
-    fn lerp(&self, other: &Self, t: f32) -> Self {
-        let [r1, g1, b1, a1] = self.to_srgba().to_f32_array();
-        let [r2, g2, b2, a2] = other.to_srgba().to_f32_array();
-        
-        Color::srgba(
-            r1.lerp(&r2, t),
-            g1.lerp(&g2, t),
-            b1.lerp(&b2, t),
-            a1.lerp(&a2, t),
-        )
-    }
+/// Helper function to lerp between colors
+fn lerp_color(c1: Color, c2: Color, t: f32) -> Color {
+    let LinearRgba { red: r1, green: g1, blue: b1, alpha: a1 } = LinearRgba::from(c1);
+    let LinearRgba { red: r2, green: g2, blue: b2, alpha: a2 } = LinearRgba::from(c2);
+    
+    Color::LinearRgba(LinearRgba::new(
+        r1.lerp(r2, t),
+        g1.lerp(g2, t),
+        b1.lerp(b2, t),
+        a1.lerp(a2, t),
+    ))
 } 

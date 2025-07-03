@@ -66,7 +66,7 @@ fn setup_demo_scene(
     
     // Create a central hub node
     let hub_id = NodeId(Uuid::new_v4());
-    node_events.send(NodeAdded {
+    node_events.write(NodeAdded {
         node_id: hub_id,
         graph_id,
         node_type: NodeType::Process,
@@ -87,7 +87,7 @@ fn setup_demo_scene(
         let node_id = NodeId(Uuid::new_v4());
         
         // Create node
-        node_events.send(NodeAdded {
+        node_events.write(NodeAdded {
             node_id,
             graph_id,
             node_type: match i % 4 {
@@ -101,7 +101,7 @@ fn setup_demo_scene(
         });
         
         // Connect to hub
-        edge_events.send(EdgeAdded {
+        edge_events.write(EdgeAdded {
             edge_id: EdgeId(Uuid::new_v4()),
             graph_id,
             source: hub_id,
@@ -111,12 +111,12 @@ fn setup_demo_scene(
         
         // Connect to previous node in circle
         if let Some(prev_id) = previous_id {
-            edge_events.send(EdgeAdded {
+            edge_events.write(EdgeAdded {
                 edge_id: EdgeId(Uuid::new_v4()),
                 graph_id,
                 source: prev_id,
                 target: node_id,
-                relationship: EdgeRelationship::Sequence,
+                relationship: EdgeRelationship::DataFlow,
             });
         }
         
@@ -126,12 +126,12 @@ fn setup_demo_scene(
     // Connect last to first to complete the circle
     if let Some(last_id) = previous_id {
         let first_id = NodeId(Uuid::new_v4());
-        edge_events.send(EdgeAdded {
+        edge_events.write(EdgeAdded {
             edge_id: EdgeId(Uuid::new_v4()),
             graph_id,
             source: last_id,
             target: hub_id,
-            relationship: EdgeRelationship::Sequence,
+            relationship: EdgeRelationship::DataFlow,
         });
     }
     
@@ -182,7 +182,7 @@ fn generate_demo_events(
                 
                 let node_id = NodeId(Uuid::new_v4());
                 
-                node_events.send(NodeAdded {
+                node_events.write(NodeAdded {
                     node_id,
                     graph_id,
                     node_type: NodeType::Process,
@@ -200,7 +200,7 @@ fn generate_demo_events(
                 if let Some(target_id) = state.last_node_id {
                     let source_id = NodeId(Uuid::new_v4()); // Would need to track more nodes
                     
-                    edge_events.send(EdgeAdded {
+                    edge_events.write(EdgeAdded {
                         edge_id: EdgeId(Uuid::new_v4()),
                         graph_id,
                         source: source_id,

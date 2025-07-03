@@ -212,87 +212,87 @@ path = "src/main.rs"
 
 # Demos - Only keeping the essential ones
 
-[[example]]
-name = "benchmark_contextgraph"
-path = "examples/benchmark_contextgraph.rs"
+# [[example]]
+# name = "benchmark_contextgraph"
+# path = "examples/benchmark_contextgraph.rs"
 
-[[example]]
-name = "simple_benchmark"
-path = "examples/simple_benchmark.rs"
+# [[example]]
+# name = "simple_benchmark"
+# path = "examples/simple_benchmark.rs"
 
-[[example]]
-name = "markdown_import_demo"
-path = "examples/markdown_import_demo.rs"
+# [[example]]
+# name = "markdown_import_demo"
+# path = "examples/markdown_import_demo.rs"
 
-[[example]]
-name = "import_graph"
-path = "examples/import_graph.rs"
+# [[example]]
+# name = "import_graph"
+# path = "examples/import_graph.rs"
 
-[[example]]
-name = "rule_context_demo"
-path = "examples/rule_context_demo.rs"
+# [[example]]
+# name = "rule_context_demo"
+# path = "examples/rule_context_demo.rs"
 
-[[example]]
-name = "markdown_import_simple"
-path = "examples/markdown_import_simple.rs"
+# [[example]]
+# name = "markdown_import_simple"
+# path = "examples/markdown_import_simple.rs"
 
-[[example]]
-name = "markdown_import_nats_demo"
-path = "examples/markdown_import_nats_demo.rs"
+# [[example]]
+# name = "markdown_import_nats_demo"
+# path = "examples/markdown_import_nats_demo.rs"
 
-[[example]]
-name = "markdown_import_demo_simple"
-path = "examples/markdown_import_demo_simple.rs"
+# [[example]]
+# name = "markdown_import_demo_simple"
+# path = "examples/markdown_import_demo_simple.rs"
 
-[[example]]
-name = "test_subgraph_basic"
-path = "examples/test_subgraph_basic.rs"
+# [[example]]
+# name = "test_subgraph_basic"
+# path = "examples/test_subgraph_basic.rs"
 
-[[example]]
-name = "subgraph_demo"
-path = "examples/subgraph_demo.rs"
+# [[example]]
+# name = "subgraph_demo"
+# path = "examples/subgraph_demo.rs"
 
-[[example]]
-name = "test_subgraph_operations"
-path = "examples/test_subgraph_operations.rs"
+# [[example]]
+# name = "test_subgraph_operations"
+# path = "examples/test_subgraph_operations.rs"
 
-[[example]]
-name = "document_context_demo"
-path = "examples/document_context_demo.rs"
+# [[example]]
+# name = "document_context_demo"
+# path = "examples/document_context_demo.rs"
 
-[[example]]
-name = "document_context_export"
-path = "examples/document_context_export.rs"
+# [[example]]
+# name = "document_context_export"
+# path = "examples/document_context_export.rs"
 
-[[example]]
-name = "event_replay_demo"
-path = "examples/event_replay_demo.rs"
+# [[example]]
+# name = "event_replay_demo"
+# path = "examples/event_replay_demo.rs"
 
-[[example]]
-name = "json_import_demo"
-path = "examples/json_import_demo.rs"
+# [[example]]
+# name = "json_import_demo"
+# path = "examples/json_import_demo.rs"
 
-[[example]]
-name = "approval_workflow"
-path = "examples/approval_workflow.rs"
+# [[example]]
+# name = "approval_workflow"
+# path = "examples/approval_workflow.rs"
 
-[[example]]
-name = "git_graph_visualization_demo"
-path = "examples/git_graph_visualization_demo.rs"
+# [[example]]
+# name = "git_graph_visualization_demo"
+# path = "examples/git_graph_visualization_demo.rs"
 
-[[example]]
-name = "progress_demo"
-path = "examples/progress_demo.rs"
+# [[example]]
+# name = "progress_demo"
+# path = "examples/progress_demo.rs"
 
-[[example]]
-name = "bridge_architecture_demo"
-path = "examples/bridge_architecture_demo.rs"
-required-features = ["dev"]
+# [[example]]
+# name = "bridge_architecture_demo"
+# path = "examples/bridge_architecture_demo.rs"
+# required-features = ["dev"]
 
-[[example]]
-name = "bridge_cli_demo"
-path = "examples/bridge_cli_demo.rs"
-required-features = []
+# [[example]]
+# name = "bridge_cli_demo"
+# path = "examples/bridge_cli_demo.rs"
+# required-features = []
 
 [[example]]
 name = "test_ui_simple"
@@ -338,10 +338,26 @@ name = "conceptual_reasoning_demo"
 path = "examples/conceptual_reasoning_demo.rs"
 required-features = []
 
+# [[example]]
+# name = "keco_loan_process_demo"
+# path = "examples/keco_loan_process_demo.rs"
+# required-features = ["dev"]
+
 [[example]]
-name = "keco_loan_process_demo"
-path = "examples/keco_loan_process_demo.rs"
-required-features = ["dev"]
+name = "enhanced_visualization_demo"
+path = "examples/enhanced_visualization_demo.rs"
+
+[[example]]
+name = "semantic_search_demo"
+path = "examples/semantic_search_demo.rs"
+
+[[example]]
+name = "identity_management_demo"
+path = "examples/identity_management_demo.rs"
+
+[[example]]
+name = "person_network_analysis_demo"
+path = "examples/person_network_analysis_demo.rs"
 
 # Disable the problematic experimental features
 [package.metadata.bevy]

@@ -5,7 +5,7 @@ use std::time::SystemTime;
 
 /// Start workflow system
 pub fn start_workflow_system(
-    commands: Commands,
+    _commands: Commands,
     mut workflow_state: ResMut<crate::workflow::WorkflowState>,
     mut start_events: EventReader<StartWorkflowEvent>,
 ) {

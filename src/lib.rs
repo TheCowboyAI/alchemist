@@ -82,6 +82,10 @@ pub mod components;
 /// ECS system implementations
 pub mod systems;
 
+// Semantic search module
+/// Semantic search capabilities for CIM
+pub mod semantic_search;
+
 // Re-export main types
 pub use aggregate::{
     Agent, AgentMarker, AgentMetadata, AgentStatus, AuthenticationComponent, CapabilitiesComponent,

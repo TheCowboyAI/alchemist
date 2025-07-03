@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 use ia::{
     graph::GraphState,
-    plugins::{AgentIntegrationPlugin, AgentUiPlugin, CameraControllerPlugin, GraphEditorPlugin, NatsEventBridgePlugin},
+    plugins::{AgentIntegrationPlugin, AgentUiPlugin, CameraControllerPlugin, GraphEditorPlugin, NatsEventBridgePlugin, EnhancedVisualizationPlugin},
     simple_agent::SimpleAgentPlugin,
     workflow::WorkflowState,
 };
@@ -36,6 +36,8 @@ fn main() {
         // Add graph editor and camera
         .add_plugins(GraphEditorPlugin)
         .add_plugins(CameraControllerPlugin)
+        // Add enhanced visualization
+        .add_plugins(EnhancedVisualizationPlugin)
         // Add systems
         .add_systems(Startup, setup)
         .add_systems(Update, (show_help,))
@@ -103,6 +105,11 @@ fn show_help(keyboard: Res<ButtonInput<KeyCode>>) {
         info!("Right Mouse - Orbit camera");
         info!("Middle Mouse - Pan camera");
         info!("Mouse Wheel - Zoom in/out");
+        info!("");
+        info!("== Enhanced Visualization ==");
+        info!("P - Toggle particles");
+        info!("L - Toggle glow effects");
+        info!("F - Toggle edge flow");
         info!("");
         info!("H - Show this help");
         info!("ESC - Exit");

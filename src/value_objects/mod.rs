@@ -177,6 +177,8 @@ pub enum NodeType {
     End,
     /// Data node
     Data,
+    /// Concept node
+    Concept,
     /// Custom node type
     Custom(String),
 }
@@ -197,7 +199,7 @@ pub enum EdgeRelationship {
 }
 
 /// 3D position
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Position3D {
     /// X coordinate
     pub x: f32,
