@@ -71,6 +71,7 @@ pub struct SearchResult {
 
 /// Filter for vector search
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct SearchFilter {
     pub domain: Option<String>,
     pub entity_type: Option<String>,
@@ -79,17 +80,6 @@ pub struct SearchFilter {
     pub custom_filters: HashMap<String, serde_json::Value>,
 }
 
-impl Default for SearchFilter {
-    fn default() -> Self {
-        Self {
-            domain: None,
-            entity_type: None,
-            tags: None,
-            time_range: None,
-            custom_filters: HashMap::new(),
-        }
-    }
-}
 
 /// Trait for vector store implementations
 #[async_trait]
@@ -139,7 +129,7 @@ pub struct InMemoryVectorStore {
 }
 
 impl InMemoryVectorStore {
-    pub fn new(config: VectorStoreConfig) -> Self {
+    #[must_use] pub fn new(config: VectorStoreConfig) -> Self {
         Self {
             data: Arc::new(RwLock::new(HashMap::new())),
             config,
@@ -272,7 +262,7 @@ impl VectorStore for InMemoryVectorStore {
         let data = self.data.read().await;
         let mut results: Vec<(DocumentId, f32, DocumentMetadata)> = data.iter()
             .filter(|(_, (_, metadata))| {
-                filter.as_ref().map_or(true, |f| self.matches_filter(metadata, f))
+                filter.as_ref().is_none_or(|f| self.matches_filter(metadata, f))
             })
             .map(|(id, (embedding, metadata))| {
                 let similarity = self.calculate_similarity(query_vector, embedding);

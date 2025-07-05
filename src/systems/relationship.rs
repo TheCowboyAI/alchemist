@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     aggregate::IdentityAggregate,
     commands::{
-        EstablishRelationshipCommand, ExpireRelationshipCommand, ValidateRelationshipCommand,
+        EstablishRelationshipCommand, ValidateRelationshipCommand,
     },
     components::{IdentityEntity, IdentityRelationship},
     events::{RelationshipEstablished, RelationshipExpired, RelationshipValidated},
@@ -50,7 +50,7 @@ pub fn establish_relationship_system(
             event.target_identity,
             &event.relationship_type,
         ) {
-            Ok(_) => {
+            Ok(()) => {
                 let rel_id = Uuid::new_v4();
 
                 // Spawn the relationship entity
@@ -74,7 +74,7 @@ pub fn establish_relationship_system(
                 });
             }
             Err(e) => {
-                eprintln!("Failed to establish relationship: {}", e);
+                eprintln!("Failed to establish relationship: {e}");
             }
         }
     }
@@ -114,7 +114,7 @@ pub fn validate_relationship_system(
 }
 
 /// System to traverse relationships (find connected identities)
-pub fn traverse_relationships_system(
+#[must_use] pub fn traverse_relationships_system(
     relationships: Query<&IdentityRelationship>,
     identities: Query<&IdentityEntity>,
 ) -> Vec<(Uuid, Uuid, RelationshipType)> {

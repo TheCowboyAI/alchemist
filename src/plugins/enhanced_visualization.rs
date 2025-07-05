@@ -7,19 +7,14 @@
 //! - Interactive data overlays
 
 use bevy::prelude::*;
-use bevy::pbr::{CascadeShadowConfigBuilder, ScreenSpaceAmbientOcclusion};
-use bevy::core_pipeline::bloom::{Bloom, BloomCompositeMode};
-use bevy::core_pipeline::tonemapping::Tonemapping;
-use bevy::render::view::RenderLayers;
+use bevy::pbr::CascadeShadowConfigBuilder;
 use crate::{
     components::{NodeEntity, EdgeEntity, Selected},
-    events::{NodeAdded, EdgeAdded, NodeRemoved, EdgeRemoved},
-    value_objects::{NodeType, EdgeRelationship},
+    events::{NodeAdded, EdgeAdded},
 };
-use std::collections::HashMap;
 use tracing::info;
 
-/// Temporary GraphEdge component for demo
+/// Temporary `GraphEdge` component for demo
 #[derive(Component)]
 pub struct GraphEdge;
 
@@ -395,7 +390,7 @@ fn update_node_glow(
 ) {
     let delta = time.delta_secs();
     
-    for (mut glow, material_handle) in glows.iter_mut() {
+    for (mut glow, material_handle) in &mut glows {
         // Update glow animation
         glow.time += delta * glow.frequency;
         
@@ -429,7 +424,7 @@ fn animate_event_ripples(
 ) {
     let delta = time.delta_secs();
     
-    for (entity, mut ripple, material_handle) in ripples.iter_mut() {
+    for (entity, mut ripple, material_handle) in &mut ripples {
         ripple.age += delta;
         
         let progress = ripple.age / ripple.lifetime;
@@ -468,7 +463,7 @@ fn update_edge_flow(
 ) {
     let delta = time.delta_secs();
     
-    for mut flow in flows.iter_mut() {
+    for mut flow in &mut flows {
         flow.time += delta * flow.speed;
         
         // Draw flow particles along edges
@@ -504,7 +499,7 @@ fn update_particle_systems(
     let delta = time.delta_secs();
     
     // Update individual particles
-    for (entity, mut particle) in particles.iter_mut() {
+    for (entity, mut particle) in &mut particles {
         particle.lifetime += delta;
         
         // Simple physics update
@@ -520,7 +515,7 @@ fn update_particle_systems(
     }
     
     // Update particle systems
-    for mut system in systems.iter_mut() {
+    for mut system in &mut systems {
         system.spawn_timer += delta;
         
         // Update existing particles in the system
@@ -613,7 +608,7 @@ fn update_lod_system(
         return;
     };
     
-    for (transform, mut lod, mut visibility) in nodes.iter_mut() {
+    for (transform, mut lod, mut visibility) in &mut nodes {
         // Calculate distance to camera
         lod.distance = camera_transform.translation.distance(transform.translation);
         
@@ -647,7 +642,7 @@ fn frustum_culling(
     };
     
     // Simple frustum culling - would be more complex in production
-    for (transform, mut visibility) in nodes.iter_mut() {
+    for (transform, mut visibility) in &mut nodes {
         let position = transform.translation();
         
         // Check if node is in camera view
@@ -702,11 +697,18 @@ fn show_data_overlays(
 
 /// Smooth camera transitions
 fn smooth_camera_transitions(
-    mut camera: Query<&mut Transform, With<Camera3d>>,
+    mut cameras: Query<&mut Transform, With<Camera3d>>,
     time: Res<Time>,
 ) {
     // This would implement smooth camera movement
-    // For now, just a placeholder
+    // For example, lerping between positions
+    let delta = time.delta_secs();
+    
+    // Smooth any camera movements that might be happening
+    for mut transform in cameras.iter_mut() {
+        // Apply smoothing to camera rotation
+        transform.rotation = transform.rotation.slerp(transform.rotation, 0.95_f32.powf(delta * 60.0));
+    }
 }
 
 /// Clean up expired visual effects

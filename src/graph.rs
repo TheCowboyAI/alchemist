@@ -33,17 +33,17 @@ pub struct EdgeInfo {
 
 impl GraphState {
     /// Returns the total number of nodes in the graph
-    pub fn node_count(&self) -> usize {
+    #[must_use] pub fn node_count(&self) -> usize {
         self.nodes.len()
     }
 
     /// Returns the total number of edges in the graph
-    pub fn edge_count(&self) -> usize {
+    #[must_use] pub fn edge_count(&self) -> usize {
         self.edges.len()
     }
 
     /// Returns information about the currently selected node, if any
-    pub fn selected_node(&self) -> Option<&NodeInfo> {
+    #[must_use] pub fn selected_node(&self) -> Option<&NodeInfo> {
         self.selected_node.and_then(|idx| self.nodes.get(idx))
     }
 

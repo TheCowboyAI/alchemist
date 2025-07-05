@@ -46,7 +46,7 @@ pub fn sync_projections_system(
     // Sync person links
     for event in link_person_events.read() {
         if let Ok(identity_id) = Uuid::parse_str(&event.identity_id) {
-            for (entity, mut projection) in identities.iter_mut() {
+            for (entity, mut projection) in &mut identities {
                 if entity.id == identity_id {
                     // Update projection context with person link
                     projection.context = ProjectionContext {
@@ -66,7 +66,7 @@ pub fn sync_projections_system(
     // Sync organization links
     for event in link_org_events.read() {
         if let Ok(identity_id) = Uuid::parse_str(&event.identity_id) {
-            for (entity, mut projection) in identities.iter_mut() {
+            for (entity, mut projection) in &mut identities {
                 if entity.id == identity_id {
                     // Update projection context with org link
                     projection.context = ProjectionContext {

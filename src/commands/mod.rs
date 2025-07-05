@@ -4,8 +4,7 @@ use std::time::SystemTime;
 
 use crate::aggregate::AgentId;
 use crate::value_objects::{
-    IdentityType, ProjectionContext, ProjectionType, RelationshipType, VerificationLevel,
-    VerificationMethod, WorkflowType,
+    IdentityType, ProjectionContext, ProjectionType, RelationshipType,
 };
 
 // Agent commands

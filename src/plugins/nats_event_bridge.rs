@@ -1,4 +1,4 @@
-//! Bridge between Bevy UI events and NATS JetStream
+//! Bridge between Bevy UI events and NATS `JetStream`
 //!
 //! This plugin ensures that all UI events are properly published to NATS
 //! with correlation IDs, causation IDs, and proper subjects.
@@ -22,7 +22,7 @@ pub struct NatsConnection {
 }
 
 impl NatsConnection {
-    /// Creates a new NATS connection with JetStream context
+    /// Creates a new NATS connection with `JetStream` context
     pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let client = async_nats::connect("nats://localhost:4222").await?;
         let jetstream = jetstream::new(client.clone());
@@ -68,7 +68,7 @@ impl NatsConnection {
     }
 
     /// Gets the server info to check connection status
-    pub fn server_info(&self) -> async_nats::ServerInfo {
+    #[must_use] pub fn server_info(&self) -> async_nats::ServerInfo {
         // Return the server info directly
         self.client.server_info()
     }

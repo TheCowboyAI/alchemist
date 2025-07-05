@@ -37,7 +37,7 @@ pub struct OllamaClient {
 
 impl OllamaClient {
     /// Creates a new Ollama client with the specified base URL and model
-    pub fn new(base_url: String, model: String) -> Self {
+    #[must_use] pub fn new(base_url: String, model: String) -> Self {
         Self {
             base_url,
             model,
@@ -47,7 +47,7 @@ impl OllamaClient {
     }
 
     /// Creates a new mock Ollama client for testing
-    pub fn new_mock() -> Self {
+    #[must_use] pub fn new_mock() -> Self {
         Self {
             base_url: "mock://localhost".to_string(),
             model: "mock".to_string(),
@@ -74,7 +74,7 @@ impl OllamaClient {
                     "CIM uses event sourcing where all state changes are recorded as immutable events. Events flow through:\n1. Commands → Aggregates → Events\n2. Events → Projections → Read Models\n3. Events → Bevy ECS → Visual Updates\n4. All events have CID chains for integrity and use NATS JetStream for event persistence.".to_string()
                 }
                 _ => {
-                    format!("I understand you're asking about '{}'. CIM is a complex system with many features. Try asking about: domains, graphs, events, or workflows for more specific information.", question)
+                    format!("I understand you're asking about '{question}'. CIM is a complex system with many features. Try asking about: domains, graphs, events, or workflows for more specific information.")
                 }
             });
         }
@@ -90,8 +90,7 @@ impl OllamaClient {
              Graph-Based Workflows, Conceptual Spaces, and AI-Native Design. \
              CIM has 8 production-ready domains: Graph, Identity, Person, Agent, Git, Location, \
              ConceptualSpaces, and Workflow. All domains use event sourcing with NATS JetStream. \
-             \n\nUser question: {}",
-            question
+             \n\nUser question: {question}"
         );
 
         let request = OllamaRequest {
@@ -112,7 +111,7 @@ impl OllamaClient {
                 .json(&request)
                 .send()
                 .await
-                .map_err(|e| format!("Failed to send request: {}", e))?;
+                .map_err(|e| format!("Failed to send request: {e}"))?;
 
             if !response.status().is_success() {
                 return Err(format!("API error: {}", response.status()));
@@ -121,7 +120,7 @@ impl OllamaClient {
             let result: OllamaResponse = response
                 .json()
                 .await
-                .map_err(|e| format!("Failed to parse response: {}", e))?;
+                .map_err(|e| format!("Failed to parse response: {e}"))?;
 
             Ok(result.response)
         })

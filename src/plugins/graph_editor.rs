@@ -477,7 +477,7 @@ fn delete_selected_system(
     edges: Query<&EdgeEntity>,
 ) {
     for _ in delete_events.read() {
-        for &entity in editor_state.selected_entities.iter() {
+        for &entity in &editor_state.selected_entities {
             // Check if it's a node
             if let Ok(node) = nodes.get(entity) {
                 node_events.write(NodeRemoved {
@@ -649,7 +649,7 @@ fn visualize_edges(
     nodes: Query<(&NodeEntity, &Transform), Without<EdgeEntity>>,
 ) {
     // Update edge positions when nodes move
-    for (edge, mut edge_transform) in edges.iter_mut() {
+    for (edge, mut edge_transform) in &mut edges {
         // Find source and target nodes
         let mut source_pos = None;
         let mut target_pos = None;
@@ -727,7 +727,7 @@ fn update_hover_effects(
     editor_state: Res<GraphEditorState>,
     mut nodes: Query<(Entity, &mut HoverEffect)>,
 ) {
-    for (entity, mut hover) in nodes.iter_mut() {
+    for (entity, mut hover) in &mut nodes {
         hover.is_hovered = Some(entity) == editor_state.hover_entity;
         hover.target_glow = if hover.is_hovered { 0.3 } else { 0.0 };
     }
@@ -738,7 +738,7 @@ fn animate_scale_transitions(
     mut nodes: Query<(&mut Transform, &mut AnimationState)>,
     time: Res<Time>,
 ) {
-    for (mut transform, mut anim) in nodes.iter_mut() {
+    for (mut transform, mut anim) in &mut nodes {
         if anim.progress < 1.0 {
             anim.progress += time.delta_secs() * anim.speed;
             anim.progress = anim.progress.clamp(0.0, 1.0);
@@ -772,7 +772,7 @@ fn update_material_effects(
             // Pulse effect for selected nodes
             if selected.is_some() {
                 let pulse = (time.elapsed_secs() * 2.0).sin() * 0.1 + 0.9;
-                material.emissive = material.emissive * pulse;
+                material.emissive *= pulse;
             }
         }
     }

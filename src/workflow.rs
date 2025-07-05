@@ -21,7 +21,7 @@ pub struct WorkflowStep {
 
 impl WorkflowState {
     /// Returns the name of the current workflow step, if any
-    pub fn current_step(&self) -> Option<&str> {
+    #[must_use] pub fn current_step(&self) -> Option<&str> {
         self.current_step.as_deref()
     }
 
@@ -46,7 +46,7 @@ impl WorkflowState {
     }
 
     /// Gets all workflow steps
-    pub fn steps(&self) -> &[WorkflowStep] {
+    #[must_use] pub fn steps(&self) -> &[WorkflowStep] {
         &self.steps
     }
 
@@ -60,7 +60,7 @@ impl WorkflowState {
     }
 
     /// Gets the completion percentage of the workflow
-    pub fn completion_percentage(&self) -> f32 {
+    #[must_use] pub fn completion_percentage(&self) -> f32 {
         if self.steps.is_empty() {
             return 0.0;
         }

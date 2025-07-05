@@ -13,11 +13,11 @@ use tokio::sync::RwLock;
 /// Supported embedding models
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum EmbeddingModel {
-    /// OpenAI's text-embedding-ada-002
+    /// `OpenAI`'s text-embedding-ada-002
     OpenAIAda002,
-    /// OpenAI's text-embedding-3-small
+    /// `OpenAI`'s text-embedding-3-small
     OpenAI3Small,
-    /// OpenAI's text-embedding-3-large
+    /// `OpenAI`'s text-embedding-3-large
     OpenAI3Large,
     /// Sentence Transformers all-MiniLM-L6-v2
     AllMiniLMV2,
@@ -29,7 +29,7 @@ pub enum EmbeddingModel {
 
 impl EmbeddingModel {
     /// Get the dimension of embeddings produced by this model
-    pub fn dimension(&self) -> usize {
+    #[must_use] pub fn dimension(&self) -> usize {
         match self {
             Self::OpenAIAda002 => 1536,
             Self::OpenAI3Small => 1536,
@@ -41,7 +41,7 @@ impl EmbeddingModel {
     }
     
     /// Get the maximum token limit for this model
-    pub fn max_tokens(&self) -> usize {
+    #[must_use] pub fn max_tokens(&self) -> usize {
         match self {
             Self::OpenAIAda002 => 8191,
             Self::OpenAI3Small => 8191,
@@ -101,7 +101,7 @@ impl EmbeddingProvider for MockEmbeddingProvider {
                 // Simple mock: use text length as seed for reproducible embeddings
                 let seed = text.len() as f32;
                 (0..dim)
-                    .map(|i| ((seed + i as f32).sin() + 1.0) / 2.0)
+                    .map(|i| f32::midpoint((seed + i as f32).sin(), 1.0))
                     .collect()
             })
             .collect())

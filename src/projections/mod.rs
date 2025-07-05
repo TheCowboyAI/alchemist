@@ -1,8 +1,6 @@
 //! Projection types for the application
 
 use bevy::prelude::*;
-use std::collections::HashMap;
-use std::sync::Arc;
 use std::time::SystemTime;
 use uuid::Uuid;
 

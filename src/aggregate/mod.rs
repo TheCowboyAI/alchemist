@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::time::SystemTime;
 use uuid::Uuid;
 
-use crate::value_objects::*;
+use crate::value_objects::{AgentType, AuthMethod, IdentityType, VerificationLevel};
 
 /// Agent ID type
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -14,7 +14,7 @@ pub struct AgentId(pub Uuid);
 
 impl AgentId {
     /// Create a new agent ID
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
 }

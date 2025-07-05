@@ -1,0 +1,238 @@
+groups:
+  - name: cim_event_alerts
+    interval: 30s
+    rules:
+      # Event Processing Alerts
+      - alert: HighEventProcessingLag
+        expr: cim_event_processing_lag_seconds > 10
+        for: 5m
+        labels:
+          severity: warning
+          domain: "{{ $labels.domain }}"
+        annotations:
+          summary: "High event processing lag in {{ $labels.domain }} domain"
+          description: "Event processing lag is {{ $value }}s (threshold: 10s)"
+
+      - alert: CriticalEventProcessingLag
+        expr: cim_event_processing_lag_seconds > 60
+        for: 2m
+        labels:
+          severity: critical
+          domain: "{{ $labels.domain }}"
+        annotations:
+          summary: "Critical event processing lag in {{ $labels.domain }} domain"
+          description: "Event processing lag is {{ $value }}s (threshold: 60s)"
+
+      # Event Error Alerts
+      - alert: HighEventErrorRate
+        expr: rate(cim_domain_errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          domain: "{{ $labels.domain }}"
+          error_type: "{{ $labels.error_type }}"
+        annotations:
+          summary: "High error rate in {{ $labels.domain }} domain"
+          description: "Error rate is {{ $value }} errors/sec for {{ $labels.error_type }}"
+
+      - alert: EventProcessingFailure
+        expr: rate(cim_events_failed_total[5m]) / rate(cim_events_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          domain: "{{ $labels.domain }}"
+        annotations:
+          summary: "High event failure rate in {{ $labels.domain }} domain"
+          description: "{{ $value | humanizePercentage }} of events are failing"
+
+      # Stream Health Alerts
+      - alert: EventStreamStalled
+        expr: rate(cim_events_total[5m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+          domain: "{{ $labels.domain }}"
+        annotations:
+          summary: "No events processed in {{ $labels.domain }} domain"
+          description: "Event stream appears to be stalled for 10 minutes"
+
+      - alert: LowActiveEventStreams
+        expr: cim_active_event_streams < 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No active event streams"
+          description: "All event streams appear to be disconnected"
+
+      # Performance Alerts
+      - alert: HighEventRate
+        expr: sum(rate(cim_events_total[1m])) > 100000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Very high event rate detected"
+          description: "Event rate is {{ $value }} events/sec (threshold: 100k/sec)"
+
+      - alert: EventBackpressure
+        expr: cim_event_queue_depth / cim_event_queue_capacity > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          domain: "{{ $labels.domain }}"
+        annotations:
+          summary: "Event queue near capacity in {{ $labels.domain }}"
+          description: "Queue is {{ $value | humanizePercentage }} full"
+
+  - name: cim_nats_alerts
+    interval: 30s
+    rules:
+      # NATS Connection Alerts
+      - alert: NATSConnectionLost
+        expr: up{job="nats"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "NATS server connection lost"
+          description: "Cannot connect to NATS server {{ $labels.instance }}"
+
+      - alert: NATSClusterUnhealthy
+        expr: nats_server_cluster_size < 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "NATS cluster degraded"
+          description: "Only {{ $value }} nodes in cluster (expected: 3)"
+
+      # JetStream Alerts
+      - alert: JetStreamStorageHigh
+        expr: nats_jetstream_storage_used_bytes / nats_jetstream_storage_reserved_bytes > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JetStream storage usage high"
+          description: "Storage is {{ $value | humanizePercentage }} full"
+
+      - alert: JetStreamStorageCritical
+        expr: nats_jetstream_storage_used_bytes / nats_jetstream_storage_reserved_bytes > 0.95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "JetStream storage critically full"
+          description: "Storage is {{ $value | humanizePercentage }} full"
+
+      - alert: JetStreamConsumerLag
+        expr: nats_jetstream_consumer_lag_messages > 10000
+        for: 5m
+        labels:
+          severity: warning
+          stream: "{{ $labels.stream }}"
+          consumer: "{{ $labels.consumer }}"
+        annotations:
+          summary: "JetStream consumer lagging"
+          description: "Consumer {{ $labels.consumer }} is {{ $value }} messages behind"
+
+  - name: cim_system_alerts
+    interval: 30s
+    rules:
+      # Resource Alerts
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job="cim"} / node_memory_MemTotal_bytes > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High memory usage in {{ $labels.service }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} of total"
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="cim"}[5m]) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High CPU usage in {{ $labels.service }}"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+      # Disk Alerts
+      - alert: DiskSpaceLow
+        expr: node_filesystem_free_bytes{mountpoint="/"} / node_filesystem_size_bytes < 0.1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining"
+
+      # GPU Alerts (for nodes with GPUs)
+      - alert: GPUMemoryHigh
+        expr: nvidia_gpu_memory_used_bytes / nvidia_gpu_memory_total_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          gpu: "{{ $labels.gpu }}"
+        annotations:
+          summary: "High GPU memory usage"
+          description: "GPU {{ $labels.gpu }} memory is {{ $value | humanizePercentage }} full"
+
+      - alert: GPUTemperatureHigh
+        expr: nvidia_gpu_temperature_celsius > 85
+        for: 5m
+        labels:
+          severity: warning
+          gpu: "{{ $labels.gpu }}"
+        annotations:
+          summary: "High GPU temperature"
+          description: "GPU {{ $labels.gpu }} temperature is {{ $value }}°C"
+
+  - name: cim_business_alerts
+    interval: 1m
+    rules:
+      # Business Process Alerts
+      - alert: WorkflowStalled
+        expr: time() - cim_workflow_last_completion_timestamp > 3600
+        for: 10m
+        labels:
+          severity: warning
+          workflow: "{{ $labels.workflow_type }}"
+        annotations:
+          summary: "Workflow {{ $labels.workflow_type }} hasn't completed in 1 hour"
+          description: "Last completion was {{ $value | humanizeDuration }} ago"
+
+      - alert: HighWorkflowFailureRate
+        expr: rate(cim_workflow_failures_total[1h]) / rate(cim_workflow_completions_total[1h]) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          workflow: "{{ $labels.workflow_type }}"
+        annotations:
+          summary: "High failure rate for {{ $labels.workflow_type }} workflow"
+          description: "{{ $value | humanizePercentage }} of workflows are failing"
+
+      # Data Quality Alerts
+      - alert: EventSchemaViolations
+        expr: rate(cim_event_schema_violations_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          domain: "{{ $labels.domain }}"
+        annotations:
+          summary: "Event schema violations detected in {{ $labels.domain }}"
+          description: "{{ $value }} violations per second"
+
+      - alert: DuplicateEventsDetected
+        expr: rate(cim_duplicate_events_total[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+          domain: "{{ $labels.domain }}"
+        annotations:
+          summary: "Duplicate events detected in {{ $labels.domain }}"
+          description: "{{ $value }} duplicate events per second" 

@@ -83,7 +83,7 @@ pub fn handle_workflow_timeouts_system(
         if elapsed > timeout_duration {
             timeout_events.write(WorkflowTimeoutEvent {
                 timed_out_at: SystemTime::now(),
-                current_step: workflow_state.current_step().map(|s| s.to_string()),
+                current_step: workflow_state.current_step().map(std::string::ToString::to_string),
             });
 
             // Clear the workflow by resetting to default

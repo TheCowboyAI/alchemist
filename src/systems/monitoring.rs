@@ -20,6 +20,9 @@ pub fn update_agent_activity_system(mut agent_query: Query<(&AgentEntity, &mut A
         if activity.time_since_activity() > chrono::Duration::minutes(5) {
             activity.activity_type = ActivityType::Idle;
             activity.is_active = false;
+            
+            // Log idle agents
+            debug!("Agent {:?} has been idle for more than 5 minutes", entity.agent_id);
         }
     }
 }

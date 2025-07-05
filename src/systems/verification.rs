@@ -131,7 +131,7 @@ pub fn expire_verifications_system(
     let now = SystemTime::now();
     let expiry_duration = std::time::Duration::from_secs(90 * 24 * 60 * 60); // 90 days
 
-    for (entity, mut verification) in identities.iter_mut() {
+    for (entity, mut verification) in &mut identities {
         if let Some(last_verified) = verification.last_verified {
             if let Ok(duration) = now.duration_since(last_verified) {
                 if duration > expiry_duration {

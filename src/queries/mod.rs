@@ -1,18 +1,16 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
 use crate::{
     components::{
-        IdentityEntity, IdentityMetadata, IdentityProjection, IdentityRelationship,
-        IdentityVerification, IdentityWorkflow,
+        IdentityEntity, IdentityMetadata, IdentityRelationship,
+        IdentityVerification,
     },
     projections::{IdentityView, RelationshipView},
     value_objects::{
-        IdentityType, ProjectionType, RelationshipId, RelationshipType, VerificationLevel,
-        WorkflowStatus, WorkflowType,
+        IdentityType, VerificationLevel,
     },
 };
 
@@ -107,13 +105,12 @@ pub fn find_expired_verifications(
         .filter(|(_, verification, _)| {
             verification
                 .last_verified
-                .map(|last| {
+                .map_or(true, |last| {
                     current_time
                         .duration_since(last)
                         .map(|duration| duration > Duration::from_secs(30 * 24 * 60 * 60))
                         .unwrap_or(false)
                 })
-                .unwrap_or(true)
         })
         .map(|(entity, verification, metadata)| IdentityView {
             id: entity.id,
@@ -144,7 +141,7 @@ pub struct AgentQueryHandler;
 impl AgentQueryHandler {
     /// Execute a query
     pub fn execute(query: AgentQuery, world: &mut World) -> Vec<crate::projections::AgentView> {
-        use crate::components::{AgentEntity, AgentOwner};
+        use crate::components::AgentEntity;
 
         match query {
             AgentQuery::FindById(agent_id) => {

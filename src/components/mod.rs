@@ -1,7 +1,6 @@
 //! ECS components for the application
 
 use bevy::prelude::*;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::SystemTime;
 use uuid::Uuid;

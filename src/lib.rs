@@ -37,7 +37,7 @@ pub use cim_keys;
 pub use cim_subject;
 
 // Re-export graph modules
-pub use cim_compose;
+// pub use cim_compose;  // Temporarily disabled for build
 pub use cim_contextgraph;
 pub use cim_ipld_graph;
 pub use cim_workflow_graph;
@@ -85,6 +85,10 @@ pub mod systems;
 // Semantic search module
 /// Semantic search capabilities for CIM
 pub mod semantic_search;
+
+// Monitoring module
+/// Event-based monitoring for CIM
+pub mod monitoring;
 
 // Re-export main types
 pub use aggregate::{

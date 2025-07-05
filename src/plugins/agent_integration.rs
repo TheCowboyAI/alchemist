@@ -17,7 +17,7 @@ impl Plugin for AgentIntegrationPlugin {
 }
 
 /// System to handle keyboard shortcuts for common questions
-/// Note: F1 is used to toggle the AI Assistant window (handled in AgentUiPlugin)
+/// Note: F1 is used to toggle the AI Assistant window (handled in `AgentUiPlugin`)
 fn handle_keyboard_shortcuts(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut events: EventWriter<AgentQuestionEvent>,

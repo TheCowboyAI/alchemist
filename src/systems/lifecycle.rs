@@ -4,8 +4,7 @@ use bevy::prelude::*;
 use std::time::SystemTime;
 
 use crate::components::{
-    AgentEntity, AgentOwner, AgentTypeComponent, CreatedAt, IdentityEntity, IdentityMetadata,
-    IdentityVerification, LastActive, UpdatedAt,
+    AgentEntity, AgentOwner, AgentTypeComponent, CreatedAt, IdentityEntity, IdentityMetadata, LastActive, UpdatedAt,
 };
 use crate::events::AgentDeployed;
 
@@ -51,7 +50,7 @@ fn update_agent_activity(
 
     // Check if we should update based on elapsed time
     if elapsed % update_interval < time.delta_secs() {
-        for (mut last_active, mut updated_at) in query.iter_mut() {
+        for (mut last_active, mut updated_at) in &mut query {
             // Update activity timestamp
             let now = SystemTime::now();
             last_active.0 = now;
@@ -86,7 +85,7 @@ pub fn create_identity_system(
     mut created_events: EventWriter<crate::events::IdentityLinkedToPerson>,
 ) {
     use crate::components::{IdentityEntity, IdentityMetadata, IdentityVerification};
-    use crate::value_objects::{VerificationLevel, VerificationMethod};
+    use crate::value_objects::VerificationLevel;
 
     for event in create_events.read() {
         let entity_id = commands
@@ -123,7 +122,7 @@ pub fn create_identity_system(
 pub fn update_identity_system(
     mut query: Query<(&mut IdentityEntity, &mut IdentityMetadata), Changed<IdentityEntity>>,
 ) {
-    for (_identity, mut metadata) in query.iter_mut() {
+    for (_identity, mut metadata) in &mut query {
         // Update the metadata timestamp whenever the identity changes
         metadata.updated_at = SystemTime::now();
     }
@@ -165,7 +164,6 @@ pub fn merge_identities_system(
 
 /// Archive identity system
 pub fn archive_identity_system(
-    commands: Commands,
     mut archive_events: EventReader<crate::commands::ArchiveIdentityCommand>,
     mut identities: Query<(Entity, &mut IdentityMetadata), With<IdentityEntity>>,
 ) {
@@ -173,8 +171,7 @@ pub fn archive_identity_system(
         if let Some((_entity, mut metadata)) = identities.iter_mut().find(|(_, m)| {
             m.metadata
                 .get("id")
-                .map(|id| id == &event.identity_id.to_string())
-                .unwrap_or(false)
+                .is_some_and(|id| id == &event.identity_id.to_string())
         }) {
             // Mark as archived
             metadata

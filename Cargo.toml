@@ -17,7 +17,7 @@ all = { level = "warn", priority = -1 }
 [workspace]
 exclude = ["examples/", "bevy-patched"]
 members = [
-  # "cim-compose",  # Temporarily disabled - git submodule not initialized
+  "cim-compose",
   "cim-component",
   "cim-conceptgraph",
   "cim-contextgraph",
@@ -74,6 +74,10 @@ serde_json = "1.0"
 serde-xml-rs = "0.6"
 serde_yaml = "0.9"
 
+# Monitoring dependencies
+prometheus = "0.13"
+warp = "0.3"
+
 # Bevy - use default features for dev, minimal for production
 bevy = { path = "bevy-patched", default-features = false, features = [
   "animation",
@@ -106,7 +110,7 @@ bevy = { path = "bevy-patched", default-features = false, features = [
 bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", branch = "main" }
 
 # Graph library
-cim-compose = { path = "cim-compose" }
+# cim-compose = { path = "cim-compose" }  # Commented out as it's a workspace member
 petgraph = { version = "0.8.1", features = ["serde-1"] }
 daggy = { version = "0.9.0", features = ["serde-1"] }
 
@@ -179,6 +183,7 @@ pulldown-cmark = "0.13"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+rand = "0.8"
 tempfile = "3.8"
 uuid = { version = "1.10", features = ["v4"] }
 colored = "2.1"

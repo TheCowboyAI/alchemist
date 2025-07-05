@@ -140,7 +140,7 @@ fn handle_camera_orbit(
                 .clamp(camera_state.min_pitch, camera_state.max_pitch);
 
             // Wrap yaw
-            camera_state.yaw = camera_state.yaw % (2.0 * std::f32::consts::PI);
+            camera_state.yaw %= (2.0 * std::f32::consts::PI);
         }
     }
 }

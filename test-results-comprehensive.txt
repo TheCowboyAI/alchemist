@@ -1,0 +1,1718 @@
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:25
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
+    |                         ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
+    = note: `#[warn(dangerous_implicit_autorefs)]` on by default
+help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
+    |
+759 |         bStillSame = if (&(*pg1).pTriMembers)[i] == (*pg2).pTriMembers[i] {
+    |                         ++                  +
+
+warning: implicit autoref creates a reference to the dereference of a raw pointer
+   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:50
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
+help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
+    |
+759 |         bStillSame = if (*pg1).pTriMembers[i] == (&(*pg2).pTriMembers)[i] {
+    |                                                  ++                  +
+
+warning: `bevy_mikktspace` (lib) generated 2 warnings
+warning: field `category_formation` is never read
+  --> cim-domain-conceptualspaces/src/reasoning.rs:23:5
+   |
+18 | pub struct ConceptualReasoning {
+   |            ------------------- field in this struct
+...
+23 |     category_formation: CategoryFormation,
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: `cim-domain-conceptualspaces` (lib) generated 1 warning
+   Compiling cim-domain-agent v0.1.0 (/git/thecowboyai/alchemist/cim-domain-agent)
+warning: field `document_id` is never read
+  --> cim-domain-document/src/services/search.rs:18:9
+   |
+16 | struct DocumentIndex {
+   |        ------------- field in this struct
+17 |     /// Document ID
+18 |     pub document_id: DocumentId,
+   |         ^^^^^^^^^^^
+   |
+   = note: `DocumentIndex` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: `cim-domain-document` (lib) generated 1 warning
+warning: unused variable: `data`
+   --> cim-domain-person/src/infrastructure/component_store.rs:138:42
+    |
+138 |                 SocialData::Relationship(data) => {
+    |                                          ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: field `person_repository` is never read
+   --> cim-domain-person/src/cross_domain/agent_integration.rs:233:5
+    |
+232 | pub struct AgentIntegrationService {
+    |            ----------------------- field in this struct
+233 |     person_repository: Arc<PersonRepository>,
+    |     ^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: field `client` is never read
+  --> cim-domain-person/src/infrastructure/nats_integration.rs:42:5
+   |
+41 | pub struct NatsEventStore {
+   |            -------------- field in this struct
+42 |     client: Client,
+   |     ^^^^^^
+
+warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
+   --> cim-domain-person/src/cross_domain/person_location.rs:104:5
+    |
+104 |     async fn get_person_addresses(&self, person_id: PersonId) -> Result<Vec<(PersonAddress, Address)>, String>;
+    |     ^^^^^
+    |
+    = note: you can suppress this lint if you plan to use the trait only in your own code, or do not care about auto traits like `Send` on the `Future`
+    = note: `#[warn(async_fn_in_trait)]` on by default
+help: you can alternatively desugar to a normal `fn` that returns `impl Future` and add any desired bounds such as `Send`, but these cannot be relaxed without a breaking API change
+    |
+104 -     async fn get_person_addresses(&self, person_id: PersonId) -> Result<Vec<(PersonAddress, Address)>, String>;
+104 +     fn get_person_addresses(&self, person_id: PersonId) -> impl std::future::Future<Output = Result<Vec<(PersonAddress, Address)>, String>> + Send;
+    |
+
+warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
+   --> cim-domain-person/src/cross_domain/person_location.rs:107:5
+    |
+107 |     async fn associate_address(
+    |     ^^^^^
+    |
+    = note: you can suppress this lint if you plan to use the trait only in your own code, or do not care about auto traits like `Send` on the `Future`
+help: you can alternatively desugar to a normal `fn` that returns `impl Future` and add any desired bounds such as `Send`, but these cannot be relaxed without a breaking API change
+    |
+107 ~     fn associate_address(
+108 |         &self,
+...
+112 |         is_primary: bool,
+113 ~     ) -> impl std::future::Future<Output = Result<LocationId, String>> + Send;
+    |
+
+warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
+   --> cim-domain-person/src/cross_domain/person_location.rs:116:5
+    |
+116 |     async fn disassociate_address(
+    |     ^^^^^
+    |
+    = note: you can suppress this lint if you plan to use the trait only in your own code, or do not care about auto traits like `Send` on the `Future`
+help: you can alternatively desugar to a normal `fn` that returns `impl Future` and add any desired bounds such as `Send`, but these cannot be relaxed without a breaking API change
+    |
+116 ~     fn disassociate_address(
+117 |         &self,
+118 |         person_id: PersonId,
+119 |         location_id: LocationId,
+120 ~     ) -> impl std::future::Future<Output = Result<(), String>> + Send;
+    |
+
+   Compiling cim-domain-bevy v0.3.0 (/git/thecowboyai/alchemist/cim-domain-bevy)
+warning: `cim-domain-person` (lib) generated 6 warnings
+warning: unused imports: `DateTime`, `Duration`, and `Utc`
+ --> cim-domain-agent/src/systems/authentication.rs:8:14
+  |
+8 | use chrono::{DateTime, Utc, Duration};
+  |              ^^^^^^^^  ^^^  ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `error`
+  --> cim-domain-agent/src/systems/authentication.rs:14:27
+   |
+14 | use tracing::{info, warn, error, debug};
+   |                           ^^^^^
+
+warning: unused variable: `entity`
+   --> cim-domain-agent/src/systems/tools.rs:144:22
+    |
+144 |         if let Some((entity, agent, mut tools, permissions)) = query
+    |                      ^^^^^^ help: if this is intentional, prefix it with an underscore: `_entity`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `commands`
+   --> cim-domain-agent/src/systems/tools.rs:137:9
+    |
+137 |     mut commands: Commands,
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commands`
+
+warning: variable does not need to be mutable
+   --> cim-domain-agent/src/systems/tools.rs:137:5
+    |
+137 |     mut commands: Commands,
+    |     ----^^^^^^^^
+    |     |
+    |     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `commands`
+   --> cim-domain-agent/src/systems/tools.rs:194:9
+    |
+194 |     mut commands: Commands,
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commands`
+
+warning: unused variable: `registry`
+   --> cim-domain-agent/src/systems/tools.rs:198:5
+    |
+198 |     registry: Res<ToolRegistry>,
+    |     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_registry`
+
+warning: unused variable: `time`
+   --> cim-domain-agent/src/systems/tools.rs:199:5
+    |
+199 |     time: Res<Time>,
+    |     ^^^^ help: if this is intentional, prefix it with an underscore: `_time`
+
+warning: variable does not need to be mutable
+   --> cim-domain-agent/src/systems/tools.rs:194:5
+    |
+194 |     mut commands: Commands,
+    |     ----^^^^^^^^
+    |     |
+    |     help: remove this `mut`
+
+warning: unused variable: `agent_entity`
+   --> cim-domain-agent/src/systems/conceptual_reasoning.rs:160:22
+    |
+160 |         if let Some((agent_entity, mut reasoning_agent, agent_status)) = agent_found {
+    |                      ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_agent_entity`
+
+warning: unused variable: `reasoning`
+   --> cim-domain-agent/src/systems/conceptual_reasoning.rs:449:17
+    |
+449 |     for (agent, reasoning, mut capabilities) in query.iter_mut() {
+    |                 ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_reasoning`
+
+warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
+  --> cim-domain-agent/src/integration/conceptual_spaces.rs:96:5
+   |
+96 |     async fn analyze_in_conceptual_space(
+   |     ^^^^^
+   |
+   = note: you can suppress this lint if you plan to use the trait only in your own code, or do not care about auto traits like `Send` on the `Future`
+   = note: `#[warn(async_fn_in_trait)]` on by default
+help: you can alternatively desugar to a normal `fn` that returns `impl Future` and add any desired bounds such as `Send`, but these cannot be relaxed without a breaking API change
+   |
+96 ~     fn analyze_in_conceptual_space(
+97 |         &self,
+98 |         concepts: Vec<ConceptualPoint>,
+99 |         analysis_type: AnalysisCapability,
+100~     ) -> impl std::future::Future<Output = Result<ConceptualAnalysis, ConceptualAgentError>> + Send;
+   |
+
+warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
+   --> cim-domain-agent/src/integration/conceptual_spaces.rs:103:5
+    |
+103 |     async fn find_similar_concepts(
+    |     ^^^^^
+    |
+    = note: you can suppress this lint if you plan to use the trait only in your own code, or do not care about auto traits like `Send` on the `Future`
+help: you can alternatively desugar to a normal `fn` that returns `impl Future` and add any desired bounds such as `Send`, but these cannot be relaxed without a breaking API change
+    |
+103 ~     fn find_similar_concepts(
+104 |         &self,
+...
+107 |         max_results: usize,
+108 ~     ) -> impl std::future::Future<Output = Result<Vec<SimilarConcept>, ConceptualAgentError>> + Send;
+    |
+
+warning: use of `async fn` in public traits is discouraged as auto trait bounds cannot be specified
+   --> cim-domain-agent/src/integration/conceptual_spaces.rs:111:5
+    |
+111 |     async fn map_to_conceptual_space(
+    |     ^^^^^
+    |
+    = note: you can suppress this lint if you plan to use the trait only in your own code, or do not care about auto traits like `Send` on the `Future`
+help: you can alternatively desugar to a normal `fn` that returns `impl Future` and add any desired bounds such as `Send`, but these cannot be relaxed without a breaking API change
+    |
+111 ~     fn map_to_conceptual_space(
+112 |         &self,
+113 |         analysis: &AnalysisResult,
+114 ~     ) -> impl std::future::Future<Output = Result<ConceptualPoint, ConceptualAgentError>> + Send;
+    |
+
+   Compiling cim-domain-git v0.3.0 (/git/thecowboyai/alchemist/cim-domain-git)
+   Compiling cim-domain-nix v0.3.0 (/git/thecowboyai/alchemist/cim-domain-nix)
+warning: unused imports: `FlakeRef` and `NixExpression`
+ --> cim-domain-nix/src/commands/mod.rs:6:83
+  |
+6 | use crate::value_objects::{AttributePath, NixModule, Overlay, NixOSConfiguration, FlakeRef, NixExpression};
+  |                                                                                   ^^^^^^^^  ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Flake`
+ --> cim-domain-nix/src/parser/flake.rs:5:65
+  |
+5 | use crate::value_objects::{FlakeRef, FlakeInputs, FlakeOutputs, Flake};
+  |                                                                 ^^^^^
+
+warning: unused import: `std::path::PathBuf`
+ --> cim-domain-nix/src/parser/flake.rs:9:5
+  |
+9 | use std::path::PathBuf;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `uuid::Uuid`
+  --> cim-domain-nix/src/parser/flake.rs:10:5
+   |
+10 | use uuid::Uuid;
+   |     ^^^^^^^^^^
+
+warning: unused import: `std::path::PathBuf`
+ --> cim-domain-nix/src/parser/derivation.rs:5:5
+  |
+5 | use std::path::PathBuf;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `NixDomainError`
+ --> cim-domain-nix/src/parser/manipulator.rs:4:21
+  |
+4 | use crate::{Result, NixDomainError};
+  |                     ^^^^^^^^^^^^^^
+
+warning: unused imports: `SyntaxElement`, `SyntaxKind`, and `SyntaxNode`
+ --> cim-domain-nix/src/parser/manipulator.rs:5:12
+  |
+5 | use rnix::{SyntaxNode, SyntaxKind, SyntaxElement};
+  |            ^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^^^^
+
+warning: unused import: `crate::aggregate::FlakeAggregate`
+ --> cim-domain-nix/src/services/mod.rs:3:5
+  |
+3 | use crate::aggregate::FlakeAggregate;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `async_trait::async_trait`
+ --> cim-domain-nix/src/services/mod.rs:6:5
+  |
+6 | use async_trait::async_trait;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `EvaluateExpression` and `UpdateFlake`
+  --> cim-domain-nix/src/services/mod.rs:10:30
+   |
+10 |     commands::{BuildPackage, EvaluateExpression, UpdateFlake, RunGarbageCollection, CreateConfiguration, ActivateConfiguration, CheckFlak...
+   |                              ^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^
+
+warning: `cim-domain-agent` (lib) generated 14 warnings (run `cargo fix --lib -p cim-domain-agent` to apply 4 suggestions)
+warning: type `flake_lock_tracker::ParseError` is more private than the item `FlakeLockTracker::get_parse_errors`
+   --> cim-domain-nix/src/git_integration/flake_lock_tracker.rs:190:5
+    |
+190 |     pub fn get_parse_errors(&self) -> Option<&[ParseError]> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method `FlakeLockTracker::get_parse_errors` is reachable at visibility `pub`
+    |
+note: but type `flake_lock_tracker::ParseError` is only usable at visibility `pub(self)`
+   --> cim-domain-nix/src/git_integration/flake_lock_tracker.rs:62:1
+    |
+62  | struct ParseError {
+    | ^^^^^^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `git_integration::ServiceConfig` is more private than the item `GitFlakeService::with_config`
+   --> cim-domain-nix/src/git_integration/mod.rs:257:5
+    |
+257 |     pub fn with_config(config: ServiceConfig) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ associated function `GitFlakeService::with_config` is reachable at visibility `pub`
+    |
+note: but type `git_integration::ServiceConfig` is only usable at visibility `pub(self)`
+   --> cim-domain-nix/src/git_integration/mod.rs:231:1
+    |
+231 | struct ServiceConfig {
+    | ^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `name` and `url_template` are never read
+  --> cim-domain-nix/src/git_integration/mod.rs:82:5
+   |
+80 | struct ForgeMapping {
+   |        ------------ fields in this struct
+81 |     /// The forge name (e.g., "github")
+82 |     name: String,
+   |     ^^^^
+83 |     /// URL template for the forge
+84 |     url_template: String,
+   |     ^^^^^^^^^^^^
+   |
+   = note: `ForgeMapping` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `commit`, `input_name`, and `error` are never read
+  --> cim-domain-nix/src/git_integration/flake_lock_tracker.rs:63:5
+   |
+62 | struct ParseError {
+   |        ---------- fields in this struct
+63 |     commit: CommitHash,
+   |     ^^^^^^
+64 |     input_name: String,
+   |     ^^^^^^^^^^
+65 |     error: String,
+   |     ^^^^^
+   |
+   = note: `ParseError` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `nix_handler` is never read
+  --> cim-domain-nix/src/handlers/cqrs_adapter.rs:37:5
+   |
+36 | pub struct CreateFlakeHandler {
+   |            ------------------ field in this struct
+37 |     nix_handler: Arc<NixCommandHandler>,
+   |     ^^^^^^^^^^^
+
+warning: field `nix_handler` is never read
+  --> cim-domain-nix/src/handlers/cqrs_adapter.rs:64:5
+   |
+63 | pub struct UpdateFlakeHandler {
+   |            ------------------ field in this struct
+64 |     nix_handler: Arc<NixCommandHandler>,
+   |     ^^^^^^^^^^^
+
+warning: field `nix_handler` is never read
+  --> cim-domain-nix/src/handlers/cqrs_adapter.rs:90:5
+   |
+89 | pub struct BuildPackageHandler {
+   |            ------------------- field in this struct
+90 |     nix_handler: Arc<NixCommandHandler>,
+   |     ^^^^^^^^^^^
+
+warning: field `config_cache` is never read
+  --> cim-domain-nix/src/home_manager/analyzer.rs:20:5
+   |
+18 | pub struct HomeManagerAnalyzer {
+   |            ------------------- field in this struct
+19 |     parser: NixParser,
+20 |     config_cache: HashMap<String, HomeConfiguration>,
+   |     ^^^^^^^^^^^^
+
+warning: field `config` is never read
+   --> cim-domain-nix/src/parser/mod.rs:248:5
+    |
+246 | pub struct NixParser {
+    |            --------- field in this struct
+247 |     /// Parser configuration
+248 |     config: ParserConfig,
+    |     ^^^^^^
+    |
+    = note: `NixParser` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `parse_import` is never used
+   --> cim-domain-nix/src/parser/ast.rs:565:4
+    |
+565 | fn parse_import(node: &SyntaxNode) -> Result<NixAst, AstError> {
+    |    ^^^^^^^^^^^^
+
+warning: associated function `extract_input_url` is never used
+  --> cim-domain-nix/src/parser/flake.rs:89:8
+   |
+15 | impl FlakeParser {
+   | ---------------- associated function in this implementation
+...
+89 |     fn extract_input_url(node: &SyntaxNode) -> Option<String> {
+   |        ^^^^^^^^^^^^^^^^^
+
+   Compiling ia v0.4.2 (/git/thecowboyai/alchemist)
+warning: unused import: `ScreenSpaceAmbientOcclusion`
+  --> src/plugins/enhanced_visualization.rs:10:45
+   |
+10 | use bevy::pbr::{CascadeShadowConfigBuilder, ScreenSpaceAmbientOcclusion};
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `BloomCompositeMode` and `Bloom`
+  --> src/plugins/enhanced_visualization.rs:11:34
+   |
+11 | use bevy::core_pipeline::bloom::{Bloom, BloomCompositeMode};
+   |                                  ^^^^^  ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `bevy::core_pipeline::tonemapping::Tonemapping`
+  --> src/plugins/enhanced_visualization.rs:12:5
+   |
+12 | use bevy::core_pipeline::tonemapping::Tonemapping;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `bevy::render::view::RenderLayers`
+  --> src/plugins/enhanced_visualization.rs:13:5
+   |
+13 | use bevy::render::view::RenderLayers;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `EdgeRelationship`, `EdgeRemoved`, `NodeRemoved`, and `NodeType`
+  --> src/plugins/enhanced_visualization.rs:16:36
+   |
+16 |     events::{NodeAdded, EdgeAdded, NodeRemoved, EdgeRemoved},
+   |                                    ^^^^^^^^^^^  ^^^^^^^^^^^
+17 |     value_objects::{NodeType, EdgeRelationship},
+   |                     ^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src/plugins/enhanced_visualization.rs:19:5
+   |
+19 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `VerificationLevel`, `VerificationMethod`, and `WorkflowType`
+ --> src/commands/mod.rs:7:72
+  |
+7 |     IdentityType, ProjectionContext, ProjectionType, RelationshipType, VerificationLevel,
+  |                                                                        ^^^^^^^^^^^^^^^^^
+8 |     VerificationMethod, WorkflowType,
+  |     ^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+ --> src/events/ai_events.rs:1:13
+  |
+1 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^  ^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src/events/ai_events.rs:2:5
+  |
+2 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `uuid::Uuid`
+ --> src/events/ai_events.rs:3:5
+  |
+3 | use uuid::Uuid;
+  |     ^^^^^^^^^^
+
+warning: unused imports: `AnalysisResult` and `Recommendation`
+ --> src/events/ai_events.rs:5:28
+  |
+5 | use crate::value_objects::{AnalysisResult, Recommendation};
+  |                            ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+
+warning: unused import: `ai_events::*`
+ --> src/events/mod.rs:9:9
+  |
+9 | pub use ai_events::*;
+  |         ^^^^^^^^^^^^
+
+warning: unused import: `crate::prelude::*`
+ --> src/handlers/mod.rs:3:5
+  |
+3 | use crate::prelude::*;
+  |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src/projections/mod.rs:4:5
+  |
+4 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::sync::Arc`
+ --> src/projections/mod.rs:5:5
+  |
+5 | use std::sync::Arc;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> src/queries/mod.rs:3:5
+  |
+3 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `IdentityProjection`, `IdentityWorkflow`, `ProjectionType`, `RelationshipId`, `RelationshipType`, `WorkflowStatus`, and `WorkflowType`
+  --> src/queries/mod.rs:9:43
+   |
+9  |         IdentityEntity, IdentityMetadata, IdentityProjection, IdentityRelationship,
+   |                                           ^^^^^^^^^^^^^^^^^^
+10 |         IdentityVerification, IdentityWorkflow,
+   |                               ^^^^^^^^^^^^^^^^
+...
+14 |         IdentityType, ProjectionType, RelationshipId, RelationshipType, VerificationLevel,
+   |                       ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+15 |         WorkflowStatus, WorkflowType,
+   |         ^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+
+warning: unused import: `AgentOwner`
+   --> src/queries/mod.rs:147:46
+    |
+147 |         use crate::components::{AgentEntity, AgentOwner};
+    |                                              ^^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+ --> src/components/mod.rs:4:13
+  |
+4 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^  ^^^^^^^^^
+
+warning: unused import: `IdentityVerification`
+ --> src/systems/lifecycle.rs:8:5
+  |
+8 |     IdentityVerification, LastActive, UpdatedAt,
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `VerificationMethod`
+  --> src/systems/lifecycle.rs:89:51
+   |
+89 |     use crate::value_objects::{VerificationLevel, VerificationMethod};
+   |                                                   ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ExpireRelationshipCommand`
+  --> src/systems/relationship.rs:10:39
+   |
+10 |         EstablishRelationshipCommand, ExpireRelationshipCommand, ValidateRelationshipCommand,
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `bevy::prelude::*`
+  --> src/systems/mod.rs:12:5
+   |
+12 | use bevy::prelude::*;
+   |     ^^^^^^^^^^^^^^^^
+
+warning: `cim-domain-nix` (lib) generated 21 warnings (run `cargo fix --lib -p cim-domain-nix` to apply 10 suggestions)
+warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
+  --> src/plugins/camera_controller.rs:79:40
+   |
+79 |     if let Ok(camera_entity) = cameras.get_single() {
+   |                                        ^^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
+  --> src/plugins/camera_controller.rs:95:44
+   |
+95 |         let Ok(camera_transform) = cameras.get_single() else {
+   |                                            ^^^^^^^^^^
+
+warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single_mut`: Please use `single_mut` instead
+   --> src/plugins/camera_controller.rs:172:44
+    |
+172 |     let Ok(mut camera_transform) = cameras.get_single_mut() else {
+    |                                            ^^^^^^^^^^^^^^
+
+warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
+   --> src/plugins/enhanced_visualization.rs:612:39
+    |
+612 |     let Ok(camera_transform) = camera.get_single() else {
+    |                                       ^^^^^^^^^^
+
+warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
+   --> src/plugins/enhanced_visualization.rs:645:49
+    |
+645 |     let Ok((camera, camera_transform)) = camera.get_single() else {
+    |                                                 ^^^^^^^^^^
+
+warning: unused variable: `event`
+   --> src/plugins/enhanced_visualization.rs:558:9
+    |
+558 |     for event in edge_events.read() {
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_event`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `current_time`
+   --> src/plugins/enhanced_visualization.rs:578:9
+    |
+578 |     let current_time = time.elapsed_secs();
+    |         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_current_time`
+
+warning: unused variable: `camera`
+   --> src/plugins/enhanced_visualization.rs:705:9
+    |
+705 |     mut camera: Query<&mut Transform, With<Camera3d>>,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_camera`
+
+warning: unused variable: `time`
+   --> src/plugins/enhanced_visualization.rs:706:5
+    |
+706 |     time: Res<Time>,
+    |     ^^^^ help: if this is intentional, prefix it with an underscore: `_time`
+
+warning: variable does not need to be mutable
+   --> src/plugins/enhanced_visualization.rs:705:5
+    |
+705 |     mut camera: Query<&mut Transform, With<Camera3d>>,
+    |     ----^^^^^^
+    |     |
+    |     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `entity_id`
+  --> src/systems/lifecycle.rs:92:13
+   |
+92 |         let entity_id = commands
+   |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_entity_id`
+
+warning: unused variable: `commands`
+   --> src/systems/lifecycle.rs:168:5
+    |
+168 |     commands: Commands,
+    |     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commands`
+
+warning: function `cleanup_despawned_entities` is never used
+   --> src/plugins/enhanced_visualization.rs:742:4
+    |
+742 | fn cleanup_despawned_entities(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: function `lerp_color` is never used
+   --> src/plugins/enhanced_visualization.rs:754:4
+    |
+754 | fn lerp_color(c1: Color, c2: Color, t: f32) -> Color {
+    |    ^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/plugins/camera_controller.rs:40:5
+   |
+40 |     pub is_panning: bool,
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> src/lib.rs:12:9
+   |
+12 | #![warn(missing_docs)]
+   |         ^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/plugins/camera_controller.rs:43:5
+   |
+43 |     pub pan_sensitivity: f32,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/plugins/camera_controller.rs:44:5
+   |
+44 |     pub zoom_sensitivity: f32,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/plugins/camera_controller.rs:47:5
+   |
+47 |     pub max_distance: f32,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/plugins/camera_controller.rs:48:5
+   |
+48 |     pub min_pitch: f32,
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/plugins/camera_controller.rs:49:5
+   |
+49 |     pub max_pitch: f32,
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for an enum
+   --> src/plugins/enhanced_visualization.rs:114:1
+    |
+114 | pub enum EventType {
+    | ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a variant
+   --> src/plugins/enhanced_visualization.rs:115:5
+    |
+115 |     NodeCreated,
+    |     ^^^^^^^^^^^
+
+warning: missing documentation for a variant
+   --> src/plugins/enhanced_visualization.rs:116:5
+    |
+116 |     NodeUpdated,
+    |     ^^^^^^^^^^^
+
+warning: missing documentation for a variant
+   --> src/plugins/enhanced_visualization.rs:117:5
+    |
+117 |     NodeDeleted,
+    |     ^^^^^^^^^^^
+
+warning: missing documentation for a variant
+   --> src/plugins/enhanced_visualization.rs:118:5
+    |
+118 |     EdgeCreated,
+    |     ^^^^^^^^^^^
+
+warning: missing documentation for a variant
+   --> src/plugins/enhanced_visualization.rs:119:5
+    |
+119 |     EdgeDeleted,
+    |     ^^^^^^^^^^^
+
+warning: missing documentation for a variant
+   --> src/plugins/enhanced_visualization.rs:120:5
+    |
+120 |     WorkflowStarted,
+    |     ^^^^^^^^^^^^^^^
+
+warning: missing documentation for a variant
+   --> src/plugins/enhanced_visualization.rs:121:5
+    |
+121 |     WorkflowCompleted,
+    |     ^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct
+   --> src/plugins/enhanced_visualization.rs:239:1
+    |
+239 | pub struct Particle {
+    | ^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:240:5
+    |
+240 |     pub position: Vec3,
+    |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:241:5
+    |
+241 |     pub velocity: Vec3,
+    |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:242:5
+    |
+242 |     pub lifetime: f32,
+    |     ^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:243:5
+    |
+243 |     pub max_lifetime: f32,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:244:5
+    |
+244 |     pub color: Color,
+    |     ^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:245:5
+    |
+245 |     pub size: f32,
+    |     ^^^^^^^^^^^^^
+
+warning: missing documentation for a struct
+   --> src/plugins/enhanced_visualization.rs:249:1
+    |
+249 | pub struct ParticleTemplate {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:250:5
+    |
+250 |     pub initial_velocity: Vec3,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:251:5
+    |
+251 |     pub velocity_variance: Vec3,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:252:5
+    |
+252 |     pub lifetime: f32,
+    |     ^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:253:5
+    |
+253 |     pub lifetime_variance: f32,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:254:5
+    |
+254 |     pub initial_color: Color,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:255:5
+    |
+255 |     pub final_color: Color,
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:256:5
+    |
+256 |     pub initial_size: f32,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:257:5
+    |
+257 |     pub final_size: f32,
+    |     ^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:258:5
+    |
+258 |     pub max_lifetime: f32,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:275:5
+    |
+275 |     pub density: f32,
+    |     ^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:276:5
+    |
+276 |     pub color: Color,
+    |     ^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:277:5
+    |
+277 |     pub start_distance: f32,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/plugins/enhanced_visualization.rs:278:5
+    |
+278 |     pub falloff: f32,
+    |     ^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:27:5
+   |
+27 |     pub id: DocumentId,
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:28:5
+   |
+28 |     pub title: Option<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:29:5
+   |
+29 |     pub source: String,
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:30:5
+   |
+30 |     pub timestamp: chrono::DateTime<chrono::Utc>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:31:5
+   |
+31 |     pub tags: Vec<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:32:5
+   |
+32 |     pub domain: String,
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:33:5
+   |
+33 |     pub entity_type: String,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:34:5
+   |
+34 |     pub custom_fields: std::collections::HashMap<String, serde_json::Value>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:40:5
+   |
+40 |     pub metadata: DocumentMetadata,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:41:5
+   |
+41 |     pub content: String,
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/mod.rs:42:5
+   |
+42 |     pub embedding: Option<Vec<f32>>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/mod.rs:60:5
+   |
+60 |     EmbeddingError(String),
+   |     ^^^^^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/mod.rs:63:5
+   |
+63 |     VectorStoreError(String),
+   |     ^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/mod.rs:66:5
+   |
+66 |     IndexingError(String),
+   |     ^^^^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/mod.rs:69:5
+   |
+69 |     QueryError(String),
+   |     ^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/mod.rs:72:5
+   |
+72 |     ConfigError(String),
+   |     ^^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/mod.rs:75:5
+   |
+75 |     IoError(#[from] std::io::Error),
+   |     ^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/mod.rs:78:5
+   |
+78 |     SerializationError(#[from] serde_json::Error),
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a type alias
+  --> src/semantic_search/mod.rs:81:1
+   |
+81 | pub type Result<T> = std::result::Result<T, SemanticSearchError>;
+   | ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/embedding_service.rs:59:5
+   |
+59 |     pub model: EmbeddingModel,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/embedding_service.rs:60:5
+   |
+60 |     pub api_key: Option<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/embedding_service.rs:61:5
+   |
+61 |     pub api_url: Option<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/embedding_service.rs:62:5
+   |
+62 |     pub batch_size: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/embedding_service.rs:63:5
+   |
+63 |     pub cache_size: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/embedding_service.rs:64:5
+   |
+64 |     pub timeout_seconds: u64,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/semantic_search/embedding_service.rs:269:5
+    |
+269 |     pub size: usize,
+    |     ^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/semantic_search/embedding_service.rs:270:5
+    |
+270 |     pub capacity: usize,
+    |     ^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/semantic_search/embedding_service.rs:271:5
+    |
+271 |     pub total_accesses: usize,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/semantic_search/embedding_service.rs:272:5
+    |
+272 |     pub hit_rate: f32,
+    |     ^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:16:5
+   |
+16 |     pub store_type: VectorStoreType,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:17:5
+   |
+17 |     pub connection_string: Option<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:18:5
+   |
+18 |     pub collection_name: String,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:19:5
+   |
+19 |     pub dimension: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:20:5
+   |
+20 |     pub metric: DistanceMetric,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:21:5
+   |
+21 |     pub index_type: IndexType,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:40:5
+   |
+40 |     InMemory,
+   |     ^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:41:5
+   |
+41 |     Qdrant,
+   |     ^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:42:5
+   |
+42 |     Weaviate,
+   |     ^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:43:5
+   |
+43 |     Pinecone,
+   |     ^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:44:5
+   |
+44 |     Milvus,
+   |     ^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:50:5
+   |
+50 |     Cosine,
+   |     ^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:51:5
+   |
+51 |     Euclidean,
+   |     ^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:52:5
+   |
+52 |     DotProduct,
+   |     ^^^^^^^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:58:5
+   |
+58 |     Flat,
+   |     ^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:59:5
+   |
+59 |     IVF,
+   |     ^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:60:5
+   |
+60 |     HNSW,
+   |     ^^^^
+
+warning: missing documentation for a variant
+  --> src/semantic_search/vector_store.rs:61:5
+   |
+61 |     Annoy,
+   |     ^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:67:5
+   |
+67 |     pub id: DocumentId,
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:68:5
+   |
+68 |     pub score: RelevanceScore,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:69:5
+   |
+69 |     pub metadata: DocumentMetadata,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:75:5
+   |
+75 |     pub domain: Option<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:76:5
+   |
+76 |     pub entity_type: Option<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:77:5
+   |
+77 |     pub tags: Option<Vec<String>>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:78:5
+   |
+78 |     pub time_range: Option<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/vector_store.rs:79:5
+   |
+79 |     pub custom_filters: HashMap<String, serde_json::Value>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for an associated function
+   --> src/semantic_search/vector_store.rs:142:5
+    |
+142 |     pub fn new(config: VectorStoreConfig) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:18:5
+   |
+18 |     pub query_text: String,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:19:5
+   |
+19 |     pub k: usize,
+   |     ^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:20:5
+   |
+20 |     pub filter: Option<SearchFilter>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:21:5
+   |
+21 |     pub options: SearchOptions,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for an associated function
+  --> src/semantic_search/search_engine.rs:25:5
+   |
+25 |     pub fn new(query_text: impl Into<String>) -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a method
+  --> src/semantic_search/search_engine.rs:34:5
+   |
+34 |     pub fn with_k(mut self, k: usize) -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a method
+  --> src/semantic_search/search_engine.rs:39:5
+   |
+39 |     pub fn with_filter(mut self, filter: SearchFilter) -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a method
+  --> src/semantic_search/search_engine.rs:44:5
+   |
+44 |     pub fn with_options(mut self, options: SearchOptions) -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:53:5
+   |
+53 |     pub rerank: bool,
+   |     ^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:54:5
+   |
+54 |     pub expand_query: bool,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:55:5
+   |
+55 |     pub min_score: Option<f32>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:56:5
+   |
+56 |     pub include_embeddings: bool,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:57:5
+   |
+57 |     pub timeout_seconds: Option<u64>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:75:5
+   |
+75 |     pub results: Vec<SearchResult>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:76:5
+   |
+76 |     pub query_embedding: Option<Vec<f32>>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:77:5
+   |
+77 |     pub total_found: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/search_engine.rs:78:5
+   |
+78 |     pub search_time_ms: u64,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/semantic_search/search_engine.rs:277:5
+    |
+277 |     pub document_count: usize,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+   --> src/semantic_search/search_engine.rs:278:5
+    |
+278 |     pub cache_stats: super::embedding_service::CacheStats,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for an associated function
+  --> src/semantic_search/indexing_pipeline.rs:24:5
+   |
+24 |     pub fn new<T: std::any::Any + Send + Sync + 'static>(data: T) -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a method
+  --> src/semantic_search/indexing_pipeline.rs:30:5
+   |
+30 |     pub fn downcast_ref<T: std::any::Any + 'static>(&self) -> Option<&T> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/indexing_pipeline.rs:38:5
+   |
+38 |     pub batch_size: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/indexing_pipeline.rs:39:5
+   |
+39 |     pub parallel_workers: usize,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/indexing_pipeline.rs:40:5
+   |
+40 |     pub index_on_create: bool,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/indexing_pipeline.rs:41:5
+   |
+41 |     pub index_on_update: bool,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/indexing_pipeline.rs:42:5
+   |
+42 |     pub index_on_delete: bool,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: missing documentation for a struct field
+  --> src/semantic_search/indexing_pipeline.rs:43:5
+   |
+43 |     pub domains_to_index: Vec<String>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `ia` (lib test) generated 155 warnings (155 duplicates)
+warning: `ia` (lib) generated 155 warnings (run `cargo fix --lib -p ia` to apply 24 suggestions)
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `bevy_ecs`
+ --> examples/identity_management_demo.rs:9:5
+  |
+9 | use bevy_ecs::prelude::*;
+  |     ^^^^^^^^ use of unresolved module or unlinked crate `bevy_ecs`
+  |
+  = help: if you wanted to use a crate named `bevy_ecs`, use `cargo add bevy_ecs` to add it to your `Cargo.toml`
+
+warning: unused imports: `ConceptualSpaceId` and `Hyperplane`
+ --> examples/conceptual_reasoning_demo.rs:7:78
+  |
+7 |     ConceptualMetric, ConceptualPoint, ConceptualReasoning, ConceptualSpace, ConceptualSpaceId,
+  |                                                                              ^^^^^^^^^^^^^^^^^
+8 |     ConvexRegion, DimensionId, DistanceMetric, Hyperplane, PathConstraints,
+  |                                                ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `GraphId` and `NodeId`
+ --> tests/error_handling_test.rs:5:45
+  |
+5 | use cim_domain::{DomainResult, DomainError, GraphId, NodeId};
+  |                                             ^^^^^^^  ^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `AgentUiPlugin`
+  --> examples/test_ui_nats_events.rs:10:15
+   |
+10 |     plugins::{AgentUiPlugin, NatsEventBridgePlugin},
+   |               ^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `std::time::Duration`
+  --> examples/test_ui_nats_events.rs:13:5
+   |
+13 | use std::time::Duration;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+error[E0432]: unresolved import `cim_domain_identity`
+  --> examples/identity_management_demo.rs:10:5
+   |
+10 | use cim_domain_identity::*;
+   |     ^^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `cim_domain_identity`
+   |
+help: there is a crate or module with a similar name
+   |
+10 - use cim_domain_identity::*;
+10 + use cim_domain_agent::*;
+   |
+
+error[E0308]: mismatched types
+  --> tests/minimal_integration_test.rs:51:21
+   |
+51 |         graph_type: GraphType::Workflow,
+   |                     ^^^^^^^^^^^^^^^^^^^ expected `GraphType`, found enum constructor
+   |
+   = note:          expected enum `cim_domain_graph::components::GraphType`
+           found enum constructor `fn(WorkflowGraphAdapter) -> cim_domain_graph::GraphType {cim_domain_graph::GraphType::Workflow}`
+
+error[E0308]: mismatched types
+  --> tests/minimal_integration_test.rs:66:41
+   |
+66 |     assert_eq!(graph_entity.graph_type, GraphType::Workflow);
+   |                                         ^^^^^^^^^^^^^^^^^^^ expected `GraphType`, found enum constructor
+   |
+   = note:          expected enum `cim_domain_graph::components::GraphType`
+           found enum constructor `fn(WorkflowGraphAdapter) -> cim_domain_graph::GraphType {cim_domain_graph::GraphType::Workflow}`
+
+warning: unused import: `AgentUiPlugin`
+ --> tests/agent_event_flow.rs:8:43
+  |
+8 | use ia::plugins::{AgentIntegrationPlugin, AgentUiPlugin};
+  |                                           ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0277]: `fn(...) -> ... {cim_domain_graph::GraphType::Workflow}` doesn't implement `Debug`
+  --> tests/minimal_integration_test.rs:66:5
+   |
+66 |     assert_eq!(graph_entity.graph_type, GraphType::Workflow);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `fn(...) -> ... {cim_domain_graph::GraphType::Workflow}` cannot be formatted using `{:?}` because it doesn't implement `Debug`
+   |
+   = help: the trait `Debug` is not implemented for fn item `fn(...) -> ... {cim_domain_graph::GraphType::Workflow}`
+   = note: the full name for the type has been written to '/git/thecowboyai/alchemist/target/x86_64-unknown-linux-gnu/debug/deps/minimal_integration_test-bdfdf6553851e370.long-type-17804512540209487461.txt'
+   = note: consider using `--verbose` to print the full type name to the console
+   = note: this error originates in the macro `assert_eq` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused import: `EdgeEntity`
+  --> examples/enhanced_visualization_demo.rs:10:30
+   |
+10 |     components::{NodeEntity, EdgeEntity},
+   |                              ^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+error[E0599]: no variant or associated item named `General` found for enum `cim_domain_graph::GraphType` in the current scope
+  --> tests/minimal_integration_test.rs:85:55
+   |
+85 |         graph_type: Some(cim_domain_graph::GraphType::General),
+   |                                                       ^^^^^^^ variant or associated item not found in `GraphType`
+
+Some errors have detailed explanations: E0277, E0308, E0599.
+For more information about an error, try `rustc --explain E0277`.
+warning: unused variable: `app`
+  --> tests/agent_event_flow.rs:14:13
+   |
+14 |     let mut app = App::new();
+   |             ^^^ help: if this is intentional, prefix it with an underscore: `_app`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+  --> tests/agent_event_flow.rs:14:9
+   |
+14 |     let mut app = App::new();
+   |         ----^^^
+   |         |
+   |         help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+error: could not compile `ia` (test "minimal_integration_test") due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error[E0423]: expected value, found struct `EguiPlugin`
+   --> examples/test_ui_simple.rs:16:13
+    |
+16  |             EguiPlugin,
+    |             ^^^^^^^^^^ help: use struct literal syntax instead: `EguiPlugin { enable_multipass_for_primary_context: val }`
+    |
+   ::: /home/steele/.cargo/git/checkouts/bevy_egui-85d62b253d4d9792/56a485b/src/lib.rs:225:1
+    |
+225 | pub struct EguiPlugin {
+    | --------------------- `EguiPlugin` defined here
+
+error[E0432]: unresolved import `cim_domain_agent::Participant`
+  --> examples/ai_agent_dialog_memory.rs:11:42
+   |
+11 | use cim_domain_agent::{Agent, AgentType, Participant as AgentParticipant};
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Participant` in the root
+   |
+   = help: consider importing one of these items instead:
+           crate::ContextScope::Participant
+           cim_domain_dialog::ContextScope::Participant
+           cim_domain_dialog::Participant
+
+error[E0432]: unresolved import `cim_ipld::ContentService`
+  --> examples/ai_agent_dialog_memory.rs:17:16
+   |
+17 | use cim_ipld::{ContentService, ContentType};
+   |                ^^^^^^^^^^^^^^ no `ContentService` in the root
+   |
+   = help: consider importing this struct instead:
+           cim_ipld::content_types::service::ContentService
+
+warning: unused imports: `AgentType` and `Agent`
+  --> examples/ai_agent_dialog_memory.rs:11:24
+   |
+11 | use cim_domain_agent::{Agent, AgentType, Participant as AgentParticipant};
+   |                        ^^^^^  ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `AddContextVariable`, `AddTurn`, `DialogStatus`, `StartDialog`, and `SwitchContext`
+  --> examples/ai_agent_dialog_memory.rs:13:5
+   |
+13 |     AddContextVariable, AddTurn, ContextScope, ContextVariable, Dialog, DialogStatus, DialogType,
+   |     ^^^^^^^^^^^^^^^^^^  ^^^^^^^                                         ^^^^^^^^^^^^
+14 |     Message, MessageIntent, Participant, ParticipantRole, ParticipantType, StartDialog,
+   |                                                                            ^^^^^^^^^^^
+15 |     SwitchContext, Topic, Turn, TurnType,
+   |     ^^^^^^^^^^^^^
+
+error[E0432]: unresolved imports `cim_domain_agent::AgentCommandHandler`, `cim_domain_agent::CapabilitiesComponent`, `cim_domain_agent::ToolDefinition`
+  --> examples/ai_agent_with_memory.rs:14:27
+   |
+14 |     ActivateAgent, Agent, AgentCommandHandler, AgentMetadata, AgentType, CapabilitiesComponent,
+   |                           ^^^^^^^^^^^^^^^^^^^                            ^^^^^^^^^^^^^^^^^^^^^ no `CapabilitiesComponent` in the root
+   |                           |
+   |                           no `AgentCommandHandler` in the root
+15 |     DeployAgent, EnableAgentTools, ToolDefinition,
+   |                                    ^^^^^^^^^^^^^^ no `ToolDefinition` in the root
+   |
+   = help: consider importing one of these structs instead:
+           cim_domain_agent::handlers::AgentCommandHandler
+           ia::AgentCommandHandler
+   = help: consider importing one of these structs instead:
+           cim_domain_agent::aggregate::CapabilitiesComponent
+           ia::CapabilitiesComponent
+   = help: consider importing one of these structs instead:
+           cim_domain_agent::aggregate::ToolDefinition
+           cim_domain_agent::components::ToolDefinition
+           ia::ToolDefinition
+
+error[E0432]: unresolved import `cim_ipld::ContentService`
+  --> examples/ai_agent_with_memory.rs:17:16
+   |
+17 | use cim_ipld::{ContentService, ContentType};
+   |                ^^^^^^^^^^^^^^ no `ContentService` in the root
+   |
+   = help: consider importing this struct instead:
+           cim_ipld::content_types::service::ContentService
+
+warning: method `get_call_count` is never used
+  --> tests/error_handling_test.rs:37:14
+   |
+17 | impl FallibleService {
+   | -------------------- method in this implementation
+...
+37 |     async fn get_call_count(&self) -> u32 {
+   |              ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: unused imports: `ActivateAgent`, `AgentMetadata`, `DeployAgent`, and `EnableAgentTools`
+  --> examples/ai_agent_with_memory.rs:14:5
+   |
+14 |     ActivateAgent, Agent, AgentCommandHandler, AgentMetadata, AgentType, CapabilitiesComponent,
+   |     ^^^^^^^^^^^^^                              ^^^^^^^^^^^^^
+15 |     DeployAgent, EnableAgentTools, ToolDefinition,
+   |     ^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `first_id`
+   --> examples/enhanced_visualization_demo.rs:128:13
+    |
+128 |         let first_id = NodeId(Uuid::new_v4());
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_first_id`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
+   --> examples/show_event_flow.rs:143:14
+    |
+143 |         exit.send(AppExit::Success);
+    |              ^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+error[E0502]: cannot borrow `state` as immutable because it is also borrowed as mutable
+  --> examples/test_ui_simple.rs:76:60
+   |
+76 |                     state.messages.push(format!("You: {}", state.text));
+   |                     -----          ----                    ^^^^^ immutable borrow occurs here
+   |                     |              |
+   |                     |              mutable borrow later used by call
+   |                     mutable borrow occurs here
+
+error[E0502]: cannot borrow `state` as immutable because it is also borrowed as mutable
+  --> examples/test_ui_simple.rs:77:67
+   |
+77 |                     state.messages.push(format!("Bot: Echo - {}", state.text));
+   |                     -----          ----                           ^^^^^ immutable borrow occurs here
+   |                     |              |
+   |                     |              mutable borrow later used by call
+   |                     mutable borrow occurs here
+
+Some errors have detailed explanations: E0423, E0502.
+For more information about an error, try `rustc --explain E0423`.
+error: could not compile `ia` (example "test_ui_simple") due to 3 previous errors
+error[E0599]: no variant or associated item named `Text` found for enum `cim_ipld::ContentType` in the current scope
+   --> examples/ai_agent_dialog_memory.rs:156:61
+    |
+156 |             .store_content(snippet.as_bytes(), ContentType::Text, None)
+    |                                                             ^^^^ variant or associated item not found in `ContentType`
+
+warning: unused variable: `recent_turns`
+   --> examples/ai_agent_dialog_memory.rs:237:13
+    |
+237 |         let recent_turns = dialog.turns().iter().rev().take(5).collect::<Vec<_>>();
+    |             ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_recent_turns`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+error[E0716]: temporary value dropped while borrowed
+   --> examples/ai_agent_dialog_memory.rs:287:29
+    |
+287 |                 .unwrap_or(&"Unknown".to_string());
+    |                             ^^^^^^^^^^^^^^^^^^^^^ - temporary value is freed at the end of this statement
+    |                             |
+    |                             creates a temporary value which is freed while still in use
+...
+290 |                 snippet.push_str(&format!("{}: {}\n", participant, text));
+    |                                                       ----------- borrow later used here
+    |
+    = note: consider using a `let` binding to create a longer lived value
+
+warning: unused import: `Duration`
+  --> examples/identity_management_demo.rs:12:17
+   |
+12 | use std::time::{Duration, SystemTime};
+   |                 ^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `user_id`
+   --> examples/ai_agent_with_memory.rs:110:52
+    |
+110 |     async fn process_query(&mut self, query: &str, user_id: Uuid) -> Result<String> {
+    |                                                    ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_user_id`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+Some errors have detailed explanations: E0432, E0599, E0716.
+For more information about an error, try `rustc --explain E0432`.
+warning: `ia` (example "conceptual_reasoning_demo") generated 1 warning (run `cargo fix --example "conceptual_reasoning_demo"` to apply 1 suggestion)
+warning: `ia` (example "ai_agent_dialog_memory") generated 3 warnings
+error: could not compile `ia` (example "ai_agent_dialog_memory") due to 4 previous errors; 3 warnings emitted
+Some errors have detailed explanations: E0432, E0433.
+warning: `ia` (example "identity_management_demo") generated 1 warning
+error: could not compile `ia` (example "identity_management_demo") due to 2 previous errors; 1 warning emitted
+error[E0599]: no variant or associated item named `Text` found for enum `cim_ipld::ContentType` in the current scope
+   --> examples/ai_agent_with_memory.rs:288:26
+    |
+288 |             ContentType::Text,
+    |                          ^^^^ variant or associated item not found in `ContentType`
+
+Some errors have detailed explanations: E0432, E0599.
+warning: `ia` (example "ai_agent_with_memory") generated 2 warnings
+error: could not compile `ia` (example "ai_agent_with_memory") due to 3 previous errors; 2 warnings emitted
+warning: `ia` (test "error_handling_test") generated 2 warnings (run `cargo fix --test "error_handling_test"` to apply 1 suggestion)
+warning: `ia` (test "agent_event_flow") generated 3 warnings (run `cargo fix --test "agent_event_flow"` to apply 2 suggestions)
+warning: `ia` (example "test_ui_nats_events") generated 2 warnings (run `cargo fix --example "test_ui_nats_events"` to apply 2 suggestions)
+warning: `ia` (example "show_event_flow") generated 1 warning
+warning: `ia` (example "enhanced_visualization_demo") generated 2 warnings (run `cargo fix --example "enhanced_visualization_demo"` to apply 1 suggestion)

@@ -31,17 +31,17 @@ impl SearchQuery {
         }
     }
     
-    pub fn with_k(mut self, k: usize) -> Self {
+    #[must_use] pub fn with_k(mut self, k: usize) -> Self {
         self.k = k;
         self
     }
     
-    pub fn with_filter(mut self, filter: SearchFilter) -> Self {
+    #[must_use] pub fn with_filter(mut self, filter: SearchFilter) -> Self {
         self.filter = Some(filter);
         self
     }
     
-    pub fn with_options(mut self, options: SearchOptions) -> Self {
+    #[must_use] pub fn with_options(mut self, options: SearchOptions) -> Self {
         self.options = options;
         self
     }
@@ -187,12 +187,12 @@ impl SemanticSearchEngine {
             }
         }
         
-        let embeddings = if !texts_to_embed.is_empty() {
+        let embeddings = if texts_to_embed.is_empty() {
+            Vec::new()
+        } else {
             self.embedding_service
                 .embed_batch(&texts_to_embed)
                 .await?
-        } else {
-            Vec::new()
         };
         
         // Prepare items for batch insert

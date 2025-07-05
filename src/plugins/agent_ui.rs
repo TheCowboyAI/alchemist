@@ -18,12 +18,14 @@ pub struct AgentChatState {
 
 /// Docking position for the agent UI window
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Default)]
 pub enum DockSide {
     /// Floating window that can be moved
     Floating,
     /// Docked to the left side of the screen
     Left,
     /// Docked to the right side of the screen
+    #[default]
     Right,
     /// Docked to the top of the screen
     Top,
@@ -31,11 +33,6 @@ pub enum DockSide {
     Bottom,
 }
 
-impl Default for DockSide {
-    fn default() -> Self {
-        DockSide::Right
-    }
-}
 
 /// Represents a message in the chat history
 #[derive(Clone)]

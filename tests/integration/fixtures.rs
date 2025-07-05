@@ -1,9 +1,12 @@
 //! Test fixtures and helpers for integration tests
 
 use async_nats::jetstream;
-use cim_domain::{DomainError, DomainEvent, DomainResult};
+use cim_domain::{DomainError, DomainEvent, DomainResult, GraphId, NodeId, EdgeId};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use async_trait::async_trait;
+use std::collections::HashMap;
+use tokio::sync::RwLock;
 
 /// Test NATS server manager
 pub struct TestNatsServer {
@@ -51,15 +54,26 @@ impl TestNatsServer {
 }
 
 /// Test event store
+#[derive(Clone)]
 pub struct TestEventStore {
     events: Arc<Mutex<Vec<Box<dyn DomainEvent>>>>,
+    nats_server: Option<Arc<TestNatsServer>>,
 }
 
 impl TestEventStore {
     pub fn new() -> Self {
         Self {
             events: Arc::new(Mutex::new(Vec::new())),
+            nats_server: None,
         }
+    }
+
+    /// Create event store with NATS backend
+    pub async fn with_nats(nats: &TestNatsServer) -> DomainResult<Self> {
+        Ok(Self {
+            events: Arc::new(Mutex::new(Vec::new())),
+            nats_server: Some(Arc::new(TestNatsServer::start().await?)),
+        })
     }
 
     pub async fn append(&self, event: Box<dyn DomainEvent>) -> DomainResult<()> {
@@ -81,7 +95,6 @@ impl TestEventStore {
 
 /// Create a test graph aggregate
 pub fn create_test_graph() -> cim_domain_graph::GraphAggregate {
-    use cim_domain::GraphId;
     use cim_domain_graph::{GraphAggregate, GraphType};
 
     GraphAggregate::new(
@@ -93,7 +106,6 @@ pub fn create_test_graph() -> cim_domain_graph::GraphAggregate {
 
 /// Create test node
 pub fn create_test_node() -> cim_domain_graph::Node {
-    use cim_domain::NodeId;
     use cim_domain_graph::{Node, NodeType};
 
     Node::new(
@@ -101,6 +113,26 @@ pub fn create_test_node() -> cim_domain_graph::Node {
         NodeType::WorkflowStep {
             step_type: cim_domain_graph::StepType::Process,
         },
+    )
+}
+
+/// Create a test app for Bevy integration tests
+pub fn create_test_app() -> bevy::app::App {
+    use bevy::prelude::*;
+    
+    let mut app = App::new();
+    app.add_plugins(MinimalPlugins);
+    app
+}
+
+/// Create a large graph for performance testing
+pub fn create_large_graph() -> cim_domain_graph::GraphAggregate {
+    use cim_domain_graph::{GraphAggregate, GraphType};
+
+    GraphAggregate::new(
+        GraphId::new(),
+        "Large Test Graph".to_string(),
+        GraphType::ConceptualGraph,
     )
 }
 
@@ -127,5 +159,115 @@ pub mod assertions {
             expected,
             events.len()
         );
+    }
+}
+
+/// Mock implementation of projection sync (simplified)
+pub struct ProjectionSync {
+    event_store: TestEventStore,
+}
+
+impl ProjectionSync {
+    pub fn new(event_store: TestEventStore) -> Self {
+        Self { event_store }
+    }
+
+    pub async fn subscribe_projection(
+        &self,
+        _name: &str,
+        _projection: Arc<RwLock<dyn Projection>>,
+    ) -> DomainResult<()> {
+        // Mock implementation
+        Ok(())
+    }
+}
+
+/// Trait for projections
+#[async_trait::async_trait]
+pub trait Projection: Send + Sync {
+    async fn apply_event(&mut self, event: &dyn DomainEvent) -> DomainResult<()>;
+}
+
+/// Mock graph summary projection
+pub struct GraphSummaryProjection {
+    summaries: HashMap<GraphId, GraphSummary>,
+}
+
+#[derive(Clone)]
+pub struct GraphSummary {
+    pub node_count: usize,
+    pub edge_count: usize,
+}
+
+impl GraphSummaryProjection {
+    pub fn new() -> Self {
+        Self {
+            summaries: HashMap::new(),
+        }
+    }
+
+    pub fn get_summary(&self, graph_id: &GraphId) -> DomainResult<GraphSummary> {
+        self.summaries
+            .get(graph_id)
+            .cloned()
+            .ok_or_else(|| DomainError::NotFound("Graph not found".to_string()))
+    }
+}
+
+#[async_trait::async_trait]
+impl Projection for GraphSummaryProjection {
+    async fn apply_event(&mut self, event: &dyn DomainEvent) -> DomainResult<()> {
+        // Mock implementation
+        Ok(())
+    }
+}
+
+/// Mock node list projection
+pub struct NodeListProjection {
+    nodes: HashMap<GraphId, Vec<NodeId>>,
+}
+
+impl NodeListProjection {
+    pub fn new() -> Self {
+        Self {
+            nodes: HashMap::new(),
+        }
+    }
+
+    pub fn get_nodes(&self, graph_id: &GraphId) -> DomainResult<Vec<NodeId>> {
+        Ok(self.nodes.get(graph_id).cloned().unwrap_or_default())
+    }
+}
+
+#[async_trait::async_trait]
+impl Projection for NodeListProjection {
+    async fn apply_event(&mut self, event: &dyn DomainEvent) -> DomainResult<()> {
+        // Mock implementation
+        Ok(())
+    }
+}
+
+/// Mock edge list projection
+pub struct EdgeListProjection {
+    edges: HashMap<GraphId, Vec<EdgeId>>,
+}
+
+impl EdgeListProjection {
+    pub fn new() -> Self {
+        Self {
+            edges: HashMap::new(),
+        }
+    }
+
+    pub fn get_edges(&self, graph_id: &GraphId) -> DomainResult<Vec<EdgeId>> {
+        Ok(self.edges.get(graph_id).cloned().unwrap_or_default())
+    }
+}
+
+#[async_trait::async_trait]
+impl Projection for EdgeListProjection {
+    async fn apply_event(&mut self, event: &dyn DomainEvent) -> DomainResult<()> {
+        // Mock implementation
+        Ok(())
     }
 }

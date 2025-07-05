@@ -1,6 +1,5 @@
 //! Command and event handlers for the application
 
-use crate::prelude::*;
 
 /// Agent command handler
 pub struct AgentCommandHandler;

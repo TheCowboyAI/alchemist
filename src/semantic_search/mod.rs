@@ -48,7 +48,7 @@ pub struct RelevanceScore(pub f32);
 
 impl RelevanceScore {
     /// Create a new relevance score, clamped to [0.0, 1.0]
-    pub fn new(score: f32) -> Self {
+    #[must_use] pub fn new(score: f32) -> Self {
         Self(score.clamp(0.0, 1.0))
     }
 }

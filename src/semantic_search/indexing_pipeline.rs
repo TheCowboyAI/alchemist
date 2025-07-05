@@ -27,7 +27,7 @@ impl EntityData {
         }
     }
     
-    pub fn downcast_ref<T: std::any::Any + 'static>(&self) -> Option<&T> {
+    #[must_use] pub fn downcast_ref<T: std::any::Any + 'static>(&self) -> Option<&T> {
         self.inner.downcast_ref::<T>()
     }
 }
@@ -143,7 +143,7 @@ impl DocumentExtractor for GraphDocumentExtractor {
         Ok(documents)
     }
     
-    fn domain(&self) -> &str {
+    fn domain(&self) -> &'static str {
         "graph"
     }
 }
@@ -158,7 +158,7 @@ impl DocumentExtractor for DocumentDomainExtractor {
         Ok(Vec::new())
     }
     
-    fn domain(&self) -> &str {
+    fn domain(&self) -> &'static str {
         "document"
     }
 }
@@ -200,7 +200,7 @@ impl DocumentExtractor for AgentDocumentExtractor {
         Ok(documents)
     }
     
-    fn domain(&self) -> &str {
+    fn domain(&self) -> &'static str {
         "agent"
     }
 }
@@ -224,7 +224,7 @@ enum IndexingTask {
 
 impl IndexingPipeline {
     /// Create a new indexing pipeline
-    pub fn new(
+    #[must_use] pub fn new(
         search_engine: Arc<SemanticSearchEngine>,
         config: IndexingConfig,
     ) -> Self {

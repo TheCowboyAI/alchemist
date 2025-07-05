@@ -6,7 +6,6 @@ use uuid::Uuid;
 
 /// AI-related events
 pub mod ai_events;
-pub use ai_events::*;
 
 // Agent-related events
 /// Agent activated event
