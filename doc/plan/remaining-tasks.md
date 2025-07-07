@@ -38,11 +38,11 @@ The CIM project is currently 85% production ready. This document outlines the re
   - [x] Event replay procedures (event-replay.md)
   - [x] Backup and restore processes (backup-restore.md)
 
-- [ ] **Deployment Guide**
-  - Production deployment checklist
-  - Security hardening steps
-  - Performance tuning guide
-  - Capacity planning documentation
+- [x] **Deployment Guide**
+  - [x] Production deployment guide (production-deployment-guide.md)
+  - [x] Nix configuration patterns (nix-configuration-guide.md)
+  - [x] NATS Leaf Node setup (nats-leaf-node-guide.md)
+  - [x] Deployment checklist (deployment-checklist.md)
 
 - [ ] **Troubleshooting Guide**
   - Common error scenarios
