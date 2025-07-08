@@ -140,11 +140,50 @@ pub struct PerformanceMetrics {
 
 ## Scalability Design
 
+### CIM Leaf Node Architecture
+
+```mermaid
+graph TB
+    subgraph "Customer Site"
+        L1[CIM Leaf Node]
+        A1[Alchemist Controller]
+        D1[Local Event Store]
+        
+        A1 --> L1
+        L1 --> D1
+    end
+    
+    subgraph "CIM Cloud Clusters"
+        C1[Cluster Node 1]
+        C2[Cluster Node 2]
+        C3[Cluster Node N]
+        E1[Global Event Store]
+    end
+    
+    L1 -.->|Encrypted Events| C1
+    L1 -.->|Encrypted Events| C2
+    L1 -.->|Encrypted Events| C3
+    
+    C1 --> E1
+    C2 --> E1
+    C3 --> E1
+    
+    style L1 fill:#4CAF50
+    style A1 fill:#95E1D3
+```
+
+### Leaf Node Benefits
+- **Data Locality**: Process events where they're generated
+- **Reduced Latency**: Sub-millisecond local processing
+- **Privacy Control**: Sensitive data stays on-premise
+- **Edge Computing**: AI inference at the edge
+- **Resilience**: Continues operating if cloud connection fails
+
 ### Horizontal Scaling
 ```mermaid
 graph TB
     subgraph "Load Balancer"
-        LB[NATS Leaf Node]
+        LB[NATS Cluster Gateway]
     end
     
     subgraph "Processing Tier"

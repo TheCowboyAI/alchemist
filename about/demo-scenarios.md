@@ -409,11 +409,27 @@ let answer = ai_agent.query("What's slowing down our order processing?");
 | Development Speed     | Baseline   | 40% faster | 1.4x         |
 | Customer Satisfaction | 72%        | 89%        | 24% increase |
 
-### Financial Impact (1000-employee company)
+### Event-Based Cost Analysis (1000-employee company)
+
+**Monthly Event Volume Estimate**:
+- Core business processes: 50M events
+- Integration events: 30M events  
+- Monitoring/analytics: 20M events
+- **Total**: 100M events/month
+
+**CIM Costs**:
+- Enterprise Package: $75,000/month
+- Leaf Node (leased): $5,000/month
+- **Total**: $80,000/month
+
+### Financial Impact
 - **Labor Savings**: $3.2M/year from automation
 - **Faster Time-to-Market**: $5.1M additional revenue
 - **Reduced Errors**: $1.8M saved from mistakes
 - **Compliance**: $2.4M avoided penalties
 - **Total Annual Value**: $12.5M
+- **Annual CIM Cost**: $960,000
 
-### Payback Period: 4.8 months 
+### Net Annual Benefit: $11.54M
+### ROI: 1,202%
+### Payback Period: 0.9 months 

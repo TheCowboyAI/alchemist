@@ -70,6 +70,13 @@ Step-by-step instructions for running live demonstrations:
 - **Valuation**: $60M pre-money
 - **Use of Funds**: 60% engineering, 25% sales/marketing, 15% operations
 
+## 💰 Revenue Model
+
+- **Event-Based Pricing**: $0.001 per event (pay-as-you-go)
+- **Enterprise Packages**: Volume discounts for predictable costs
+- **Infrastructure**: Local CIM Leaf Nodes (owned or leased)
+- **Free Tier**: Self-hosted on your own hardware
+
 ## 📞 Contact
 
 To schedule a demo or discuss investment:
