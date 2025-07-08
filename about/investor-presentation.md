@@ -304,7 +304,7 @@ graph TB
     style D fill:#4CAF50
 ```
 
-*All metrics from automated performance test suite, 2024*
+*All metrics from automated performance test suite, 2025*
 
 ### Architecture Strengths
 
@@ -323,33 +323,6 @@ graph TB
 - **100% event sourcing** compliance
 
 *Current test suite statistics as of January 2025*
-
----
-
-## Team & Advisors
-
-### Core Team
-
-**[Your Name]** - CEO & Architect
-- 15+ years distributed systems
-- Former [Notable Company] architect
-- Created [Notable Project]
-
-**[CTO Name]** - CTO
-- 20+ years enterprise software
-- Scaled [Company] to 1B events/day
-- Domain-driven design expert
-
-**[VP Engineering]** - VP Engineering
-- 10+ years Rust development
-- Contributor to major Rust projects
-- Performance optimization specialist
-
-### Advisors
-
-- **[Advisor 1]**: Former CTO of [Major Tech Company]
-- **[Advisor 2]**: Author of [Influential Book/Framework]
-- **[Advisor 3]**: Partner at [Top VC Firm]
 
 ---
 
@@ -392,29 +365,7 @@ graph LR
 | Cost per Billion Events    | $1,000  | Infrastructure + operations    |
 | Revenue per Billion Events | $10,000 | Average across all tiers       |
 | Gross Margin per Event     | 90%     | Highly scalable infrastructure |
-| Leaf Node Monthly Revenue  | $40,000 | Average per active node        |
-
-### Use of Funds
-
-```mermaid
-pie title "Series A Use of Funds"
-    "Engineering (60%)" : 60
-    "Sales & Marketing (25%)" : 25
-    "Operations (10%)" : 10
-    "Other (5%)" : 5
-```
-
----
-
-## Investment Opportunity
-
-### Series A: $15M
-
-**Terms**:
-- Seeking: $15M Series A
-- Valuation: $60M pre-money
-- Lead Investor: $10M commitment sought
-- Use: Scale engineering, go-to-market
+| Leaf Node Monthly Revenue  | $X0,000 | Average per active node        |
 
 **Why Now**:
 1. **Product Complete**: 100% domains implemented
@@ -448,20 +399,20 @@ gantt
     title Product Roadmap
     dateFormat  YYYY-MM-DD
     section Platform
-    Core Platform GA    :2024-02-01, 90d
-    Cloud Deployment    :2024-04-01, 120d
+    Core Platform GA    :2025-05-01, 90d
+    Cloud Deployment    :2025-07-01, 120d
     section AI Features
-    GPT Integration     :2024-03-01, 60d
-    Custom Models       :2024-05-01, 90d
+    GPT Integration     :done
+    Custom Models       :2025-08-01, 90d
     section Enterprise
-    Compliance Pack     :2024-06-01, 60d
-    Multi-region        :2024-08-01, 90d
+    Compliance Pack     :2025-07-01, 60d
+    Multi-region        :2025-09-01, 90d
 ```
 
 ### Long-term Vision
 
 **Year 1-2**: Platform adoption, developer ecosystem
-**Year 3-4**: Industry-specific solutions
+**Year 3-4**: Industry-specific Vertical solutions
 **Year 5+**: Global standard for information systems
 
 ### Strategic Goals
@@ -473,9 +424,7 @@ gantt
 
 ---
 
-## Call to Action
-
-### Join Us in Revolutionizing Information Systems
+## Join Us in Revolutionizing Information Systems
 
 CIM represents a fundamental shift in how organizations manage information:
 
@@ -483,24 +432,6 @@ CIM represents a fundamental shift in how organizations manage information:
 - **From Opaque** → To Transparent Workflows  
 - **From Static** → To Dynamic Evolution
 - **From Data** → To Understanding
-
-### Next Steps
-
-1. **Technical Deep Dive**: Live demo of full system
-2. **Customer References**: Speak with our POC partners
-3. **Financial Review**: Detailed model walkthrough
-4. **Term Sheet**: Move forward with investment
-
-### Contact
-
-**[Your Name]**
-CEO & Founder
-Email: [your.email@company.com]
-Phone: [Your Phone]
-
-**[Company Name]**
-[Address]
-[Website]
 
 ---
 

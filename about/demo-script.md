@@ -1,5 +1,13 @@
 # CIM Live Demo Script
 
+> **Note**: All demos are written in Rust and use Bevy ECS for visualization. There is no Node.js/JavaScript involved - CIM is a pure Rust system.
+
+## Technology Stack
+- **Language**: Rust
+- **Visualization**: Bevy ECS (game engine)
+- **Messaging**: NATS (written in Go, but we use Rust client)
+- **Build System**: Nix
+
 ## Prerequisites
 
 ```bash
@@ -19,9 +27,11 @@ nats-server -js
 ### Start the Workflow Demo
 
 ```bash
-# Run the interactive workflow demo
+# Run the interactive workflow demo (Rust/Bevy example)
 nix run .#cim-domain-bevy -- --example workflow_demo
 ```
+
+This runs a **Rust example** that uses Bevy ECS to visualize workflows as interactive graphs.
 
 ### Demo Talk Track
 
@@ -30,8 +40,8 @@ nix run .#cim-domain-bevy -- --example workflow_demo
    - "This is a real document approval workflow that typically takes 5-7 days."
 
 2. **Visual Design (1:00)**
-   - Click on the Start node to begin
-   - "Notice how each step lights up as it becomes active"
+   - Click on the Start vertex to begin the workflow
+   - "Notice how each workflow step lights up as it becomes active"
    - "The diamond represents a decision point"
    - "Parallel steps can execute simultaneously"
 
@@ -51,9 +61,11 @@ nix run .#cim-domain-bevy -- --example workflow_demo
 ### Run the Graph Analysis Demo
 
 ```bash
-# Start the graph analysis example
+# Start the graph analysis example (Rust CLI demo)
 nix run . -- --example graph_analysis
 ```
+
+This is a **Rust CLI example** that demonstrates CIM's graph analysis capabilities.
 
 ### Key Points to Highlight
 
@@ -93,8 +105,8 @@ nix run .#cim-domain-bevy -- --example event_visualization
    - "Size shows event importance"
 
 2. **Flow Patterns**
-   - "Notice how events flow between nodes"
-   - "Particles show data movement"
+   - "Notice how events flow between graph vertices"
+   - "Particles show data movement in the workflow"
    - "Bottlenecks glow red"
 
 3. **Real-time Metrics**

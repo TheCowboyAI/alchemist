@@ -25,10 +25,10 @@ graph LR
     style D2 fill:#4CAF50
 ```
 
-### Live Demo Script
+### Live Demo Script (Rust Code)
 
 ```rust
-// 1. Create workflow
+// 1. Create workflow using CIM's Rust API
 let workflow = WorkflowBuilder::new("DocumentApproval")
     .add_step("Submit", StepType::Start)
     .add_step("ManagerReview", StepType::Approval)
