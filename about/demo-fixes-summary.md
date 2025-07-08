@@ -18,12 +18,116 @@
 ### 2. state_machine_demo.rs (cim-domain-workflow)
 **Issues Fixed:**
 - Fixed all string interpolation syntax errors (missing closing parentheses and incorrect formatting)
-- Updated from old Rust formatting style to current style
+- Updated from old Rust formatting style to current standards
+- Fixed state machine guard to check for meaningful context (not just internal metadata)
+- Updated demo to handle the fact that `start()` adds `_started_by` to context
 
-**Result:** Demo now compiles successfully.
+**Result:** Demo now compiles and runs successfully, demonstrating:
+- Workflow state machine with proper transitions
+- Guard conditions preventing invalid transitions
+- Step execution and completion
+- Workflow progress tracking
+- State transition history
 
-### 3. contextgraph_export.rs
-**Status:** Already working correctly, no fixes needed.
+### 3. workflow_demo_simple.rs (NEW - cim-domain-bevy)
+**Created:** A new simple workflow demo that works without graphics dependencies
+- Uses MinimalPlugins instead of full Bevy graphics stack
+- Demonstrates workflow concepts with console output
+- Shows node types, edges, and workflow progression
+- Exits cleanly after completion
+
+**Result:** Successfully demonstrates workflow visualization concepts without requiring graphics.
+
+## Demo Execution Results
+
+### State Machine Demo Output:
+```
+🔄 Workflow State Machine Demo
+
+✅ Created workflow: Document Approval Workflow
+📊 Initial state: Draft
+
+📝 Adding workflow steps...
+✅ Added 3 steps
+
+🎯 Demonstrating Workflow State Machine:
+
+📊 State Machine Diagram:
+[Mermaid diagram showing state transitions]
+
+❌ Attempting to start workflow without context...
+   Failed as expected: Domain error: Workflow must have meaningful context to start
+
+✅ Starting workflow with proper context...
+   State: Running
+   Events generated: 1
+
+⏸️  Pausing workflow...
+   State: Paused
+   Reason: System maintenance
+
+▶️  Resuming workflow...
+   State: Running
+
+📊 Workflow Progress:
+   Total steps: 3
+   Completed: 1
+   In progress: 0
+   Pending: 2
+   Failed: 0
+   Progress: 33.3%
+
+✨ Demo completed!
+```
+
+### Simple Workflow Demo Output:
+```
+🔄 Simple Workflow Visualization Demo
+
+📋 Setting up Document Approval Workflow
+
+Workflow Nodes:
+  • Start (Start) - Status: Completed
+  • Submit Document (Process) - Status: Active
+  • Review Document (Process) - Status: Pending
+  • Decision (Decision) - Status: Pending
+  • Revise Document (Process) - Status: Pending
+  • Approve (Process) - Status: Pending
+  • Reject (Process) - Status: Pending
+  • End (End) - Status: Pending
+
+Workflow Edges:
+  → Start → Submit Document (Begin Process)
+  → Submit Document → Review Document (Submit for Review)
+  → Review Document → Decision (Review Complete)
+  → Decision → Approve (Approved)
+  → Decision → Revise Document (Needs Revision)
+  → Decision → Reject (Rejected)
+  → Revise Document → Submit Document (Resubmit)
+  → Approve → End (Complete)
+  → Reject → End (Complete)
+
+✅ Workflow setup complete!
+
+▶️  Processing: Submit Document - Document submitted successfully
+▶️  Processing: Review Document - Document reviewed by manager
+▶️  Processing: Decision - Decision made: Approved
+▶️  Processing: Approve - Document approved and filed
+▶️  Processing: End - Workflow completed
+
+🎉 Workflow completed successfully!
+```
+
+## Summary
+
+All demos now compile and run successfully, demonstrating:
+1. **Domain-Driven Design**: Workflow aggregates with proper state management
+2. **State Machines**: Formal state transitions with guards and effects
+3. **Event Sourcing**: Event-driven workflow progression
+4. **Graph Visualization**: Node and edge relationships (console-based)
+5. **Business Process Management**: Document approval workflow example
+
+The fixes ensure compatibility with current Rust syntax and the limited Bevy features available in the project.
 
 ## Key Learnings
 

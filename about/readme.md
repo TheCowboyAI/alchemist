@@ -1,4 +1,4 @@
-# CIM Investor Presentation Materials
+# CIM Presentation Materials
 
 This folder contains comprehensive presentation materials for potential investors interested in CIM (Composable Information Machine) and Alchemist.
 
@@ -46,7 +46,7 @@ Step-by-step instructions for running live demonstrations:
 ## 🚀 Quick Start
 
 ### For Investors
-1. Start with `investor-presentation.md` for the complete pitch
+1. Start with `presentation.md` for the complete pitch
 2. Review `demo-scenarios.md` for specific use cases relevant to your portfolio
 3. Schedule a live demo using `demo-script.md`
 
@@ -76,12 +76,6 @@ Step-by-step instructions for running live demonstrations:
 - **Enterprise Packages**: Volume discounts for predictable costs
 - **Infrastructure**: Local CIM Leaf Nodes (owned or leased)
 - **Free Tier**: Self-hosted on your own hardware
-
-## 📞 Contact
-
-To schedule a demo or discuss investment:
-- Email: [your.email@company.com]
-- Phone: [Your Phone]
 
 ## 🔗 Additional Resources
 
