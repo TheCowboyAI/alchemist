@@ -1,89 +1,89 @@
 [submodule "cim-ipld"]
 	path = cim-ipld
-	url = https://github.com/TheCowboyAI/cim-ipld.git
+	url = git@github.com:TheCowboyAI/cim-ipld.git
 
 [submodule "bevy-patched"]
 	path = bevy-patched
-	url = https://github.com/TheCowboyAI/bevy.git
+	url = git@github.com:TheCowboyAI/bevy.git
 	branch = main
 [submodule "cim-contextgraph"]
 	path = cim-contextgraph
 	url = git@github.com:TheCowboyAI/cim-contextgraph.git
 [submodule "cim-component"]
 	path = cim-component
-	url = https://github.com/TheCowboyAI/cim-component.git
+	url = git@github.com:TheCowboyAI/cim-component.git
 [submodule "cim-domain"]
 	path = cim-domain
-	url = https://github.com/TheCowboyAI/cim-domain.git
+	url = git@github.com:TheCowboyAI/cim-domain.git
 [submodule "cim-compose"]
 	path = cim-compose
-	url = https://github.com/TheCowboyAI/cim-compose.git
+	url = git@github.com:TheCowboyAI/cim-compose.git
 [submodule "cim-domain-conceptualspaces"]
 	path = cim-domain-conceptualspaces
-	url = https://github.com/TheCowboyAI/cim-domain-conceptualspaces.git
+	url = git@github.com:TheCowboyAI/cim-domain-conceptualspaces.git
 [submodule "cim-domain-identity"]
 	path = cim-domain-identity
-	url = https://github.com/TheCowboyAI/cim-domain-identity.git
+	url = git@github.com:TheCowboyAI/cim-domain-identity.git
 [submodule "cim-infrastructure"]
 	path = cim-infrastructure
-	url = https://github.com/TheCowboyAI/cim-infrastructure.git
+	url = git@github.com:TheCowboyAI/cim-infrastructure.git
 [submodule "cim-subject"]
 	path = cim-subject
-	url = https://github.com/TheCowboyAI/cim-subject.git
+	url = git@github.com:TheCowboyAI/cim-subject.git
 [submodule "cim-domain-bevy"]
 	path = cim-domain-bevy
-	url = https://github.com/TheCowboyAI/cim-domain-bevy.git
+	url = git@github.com:TheCowboyAI/cim-domain-bevy.git
 [submodule "cim-domain-person"]
 	path = cim-domain-person
-	url = https://github.com/TheCowboyAI/cim-domain-person.git
+	url = git@github.com:TheCowboyAI/cim-domain-person.git
 [submodule "cim-domain-organization"]
 	path = cim-domain-organization
-	url = https://github.com/TheCowboyAI/cim-domain-organization.git
+	url = git@github.com:TheCowboyAI/cim-domain-organization.git
 [submodule "cim-domain-agent"]
 	path = cim-domain-agent
-	url = https://github.com/TheCowboyAI/cim-domain-agent.git
+	url = git@github.com:TheCowboyAI/cim-domain-agent.git
 [submodule "cim-domain-policy"]
 	path = cim-domain-policy
-	url = https://github.com/TheCowboyAI/cim-domain-policy.git
+	url = git@github.com:TheCowboyAI/cim-domain-policy.git
 [submodule "cim-domain-document"]
 	path = cim-domain-document
-	url = https://github.com/TheCowboyAI/cim-domain-document.git
+	url = git@github.com:TheCowboyAI/cim-domain-document.git
 [submodule "cim-domain-workflow"]
 	path = cim-domain-workflow
-	url = https://github.com/thecowboyai/cim-domain-workflow
+	url = git@github.com:TheCowboyAI/cim-domain-workflow.git
 [submodule "cim-domain-location"]
 	path = cim-domain-location
-	url = https://github.com/TheCowboyAI/cim-domain-location.git
+	url = git@github.com:TheCowboyAI/cim-domain-location.git
 [submodule "cim-domain-graph"]
 	path = cim-domain-graph
-	url = https://github.com/TheCowboyAI/cim-domain-graph.git
+	url = git@github.com:TheCowboyAI/cim-domain-graph.git
 [submodule "cim-domain-nix"]
 	path = cim-domain-nix
-	url = https://github.com/TheCowboyAI/cim-domain-nix.git
+	url = git@github.com:TheCowboyAI/cim-domain-nix.git
 [submodule "cim-conceptgraph"]
 	path = cim-conceptgraph
-	url = https://github.com/TheCowboyAI/cim-conceptgraph.git
+	url = git@github.com:TheCowboyAI/cim-conceptgraph.git
 [submodule "cim-ipld-graph"]
 	path = cim-ipld-graph
-	url = https://github.com/TheCowboyAI/cim-ipld-graph.git
+	url = git@github.com:TheCowboyAI/cim-ipld-graph.git
 [submodule "cim-keys"]
 	path = cim-keys
-	url = https://github.com/TheCowboyAI/cim-keys.git
+	url = git@github.com:TheCowboyAI/cim-keys.git
 [submodule "cim-domain-git"]
 	path = cim-domain-git
-	url = https://github.com/TheCowboyAI/cim-domain-git.git
+	url = git@github.com:TheCowboyAI/cim-domain-git.git
 [submodule "cim-bridge"]
 	path = cim-bridge
-	url = https://github.com/TheCowboyAI/cim-bridge.git
+	url = git@github.com:TheCowboyAI/cim-bridge.git
 [submodule "cim-workflow-graph"]
 	path = cim-workflow-graph
-	url = https://github.com/TheCowboyAI/cim-workflow-graph.git
+	url = git@github.com:TheCowboyAI/cim-workflow-graph.git
 [submodule "cim-domain-dialog"]
 	path = cim-domain-dialog
-	url = https://github.com/TheCowboyAI/cim-domain-dialog.git
+	url = git@github.com:TheCowboyAI/cim-domain-dialog.git
 [submodule "cim-agent-alchemist"]
 	path = cim-agent-alchemist
-	url = https://github.com/TheCowboyAI/cim-agent-alchemist.git
+	url = git@github.com:TheCowboyAI/cim-agent-alchemist.git
 [submodule "cim-security"]
 	path = cim-security
-	url = https://github.com/TheCowboyAI/cim-security.git
+	url = git@github.com:TheCowboyAI/cim-security.git
