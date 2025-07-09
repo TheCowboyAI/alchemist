@@ -2931,6 +2931,7 @@ version = "0.3.0"
 dependencies = [
  "anyhow",
  "bevy",
+ "chrono",
  "cim-contextgraph",
  "cim-domain",
  "criterion",
