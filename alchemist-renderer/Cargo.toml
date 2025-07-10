@@ -1,0 +1,65 @@
+[package]
+name = "alchemist-renderer"
+version = "0.1.0"
+edition = "2021"
+authors = ["The Cowboy AI"]
+description = "Renderer for Alchemist - handles Bevy 3D and Iced 2D windows"
+
+[[bin]]
+name = "alchemist-renderer"
+path = "src/main.rs"
+
+[dependencies]
+# Core
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Bevy for 3D rendering
+bevy = { version = "0.16.1", optional = true, default-features = false, features = [
+    "bevy_asset",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
+    "bevy_winit",
+    "bevy_gizmos",
+    "multi_threaded",
+    "png",
+    "jpeg",
+    "wayland",
+    "x11",
+] }
+
+# Iced for 2D UI
+iced = { version = "0.13", features = ["tokio", "canvas", "image", "svg"] }
+
+# For IPC with main process
+ipc-channel = "0.19"
+
+# Math
+glam = "0.29"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# For graph layouts
+petgraph = "0.6"
+
+# Import shared types from alchemist
+alchemist = { path = ".." }
+
+[features]
+default = ["bevy-renderer"]
+bevy-renderer = ["bevy"]
+
+[lints]
+workspace = true

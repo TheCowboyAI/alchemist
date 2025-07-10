@@ -1,0 +1,89 @@
+[general]
+default_ai_model = "claude-3"
+dialog_history_path = "~/.alchemist/dialogs"
+progress_file_path = "doc/progress/progress.json"
+nats_url = "nats://localhost:4222"
+log_level = "info"
+
+[ai_models.gpt-4]
+provider = "openai"
+endpoint = "https://api.openai.com/v1"
+api_key_env = "OPENAI_API_KEY"
+model_name = "gpt-4-turbo-preview"
+max_tokens = 4096
+temperature = 0.699999988079071
+
+[ai_models.gpt-4.params]
+
+[ai_models.claude-3]
+provider = "anthropic"
+endpoint = "https://api.anthropic.com/v1"
+api_key_env = "ANTHROPIC_API_KEY"
+model_name = "claude-3-opus-20240229"
+max_tokens = 4096
+temperature = 0.699999988079071
+
+[ai_models.claude-3.params]
+
+[ai_models.local-llama]
+provider = "ollama"
+endpoint = "http://localhost:11434"
+model_name = "llama2"
+max_tokens = 2048
+temperature = 0.800000011920929
+
+[ai_models.local-llama.params]
+
+[policy]
+storage_path = "~/.alchemist/policies"
+validation_enabled = true
+evaluation_timeout = 5000
+
+[deployments]
+
+[[domains.available]]
+name = "graph"
+description = "Core graph operations and spatial positioning"
+module_path = "cim-domain-graph"
+enabled = true
+dependencies = []
+
+[[domains.available]]
+name = "workflow"
+description = "Business process execution and state machines"
+module_path = "cim-domain-workflow"
+enabled = true
+dependencies = ["graph"]
+
+[[domains.available]]
+name = "agent"
+description = "AI provider integration and semantic search"
+module_path = "cim-domain-agent"
+enabled = true
+dependencies = ["graph"]
+
+[[domains.available]]
+name = "document"
+description = "Document lifecycle and version control"
+module_path = "cim-domain-document"
+enabled = true
+dependencies = []
+
+[[domains.available]]
+name = "policy"
+description = "Business rule enforcement"
+module_path = "cim-domain-policy"
+enabled = true
+dependencies = []
+
+[[domains.relationships]]
+source = "document"
+target = "workflow"
+relationship_type = "triggers"
+bidirectional = false
+
+[[domains.relationships]]
+source = "agent"
+target = "graph"
+relationship_type = "analyzes"
+bidirectional = false

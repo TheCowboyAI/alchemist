@@ -1,118 +1,173 @@
-//! Information Alchemist - Main Application
+//! Alchemist - CIM Control System
 //!
-//! A graph editor and workflow manager with AI assistance
+//! This application provides:
+//! - CLI shell for CIM control and AI dialog management
+//! - Domain-driven workflow management
+//! - Policy and deployment management
 
-use bevy::prelude::*;
-use ia::{
-    graph::GraphState,
-    plugins::{AgentIntegrationPlugin, AgentUiPlugin, CameraControllerPlugin, GraphEditorPlugin, NatsEventBridgePlugin, EnhancedVisualizationPlugin},
-    simple_agent::SimpleAgentPlugin,
-    workflow::WorkflowState,
-};
+use anyhow::Result;
+use clap::{Parser, Subcommand};
 use tracing::info;
 
-fn main() {
+// Import shell modules
+mod config;
+mod ai;
+mod dialog;
+mod policy;
+mod domain;
+mod deployment;
+mod progress;
+mod shell;
+mod shell_commands;
+mod renderer;
+mod render_commands;
+mod dashboard;
+mod dashboard_events;
+mod rss_feed_manager;
+
+use crate::{
+    shell::AlchemistShell,
+    shell_commands::Commands,
+    progress::ProgressFormat,
+};
+
+
+#[derive(Parser)]
+#[command(name = "alchemist")]
+#[command(about = "Alchemist - The CIM Control System", long_about = None)]
+#[command(version)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+    
+    /// Run in interactive shell mode
+    #[arg(short, long)]
+    interactive: bool,
+    
+    /// Run without dashboard (CLI only)
+    #[arg(long)]
+    no_dashboard: bool,
+    
+    /// Configuration file path
+    #[arg(short, long, value_name = "FILE")]
+    config: Option<String>,
+}
+
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+    
+    // Run in CLI/shell mode
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(run_cli_mode(cli))
+}
+
+async fn run_cli_mode(cli: Cli) -> Result<()> {
     // Initialize tracing
     tracing_subscriber::fmt()
-        .with_env_filter("info,cim_agent_alchemist=debug")
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::from_default_env()
+                .add_directive("alchemist=debug".parse()?)
+        )
         .init();
 
-    App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "Information Alchemist".to_string(),
-                ..default()
-            }),
-            ..default()
-        }))
-        // Add resources
-        .init_resource::<GraphState>()
-        .init_resource::<WorkflowState>()
-        // Add agent plugins
-        .add_plugins(SimpleAgentPlugin)
-        .add_plugins(AgentUiPlugin)
-        .add_plugins(AgentIntegrationPlugin)
-        .add_plugins(NatsEventBridgePlugin)
-        // Add graph editor and camera
-        .add_plugins(GraphEditorPlugin)
-        .add_plugins(CameraControllerPlugin)
-        // Add enhanced visualization
-        .add_plugins(EnhancedVisualizationPlugin)
-        // Add systems
-        .add_systems(Startup, setup)
-        .add_systems(Update, (show_help,))
-        .run();
-}
-
-/// Set up a simple 3D scene with camera and plane
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // Create a plane
-    commands.spawn((
-        Mesh3d(meshes.add(Plane3d::default().mesh().size(10.0, 10.0))),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.3, 0.5, 0.3),
-            ..default()
-        })),
-        Transform::default(),
-    ));
-
-    // Add a light
-    commands.spawn((
-        PointLight {
-            intensity: 1500.0,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform::from_xyz(4.0, 8.0, 4.0),
-    ));
-
-    // Add a camera
-    commands.spawn((
-        Camera3d::default(),
-        Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-        // Add name for debugging
-        Name::new("Main Camera"),
-    ));
-
-    info!("Information Alchemist started");
-    info!("Press F1 to open the AI Assistant");
-    info!("Press H for help");
-}
-
-/// Show help text
-fn show_help(keyboard: Res<ButtonInput<KeyCode>>) {
-    if keyboard.just_pressed(KeyCode::KeyH) {
-        info!("=== Information Alchemist Help ===");
-        info!("== AI Assistant ==");
-        info!("F1 - Open AI Assistant");
-        info!("F2 - Ask about event sourcing");
-        info!("F3 - Ask about domains");
-        info!("F4 - Help with graph editing");
-        info!("");
-        info!("== Graph Editor ==");
-        info!("S - Select mode");
-        info!("N - Create node mode");
-        info!("E - Create edge mode");
-        info!("D - Delete mode");
-        info!("G - Toggle grid snap");
-        info!("Delete - Delete selected");
-        info!("");
-        info!("== Camera Controls ==");
-        info!("Right Mouse - Orbit camera");
-        info!("Middle Mouse - Pan camera");
-        info!("Mouse Wheel - Zoom in/out");
-        info!("");
-        info!("== Enhanced Visualization ==");
-        info!("P - Toggle particles");
-        info!("L - Toggle glow effects");
-        info!("F - Toggle edge flow");
-        info!("");
-        info!("H - Show this help");
-        info!("ESC - Exit");
-        info!("================================");
+    // Load configuration
+    let config_path = cli.config.as_deref().unwrap_or("alchemist.toml");
+    let config = config::load_or_create(config_path).await?;
+    
+    // Create shell
+    let mut shell = AlchemistShell::new(config).await?;
+    
+    // Handle commands
+    match cli.command {
+        Some(command) => {
+            handle_command(&mut shell, command).await?;
+        }
+        None => {
+            if cli.interactive {
+                info!("Starting Alchemist interactive shell...");
+                shell.run_interactive().await?;
+            } else if !cli.no_dashboard {
+                // Launch dashboard by default
+                println!("🚀 Launching Alchemist Dashboard...");
+                println!("Use --no-dashboard to run in CLI mode only");
+                println!("Use --interactive for shell mode\n");
+                
+                // Launch dashboard with event sourcing
+                use crate::dashboard::launch_dashboard_with_events;
+                
+                // Try to connect to NATS for real-time events
+                let nats_client = if let Some(nats_url) = &shell.config.general.nats_url {
+                    match async_nats::connect(nats_url).await {
+                        Ok(client) => {
+                            println!("✅ Connected to NATS at {}", nats_url);
+                            println!("   Dashboard will show real-time domain events");
+                            Some(client)
+                        }
+                        Err(e) => {
+                            println!("⚠️  Could not connect to NATS: {}", e);
+                            println!("   Dashboard will run in demo mode");
+                            None
+                        }
+                    }
+                } else {
+                    println!("ℹ️  No NATS URL configured");
+                    println!("   Dashboard will run in demo mode");
+                    None
+                };
+                
+                let dashboard_id = launch_dashboard_with_events(&shell.renderer_manager, nats_client).await?;
+                println!("Dashboard launched with ID: {}", dashboard_id);
+                
+                // Keep the main process running
+                println!("\nPress Ctrl+C to exit");
+                tokio::signal::ctrl_c().await?;
+                
+                // Clean up
+                shell.renderer_manager.close(&dashboard_id).await?;
+            } else {
+                // Show status/help
+                println!("Alchemist - The CIM Control System");
+                println!("\nUse --help for usage information");
+                println!("Use --interactive or -i to start interactive shell");
+                
+                // Show quick status
+                shell.show_status().await?;
+            }
+        }
     }
+    
+    Ok(())
 }
+
+async fn handle_command(shell: &mut AlchemistShell, command: Commands) -> Result<()> {
+    match command {
+        Commands::Ai { command } => {
+            shell.handle_ai_command(command).await?;
+        }
+        Commands::Dialog { command } => {
+            shell.handle_dialog_command(command).await?;
+        }
+        Commands::Policy { command } => {
+            shell.handle_policy_command(command).await?;
+        }
+        Commands::Domain { command } => {
+            shell.handle_domain_command(command).await?;
+        }
+        Commands::Deploy { command } => {
+            shell.handle_deploy_command(command).await?;
+        }
+        Commands::Progress { file, format } => {
+            shell.show_progress(&file, format).await?;
+        }
+        Commands::Render { command } => {
+            shell.handle_render_command(command).await?;
+        }
+    }
+    
+    Ok(())
+}
+

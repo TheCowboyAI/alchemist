@@ -1,9 +1,9 @@
 [package]
-name = "ia"
+name = "alchemist"
 authors = ["CowboyAI"]
-description = "Information Alchemist - AI-Powered Graph Editor"
-version = "0.4.2"
-edition = "2024"
+description = "Alchemist - CIM Control System"
+version = "0.5.0"
+edition = "2021"
 exclude = ["examples/"]
 
 [lints.clippy]
@@ -15,55 +15,32 @@ all = { level = "warn", priority = -1 }
 all = { level = "warn", priority = -1 }
 
 [workspace]
-exclude = ["examples/", "bevy-patched"]
+exclude = ["examples/", "bevy-patched", "cim-domain-agent", "cim-domain-bevy", "cim-agent-alchemist", "cim-domain-identity", "cim-domain-graph", "cim-domain-organization", "cim-domain-person", "cim-domain-policy", "cim-compose", "cim-domain-git"]
 members = [
-  "cim-compose",
   "cim-component",
   "cim-conceptgraph",
   "cim-contextgraph",
   "cim-domain",
-  "cim-domain-agent",
-  "cim-domain-bevy",
   "cim-domain-conceptualspaces",
   "cim-domain-dialog",
   "cim-domain-document",
-  "cim-domain-git",
-  "cim-domain-graph",
-  "cim-domain-identity",
   "cim-domain-location",
   "cim-domain-nix",
-  "cim-domain-organization",
-  "cim-domain-person",
   "cim-domain-workflow",
   "cim-infrastructure",
   "cim-ipld",
   "cim-ipld-graph",
   "cim-subject",
   "cim-workflow-graph",
-  "cim-domain-policy",
   "cim-keys",
   "cim-security",
-  "cim-bridge",
-  # "cim-agent-alchemist", # Temporarily disabled due to API mismatches
-  "bevy-patched/crates/*",
-  "bevy-patched/errors",
-  "bevy-patched/tools/*",
-  "bevy-patched/tools/compile_fail_utils",
+  "cim-bridge", "alchemist-renderer",
 ]
 resolver = "2"
 
 [features]
 default = []
-dynamic = ["bevy/dynamic_linking"]
-dev = ["bevy/asset_processor", "bevy/file_watcher", "bevy/default", "dynamic"]
 integration-tests = []
-# Feature for testing without problematic Bevy features
-test-minimal = [
-  "bevy/bevy_ui",
-  "bevy/bevy_winit",
-  "bevy/default_font",
-  "bevy/bevy_text",
-]
 
 [dependencies]
 # Core dependencies
@@ -74,45 +51,18 @@ serde_json = "1.0"
 serde-xml-rs = "0.6"
 serde_yaml = "0.9"
 
-# Monitoring dependencies
-prometheus = "0.13"
-warp = "0.3"
-
-# Bevy - use default features for dev, minimal for production
-bevy = { path = "bevy-patched", default-features = false, features = [
-  "animation",
-  "bevy_asset",
-  "bevy_audio",
-  "bevy_gilrs",
-  "bevy_scene",
-  "bevy_winit",
-  "bevy_core_pipeline",
-  "bevy_pbr",
-  "bevy_gltf",
-  "bevy_render",
-  "bevy_sprite",
-  "bevy_text",
-  "bevy_ui",
-  "multi_threaded",
-  "png",
-  "hdr",
-  "vorbis",
-  "x11",
-  "bevy_gizmos",
-  "tonemapping_luts",
-  "default_font",
-  "webgl2",
-  "sysinfo_plugin",
-] }
-
-# Bevy plugins
-# Using git dependency to compile against our patched Bevy
-bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", branch = "main" }
-
-# Graph library
-# cim-compose = { path = "cim-compose" }  # Commented out as it's a workspace member
-petgraph = { version = "0.8.1", features = ["serde-1"] }
-daggy = { version = "0.9.0", features = ["serde-1"] }
+# Shell dependencies
+config = "0.14"
+toml = "0.8"
+clap = { version = "4.5", features = ["derive", "cargo"] }
+dialoguer = "0.11"
+console = "0.15"
+indicatif = "0.17"
+directories = "5.0"
+notify = "7.0"
+walkdir = "2.5"
+dashmap = "6.1"
+shellexpand = "3.1"
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
@@ -140,23 +90,15 @@ cim-contextgraph = { path = "cim-contextgraph" }
 cim-workflow-graph = { path = "cim-workflow-graph" }
 cim-ipld-graph = { path = "cim-ipld-graph" }
 cim-domain = { path = "cim-domain" }
-cim-domain-graph = { path = "cim-domain-graph" }
 cim-domain-workflow = { path = "cim-domain-workflow" }
-cim-domain-git = { path = "cim-domain-git" }
 cim-domain-location = { path = "cim-domain-location" }
 cim-domain-document = { path = "cim-domain-document" }
-cim-domain-policy = { path = "cim-domain-policy" }
-cim-domain-agent = { path = "cim-domain-agent" }
-cim-domain-organization = { path = "cim-domain-organization" }
-cim-domain-person = { path = "cim-domain-person" }
 cim-domain-conceptualspaces = { path = "cim-domain-conceptualspaces" }
-cim-domain-bevy = { path = "cim-domain-bevy" }
 cim-subject = { path = "cim-subject" }
 cim-domain-nix = { path = "cim-domain-nix" }
 cim-domain-dialog = { path = "cim-domain-dialog" }
 cim-keys = { path = "cim-keys" }
 cim-bridge = { path = "cim-bridge" }
-# cim-agent-alchemist = { path = "cim-agent-alchemist", features = ["bevy"] } # Temporarily disabled
 cid = { version = "0.11", features = ["serde"] }
 multihash = { version = "0.19", features = ["std"] }
 blake3 = "1.5"
@@ -181,6 +123,9 @@ bytes = "1.5"
 nom = "7.1"
 pulldown-cmark = "0.13"
 
+# For temporary files
+tempfile = "3.8"
+
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
 rand = "0.8"
@@ -190,6 +135,7 @@ colored = "2.1"
 async-nats = { version = "0.41", features = ["service"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
+mockito = "1.6"
 
 [profile.dev]
 opt-level = 3
@@ -208,102 +154,14 @@ lto = "fat"
 strip = true
 
 [lib]
-name = "ia"
+name = "alchemist"
 path = "src/lib.rs"
 
 [[bin]]
 name = "ia"
 path = "src/main.rs"
 
-# Demos - Only keeping the essential ones
-
-# [[example]]
-# name = "benchmark_contextgraph"
-# path = "examples/benchmark_contextgraph.rs"
-
-# [[example]]
-# name = "simple_benchmark"
-# path = "examples/simple_benchmark.rs"
-
-# [[example]]
-# name = "markdown_import_demo"
-# path = "examples/markdown_import_demo.rs"
-
-# [[example]]
-# name = "import_graph"
-# path = "examples/import_graph.rs"
-
-# [[example]]
-# name = "rule_context_demo"
-# path = "examples/rule_context_demo.rs"
-
-# [[example]]
-# name = "markdown_import_simple"
-# path = "examples/markdown_import_simple.rs"
-
-# [[example]]
-# name = "markdown_import_nats_demo"
-# path = "examples/markdown_import_nats_demo.rs"
-
-# [[example]]
-# name = "markdown_import_demo_simple"
-# path = "examples/markdown_import_demo_simple.rs"
-
-# [[example]]
-# name = "test_subgraph_basic"
-# path = "examples/test_subgraph_basic.rs"
-
-# [[example]]
-# name = "subgraph_demo"
-# path = "examples/subgraph_demo.rs"
-
-# [[example]]
-# name = "test_subgraph_operations"
-# path = "examples/test_subgraph_operations.rs"
-
-# [[example]]
-# name = "document_context_demo"
-# path = "examples/document_context_demo.rs"
-
-# [[example]]
-# name = "document_context_export"
-# path = "examples/document_context_export.rs"
-
-# [[example]]
-# name = "event_replay_demo"
-# path = "examples/event_replay_demo.rs"
-
-# [[example]]
-# name = "json_import_demo"
-# path = "examples/json_import_demo.rs"
-
-# [[example]]
-# name = "approval_workflow"
-# path = "examples/approval_workflow.rs"
-
-# [[example]]
-# name = "git_graph_visualization_demo"
-# path = "examples/git_graph_visualization_demo.rs"
-
-# [[example]]
-# name = "progress_demo"
-# path = "examples/progress_demo.rs"
-
-# [[example]]
-# name = "bridge_architecture_demo"
-# path = "examples/bridge_architecture_demo.rs"
-# required-features = ["dev"]
-
-# [[example]]
-# name = "bridge_cli_demo"
-# path = "examples/bridge_cli_demo.rs"
-# required-features = []
-
-[[example]]
-name = "test_ui_simple"
-path = "examples/test_ui_simple.rs"
-required-features = ["dev"]
-
+# Shell/CLI demos only
 [[example]]
 name = "show_event_flow"
 path = "examples/show_event_flow.rs"
@@ -312,11 +170,6 @@ required-features = []
 [[example]]
 name = "show_jetstream_events"
 path = "examples/show_jetstream_events.rs"
-required-features = []
-
-[[example]]
-name = "test_ui_nats_events"
-path = "examples/test_ui_nats_events.rs"
 required-features = []
 
 [[example]]
@@ -330,63 +183,14 @@ path = "examples/ai_agent_dialog_memory.rs"
 required-features = []
 
 [[example]]
-name = "cross_domain_demo"
-path = "examples/cross_domain_demo.rs"
-required-features = []
-
-[[example]]
-name = "cross_domain_nats_demo"
-path = "examples/cross_domain_nats_demo.rs"
-
-[[example]]
 name = "conceptual_reasoning_demo"
 path = "examples/conceptual_reasoning_demo.rs"
 required-features = []
 
-# [[example]]
-# name = "keco_loan_process_demo"
-# path = "examples/keco_loan_process_demo.rs"
-# required-features = ["dev"]
-
 [[example]]
-name = "enhanced_visualization_demo"
-path = "examples/enhanced_visualization_demo.rs"
-
-[[example]]
-name = "semantic_search_demo"
-path = "examples/semantic_search_demo.rs"
-
-[[example]]
-name = "identity_management_demo"
-path = "examples/identity_management_demo.rs"
-
-[[example]]
-name = "person_network_analysis_demo"
-path = "examples/person_network_analysis_demo.rs"
-
-# Disable the problematic experimental features
-[package.metadata.bevy]
-experimental_fixed_timestep = false
-
-# Patch bevy_egui's dependencies to use our patched Bevy
-[patch.crates-io]
-bevy = { path = "bevy-patched" }
-bevy_app = { path = "bevy-patched/crates/bevy_app" }
-bevy_asset = { path = "bevy-patched/crates/bevy_asset" }
-bevy_core_pipeline = { path = "bevy-patched/crates/bevy_core_pipeline" }
-bevy_derive = { path = "bevy-patched/crates/bevy_derive" }
-bevy_ecs = { path = "bevy-patched/crates/bevy_ecs" }
-bevy_image = { path = "bevy-patched/crates/bevy_image" }
-bevy_input = { path = "bevy-patched/crates/bevy_input" }
-bevy_log = { path = "bevy-patched/crates/bevy_log" }
-bevy_math = { path = "bevy-patched/crates/bevy_math" }
-bevy_picking = { path = "bevy-patched/crates/bevy_picking" }
-bevy_platform = { path = "bevy-patched/crates/bevy_platform" }
-bevy_reflect = { path = "bevy-patched/crates/bevy_reflect" }
-bevy_render = { path = "bevy-patched/crates/bevy_render" }
-bevy_time = { path = "bevy-patched/crates/bevy_time" }
-bevy_window = { path = "bevy-patched/crates/bevy_window" }
-bevy_winit = { path = "bevy-patched/crates/bevy_winit" }
+name = "rss_feed_processor"
+path = "examples/rss_feed_processor.rs"
+required-features = []
 
 [[test]]
 name = "integration"

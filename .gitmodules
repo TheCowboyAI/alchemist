@@ -2,10 +2,6 @@
 	path = cim-ipld
 	url = git@github.com:TheCowboyAI/cim-ipld.git
 
-[submodule "bevy-patched"]
-	path = bevy-patched
-	url = git@github.com:TheCowboyAI/bevy.git
-	branch = main
 [submodule "cim-contextgraph"]
 	path = cim-contextgraph
 	url = git@github.com:TheCowboyAI/cim-contextgraph.git
