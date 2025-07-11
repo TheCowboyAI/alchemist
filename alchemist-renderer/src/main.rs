@@ -7,6 +7,9 @@ use std::path::PathBuf;
 #[cfg(feature = "bevy-renderer")]
 mod bevy_renderer;
 mod iced_simple;
+mod iced_minimal;
+mod markdown_view;
+mod chart_view;
 
 #[derive(Parser)]
 #[command(name = "alchemist-renderer")]
@@ -35,6 +38,12 @@ fn main() -> Result<()> {
     
     let cli = Cli::parse();
     
+    // If running with --test-minimal, run the minimal window
+    if cli.renderer == "test-minimal" {
+        tracing::info!("Running minimal test window...");
+        return iced_minimal::run_minimal();
+    }
+    
     // Load render request from file
     let request_json = std::fs::read_to_string(&cli.data_file)?;
     let request: alchemist::renderer::RenderRequest = serde_json::from_str(&request_json)?;
@@ -55,7 +64,18 @@ fn main() -> Result<()> {
             }
         }
         "iced" => {
-            iced_simple::run(request)?;
+            // Check the specific render data type
+            match request.data {
+                alchemist::renderer::RenderData::Markdown { content, theme } => {
+                    markdown_view::run_markdown_viewer(request.title, content, theme)?;
+                }
+                alchemist::renderer::RenderData::Chart { data, chart_type, .. } => {
+                    chart_view::run_chart_viewer(request.title, data, chart_type)?;
+                }
+                _ => {
+                    iced_simple::run(request)?;
+                }
+            }
         }
         _ => {
             anyhow::bail!("Unknown renderer type: {}", cli.renderer);

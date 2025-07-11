@@ -23,12 +23,27 @@ mod renderer;
 mod render_commands;
 mod dashboard;
 mod dashboard_events;
+mod dashboard_realtime;
+mod dashboard_nats_stream;
 mod rss_feed_manager;
+mod renderer_api;
+mod renderer_events;
+mod renderer_comm;
+mod nix_deployment;
+mod nats_client;
+mod policy_engine;
+mod workflow;
+mod event_monitor;
+mod shell_enhanced;
+mod error;
+mod dashboard_window;
+mod dialog_window;
+mod dialog_handler;
+mod system_monitor;
 
 use crate::{
     shell::AlchemistShell,
     shell_commands::Commands,
-    progress::ProgressFormat,
 };
 
 
@@ -165,6 +180,99 @@ async fn handle_command(shell: &mut AlchemistShell, command: Commands) -> Result
         }
         Commands::Render { command } => {
             shell.handle_render_command(command).await?;
+        }
+        Commands::Dashboard => {
+            // Launch real-time dashboard
+            if let Some(nats_client) = &shell.nats_client {
+                let realtime_manager = std::sync::Arc::new(
+                    crate::dashboard_realtime::DashboardRealtimeManager::new(
+                        nats_client.clone(),
+                        std::sync::Arc::new(crate::renderer_api::RendererApi::new()),
+                    )
+                );
+                
+                realtime_manager.clone().start().await?;
+                
+                let id = crate::dashboard_realtime::launch_realtime_dashboard(
+                    &shell.renderer_manager,
+                    nats_client.clone(),
+                    realtime_manager,
+                ).await?;
+                
+                println!("Real-time dashboard launched with ID: {}", id);
+            } else {
+                let id = crate::dashboard::launch_dashboard(&shell.renderer_manager).await?;
+                println!("Dashboard launched with ID: {} (no real-time updates)", id);
+            }
+        }
+        Commands::DashboardLocal => {
+            // Launch in-process dashboard window
+            println!("Launching dashboard window (in-process)...");
+            
+            let (tx, rx) = tokio::sync::mpsc::channel(100);
+            
+            // Create initial data with actual system info
+            let mut initial_data = crate::dashboard::DashboardData::example();
+            initial_data.system_status.nats_connected = shell.nats_client.is_some();
+            initial_data.system_status.memory_usage_mb = crate::system_monitor::get_memory_usage_mb();
+            
+            // Create uptime tracker
+            let uptime_tracker = std::sync::Arc::new(crate::system_monitor::UptimeTracker::new());
+            
+            // If NATS is connected, use real event streaming
+            if let Some(ref nats_client) = shell.nats_client {
+                println!("✅ Connecting dashboard to live NATS events...");
+                let (event_rx, _stream_handle) = crate::dashboard_nats_stream::create_dashboard_stream(
+                    nats_client.clone(),
+                    initial_data.clone(),
+                ).await;
+                
+                // Forward NATS events to dashboard
+                let tx_clone = tx.clone();
+                tokio::spawn(async move {
+                    let mut event_rx = event_rx;
+                    while let Some(data) = event_rx.recv().await {
+                        if tx_clone.send(data).await.is_err() {
+                            break;
+                        }
+                    }
+                });
+            } else {
+                // Demo mode - send periodic updates
+                let tx_clone = tx.clone();
+                let nats_connected = shell.nats_client.is_some();
+                let uptime_clone = uptime_tracker.clone();
+                
+                tokio::spawn(async move {
+                    let mut event_counter = 0u64;
+                    loop {
+                        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                        
+                        let mut data = crate::dashboard::DashboardData::example();
+                        data.system_status.nats_connected = nats_connected;
+                        data.system_status.memory_usage_mb = crate::system_monitor::get_memory_usage_mb();
+                        data.system_status.uptime_seconds = uptime_clone.get_uptime_seconds();
+                        data.system_status.total_events += event_counter;
+                        event_counter += 1;
+                        
+                        if tx_clone.send(data).await.is_err() {
+                            break;
+                        }
+                    }
+                });
+            }
+            
+            // Run the window (this blocks until window closes)
+            crate::dashboard::launch_dashboard_inprocess(initial_data, rx).await?;
+        }
+        Commands::Workflow { command } => {
+            shell.handle_workflow_command(command).await?;
+        }
+        Commands::Event { command } => {
+            shell.handle_event_command(command).await?;
+        }
+        Commands::Graph { command } => {
+            shell.handle_graph_command(command).await?;
         }
     }
     

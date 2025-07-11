@@ -15,7 +15,7 @@ all = { level = "warn", priority = -1 }
 all = { level = "warn", priority = -1 }
 
 [workspace]
-exclude = ["examples/", "bevy-patched", "cim-domain-agent", "cim-domain-bevy", "cim-agent-alchemist", "cim-domain-identity", "cim-domain-graph", "cim-domain-organization", "cim-domain-person", "cim-domain-policy", "cim-compose", "cim-domain-git"]
+exclude = ["examples/", "cim-domain-agent", "cim-domain-bevy", "cim-agent-alchemist", "cim-domain-graph", "cim-domain-organization", "cim-domain-person", "cim-domain-policy", "cim-compose", "cim-domain-git"]
 members = [
   "cim-component",
   "cim-conceptgraph",
@@ -24,6 +24,7 @@ members = [
   "cim-domain-conceptualspaces",
   "cim-domain-dialog",
   "cim-domain-document",
+  "cim-domain-identity",
   "cim-domain-location",
   "cim-domain-nix",
   "cim-domain-workflow",
@@ -41,6 +42,7 @@ resolver = "2"
 [features]
 default = []
 integration-tests = []
+bevy = ["dep:bevy"]
 
 [dependencies]
 # Core dependencies
@@ -59,6 +61,7 @@ dialoguer = "0.11"
 console = "0.15"
 indicatif = "0.17"
 directories = "5.0"
+dirs = "5.0"
 notify = "7.0"
 walkdir = "2.5"
 dashmap = "6.1"
@@ -83,6 +86,12 @@ chrono = { version = "0.4", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+regex = "1.11"
+csv = "1.3"
+sysinfo = "0.29"
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "sqlite"] }
 
 # Content addressing
 cim-ipld = { path = "cim-ipld" }
@@ -122,9 +131,17 @@ bytes = "1.5"
 # Parsing
 nom = "7.1"
 pulldown-cmark = "0.13"
+rss = "2.0"
 
 # For temporary files
 tempfile = "3.8"
+
+# Optional dependencies
+bevy = { version = "0.16.1", optional = true }
+
+# UI dependencies
+iced = { version = "0.13", features = ["tokio", "canvas", "debug"] }
+iced_aw = { version = "0.12", features = ["tab_bar", "date_picker", "card"] }
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
@@ -136,6 +153,8 @@ async-nats = { version = "0.41", features = ["service"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 mockito = "1.6"
+dotenv = "0.15"
+mockall = "0.12"
 
 [profile.dev]
 opt-level = 3
@@ -160,6 +179,14 @@ path = "src/lib.rs"
 [[bin]]
 name = "ia"
 path = "src/main.rs"
+
+[[bin]]
+name = "alchemist-minimal"
+path = "src/main_minimal.rs"
+
+[[bin]]
+name = "rss-processor"
+path = "src/bin/rss_processor_service.rs"
 
 # Shell/CLI demos only
 [[example]]
@@ -192,7 +219,22 @@ name = "rss_feed_processor"
 path = "examples/rss_feed_processor.rs"
 required-features = []
 
+[[example]]
+name = "markdown_viewer_demo"
+path = "examples/markdown_viewer_demo.rs"
+required-features = []
+
+[[example]]
+name = "chart_viewer_demo"
+path = "examples/chart_viewer_demo.rs"
+required-features = []
+
 [[test]]
 name = "integration"
 path = "tests/lib.rs"
 required-features = ["integration-tests"]
+
+[[bench]]
+name = "alchemist_benchmarks"
+harness = false
+

@@ -1,0 +1,43 @@
+{
+  "data": [
+    {
+      "name": "Q1",
+      "data": [
+        {"x": 0, "y": 45, "label": "Product A"},
+        {"x": 1, "y": 38, "label": "Product B"},
+        {"x": 2, "y": 52, "label": "Product C"},
+        {"x": 3, "y": 41, "label": "Product D"}
+      ],
+      "color": [0.17, 0.63, 0.17, 1.0]
+    },
+    {
+      "name": "Q2",
+      "data": [
+        {"x": 0, "y": 50, "label": "Product A"},
+        {"x": 1, "y": 42, "label": "Product B"},
+        {"x": 2, "y": 55, "label": "Product C"},
+        {"x": 3, "y": 48, "label": "Product D"}
+      ],
+      "color": [0.84, 0.15, 0.16, 1.0]
+    },
+    {
+      "name": "Q3",
+      "data": [
+        {"x": 0, "y": 48, "label": "Product A"},
+        {"x": 1, "y": 45, "label": "Product B"},
+        {"x": 2, "y": 58, "label": "Product C"},
+        {"x": 3, "y": 52, "label": "Product D"}
+      ],
+      "color": [0.58, 0.4, 0.74, 1.0]
+    }
+  ],
+  "chart_type": "bar",
+  "options": {
+    "title": "Quarterly Product Sales",
+    "x_label": "Products",
+    "y_label": "Units Sold",
+    "show_grid": true,
+    "show_legend": true,
+    "interactive": true
+  }
+}

@@ -1,0 +1,70 @@
+# Multi-stage production build for Alchemist
+# Optimized for size, security, and performance
+
+# Build stage with caching optimizations
+FROM rust:1.75-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN useradd -m -u 1001 -U alchemist
+
+# Set up workspace
+WORKDIR /build
+
+# Cache dependencies by copying Cargo files first
+COPY Cargo.toml Cargo.lock ./
+COPY rust-toolchain.toml ./
+
+# Copy workspace members manifests for dependency resolution
+COPY cim-*/Cargo.toml ./cim-*/
+COPY alchemist-renderer/Cargo.toml ./alchemist-renderer/
+COPY test-agent/Cargo.toml ./test-agent/
+
+# Build dependencies (this layer will be cached if dependencies don't change)
+RUN mkdir -p cim-agent-alchemist/src && \
+    echo "fn main() {}" > cim-agent-alchemist/src/main.rs && \
+    cargo build --release --package cim-agent-alchemist && \
+    rm -rf cim-agent-alchemist/src
+
+# Copy actual source code
+COPY . .
+
+# Build the application with optimizations
+RUN cargo build --release --package cim-agent-alchemist && \
+    strip target/release/alchemist && \
+    cp target/release/alchemist /usr/local/bin/
+
+# Runtime stage - minimal distroless image
+FROM gcr.io/distroless/cc-debian12:nonroot
+
+# Copy the binary
+COPY --from=builder --chown=nonroot:nonroot /usr/local/bin/alchemist /app/alchemist
+
+# Copy CA certificates
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Create necessary directories
+USER nonroot
+WORKDIR /app
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD ["/app/alchemist", "health"]
+
+# Expose ports
+EXPOSE 8080 8081 9090
+
+# Set runtime environment
+ENV RUST_LOG=warn \
+    RUST_BACKTRACE=1 \
+    ALCHEMIST_CONFIG=/config/config.yaml
+
+# Run the application
+ENTRYPOINT ["/app/alchemist"]
+CMD ["--config", "/config/config.yaml"]

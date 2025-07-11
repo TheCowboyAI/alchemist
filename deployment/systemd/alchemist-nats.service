@@ -1,0 +1,62 @@
+[Unit]
+Description=NATS Server for Alchemist
+Documentation=https://nats.io/documentation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nats
+Group=nats
+WorkingDirectory=/var/lib/nats
+
+# NATS Server configuration
+ExecStart=/usr/local/bin/nats-server \
+    --jetstream \
+    --store_dir /var/lib/nats/jetstream \
+    --max_payload 8MB \
+    --max_connections 10000 \
+    --port 4222 \
+    --http_port 8222 \
+    --tls \
+    --tlscert /etc/nats/certs/server-cert.pem \
+    --tlskey /etc/nats/certs/server-key.pem \
+    --tlsverify \
+    --tlscacert /etc/nats/certs/ca.pem \
+    --log /var/log/nats/nats.log \
+    --pid /var/run/nats/nats.pid
+
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+
+# Process management
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/nats /var/log/nats /var/run/nats
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=4G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nats
+
+[Install]
+WantedBy=multi-user.target

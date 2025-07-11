@@ -1,0 +1,60 @@
+{
+  "nodes": [
+    {
+      "id": "node1",
+      "label": "Test Node 1",
+      "position": [0.0, 0.0, 0.0],
+      "color": [1.0, 0.0, 0.0, 1.0],
+      "size": 1.5,
+      "metadata": {
+        "type": "test",
+        "created": "2025-07-11"
+      }
+    },
+    {
+      "id": "node2",
+      "label": "Test Node 2",
+      "position": [5.0, 0.0, 0.0],
+      "color": [0.0, 1.0, 0.0, 1.0],
+      "size": 1.5,
+      "metadata": {
+        "type": "test",
+        "created": "2025-07-11"
+      }
+    },
+    {
+      "id": "node3",
+      "label": "Test Node 3",
+      "position": [2.5, 5.0, 0.0],
+      "color": [0.0, 0.0, 1.0, 1.0],
+      "size": 1.5,
+      "metadata": {
+        "type": "test",
+        "created": "2025-07-11"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge1",
+      "source": "node1",
+      "target": "node2",
+      "label": "connects to",
+      "weight": 1.0
+    },
+    {
+      "id": "edge2",
+      "source": "node2",
+      "target": "node3",
+      "label": "links with",
+      "weight": 0.5
+    },
+    {
+      "id": "edge3",
+      "source": "node3",
+      "target": "node1",
+      "label": "returns to",
+      "weight": 0.8
+    }
+  ]
+}

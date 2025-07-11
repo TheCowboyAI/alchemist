@@ -1,0 +1,165 @@
+{
+  "title": "System Metrics Dashboard",
+  "charts": [
+    {
+      "id": "cpu-usage",
+      "type": "line",
+      "title": "CPU Usage Over Time",
+      "data": [
+        {
+          "name": "CPU Core 1",
+          "color": [0.12, 0.47, 0.71, 1.0],
+          "data": [
+            {"x": 0, "y": 45.2, "label": "00:00"},
+            {"x": 1, "y": 48.5, "label": "01:00"},
+            {"x": 2, "y": 52.1, "label": "02:00"},
+            {"x": 3, "y": 49.8, "label": "03:00"},
+            {"x": 4, "y": 47.3, "label": "04:00"},
+            {"x": 5, "y": 51.6, "label": "05:00"},
+            {"x": 6, "y": 55.2, "label": "06:00"},
+            {"x": 7, "y": 58.9, "label": "07:00"},
+            {"x": 8, "y": 62.4, "label": "08:00"},
+            {"x": 9, "y": 65.1, "label": "09:00"},
+            {"x": 10, "y": 68.7, "label": "10:00"},
+            {"x": 11, "y": 71.3, "label": "11:00"}
+          ]
+        },
+        {
+          "name": "CPU Core 2",
+          "color": [1.0, 0.5, 0.05, 1.0],
+          "data": [
+            {"x": 0, "y": 42.1},
+            {"x": 1, "y": 44.3},
+            {"x": 2, "y": 46.8},
+            {"x": 3, "y": 45.2},
+            {"x": 4, "y": 43.7},
+            {"x": 5, "y": 47.9},
+            {"x": 6, "y": 51.4},
+            {"x": 7, "y": 54.6},
+            {"x": 8, "y": 57.8},
+            {"x": 9, "y": 60.2},
+            {"x": 10, "y": 63.5},
+            {"x": 11, "y": 66.9}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Time (hours)",
+        "y_label": "CPU Usage (%)",
+        "show_grid": true,
+        "show_legend": true
+      }
+    },
+    {
+      "id": "memory-usage",
+      "type": "area",
+      "title": "Memory Usage",
+      "data": [
+        {
+          "name": "Used Memory",
+          "color": [0.17, 0.63, 0.17, 0.8],
+          "data": [
+            {"x": 0, "y": 4.2},
+            {"x": 1, "y": 4.5},
+            {"x": 2, "y": 4.8},
+            {"x": 3, "y": 5.1},
+            {"x": 4, "y": 5.3},
+            {"x": 5, "y": 5.6},
+            {"x": 6, "y": 5.9},
+            {"x": 7, "y": 6.2},
+            {"x": 8, "y": 6.5},
+            {"x": 9, "y": 6.8},
+            {"x": 10, "y": 7.1},
+            {"x": 11, "y": 7.4}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Time (hours)",
+        "y_label": "Memory (GB)",
+        "show_grid": true,
+        "show_legend": false
+      }
+    },
+    {
+      "id": "request-distribution",
+      "type": "bar",
+      "title": "API Request Distribution",
+      "data": [
+        {
+          "name": "GET Requests",
+          "color": [0.12, 0.47, 0.71, 1.0],
+          "data": [
+            {"x": 0, "y": 1250, "label": "workflows"},
+            {"x": 1, "y": 890, "label": "agents"},
+            {"x": 2, "y": 650, "label": "status"},
+            {"x": 3, "y": 420, "label": "metrics"},
+            {"x": 4, "y": 380, "label": "logs"}
+          ]
+        },
+        {
+          "name": "POST Requests",
+          "color": [0.17, 0.63, 0.17, 1.0],
+          "data": [
+            {"x": 0, "y": 450},
+            {"x": 1, "y": 320},
+            {"x": 2, "y": 180},
+            {"x": 3, "y": 90},
+            {"x": 4, "y": 60}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Endpoint",
+        "y_label": "Request Count",
+        "show_grid": true,
+        "show_legend": true
+      }
+    },
+    {
+      "id": "error-rate",
+      "type": "scatter",
+      "title": "Error Rate Distribution",
+      "data": [
+        {
+          "name": "Timeout Errors",
+          "color": [0.84, 0.15, 0.16, 1.0],
+          "data": [
+            {"x": 0.5, "y": 2.3},
+            {"x": 1.2, "y": 1.8},
+            {"x": 2.1, "y": 3.1},
+            {"x": 3.4, "y": 2.5},
+            {"x": 4.2, "y": 1.9},
+            {"x": 5.5, "y": 2.7},
+            {"x": 6.3, "y": 3.2},
+            {"x": 7.1, "y": 2.1},
+            {"x": 8.4, "y": 1.6},
+            {"x": 9.2, "y": 2.4}
+          ]
+        },
+        {
+          "name": "Connection Errors",
+          "color": [0.58, 0.4, 0.74, 1.0],
+          "data": [
+            {"x": 0.8, "y": 1.2},
+            {"x": 1.5, "y": 0.9},
+            {"x": 2.3, "y": 1.5},
+            {"x": 3.7, "y": 1.1},
+            {"x": 4.5, "y": 0.8},
+            {"x": 5.8, "y": 1.3},
+            {"x": 6.6, "y": 1.6},
+            {"x": 7.4, "y": 1.0},
+            {"x": 8.7, "y": 0.7},
+            {"x": 9.5, "y": 1.2}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Time (hours)",
+        "y_label": "Error Rate (%)",
+        "show_grid": true,
+        "show_legend": true
+      }
+    }
+  ]
+}

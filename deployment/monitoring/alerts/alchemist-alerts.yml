@@ -1,0 +1,158 @@
+groups:
+  - name: alchemist_alerts
+    interval: 30s
+    rules:
+      # Service availability
+      - alert: AlchemistServiceDown
+        expr: up{job="alchemist"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: alchemist
+        annotations:
+          summary: "Alchemist service is down"
+          description: "Alchemist service instance {{ $labels.instance }} has been down for more than 5 minutes."
+
+      # High error rate
+      - alert: AlchemistHighErrorRate
+        expr: |
+          rate(alchemist_http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for the last 5 minutes. Current rate: {{ $value | humanize }}%"
+
+      # Response time
+      - alert: AlchemistSlowResponseTime
+        expr: |
+          histogram_quantile(0.95, rate(alchemist_http_request_duration_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "Slow response times detected"
+          description: "95th percentile response time is above 2 seconds. Current: {{ $value | humanize }}s"
+
+      # Memory usage
+      - alert: AlchemistHighMemoryUsage
+        expr: |
+          (process_resident_memory_bytes{job="alchemist"} / 1024 / 1024 / 1024) > 3.5
+        for: 10m
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "High memory usage"
+          description: "Alchemist is using more than 3.5GB of memory. Current: {{ $value | humanize }}GB"
+
+      # CPU usage
+      - alert: AlchemistHighCPUUsage
+        expr: |
+          rate(process_cpu_seconds_total{job="alchemist"}[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "High CPU usage"
+          description: "Alchemist CPU usage is above 80%. Current: {{ $value | humanize }}%"
+
+      # AI provider failures
+      - alert: AIProviderFailures
+        expr: |
+          rate(alchemist_ai_provider_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: alchemist
+        annotations:
+          summary: "AI provider experiencing failures"
+          description: "AI provider {{ $labels.provider }} is failing. Error rate: {{ $value | humanize }} per second"
+
+      # NATS connection issues
+      - alert: NATSConnectionDown
+        expr: |
+          alchemist_nats_connected == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: alchemist
+        annotations:
+          summary: "NATS connection lost"
+          description: "Alchemist has lost connection to NATS for more than 2 minutes"
+
+      # Database connection pool
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          alchemist_db_connections_active / alchemist_db_connections_max > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Database connection pool is at {{ $value | humanizePercentage }} capacity"
+
+      # Redis connection issues
+      - alert: RedisConnectionDown
+        expr: |
+          alchemist_redis_connected == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: alchemist
+        annotations:
+          summary: "Redis connection lost"
+          description: "Alchemist has lost connection to Redis for more than 2 minutes"
+
+      # Disk space
+      - alert: LowDiskSpace
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Low disk space"
+          description: "Less than 10% disk space remaining on {{ $labels.instance }}"
+
+      # JetStream lag
+      - alert: JetStreamConsumerLag
+        expr: |
+          alchemist_jetstream_consumer_lag > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "JetStream consumer lag detected"
+          description: "Consumer {{ $labels.consumer }} has a lag of {{ $value }} messages"
+
+      # Workflow execution failures
+      - alert: WorkflowExecutionFailures
+        expr: |
+          rate(alchemist_workflow_failures_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "High workflow failure rate"
+          description: "Workflow failure rate is {{ $value | humanize }} per second"
+
+      # Certificate expiration
+      - alert: CertificateExpiringSoon
+        expr: |
+          alchemist_tls_cert_expiry_timestamp_seconds - time() < 7 * 24 * 60 * 60
+        for: 1h
+        labels:
+          severity: warning
+          service: alchemist
+        annotations:
+          summary: "TLS certificate expiring soon"
+          description: "TLS certificate will expire in {{ $value | humanizeDuration }}"

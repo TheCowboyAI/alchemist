@@ -1,0 +1,323 @@
+# Production YAML Configuration for Alchemist Agent
+# This configuration is optimized for production deployments
+
+agent:
+  id: "${AGENT_ID:-alchemist-prod-001}"
+  name: "CIM Alchemist Production"
+  description: "Production AI agent for CIM architecture"
+  cluster_mode: true
+  instance_id: "${HOSTNAME:-instance-001}"
+
+model_provider:
+  type: "${AI_PROVIDER:-anthropic}"
+  
+  # Anthropic Configuration (Primary)
+  anthropic:
+    base_url: "https://api.anthropic.com/v1"
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "claude-3-opus-20240229"
+    options:
+      temperature: 0.5
+      max_tokens: 8192
+      top_p: 0.9
+    retry:
+      max_attempts: 3
+      initial_interval: 1000
+      max_interval: 10000
+      multiplier: 2
+  
+  # OpenAI Configuration (Fallback)
+  openai:
+    base_url: "https://api.openai.com/v1"
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4-turbo"
+    options:
+      temperature: 0.5
+      max_tokens: 8192
+      top_p: 0.9
+    retry:
+      max_attempts: 3
+      initial_interval: 1000
+      max_interval: 10000
+      multiplier: 2
+  
+  # Ollama Configuration (On-premise)
+  ollama:
+    base_url: "http://ollama:11434"
+    model: "llama3:70b"
+    options:
+      temperature: 0.6
+      num_predict: 4096
+      num_ctx: 8192
+      num_gpu: -1
+    health_check:
+      enabled: true
+      interval: 30
+      timeout: 10
+
+nats:
+  url: "${NATS_URL:-nats://nats:4222}"
+  credentials_file: "/etc/alchemist/nats/credentials"
+  tls:
+    enabled: true
+    cert_file: "/etc/alchemist/certs/client-cert.pem"
+    key_file: "/etc/alchemist/certs/client-key.pem"
+    ca_file: "/etc/alchemist/certs/ca.pem"
+  jetstream:
+    enabled: true
+    store_dir: "/var/lib/alchemist/jetstream"
+    max_memory_store: 4GB
+    max_file_store: 100GB
+  subjects:
+    commands: "cim.agent.alchemist.commands"
+    queries: "cim.agent.alchemist.queries"
+    events: "cim.agent.alchemist.events"
+    dialogs: "cim.dialog.alchemist"
+    health: "cim.agent.alchemist.health"
+    metrics: "cim.agent.alchemist.metrics"
+  connection:
+    reconnect_delay: 5s
+    max_reconnects: -1
+    ping_interval: 120s
+    flush_timeout: 10s
+
+service:
+  port: 8080
+  health_check_port: 8081
+  metrics_port: 9090
+  health_check_interval: 30
+  max_concurrent_requests: 100
+  request_timeout: 300
+  shutdown_timeout: 30
+  graceful_shutdown: true
+  
+  # TLS Configuration
+  tls:
+    enabled: true
+    cert_file: "/etc/alchemist/certs/server-cert.pem"
+    key_file: "/etc/alchemist/certs/server-key.pem"
+    client_ca_file: "/etc/alchemist/certs/client-ca.pem"
+    min_version: "TLS1.3"
+  
+  # Rate Limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 1000
+    burst_size: 100
+  
+  # Circuit Breaker
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    recovery_timeout: 60s
+    half_open_requests: 3
+
+domains:
+  agent:
+    enabled: true
+    max_concurrent: 50
+    timeout: 180s
+    cache:
+      enabled: true
+      ttl: 3600s
+      max_entries: 1000
+  
+  dialog:
+    enabled: true
+    max_context_messages: 50
+    context_window: 8192
+    memory_type: "redis"
+    redis_url: "redis://redis:6379/0"
+    persistence:
+      enabled: true
+      backup_interval: 3600s
+      retention_days: 90
+  
+  identity:
+    enabled: true
+    jwt_secret: "${JWT_SECRET}"
+    token_expiry: 24h
+    refresh_enabled: true
+  
+  graph:
+    enabled: true
+    max_nodes: 1000000
+    max_edges: 10000000
+    index_type: "hierarchical"
+    persistence:
+      enabled: true
+      backend: "postgresql"
+      connection_string: "${DATABASE_URL}"
+  
+  conceptual_spaces:
+    enabled: true
+    dimensions: 128
+    similarity_threshold: 0.85
+    index_type: "annoy"
+    
+  workflow:
+    enabled: true
+    max_concurrent_workflows: 100
+    execution_timeout: 3600s
+    checkpoint_interval: 60s
+    persistence:
+      enabled: true
+      backend: "postgresql"
+
+database:
+  url: "${DATABASE_URL:-postgresql://alchemist:password@postgres:5432/alchemist?sslmode=require}"
+  max_connections: 50
+  min_connections: 10
+  connection_timeout: 30s
+  idle_timeout: 600s
+  max_lifetime: 1800s
+  
+  # Migration settings
+  migrations:
+    enabled: true
+    path: "/app/migrations"
+    table: "schema_migrations"
+
+cache:
+  type: "redis"
+  redis:
+    url: "${REDIS_URL:-redis://redis:6379/1}"
+    password: "${REDIS_PASSWORD}"
+    pool_size: 20
+    connection_timeout: 5s
+    read_timeout: 3s
+    write_timeout: 3s
+  
+  # Cache policies
+  policies:
+    default_ttl: 3600s
+    max_entries: 100000
+    eviction: "lru"
+    
+storage:
+  type: "s3"
+  s3:
+    endpoint: "${S3_ENDPOINT}"
+    bucket: "${S3_BUCKET:-alchemist-prod}"
+    region: "${AWS_REGION:-us-east-1}"
+    access_key: "${AWS_ACCESS_KEY_ID}"
+    secret_key: "${AWS_SECRET_ACCESS_KEY}"
+    path_prefix: "alchemist/"
+    
+  # Local fallback
+  local:
+    base_path: "/var/lib/alchemist/storage"
+    max_size: 100GB
+    cleanup_interval: 24h
+
+logging:
+  level: "${LOG_LEVEL:-warn}"
+  format: "json"
+  output: "stdout"
+  
+  # Structured logging
+  fields:
+    service: "alchemist"
+    environment: "production"
+    version: "${APP_VERSION}"
+    
+  # Log sampling
+  sampling:
+    enabled: true
+    initial: 100
+    thereafter: 100
+    
+  # Sentry integration
+  sentry:
+    enabled: true
+    dsn: "${SENTRY_DSN}"
+    environment: "production"
+    sample_rate: 0.1
+    traces_sample_rate: 0.01
+
+monitoring:
+  # Prometheus metrics
+  prometheus:
+    enabled: true
+    path: "/metrics"
+    namespace: "alchemist"
+    subsystem: "agent"
+    
+  # OpenTelemetry tracing  
+  tracing:
+    enabled: true
+    exporter: "otlp"
+    endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}"
+    service_name: "alchemist-agent"
+    sample_rate: 0.1
+    
+  # Health checks
+  health:
+    liveness:
+      path: "/health/live"
+      interval: 10s
+      timeout: 5s
+      failure_threshold: 3
+      
+    readiness:
+      path: "/health/ready"
+      interval: 10s
+      timeout: 5s
+      failure_threshold: 3
+      checks:
+        - nats
+        - database
+        - cache
+        - ai_provider
+
+# Security settings
+security:
+  # Authentication
+  auth:
+    enabled: true
+    type: "jwt"
+    jwt:
+      secret: "${JWT_SECRET}"
+      issuer: "alchemist"
+      audience: "alchemist-api"
+      expiry: 24h
+      
+  # API Key authentication
+  api_key:
+    enabled: true
+    header: "X-API-Key"
+    
+  # CORS
+  cors:
+    enabled: true
+    allowed_origins:
+      - "https://app.alchemist.ai"
+      - "https://api.alchemist.ai"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+      - "X-API-Key"
+    max_age: 3600
+    
+  # Security headers
+  headers:
+    x_frame_options: "DENY"
+    x_content_type_options: "nosniff"
+    x_xss_protection: "1; mode=block"
+    strict_transport_security: "max-age=31536000; includeSubDomains"
+    content_security_policy: "default-src 'self'"
+
+# Feature flags
+features:
+  experimental_features: false
+  beta_features: true
+  debug_endpoints: false
+  admin_api: true
+  websocket_support: true
+  grpc_support: true

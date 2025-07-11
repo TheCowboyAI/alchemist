@@ -28,6 +28,7 @@ pub struct DomainInfo {
     pub description: String,
     pub enabled: bool,
     pub health: DomainHealth,
+    pub healthy: bool,
     pub event_count: u64,
     pub dependencies: Vec<String>,
 }
@@ -80,8 +81,8 @@ pub struct PolicyInfo {
 pub struct SystemStatus {
     pub nats_connected: bool,
     pub total_events: u64,
-    pub uptime: String,
-    pub memory_usage: f32,
+    pub uptime_seconds: f64,
+    pub memory_usage_mb: f32,
 }
 
 /// Launches dashboard with event sourcing connection
@@ -110,12 +111,7 @@ pub async fn launch_dashboard_with_events(
         id: Uuid::new_v4().to_string(),
         renderer: RendererType::Iced,
         title: "Alchemist - Domain Dashboard".to_string(),
-        data: RenderData::Custom {
-            data: serde_json::json!({
-                "type": "dashboard",
-                "data": dashboard_data,
-            }),
-        },
+        data: RenderData::Dashboard(dashboard_data),
         config: RenderConfig {
             width: 1400,
             height: 900,
@@ -132,14 +128,20 @@ pub async fn launch_dashboard_with_events(
 impl DashboardData {
     /// Create dashboard data from event projection
     pub fn from_projection(projection: &DashboardProjection) -> Self {
+        let memory_usage_mb = crate::system_monitor::get_memory_usage_mb();
         let domains: Vec<DomainInfo> = projection.domains.values()
-            .map(|status| DomainInfo {
-                name: status.name.clone(),
-                description: Self::get_domain_description(&status.name),
-                enabled: status.event_count > 0,
-                health: status.health.clone().into(),
-                event_count: status.event_count,
-                dependencies: Self::get_domain_dependencies(&status.name),
+            .map(|status| {
+                let health: DomainHealth = status.health.clone().into();
+                let healthy = matches!(health, DomainHealth::Healthy);
+                DomainInfo {
+                    name: status.name.clone(),
+                    description: Self::get_domain_description(&status.name),
+                    enabled: status.event_count > 0,
+                    health,
+                    healthy,
+                    event_count: status.event_count,
+                    dependencies: Self::get_domain_dependencies(&status.name),
+                }
             })
             .collect();
         
@@ -171,8 +173,8 @@ impl DashboardData {
             system_status: SystemStatus {
                 nats_connected: true, // TODO: Get from actual connection
                 total_events: projection.metrics.total_events,
-                uptime: "N/A".to_string(), // TODO: Track actual uptime
-                memory_usage: 0.0, // TODO: Get actual memory usage
+                uptime_seconds: 0.0, // TODO: Track actual uptime
+                memory_usage_mb,
             },
             active_policies: Vec::new(), // TODO: Get from policy domain
         }
@@ -226,6 +228,7 @@ impl DashboardData {
                     description: "Business process execution".to_string(),
                     enabled: true,
                     health: DomainHealth::Healthy,
+                    healthy: true,
                     event_count: 1234,
                     dependencies: vec!["graph".to_string()],
                 },
@@ -234,6 +237,7 @@ impl DashboardData {
                     description: "AI provider integration".to_string(),
                     enabled: true,
                     health: DomainHealth::Warning("Rate limit approaching".to_string()),
+                    healthy: false,
                     event_count: 567,
                     dependencies: vec!["graph".to_string()],
                 },
@@ -242,6 +246,7 @@ impl DashboardData {
                     description: "Document lifecycle management".to_string(),
                     enabled: true,
                     health: DomainHealth::Healthy,
+                    healthy: true,
                     event_count: 890,
                     dependencies: vec![],
                 },
@@ -250,6 +255,7 @@ impl DashboardData {
                     description: "Business rule enforcement".to_string(),
                     enabled: true,
                     health: DomainHealth::Healthy,
+                    healthy: true,
                     event_count: 234,
                     dependencies: vec![],
                 },
@@ -258,6 +264,7 @@ impl DashboardData {
                     description: "Core graph operations".to_string(),
                     enabled: true,
                     health: DomainHealth::Healthy,
+                    healthy: true,
                     event_count: 3456,
                     dependencies: vec![],
                 },
@@ -301,8 +308,8 @@ impl DashboardData {
             system_status: SystemStatus {
                 nats_connected: true,
                 total_events: 12345,
-                uptime: "3 days, 14 hours".to_string(),
-                memory_usage: 45.2,
+                uptime_seconds: 314400.0,  // 3 days, 14 hours
+                memory_usage_mb: 45.2,
             },
             active_policies: vec![
                 PolicyInfo {
@@ -332,12 +339,7 @@ pub async fn launch_dashboard(
         id: Uuid::new_v4().to_string(),
         renderer: RendererType::Iced,
         title: "Alchemist - Domain Dashboard".to_string(),
-        data: RenderData::Custom {
-            data: serde_json::json!({
-                "type": "dashboard",
-                "data": dashboard_data,
-            }),
-        },
+        data: RenderData::Dashboard(dashboard_data.clone()),
         config: RenderConfig {
             width: 1400,
             height: 900,
@@ -349,4 +351,12 @@ pub async fn launch_dashboard(
     };
     
     renderer_manager.spawn(request).await
+}
+
+/// Launch dashboard in the same process (for development)
+pub async fn launch_dashboard_inprocess(
+    initial_data: DashboardData,
+    data_receiver: mpsc::Receiver<DashboardData>,
+) -> Result<()> {
+    crate::dashboard_window::run_dashboard_window(initial_data, data_receiver).await
 }

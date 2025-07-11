@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use bevy::prelude::*;
-use alchemist::renderer::{RenderRequest, RenderData, GraphNode as AlchemistNode, GraphEdge as AlchemistEdge};
+use alchemist::renderer::{RenderRequest, RenderData};
 
 pub fn run(request: RenderRequest) -> Result<()> {
     let mut app = App::new();
@@ -19,7 +19,7 @@ pub fn run(request: RenderRequest) -> Result<()> {
     }));
     
     // Add render data as resource
-    app.insert_resource(request);
+    app.insert_resource(request.clone());
     
     // Add our systems
     app.add_systems(Startup, setup_scene);
@@ -57,15 +57,14 @@ fn setup_scene(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Add light
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
+    commands.spawn((
+        DirectionalLight {
             illuminance: 10_000.0,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+        Transform::from_xyz(4.0, 8.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
     
     // Add camera
     commands.spawn((
@@ -121,12 +120,8 @@ fn setup_graph_visualization(
                 GraphNodeMarker { id: node.id.clone() },
             ));
             
-            // Add label
-            commands.spawn((
-                Text3d::new(node.label.clone()),
-                Transform::from_xyz(position.x, position.y + size * 0.3, position.z)
-                    .with_scale(Vec3::splat(0.1)),
-            ));
+            // Add label (Text3d doesn't exist in Bevy 0.16, so we'll skip labels for now)
+            // TODO: Implement text rendering in 3D space
         }
         
         // Create lines for edges

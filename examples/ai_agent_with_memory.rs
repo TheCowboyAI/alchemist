@@ -285,7 +285,7 @@ async fn main() -> Result<()> {
     let doc_cid = agent
         .store_knowledge(
             "The Composable Information Machine (CIM) uses event sourcing and CQRS patterns.",
-            ContentType::Text,
+            ContentType::Markdown,
         )
         .await?;
     info!("Stored knowledge document: {}", doc_cid);

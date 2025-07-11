@@ -17,6 +17,7 @@ pub enum RendererType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
 pub struct RenderRequest {
     pub id: String,
     pub renderer: RendererType,
@@ -69,6 +70,24 @@ pub enum RenderData {
         messages: Vec<DialogMessage>,
         system_prompt: Option<String>,
     },
+    /// Event monitoring view
+    EventMonitor {
+        max_events: usize,
+        initial_events: Vec<crate::event_monitor::MonitoredEvent>,
+    },
+    /// Markdown document viewer
+    Markdown {
+        content: String,
+        theme: Option<String>, // "light" or "dark"
+    },
+    /// Chart visualization
+    Chart {
+        data: serde_json::Value, // Contains series data
+        chart_type: String, // "line", "bar", "scatter", "pie", "area"
+        options: serde_json::Value, // Chart options
+    },
+    /// Dashboard view
+    Dashboard(crate::dashboard::DashboardData),
     /// Custom data
     Custom {
         data: serde_json::Value,
@@ -335,12 +354,92 @@ impl RendererManager {
         self.spawn(request).await
     }
     
+    /// Spawn an event monitor window
+    pub async fn spawn_event_monitor(
+        &self,
+        title: &str,
+        max_events: usize,
+    ) -> Result<String> {
+        let request = RenderRequest {
+            id: Uuid::new_v4().to_string(),
+            renderer: RendererType::Iced,
+            title: title.to_string(),
+            data: RenderData::EventMonitor {
+                max_events,
+                initial_events: Vec::new(),
+            },
+            config: RenderConfig {
+                width: 1200,
+                height: 800,
+                ..RenderConfig::default()
+            },
+        };
+        
+        self.spawn(request).await
+    }
+    
+    /// Spawn a markdown viewer
+    pub async fn spawn_markdown(
+        &self,
+        title: &str,
+        content: String,
+        theme: Option<&str>,
+    ) -> Result<String> {
+        let request = RenderRequest {
+            id: Uuid::new_v4().to_string(),
+            renderer: RendererType::Iced,
+            title: title.to_string(),
+            data: RenderData::Markdown {
+                content,
+                theme: theme.map(|t| t.to_string()),
+            },
+            config: RenderConfig {
+                width: 800,
+                height: 600,
+                ..RenderConfig::default()
+            },
+        };
+        
+        self.spawn(request).await
+    }
+    
+    /// Spawn a chart viewer
+    pub async fn spawn_chart(
+        &self,
+        title: &str,
+        data: serde_json::Value,
+        chart_type: &str,
+        options: serde_json::Value,
+    ) -> Result<String> {
+        let request = RenderRequest {
+            id: Uuid::new_v4().to_string(),
+            renderer: RendererType::Iced,
+            title: title.to_string(),
+            data: RenderData::Chart {
+                data,
+                chart_type: chart_type.to_string(),
+                options,
+            },
+            config: RenderConfig {
+                width: 1000,
+                height: 700,
+                ..RenderConfig::default()
+            },
+        };
+        
+        self.spawn(request).await
+    }
+    
     /// Send data update to a renderer
     pub async fn update_data(&self, renderer_id: &str, data: serde_json::Value) -> Result<()> {
-        if let Some(process) = self.processes.get(renderer_id) {
-            // In a real implementation, we'd send this through IPC
-            // For now, we'll just log it
-            info!("Updating data for renderer {}: {:?}", renderer_id, data);
+        if let Some(_process) = self.processes.get(renderer_id) {
+            // Send through our message channel
+            self.message_sender
+                .send(RendererMessage::DataUpdate(renderer_id.to_string(), data.clone()))
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to send data update: {}", e))?;
+            
+            info!("Sent data update for renderer {}: {:?}", renderer_id, data);
             Ok(())
         } else {
             Err(anyhow::anyhow!("Renderer not found: {}", renderer_id))
@@ -408,6 +507,54 @@ impl RendererManager {
             let _ = self.message_sender.send(RendererMessage::WindowClosed(id)).await;
         }
     }
+    
+    /// Process incoming renderer messages
+    pub async fn process_messages(&self) {
+        let mut receiver = self.message_receiver.lock().await;
+        
+        while let Some(message) = receiver.recv().await {
+            match message {
+                RendererMessage::WindowClosed(renderer_id) => {
+                    info!("Renderer window closed: {}", renderer_id);
+                    // Remove from active processes if not already removed
+                    if self.processes.remove(&renderer_id).is_some() {
+                        debug!("Removed closed renderer from active processes: {}", renderer_id);
+                    }
+                }
+                RendererMessage::DataUpdate(renderer_id, data) => {
+                    info!("Data update received for renderer {}: {:?}", renderer_id, data);
+                    // Forward the data update to the appropriate renderer
+                    if self.processes.contains_key(&renderer_id) {
+                        // TODO: Implement NATS-based communication to forward updates
+                        debug!("Would forward data update to renderer {}", renderer_id);
+                    } else {
+                        warn!("Data update for unknown renderer: {}", renderer_id);
+                    }
+                }
+                RendererMessage::Error(renderer_id, error) => {
+                    warn!("Error from renderer {}: {}", renderer_id, error);
+                    // Handle renderer errors - potentially restart or cleanup
+                    if let Some((_, mut process)) = self.processes.remove(&renderer_id) {
+                        // Kill the errored process
+                        if let Err(e) = process.process.kill() {
+                            warn!("Failed to kill errored renderer process {}: {}", renderer_id, e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /// Start the message processing loop
+    pub fn start_message_processor(self: Arc<Self>) {
+        tokio::spawn(async move {
+            loop {
+                self.process_messages().await;
+                // If the receiver is closed, wait a bit before retrying
+                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            }
+        });
+    }
 }
 
 /// Helper to determine best renderer for content type
@@ -421,6 +568,10 @@ pub fn suggest_renderer(data: &RenderData) -> RendererType {
         RenderData::Dialog { .. } => RendererType::Iced,
         RenderData::Video { .. } => RendererType::Iced,
         RenderData::Audio { .. } => RendererType::Iced,
+        RenderData::EventMonitor { .. } => RendererType::Iced,
+        RenderData::Markdown { .. } => RendererType::Iced,
+        RenderData::Chart { .. } => RendererType::Iced,
+        RenderData::Dashboard(_) => RendererType::Iced,
         RenderData::Custom { .. } => RendererType::Iced,
     }
 }

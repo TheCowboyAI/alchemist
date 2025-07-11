@@ -1,0 +1,82 @@
+name: Data Processing Pipeline
+description: A simple data processing workflow that demonstrates ETL operations
+metadata:
+  author: Alchemist Team
+  version: "1.0"
+  tags: ["data", "etl", "demo"]
+
+steps:
+  - id: extract_data
+    name: Extract Data
+    description: Extract data from source system
+    action:
+      type: Command
+      command: curl
+      args: 
+        - "-s"
+        - "https://api.example.com/data"
+      env: {}
+    timeout_seconds: 30
+    
+  - id: validate_data
+    name: Validate Data
+    description: Validate extracted data format
+    dependencies: ["extract_data"]
+    action:
+      type: Command
+      command: jq
+      args:
+        - "."
+        - "-e"
+      env: {}
+    conditions:
+      - type: StepSuccess
+        step_id: extract_data
+    
+  - id: transform_data
+    name: Transform Data
+    description: Transform data into desired format
+    dependencies: ["validate_data"]
+    action:
+      type: Command
+      command: python
+      args:
+        - "-c"
+        - |
+          import json
+          import sys
+          # Transform logic here
+          data = json.load(sys.stdin)
+          # Apply transformations
+          print(json.dumps(data))
+      env:
+        PYTHONUNBUFFERED: "1"
+    
+  - id: load_data
+    name: Load Data
+    description: Load transformed data to destination
+    dependencies: ["transform_data"]
+    action:
+      type: NatsPublish
+      subject: alchemist.data.processed
+      payload:
+        status: "completed"
+        timestamp: "{{ workflow.timestamp }}"
+    retry_config:
+      max_attempts: 3
+      delay_seconds: 5
+      backoff_multiplier: 2.0
+    
+  - id: notify_completion
+    name: Notify Completion
+    description: Send completion notification
+    dependencies: ["load_data"]
+    action:
+      type: HttpRequest
+      url: "https://hooks.slack.com/services/example"
+      method: POST
+      headers:
+        Content-Type: application/json
+      body:
+        text: "Data pipeline completed successfully!"
+        channel: "#data-ops"

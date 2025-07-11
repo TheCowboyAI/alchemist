@@ -1,0 +1,50 @@
+{
+  "data": [
+    {
+      "name": "Sales 2023",
+      "data": [
+        {"x": 1, "y": 45, "label": "Jan"},
+        {"x": 2, "y": 52, "label": "Feb"},
+        {"x": 3, "y": 48, "label": "Mar"},
+        {"x": 4, "y": 61, "label": "Apr"},
+        {"x": 5, "y": 58, "label": "May"},
+        {"x": 6, "y": 67, "label": "Jun"},
+        {"x": 7, "y": 72, "label": "Jul"},
+        {"x": 8, "y": 69, "label": "Aug"},
+        {"x": 9, "y": 75, "label": "Sep"},
+        {"x": 10, "y": 81, "label": "Oct"},
+        {"x": 11, "y": 78, "label": "Nov"},
+        {"x": 12, "y": 85, "label": "Dec"}
+      ],
+      "color": [0.12, 0.47, 0.71, 1.0]
+    },
+    {
+      "name": "Sales 2024",
+      "data": [
+        {"x": 1, "y": 51, "label": "Jan"},
+        {"x": 2, "y": 58, "label": "Feb"},
+        {"x": 3, "y": 55, "label": "Mar"},
+        {"x": 4, "y": 68, "label": "Apr"},
+        {"x": 5, "y": 65, "label": "May"},
+        {"x": 6, "y": 74, "label": "Jun"},
+        {"x": 7, "y": 82, "label": "Jul"},
+        {"x": 8, "y": 79, "label": "Aug"},
+        {"x": 9, "y": 86, "label": "Sep"},
+        {"x": 10, "y": 91, "label": "Oct"},
+        {"x": 11, "y": 88, "label": "Nov"},
+        {"x": 12, "y": 95, "label": "Dec"}
+      ],
+      "color": [1.0, 0.5, 0.05, 1.0]
+    }
+  ],
+  "chart_type": "line",
+  "options": {
+    "title": "Monthly Sales Comparison",
+    "x_label": "Month",
+    "y_label": "Sales (thousands)",
+    "show_grid": true,
+    "show_legend": true,
+    "interactive": true,
+    "animation_duration": 0.5
+  }
+}

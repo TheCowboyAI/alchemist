@@ -146,7 +146,7 @@ impl DashboardEventProcessor {
     }
     
     async fn get_or_create_stream(&self) -> Result<Stream> {
-        let stream_name = "CIM-EVENTS";
+        let stream_name = "DASHBOARD-EVENTS";
         
         match self.jetstream.get_stream(stream_name).await {
             Ok(stream) => Ok(stream),

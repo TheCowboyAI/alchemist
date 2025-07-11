@@ -22,6 +22,21 @@ pub struct AlchemistConfig {
     
     /// Domain registry
     pub domains: DomainRegistryConfig,
+    
+    /// Cache configuration
+    pub cache: Option<CacheConfig>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CacheConfig {
+    /// Redis URL for caching
+    pub redis_url: Option<String>,
+    
+    /// Default TTL in seconds
+    pub default_ttl: u64,
+    
+    /// Maximum memory cache size
+    pub max_memory_items: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,6 +100,9 @@ pub struct PolicyConfig {
     
     /// Policy evaluation timeout (ms)
     pub evaluation_timeout: u64,
+    
+    /// Cache TTL in seconds
+    pub cache_ttl: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -103,6 +121,12 @@ pub struct DeploymentConfig {
     
     /// Environment (dev, staging, prod)
     pub environment: String,
+    
+    /// Custom service configurations
+    pub services: Option<HashMap<String, String>>,
+    
+    /// Custom agent configurations
+    pub agents: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,6 +148,15 @@ pub struct DomainRegistryConfig {
     
     /// Domain relationships
     pub relationships: Vec<DomainRelationship>,
+}
+
+impl Default for DomainRegistryConfig {
+    fn default() -> Self {
+        Self {
+            available: vec![],
+            relationships: vec![],
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -159,21 +192,100 @@ pub struct DomainRelationship {
     pub bidirectional: bool,
 }
 
+impl Default for GeneralConfig {
+    fn default() -> Self {
+        Self {
+            default_ai_model: None,
+            dialog_history_path: "~/.alchemist/dialogs".to_string(),
+            progress_file_path: "doc/progress/progress.json".to_string(),
+            nats_url: Some("nats://localhost:4222".to_string()),
+            log_level: "info".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceConfig {
+    /// Service name
+    pub name: String,
+    
+    /// Service executable
+    pub executable: String,
+    
+    /// Service arguments
+    pub args: Vec<String>,
+    
+    /// Service port
+    pub port: Option<u16>,
+    
+    /// Environment variables
+    pub environment: HashMap<String, String>,
+    
+    /// Resource limits
+    pub resources: ResourceLimits,
+    
+    /// Health check configuration
+    pub health_check: Option<HealthCheckConfig>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentConfig {
+    /// Agent name
+    pub name: String,
+    
+    /// Agent type
+    pub agent_type: String,
+    
+    /// Capabilities
+    pub capabilities: Vec<String>,
+    
+    /// Configuration
+    pub config: HashMap<String, serde_json::Value>,
+    
+    /// Environment variables
+    pub environment: HashMap<String, String>,
+    
+    /// Resource limits
+    pub resources: ResourceLimits,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceLimits {
+    /// CPU limit (cores)
+    pub cpu: Option<f32>,
+    
+    /// Memory limit (MB)
+    pub memory: Option<u32>,
+    
+    /// Disk limit (MB)
+    pub disk: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HealthCheckConfig {
+    /// Health check endpoint
+    pub endpoint: String,
+    
+    /// Check interval (seconds)
+    pub interval: u32,
+    
+    /// Timeout (seconds)
+    pub timeout: u32,
+    
+    /// Failure threshold
+    pub failure_threshold: u32,
+}
+
 impl Default for AlchemistConfig {
     fn default() -> Self {
         Self {
-            general: GeneralConfig {
-                default_ai_model: None,
-                dialog_history_path: "~/.alchemist/dialogs".to_string(),
-                progress_file_path: "doc/progress/progress.json".to_string(),
-                nats_url: Some("nats://localhost:4222".to_string()),
-                log_level: "info".to_string(),
-            },
+            general: GeneralConfig::default(),
             ai_models: HashMap::new(),
             policy: PolicyConfig {
                 storage_path: "~/.alchemist/policies".to_string(),
                 validation_enabled: true,
                 evaluation_timeout: 5000,
+                cache_ttl: Some(300),
             },
             deployments: HashMap::new(),
             domains: DomainRegistryConfig {
@@ -229,6 +341,11 @@ impl Default for AlchemistConfig {
                     },
                 ],
             },
+            cache: Some(CacheConfig {
+                redis_url: Some("redis://localhost:6379".to_string()),
+                default_ttl: 3600,
+                max_memory_items: 10000,
+            }),
         }
     }
 }

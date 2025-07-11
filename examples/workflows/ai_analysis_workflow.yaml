@@ -1,0 +1,153 @@
+name: AI-Powered Analysis Pipeline
+description: Analyze documents using AI models and generate insights
+metadata:
+  author: AI Team
+  version: "1.0"
+  tags: ["ai", "analysis", "nlp", "insights"]
+
+steps:
+  - id: fetch_documents
+    name: Fetch Documents
+    description: Retrieve documents from storage
+    action:
+      type: Command
+      command: aws
+      args: 
+        - "s3"
+        - "sync"
+        - "s3://documents-bucket/input/"
+        - "./workspace/input/"
+      env:
+        AWS_DEFAULT_REGION: us-east-1
+    timeout_seconds: 120
+    
+  - id: preprocess_text
+    name: Preprocess Text
+    description: Extract and clean text from documents
+    dependencies: ["fetch_documents"]
+    action:
+      type: Command
+      command: python
+      args:
+        - "./scripts/preprocess.py"
+        - "--input-dir"
+        - "./workspace/input"
+        - "--output-dir"
+        - "./workspace/preprocessed"
+      env:
+        PYTHONPATH: "./lib"
+    
+  - id: sentiment_analysis
+    name: Sentiment Analysis
+    description: Analyze sentiment of preprocessed text
+    dependencies: ["preprocess_text"]
+    action:
+      type: Custom
+      handler: ai_sentiment_analyzer
+      params:
+        model: "gpt-4"
+        input_path: "./workspace/preprocessed"
+        output_path: "./workspace/sentiment"
+        temperature: 0.3
+    
+  - id: topic_modeling
+    name: Topic Modeling
+    description: Extract key topics from documents
+    dependencies: ["preprocess_text"]
+    action:
+      type: Custom
+      handler: ai_topic_extractor
+      params:
+        model: "gpt-4"
+        input_path: "./workspace/preprocessed"
+        output_path: "./workspace/topics"
+        max_topics: 10
+    
+  - id: entity_extraction
+    name: Entity Extraction
+    description: Extract named entities from text
+    dependencies: ["preprocess_text"]
+    action:
+      type: Custom
+      handler: ai_entity_extractor
+      params:
+        model: "gpt-4"
+        input_path: "./workspace/preprocessed"
+        output_path: "./workspace/entities"
+        entity_types: ["person", "organization", "location", "product"]
+    
+  - id: generate_summary
+    name: Generate Summary
+    description: Create executive summary of findings
+    dependencies: ["sentiment_analysis", "topic_modeling", "entity_extraction"]
+    action:
+      type: Custom
+      handler: ai_summary_generator
+      params:
+        model: "gpt-4"
+        sentiment_data: "./workspace/sentiment"
+        topics_data: "./workspace/topics"
+        entities_data: "./workspace/entities"
+        output_path: "./workspace/summary.md"
+        max_length: 2000
+    
+  - id: create_visualizations
+    name: Create Visualizations
+    description: Generate charts and graphs from analysis
+    dependencies: ["sentiment_analysis", "topic_modeling"]
+    action:
+      type: Command
+      command: python
+      args:
+        - "./scripts/visualize.py"
+        - "--sentiment-dir"
+        - "./workspace/sentiment"
+        - "--topics-dir"
+        - "./workspace/topics"
+        - "--output-dir"
+        - "./workspace/visualizations"
+      env:
+        MATPLOTLIB_BACKEND: "Agg"
+    
+  - id: compile_report
+    name: Compile Report
+    description: Combine all analyses into final report
+    dependencies: ["generate_summary", "create_visualizations"]
+    action:
+      type: Command
+      command: pandoc
+      args:
+        - "./workspace/summary.md"
+        - "-o"
+        - "./workspace/report.pdf"
+        - "--pdf-engine=xelatex"
+        - "--include-in-header=./templates/header.tex"
+      env: {}
+    
+  - id: publish_results
+    name: Publish Results
+    description: Upload results to storage and notify stakeholders
+    dependencies: ["compile_report"]
+    action:
+      type: SubWorkflow
+      workflow_id: publish_and_notify
+      inputs:
+        report_path: "./workspace/report.pdf"
+        visualizations_path: "./workspace/visualizations"
+        recipients: ["team@example.com", "stakeholders@example.com"]
+        s3_bucket: "analysis-results"
+        notification_subject: "AI Analysis Complete: {{ workflow.name }}"
+    
+  - id: cleanup
+    name: Cleanup Workspace
+    description: Remove temporary files
+    dependencies: ["publish_results"]
+    action:
+      type: Command
+      command: rm
+      args: ["-rf", "./workspace"]
+      env: {}
+    conditions:
+      - type: Custom
+        evaluator: always_run
+        params: {}

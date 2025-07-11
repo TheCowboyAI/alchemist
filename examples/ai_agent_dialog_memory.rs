@@ -153,7 +153,7 @@ impl DialogAgent {
         let snippet = self.create_conversation_snippet(dialog, 3).await?;
         let cid = self
             .content_service
-            .store_content(snippet.as_bytes(), ContentType::Text, None)
+            .store_content(snippet.as_bytes(), ContentType::Markdown, None)
             .await?;
         debug!("Stored conversation snippet with CID: {}", cid);
 

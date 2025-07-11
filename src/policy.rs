@@ -4,6 +4,7 @@ use anyhow::{Result, Context};
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use tokio::fs;
 use tracing::info;
@@ -12,6 +13,7 @@ use uuid::Uuid;
 use crate::{
     config::AlchemistConfig,
     shell_commands::{PolicyCommands, ClaimsCommands},
+    policy_engine::{PolicyEngine, EvaluationContext, Subject, Resource, Action, Decision},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -69,6 +71,7 @@ pub struct PolicyManager {
     claims: DashMap<String, Claim>,
     storage_path: PathBuf,
     validation_enabled: bool,
+    engine: PolicyEngine,
 }
 
 impl PolicyManager {
@@ -88,6 +91,7 @@ impl PolicyManager {
             claims: DashMap::new(),
             storage_path,
             validation_enabled: config.policy.validation_enabled,
+            engine: PolicyEngine::new(config.policy.cache_ttl.unwrap_or(300)),
         };
         
         // Load existing policies and claims
@@ -398,7 +402,7 @@ impl PolicyManager {
         Ok(())
     }
     
-    async fn load_all(&self) -> Result<()> {
+    async fn load_all(&mut self) -> Result<()> {
         // Load policies
         let policies_dir = self.storage_path.join("policies");
         if policies_dir.exists() {
@@ -408,7 +412,9 @@ impl PolicyManager {
                     if filename.ends_with(".json") {
                         let content = fs::read_to_string(entry.path()).await?;
                         if let Ok(policy) = serde_json::from_str::<Policy>(&content) {
-                            self.policies.insert(policy.id.clone(), policy);
+                            self.policies.insert(policy.id.clone(), policy.clone());
+                            // Load into engine
+                            self.engine.load_policy(policy)?;
                         }
                     }
                 }
@@ -455,6 +461,103 @@ impl PolicyManager {
             RuleAction::Transform(transform) => format!("Transform: {}", transform),
             RuleAction::Delegate(target) => format!("Delegate to: {}", target),
         }
+    }
+    
+    /// Evaluate a policy decision
+    pub async fn evaluate(
+        &self,
+        subject_id: String,
+        subject_type: String,
+        subject_claims: Vec<String>,
+        resource_id: String,
+        resource_type: String,
+        resource_domain: String,
+        action_name: String,
+    ) -> Result<Decision> {
+        use std::collections::HashSet;
+        
+        let context = EvaluationContext {
+            subject: Subject {
+                id: subject_id,
+                subject_type,
+                claims: subject_claims.into_iter().collect(),
+                domains: HashSet::from([resource_domain.clone()]),
+                attributes: HashMap::new(),
+            },
+            resource: Resource {
+                id: resource_id,
+                resource_type,
+                domain: resource_domain,
+                attributes: HashMap::new(),
+            },
+            action: Action {
+                name: action_name.clone(),
+                action_type: action_name,
+                parameters: HashMap::new(),
+            },
+            metadata: HashMap::new(),
+            event: None,
+        };
+        
+        let result = self.engine.evaluate(context).await?;
+        Ok(result.decision)
+    }
+    
+    /// Load policies into the evaluation engine
+    async fn sync_policies_to_engine(&self) -> Result<()> {
+        for entry in self.policies.iter() {
+            let policy = entry.value().clone();
+            self.engine.load_policy(policy)?;
+        }
+        Ok(())
+    }
+    
+    /// Check if a subject has a specific claim
+    pub fn has_claim(&self, subject_claims: &[String], required_claim: &str) -> bool {
+        subject_claims.contains(&required_claim.to_string())
+    }
+    
+    /// Get all permissions for a set of claims
+    pub fn get_permissions_for_claims(&self, claim_names: &[String]) -> Vec<String> {
+        use std::collections::HashSet;
+        let mut permissions = HashSet::new();
+        
+        for claim_name in claim_names {
+            if let Some(claim) = self.claims.get(claim_name) {
+                permissions.extend(claim.permissions.iter().cloned());
+            }
+        }
+        
+        permissions.into_iter().collect()
+    }
+    
+    /// Create a new policy
+    pub async fn create_policy(&mut self, policy: Policy) -> Result<()> {
+        let policy_id = policy.id.clone();
+        self.policies.insert(policy_id.clone(), policy.clone());
+        self.engine.load_policy(policy.clone())?;
+        self.save_policy(&policy_id).await?;
+        Ok(())
+    }
+    
+    /// Add a new claim
+    pub async fn add_claim(
+        &mut self,
+        name: String,
+        description: String,
+        domain: Option<String>,
+        permissions: Vec<String>,
+    ) -> Result<()> {
+        let claim = Claim {
+            name: name.clone(),
+            description,
+            domain,
+            permissions,
+        };
+        
+        self.claims.insert(name.clone(), claim);
+        self.save_claim(&name).await?;
+        Ok(())
     }
 }
 

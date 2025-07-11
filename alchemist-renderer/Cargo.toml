@@ -54,6 +54,9 @@ chrono = { version = "0.4", features = ["serde"] }
 # For graph layouts
 petgraph = "0.6"
 
+# For markdown parsing
+pulldown-cmark = "0.12"
+
 # Import shared types from alchemist
 alchemist = { path = ".." }
 

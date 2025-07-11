@@ -1,0 +1,138 @@
+# Development Configuration for Alchemist Agent
+# This configuration is optimized for local development
+
+agent:
+  id: "alchemist-dev-001"
+  name: "CIM Alchemist Development"
+  description: "Development AI agent for CIM architecture"
+  cluster_mode: false
+  instance_id: "dev-local"
+
+model_provider:
+  type: "ollama"
+  
+  # Ollama Configuration (Local development)
+  ollama:
+    base_url: "http://localhost:11434"
+    model: "vicuna:latest"
+    options:
+      temperature: 0.7
+      num_predict: 2048
+    health_check:
+      enabled: false
+
+nats:
+  url: "nats://localhost:4222"
+  jetstream:
+    enabled: true
+    store_dir: "./data/jetstream"
+  subjects:
+    commands: "cim.agent.alchemist.dev.commands"
+    queries: "cim.agent.alchemist.dev.queries"
+    events: "cim.agent.alchemist.dev.events"
+    dialogs: "cim.dialog.alchemist.dev"
+    health: "cim.agent.alchemist.dev.health"
+
+service:
+  port: 8080
+  health_check_port: 8081
+  metrics_port: 9090
+  health_check_interval: 60
+  max_concurrent_requests: 10
+  request_timeout: 60
+  
+  # No TLS in development
+  tls:
+    enabled: false
+  
+  # No rate limiting in development
+  rate_limit:
+    enabled: false
+
+domains:
+  agent:
+    enabled: true
+    max_concurrent: 5
+    timeout: 30s
+  
+  dialog:
+    enabled: true
+    max_context_messages: 20
+    memory_type: "memory"  # In-memory for development
+  
+  identity:
+    enabled: true
+    jwt_secret: "dev-secret-change-in-production"
+    token_expiry: 7d
+  
+  graph:
+    enabled: true
+    max_nodes: 10000
+    max_edges: 100000
+  
+  conceptual_spaces:
+    enabled: true
+    dimensions: 32
+    
+  workflow:
+    enabled: true
+    max_concurrent_workflows: 10
+    execution_timeout: 600s
+
+database:
+  url: "postgresql://alchemist:devpassword@localhost:5432/alchemist_dev"
+  max_connections: 10
+  min_connections: 2
+
+cache:
+  type: "memory"  # In-memory cache for development
+  
+storage:
+  type: "local"
+  local:
+    base_path: "./data/storage"
+    max_size: 10GB
+
+logging:
+  level: "debug"
+  format: "pretty"
+  output: "stdout"
+  
+  # No sampling in development
+  sampling:
+    enabled: false
+
+monitoring:
+  prometheus:
+    enabled: true
+    path: "/metrics"
+    
+  tracing:
+    enabled: false  # Disabled by default in dev
+    
+  health:
+    liveness:
+      path: "/health/live"
+      interval: 30s
+      
+    readiness:
+      path: "/health/ready"
+      interval: 30s
+
+security:
+  auth:
+    enabled: false  # Disabled for easier development
+    
+  api_key:
+    enabled: false
+    
+  cors:
+    enabled: true
+    allowed_origins:
+      - "*"  # Allow all origins in development
+
+features:
+  experimental_features: true
+  beta_features: true
+  debug_endpoints: true
+  admin_api: true

@@ -1,0 +1,136 @@
+name: Multi-Stage Deployment
+description: Deploy application through dev, staging, and production environments
+metadata:
+  author: DevOps Team
+  version: "2.0"
+  tags: ["deployment", "ci/cd", "multi-stage"]
+
+steps:
+  - id: run_tests
+    name: Run Tests
+    description: Execute test suite
+    action:
+      type: Command
+      command: cargo
+      args: ["test", "--all"]
+      env:
+        RUST_LOG: debug
+    timeout_seconds: 300
+    
+  - id: build_artifact
+    name: Build Artifact
+    description: Build release artifact
+    dependencies: ["run_tests"]
+    action:
+      type: Command
+      command: cargo
+      args: ["build", "--release"]
+      env: {}
+    conditions:
+      - type: StepSuccess
+        step_id: run_tests
+    
+  - id: deploy_dev
+    name: Deploy to Development
+    description: Deploy to development environment
+    dependencies: ["build_artifact"]
+    action:
+      type: Command
+      command: ./scripts/deploy.sh
+      args: ["dev", "{{ workflow.artifact_path }}"]
+      env:
+        ENVIRONMENT: development
+        DEPLOY_KEY: "{{ secrets.dev_deploy_key }}"
+    retry_config:
+      max_attempts: 2
+      delay_seconds: 10
+      backoff_multiplier: 1.5
+    
+  - id: smoke_test_dev
+    name: Dev Smoke Test
+    description: Run smoke tests on dev environment
+    dependencies: ["deploy_dev"]
+    action:
+      type: HttpRequest
+      url: "https://dev.example.com/health"
+      method: GET
+      headers: {}
+    timeout_seconds: 60
+    
+  - id: approval_staging
+    name: Staging Approval
+    description: Wait for staging deployment approval
+    dependencies: ["smoke_test_dev"]
+    action:
+      type: NatsSubscribe
+      subject: alchemist.approval.staging.{{ workflow.execution_id }}
+      timeout_seconds: 3600
+    
+  - id: deploy_staging
+    name: Deploy to Staging
+    description: Deploy to staging environment
+    dependencies: ["approval_staging"]
+    action:
+      type: Command
+      command: ./scripts/deploy.sh
+      args: ["staging", "{{ workflow.artifact_path }}"]
+      env:
+        ENVIRONMENT: staging
+        DEPLOY_KEY: "{{ secrets.staging_deploy_key }}"
+    
+  - id: integration_tests
+    name: Integration Tests
+    description: Run integration tests on staging
+    dependencies: ["deploy_staging"]
+    action:
+      type: Command
+      command: ./scripts/integration_tests.sh
+      args: ["https://staging.example.com"]
+      env: {}
+    timeout_seconds: 600
+    
+  - id: approval_production
+    name: Production Approval
+    description: Wait for production deployment approval
+    dependencies: ["integration_tests"]
+    action:
+      type: NatsSubscribe
+      subject: alchemist.approval.production.{{ workflow.execution_id }}
+      timeout_seconds: 7200
+    
+  - id: deploy_production
+    name: Deploy to Production
+    description: Deploy to production environment
+    dependencies: ["approval_production"]
+    action:
+      type: Command
+      command: ./scripts/deploy.sh
+      args: ["production", "{{ workflow.artifact_path }}"]
+      env:
+        ENVIRONMENT: production
+        DEPLOY_KEY: "{{ secrets.prod_deploy_key }}"
+    retry_config:
+      max_attempts: 1
+      delay_seconds: 0
+      backoff_multiplier: 1.0
+    
+  - id: notify_success
+    name: Notify Success
+    description: Send deployment success notification
+    dependencies: ["deploy_production"]
+    action:
+      type: HttpRequest
+      url: "https://api.pagerduty.com/incidents"
+      method: POST
+      headers:
+        Authorization: "Token token={{ secrets.pagerduty_token }}"
+        Content-Type: application/json
+      body:
+        incident:
+          type: deployment
+          title: "Production deployment completed"
+          service:
+            id: "{{ config.pagerduty_service_id }}"
+          body:
+            type: incident_body
+            details: "Deployment of version {{ workflow.version }} completed successfully"

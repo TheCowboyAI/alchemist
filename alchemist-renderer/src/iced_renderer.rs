@@ -3,9 +3,9 @@
 use anyhow::Result;
 use iced::{
     widget::{button, column, container, row, scrollable, text, text_editor},
-    window, executor, Element, Length, Settings, Theme, Alignment,
+    window, executor, Element, Length, Settings, Theme, Alignment, Command,
 };
-use iced::application::{Application, Update};
+use iced::application::Application;
 use alchemist::renderer::{RenderRequest, RenderData};
 
 mod dashboard_app;
@@ -16,6 +16,15 @@ use rss_feed_view::{RssFeedView, RssFeedMessage};
 
 mod dialog_ui_simple;
 use dialog_ui_simple::{DialogUI, DialogConfig};
+
+mod event_monitor_view;
+use event_monitor_view::{EventMonitorApp, launch_event_monitor};
+
+mod markdown_view;
+use markdown_view::{MarkdownView, MarkdownMessage, MarkdownTheme};
+
+mod chart_view;
+use chart_view::{ChartView, ChartMessage, ChartType, Series, ChartOptions};
 
 pub fn run(request: RenderRequest) -> Result<()> {
     let settings = Settings {
@@ -43,6 +52,28 @@ pub fn run(request: RenderRequest) -> Result<()> {
         }
         RenderData::TextEditor { file_path, content, language } => {
             TextEditorApp::run(settings)?;
+        }
+        RenderData::Markdown { content, theme } => {
+            let theme_obj = match theme.as_deref() {
+                Some("dark") => MarkdownTheme::dark(),
+                _ => MarkdownTheme::default(),
+            };
+            MarkdownApp::run(settings.with_flags((content.clone(), theme_obj)))?;
+        }
+        RenderData::Chart { data, chart_type, options } => {
+            // Parse chart data
+            let series: Vec<Series> = serde_json::from_value(data.clone())?;
+            let chart_type_enum = match chart_type.as_str() {
+                "bar" => ChartType::Bar,
+                "scatter" => ChartType::Scatter,
+                "pie" => ChartType::Pie,
+                "area" => ChartType::Area,
+                _ => ChartType::Line,
+            };
+            let chart_options: ChartOptions = serde_json::from_value(options.clone())
+                .unwrap_or_default();
+            
+            ChartApp::run(settings.with_flags((series, chart_type_enum, chart_options)))?;
         }
         RenderData::Custom { data } => {
             // Check if it's a dashboard
@@ -257,5 +288,78 @@ impl Application for GenericViewer {
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
+    }
+}
+
+// Markdown Viewer Application
+struct MarkdownApp {
+    view: MarkdownView,
+    title: String,
+}
+
+impl Application for MarkdownApp {
+    type Executor = iced::executor::Default;
+    type Message = MarkdownMessage;
+    type Theme = Theme;
+    type Flags = (String, MarkdownTheme);
+
+    fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        let (content, theme) = flags;
+        (
+            Self {
+                view: MarkdownView::new(content, Some(theme)),
+                title: "Markdown Viewer".to_string(),
+            },
+            Command::none()
+        )
+    }
+
+    fn title(&self) -> String {
+        self.title.clone()
+    }
+
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        self.view.update(message)
+    }
+
+    fn view(&self) -> Element<Self::Message> {
+        self.view.view()
+    }
+}
+
+// Chart Viewer Application
+struct ChartApp {
+    view: ChartView,
+    title: String,
+}
+
+impl Application for ChartApp {
+    type Executor = iced::executor::Default;
+    type Message = ChartMessage;
+    type Theme = Theme;
+    type Flags = (Vec<Series>, ChartType, ChartOptions);
+
+    fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        let (data, chart_type, options) = flags;
+        let title = options.title.clone().unwrap_or_else(|| "Chart Viewer".to_string());
+        (
+            Self {
+                view: ChartView::new(data, chart_type, options),
+                title,
+            },
+            Command::none()
+        )
+    }
+
+    fn title(&self) -> String {
+        self.title.clone()
+    }
+
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        self.view.update(message)
+    }
+
+    fn view(&self) -> Element<Self::Message> {
+        self.view.view()
     }
 }

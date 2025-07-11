@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "name": "Market Share",
+      "data": [
+        {"x": 0, "y": 35, "label": "Company A"},
+        {"x": 1, "y": 25, "label": "Company B"},
+        {"x": 2, "y": 20, "label": "Company C"},
+        {"x": 3, "y": 15, "label": "Company D"},
+        {"x": 4, "y": 5, "label": "Others"}
+      ]
+    }
+  ],
+  "chart_type": "pie",
+  "options": {
+    "title": "Market Share Distribution",
+    "show_legend": true,
+    "interactive": true
+  }
+}

@@ -42,7 +42,7 @@ async fn test_event_store_in_memory() -> DomainResult<()> {
 
 #[tokio::test] 
 async fn test_graph_components() -> DomainResult<()> {
-    use cim_domain_graph::{GraphType, components::GraphEntity, components::GraphMetadata};
+    use cim_domain_graph::{components::{GraphEntity, GraphMetadata, GraphType}};
     
     // Create graph components
     let graph_id = GraphId::new();
@@ -82,7 +82,7 @@ async fn test_graph_events() -> DomainResult<()> {
         graph_id,
         name: "Test Graph".to_string(),
         description: "Integration test graph".to_string(),
-        graph_type: Some(cim_domain_graph::GraphType::General),
+        graph_type: Some(cim_domain_graph::components::GraphType::General),
         metadata: HashMap::new(),
         created_at: chrono::Utc::now(),
     };

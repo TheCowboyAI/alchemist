@@ -2,6 +2,7 @@
 
 use anyhow::{Result, Context};
 use std::collections::HashMap;
+use std::sync::Arc;
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn, error};
@@ -14,7 +15,7 @@ use crate::{
 };
 use std::time::{Duration, Instant};
 use tokio::time::timeout;
-use futures::{Stream, StreamExt, stream};
+use futures::{Stream, stream};
 use std::pin::Pin;
 use std::task::{Context as TaskContext, Poll};
 use bytes::Bytes;
@@ -47,11 +48,12 @@ pub struct TestResult {
     pub used_fallback: bool,
 }
 
+#[derive(Clone)]
 pub struct AiManager {
-    models: DashMap<String, AiModel>,
+    models: Arc<DashMap<String, AiModel>>,
     client: Client,
     default_model: Option<String>,
-    rate_limits: DashMap<String, RateLimiter>,
+    rate_limits: Arc<DashMap<String, RateLimiter>>,
 }
 
 #[derive(Debug)]
@@ -82,8 +84,8 @@ impl Stream for StreamingResponseStream {
 
 impl AiManager {
     pub async fn new(config: &AlchemistConfig) -> Result<Self> {
-        let models = DashMap::new();
-        let rate_limits = DashMap::new();
+        let models = Arc::new(DashMap::new());
+        let rate_limits = Arc::new(DashMap::new());
         
         // Load configured models
         for (name, model_config) in &config.ai_models {
@@ -515,6 +517,31 @@ impl AiManager {
         }
     }
     
+    /// Get completion (non-streaming)
+    pub async fn get_completion(&self, model_name: &str, prompt: &str) -> Result<String> {
+        use futures::StreamExt;
+        
+        let mut stream = self.stream_completion(model_name, prompt).await?;
+        let mut full_response = String::new();
+        
+        while let Some(chunk) = stream.next().await {
+            match chunk {
+                Ok(response) => {
+                    full_response.push_str(&response.content);
+                    if response.is_final {
+                        break;
+                    }
+                }
+                Err(e) => {
+                    error!("Stream error: {}", e);
+                    return Err(e);
+                }
+            }
+        }
+        
+        Ok(full_response)
+    }
+    
     /// Stream completion from an AI model
     pub async fn stream_completion(&self, model_name: &str, prompt: &str) -> Result<StreamingResponseStream> {
         self.stream_completion_with_context(model_name, prompt, None).await
@@ -753,5 +780,698 @@ impl AiManager {
         }
         
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mockito::Server;
+
+    fn create_test_config() -> AlchemistConfig {
+        let mut config = AlchemistConfig::default();
+        config.general.default_ai_model = Some("test-model".to_string());
+        config
+    }
+
+    fn create_test_model_config(provider: &str, endpoint: Option<String>) -> AiModelConfig {
+        AiModelConfig {
+            provider: provider.to_string(),
+            endpoint,
+            api_key_env: Some("TEST_API_KEY".to_string()),
+            model_name: "test-model".to_string(),
+            max_tokens: Some(1000),
+            temperature: Some(0.7),
+            timeout_seconds: Some(5),
+            rate_limit: None,
+            fallback_model: None,
+            params: HashMap::new(),
+        }
+    }
+
+    async fn create_test_manager() -> AiManager {
+        let config = create_test_config();
+        AiManager::new(&config).await.unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_ai_manager_initialization() {
+        let mut config = create_test_config();
+        config.ai_models.insert(
+            "model1".to_string(),
+            create_test_model_config("openai", None),
+        );
+        config.ai_models.insert(
+            "model2".to_string(),
+            create_test_model_config("anthropic", None),
+        );
+
+        let manager = AiManager::new(&config).await.unwrap();
+        
+        assert_eq!(manager.models.len(), 2);
+        assert!(manager.models.contains_key("model1"));
+        assert!(manager.models.contains_key("model2"));
+        assert_eq!(manager.default_model, Some("test-model".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_ai_manager_initialization_with_rate_limits() {
+        let mut config = create_test_config();
+        let mut model_config = create_test_model_config("openai", None);
+        model_config.rate_limit = Some(10);
+        config.ai_models.insert("limited-model".to_string(), model_config);
+
+        let manager = AiManager::new(&config).await.unwrap();
+        
+        assert!(manager.rate_limits.contains_key("limited-model"));
+        let limiter = manager.rate_limits.get("limited-model").unwrap();
+        assert_eq!(limiter.max_requests, 10);
+        assert_eq!(limiter.request_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_model_registration() {
+        let mut manager = create_test_manager().await;
+        
+        // Test adding OpenAI model
+        manager.add_model("openai-test".to_string(), "openai".to_string(), None).await.unwrap();
+        
+        {
+            let model = manager.models.get("openai-test").unwrap();
+            assert_eq!(model.config.provider, "openai");
+            assert_eq!(model.config.endpoint, Some("https://api.openai.com/v1".to_string()));
+            assert_eq!(model.config.api_key_env, Some("OPENAI_API_KEY".to_string()));
+            assert_eq!(model.config.model_name, "gpt-4-turbo-preview");
+        }
+        
+        // Test adding Anthropic model
+        manager.add_model("anthropic-test".to_string(), "anthropic".to_string(), None).await.unwrap();
+        
+        {
+            let model = manager.models.get("anthropic-test").unwrap();
+            assert_eq!(model.config.provider, "anthropic");
+            assert_eq!(model.config.endpoint, Some("https://api.anthropic.com/v1".to_string()));
+            assert_eq!(model.config.api_key_env, Some("ANTHROPIC_API_KEY".to_string()));
+            assert_eq!(model.config.model_name, "claude-3-opus-20240229");
+        }
+        
+        // Test adding Ollama model
+        manager.add_model("ollama-test".to_string(), "ollama".to_string(), None).await.unwrap();
+        
+        {
+            let model = manager.models.get("ollama-test").unwrap();
+            assert_eq!(model.config.provider, "ollama");
+            assert_eq!(model.config.endpoint, Some("http://localhost:11434".to_string()));
+            assert_eq!(model.config.api_key_env, None);
+            assert_eq!(model.config.model_name, "llama2");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_model_registration_with_custom_endpoint() {
+        let mut manager = create_test_manager().await;
+        
+        let custom_endpoint = "https://custom.api.endpoint.com";
+        manager.add_model(
+            "custom-model".to_string(),
+            "openai".to_string(),
+            Some(custom_endpoint.to_string()),
+        ).await.unwrap();
+        
+        let model = manager.models.get("custom-model").unwrap();
+        assert_eq!(model.config.endpoint, Some(custom_endpoint.to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_model_registration_unknown_provider() {
+        let mut manager = create_test_manager().await;
+        
+        let result = manager.add_model(
+            "unknown-model".to_string(),
+            "unknown-provider".to_string(),
+            None,
+        ).await;
+        
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Unknown provider"));
+        assert!(!manager.models.contains_key("unknown-model"));
+    }
+
+    #[tokio::test]
+    async fn test_list_models() {
+        let mut manager = create_test_manager().await;
+        
+        manager.add_model("model-a".to_string(), "openai".to_string(), None).await.unwrap();
+        manager.add_model("model-b".to_string(), "anthropic".to_string(), None).await.unwrap();
+        manager.add_model("model-c".to_string(), "ollama".to_string(), None).await.unwrap();
+        
+        let models = manager.list_models().await.unwrap();
+        
+        assert_eq!(models.len(), 3);
+        // Verify sorting
+        assert_eq!(models[0].0, "model-a");
+        assert_eq!(models[1].0, "model-b");
+        assert_eq!(models[2].0, "model-c");
+    }
+
+    #[tokio::test]
+    async fn test_remove_model() {
+        let mut manager = create_test_manager().await;
+        
+        manager.add_model("to-remove".to_string(), "openai".to_string(), None).await.unwrap();
+        assert!(manager.models.contains_key("to-remove"));
+        
+        manager.remove_model("to-remove").await.unwrap();
+        assert!(!manager.models.contains_key("to-remove"));
+    }
+
+    #[tokio::test]
+    async fn test_remove_default_model() {
+        let mut manager = create_test_manager().await;
+        manager.default_model = Some("default-model".to_string());
+        
+        manager.add_model("default-model".to_string(), "openai".to_string(), None).await.unwrap();
+        manager.remove_model("default-model").await.unwrap();
+        
+        assert!(manager.default_model.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_get_model() {
+        let mut manager = create_test_manager().await;
+        
+        manager.add_model("get-test".to_string(), "openai".to_string(), None).await.unwrap();
+        
+        let model = manager.get_model("get-test").await.unwrap();
+        assert_eq!(model.name, "get-test");
+        assert_eq!(model.config.provider, "openai");
+        
+        let result = manager.get_model("non-existent").await;
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("Model not found"));
+    }
+
+    #[tokio::test]
+    async fn test_get_default_model() {
+        let manager = create_test_manager().await;
+        assert_eq!(manager.get_default_model(), Some("test-model".to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_openai_connection_success() {
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/chat/completions")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"choices":[{"message":{"content":"test successful"}}]}"#)
+            .create_async()
+            .await;
+
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "openai-test".to_string(),
+            "openai".to_string(),
+            Some(server.url()),
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("openai-test").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        drop(model);
+        
+        let result = manager.test_connection("openai-test").await.unwrap();
+        
+        assert!(result.success);
+        assert_eq!(result.status, ModelStatus::Available);
+        assert!(result.error.is_none());
+        assert!(!result.used_fallback);
+        
+        mock.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_openai_connection_failure() {
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/chat/completions")
+            .with_status(401)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"error":{"message":"Invalid API key"}}"#)
+            .create_async()
+            .await;
+
+        std::env::set_var("TEST_API_KEY", "invalid-key");
+        
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "openai-fail".to_string(),
+            "openai".to_string(),
+            Some(server.url()),
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("openai-fail").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        drop(model);
+        
+        let result = manager.test_connection("openai-fail").await.unwrap();
+        
+        assert!(!result.success);
+        assert_eq!(result.status, ModelStatus::Error);
+        assert!(result.error.is_some());
+        assert!(result.error.unwrap().contains("OpenAI API error"));
+        
+        mock.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_anthropic_connection_success() {
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/messages")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"content":[{"text":"test successful"}]}"#)
+            .create_async()
+            .await;
+
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "anthropic-test".to_string(),
+            "anthropic".to_string(),
+            Some(server.url()),
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("anthropic-test").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        drop(model);
+        
+        let result = manager.test_connection("anthropic-test").await.unwrap();
+        
+        assert!(result.success);
+        assert_eq!(result.status, ModelStatus::Available);
+        assert!(result.error.is_none());
+        
+        mock.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_ollama_connection_success() {
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/api/generate")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"response":"test successful"}"#)
+            .create_async()
+            .await;
+
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "ollama-test".to_string(),
+            "ollama".to_string(),
+            Some(server.url()),
+        ).await.unwrap();
+        
+        let result = manager.test_connection("ollama-test").await.unwrap();
+        
+        assert!(result.success);
+        assert_eq!(result.status, ModelStatus::Available);
+        assert!(result.error.is_none());
+        
+        mock.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_connection_timeout() {
+        // Create a server that will never respond (simulate timeout)
+        // Since mockito doesn't support delay in this version, we'll test timeout
+        // by using a non-existent server endpoint
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "timeout-test".to_string(),
+            "openai".to_string(),
+            Some("http://localhost:59999".to_string()), // Non-existent port
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("timeout-test").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        model.config.timeout_seconds = Some(1); // 1 second timeout
+        drop(model);
+        
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let result = manager.test_connection("timeout-test").await.unwrap();
+        
+        assert!(!result.success);
+        // The status might be Timeout or Error depending on how the connection fails
+        assert!(result.status == ModelStatus::Timeout || result.status == ModelStatus::Error);
+        assert!(result.error.is_some());
+        
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_missing_api_key() {
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "no-key-test".to_string(),
+            "openai".to_string(),
+            None,
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("no-key-test").unwrap();
+        model.config.api_key_env = Some("NONEXISTENT_KEY".to_string());
+        drop(model);
+        
+        let result = manager.test_connection("no-key-test").await.unwrap();
+        
+        assert!(!result.success);
+        assert_eq!(result.status, ModelStatus::Error);
+        assert!(result.error.is_some());
+        assert!(result.error.unwrap().contains("API key not found"));
+    }
+
+    #[tokio::test]
+    async fn test_rate_limiting() {
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/chat/completions")
+            .with_status(200)
+            .with_body(r#"{"choices":[]}"#)
+            .expect(2)
+            .create_async()
+            .await;
+
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "rate-limited".to_string(),
+            "openai".to_string(),
+            Some(server.url()),
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("rate-limited").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        model.config.rate_limit = Some(2); // Allow only 2 requests
+        drop(model);
+        
+        // Initialize rate limiter
+        manager.rate_limits.insert("rate-limited".to_string(), RateLimiter {
+            max_requests: 2,
+            window_start: Instant::now(),
+            request_count: 0,
+        });
+        
+        // First two requests should succeed
+        let result1 = manager.test_connection("rate-limited").await.unwrap();
+        assert!(result1.success);
+        
+        let result2 = manager.test_connection("rate-limited").await.unwrap();
+        assert!(result2.success);
+        
+        // Third request should be rate limited
+        let result3 = manager.test_connection("rate-limited").await.unwrap();
+        assert!(!result3.success);
+        assert_eq!(result3.status, ModelStatus::RateLimited);
+        assert!(result3.error.unwrap().contains("Rate limit"));
+        
+        mock.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_rate_limit_window_reset() {
+        let mut manager = create_test_manager().await;
+        
+        // Create a rate limiter with a past window
+        let past_window = Instant::now() - Duration::from_secs(120);
+        manager.rate_limits.insert("test-model".to_string(), RateLimiter {
+            max_requests: 1,
+            window_start: past_window,
+            request_count: 1,
+        });
+        
+        manager.add_model(
+            "test-model".to_string(),
+            "openai".to_string(),
+            None,
+        ).await.unwrap();
+        
+        // This should reset the window and allow the request
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/chat/completions")
+            .with_status(200)
+            .with_body(r#"{"choices":[]}"#)
+            .create_async()
+            .await;
+            
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let mut model = manager.models.get_mut("test-model").unwrap();
+        model.config.endpoint = Some(server.url());
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        drop(model);
+        
+        let result = manager.test_connection("test-model").await.unwrap();
+        assert!(result.success);
+        
+        mock.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_fallback_model() {
+        let mut server = Server::new_async().await;
+        
+        // Primary model will fail
+        let mock_primary = server.mock("POST", "/primary/chat/completions")
+            .with_status(500)
+            .with_body("Internal Server Error")
+            .create_async()
+            .await;
+            
+        // Fallback model will succeed
+        let mock_fallback = server.mock("POST", "/fallback/chat/completions")
+            .with_status(200)
+            .with_body(r#"{"choices":[]}"#)
+            .create_async()
+            .await;
+
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let mut manager = create_test_manager().await;
+        
+        // Add fallback model
+        manager.add_model(
+            "fallback-model".to_string(),
+            "openai".to_string(),
+            Some(format!("{}/fallback", server.url())),
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("fallback-model").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        drop(model);
+        
+        // Add primary model with fallback
+        manager.add_model(
+            "primary-model".to_string(),
+            "openai".to_string(),
+            Some(format!("{}/primary", server.url())),
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("primary-model").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        model.config.fallback_model = Some("fallback-model".to_string());
+        drop(model);
+        
+        let result = manager.test_connection_with_fallback("primary-model").await.unwrap();
+        
+        assert!(result.success);
+        assert!(result.used_fallback);
+        assert_eq!(result.model_used, "fallback-model");
+        
+        mock_primary.assert_async().await;
+        mock_fallback.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_concurrent_operations() {
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/chat/completions")
+            .with_status(200)
+            .with_body(r#"{"choices":[]}"#)
+            .expect_at_least(3)
+            .create_async()
+            .await;
+
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let mut manager = create_test_manager().await;
+        
+        // Add multiple models
+        for i in 0..3 {
+            manager.add_model(
+                format!("concurrent-{}", i),
+                "openai".to_string(),
+                Some(server.url()),
+            ).await.unwrap();
+            
+            let mut model = manager.models.get_mut(&format!("concurrent-{}", i)).unwrap();
+            model.config.api_key_env = Some("TEST_API_KEY".to_string());
+            drop(model);
+        }
+        
+        // Test all connections concurrently
+        let results = manager.test_all_connections().await.unwrap();
+        
+        assert_eq!(results.len(), 3);
+        for (_, result) in results {
+            assert!(result.success);
+            assert_eq!(result.status, ModelStatus::Available);
+        }
+        
+        mock.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
+    }
+
+    #[tokio::test]
+    async fn test_model_switching() {
+        let mut manager = create_test_manager().await;
+        
+        manager.add_model("model1".to_string(), "openai".to_string(), None).await.unwrap();
+        manager.add_model("model2".to_string(), "anthropic".to_string(), None).await.unwrap();
+        
+        // Test switching between models
+        let model1 = manager.get_model("model1").await.unwrap();
+        assert_eq!(model1.config.provider, "openai");
+        
+        let model2 = manager.get_model("model2").await.unwrap();
+        assert_eq!(model2.config.provider, "anthropic");
+    }
+
+    #[tokio::test]
+    async fn test_configuration_validation() {
+        let mut manager = create_test_manager().await;
+        
+        // Test various configuration scenarios
+        manager.add_model("config-test".to_string(), "openai".to_string(), None).await.unwrap();
+        
+        let model = manager.models.get("config-test").unwrap();
+        assert_eq!(model.config.max_tokens, Some(4096));
+        assert_eq!(model.config.temperature, Some(0.7));
+        assert_eq!(model.config.timeout_seconds, Some(30));
+        assert!(model.config.rate_limit.is_none());
+        assert!(model.config.fallback_model.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_streaming_response_parsing_anthropic() {
+        // Test parsing Anthropic streaming response
+        let line = r#"data: {"type":"content_block_delta","delta":{"text":"Hello"}}"#;
+        let result = AiManager::parse_anthropic_line(line).unwrap().unwrap();
+        assert_eq!(result.content, "Hello");
+        assert!(!result.is_final);
+        
+        let line = r#"data: {"type":"message_stop"}"#;
+        let result = AiManager::parse_anthropic_line(line).unwrap().unwrap();
+        assert_eq!(result.content, "");
+        assert!(result.is_final);
+        
+        let line = r#"data: {"type":"error","error":{"message":"API Error"}}"#;
+        let result = AiManager::parse_anthropic_line(line).unwrap();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("API Error"));
+    }
+
+    #[tokio::test]
+    async fn test_streaming_response_parsing_openai() {
+        // Test parsing OpenAI streaming response
+        let line = r#"data: {"choices":[{"delta":{"content":"World"}}]}"#;
+        let result = AiManager::parse_openai_line(line).unwrap().unwrap();
+        assert_eq!(result.content, "World");
+        assert!(!result.is_final);
+        
+        let line = "data: [DONE]";
+        let result = AiManager::parse_openai_line(line).unwrap().unwrap();
+        assert_eq!(result.content, "");
+        assert!(result.is_final);
+        
+        let line = "data: invalid-json";
+        let result = AiManager::parse_openai_line(line).unwrap();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("JSON parse error"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_command_list() {
+        let mut manager = create_test_manager().await;
+        manager.add_model("test-model".to_string(), "openai".to_string(), None).await.unwrap();
+        
+        // This test primarily verifies the command doesn't panic
+        let result = manager.handle_command(AiCommands::List).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_command_add() {
+        let mut manager = create_test_manager().await;
+        
+        let result = manager.handle_command(AiCommands::Add {
+            name: "new-model".to_string(),
+            provider: "openai".to_string(),
+            endpoint: None,
+        }).await;
+        
+        assert!(result.is_ok());
+        assert!(manager.models.contains_key("new-model"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_command_remove() {
+        let mut manager = create_test_manager().await;
+        manager.add_model("to-remove".to_string(), "openai".to_string(), None).await.unwrap();
+        
+        let result = manager.handle_command(AiCommands::Remove {
+            name: "to-remove".to_string(),
+        }).await;
+        
+        assert!(result.is_ok());
+        assert!(!manager.models.contains_key("to-remove"));
+    }
+
+    #[tokio::test]
+    async fn test_handle_command_test() {
+        let mut server = Server::new_async().await;
+        let mock = server.mock("POST", "/chat/completions")
+            .with_status(200)
+            .with_body(r#"{"choices":[]}"#)
+            .create_async()
+            .await;
+
+        std::env::set_var("TEST_API_KEY", "test-key");
+        
+        let mut manager = create_test_manager().await;
+        manager.add_model(
+            "test-cmd-model".to_string(),
+            "openai".to_string(),
+            Some(server.url()),
+        ).await.unwrap();
+        
+        let mut model = manager.models.get_mut("test-cmd-model").unwrap();
+        model.config.api_key_env = Some("TEST_API_KEY".to_string());
+        drop(model);
+        
+        let result = manager.handle_command(AiCommands::Test {
+            name: "test-cmd-model".to_string(),
+        }).await;
+        
+        assert!(result.is_ok());
+        
+        mock.assert_async().await;
+        std::env::remove_var("TEST_API_KEY");
     }
 }

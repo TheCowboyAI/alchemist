@@ -65,6 +65,40 @@ pub enum RenderCommands {
         playlist: Vec<String>,
     },
     
+    /// Open a markdown viewer
+    Markdown {
+        /// Markdown file path
+        file: String,
+        
+        /// Theme to use (light or dark)
+        #[arg(short, long, default_value = "light")]
+        theme: String,
+    },
+    
+    /// Open a chart viewer
+    Chart {
+        /// Chart data file (JSON)
+        file: String,
+        
+        /// Chart type (line, bar, scatter, pie, area)
+        #[arg(short = 't', long, default_value = "line")]
+        chart_type: String,
+        
+        /// Chart title
+        #[arg(long)]
+        title: Option<String>,
+    },
+    
+    /// Generate a report with markdown and charts
+    Report {
+        /// Report template name
+        template: String,
+        
+        /// Output file
+        #[arg(short, long)]
+        output: Option<String>,
+    },
+    
     /// List active renderer windows
     List,
     
@@ -94,4 +128,10 @@ pub enum DemoType {
     Workflow,
     /// Split view (multiple windows)
     Split,
+    /// Markdown rendering demo
+    Markdown,
+    /// Chart visualization demo
+    Chart,
+    /// Combined report with markdown and charts
+    Report,
 }

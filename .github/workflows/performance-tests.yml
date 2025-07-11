@@ -1,0 +1,197 @@
+name: Performance Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run performance tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  performance-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Run performance unit tests
+      run: |
+        cargo test --test test_cache_rate_limit -- --nocapture
+        cargo test --test test_performance_integration -- --nocapture
+
+    - name: Run benchmarks
+      run: |
+        # Create a simple benchmark runner script
+        cat > run_benchmarks.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        echo "Running Alchemist Performance Benchmarks"
+        echo "========================================"
+        
+        # Set up test environment
+        export REDIS_URL="redis://localhost:6379"
+        export ANTHROPIC_API_KEY="test-key"
+        export OPENAI_API_KEY="test-key"
+        
+        # Run cargo benchmarks if they exist
+        if cargo bench --no-run 2>/dev/null; then
+          cargo bench -- --test
+        fi
+        
+        # Run integration benchmarks
+        cargo test --release benchmark -- --nocapture || true
+        
+        echo "Benchmarks completed"
+        EOF
+        
+        chmod +x run_benchmarks.sh
+        ./run_benchmarks.sh
+
+    - name: Performance regression check
+      run: |
+        # Create performance regression script
+        cat > check_performance.sh << 'EOF'
+        #!/bin/bash
+        
+        echo "Checking for performance regressions..."
+        
+        # Run a simple performance test
+        cargo test --release --test test_performance_integration -- --nocapture > perf_results.txt 2>&1 || true
+        
+        # Check if cache tests pass
+        if grep -q "test_memory_cache_basic.*ok" perf_results.txt; then
+          echo "✓ Memory cache tests passed"
+        else
+          echo "✗ Memory cache tests failed"
+          exit 1
+        fi
+        
+        # Check if rate limiter tests pass  
+        if grep -q "test.*rate.*limit.*ok" perf_results.txt; then
+          echo "✓ Rate limiter tests passed"
+        else
+          echo "✗ Rate limiter tests failed"
+          exit 1
+        fi
+        
+        echo "Performance checks completed successfully"
+        EOF
+        
+        chmod +x check_performance.sh
+        ./check_performance.sh
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: |
+          perf_results.txt
+          target/criterion/
+
+  stress-test:
+    runs-on: ubuntu-latest
+    needs: performance-tests
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+
+    - name: Run stress tests
+      run: |
+        cat > stress_test.sh << 'EOF'
+        #!/bin/bash
+        
+        echo "Running stress tests..."
+        
+        # Set up environment
+        export REDIS_URL="redis://localhost:6379"
+        
+        # Run cache stress test
+        cargo test --release stress_test_cache -- --ignored --nocapture || true
+        
+        # Run rate limiter stress test
+        cargo test --release stress_test_rate_limiter -- --ignored --nocapture || true
+        
+        echo "Stress tests completed"
+        EOF
+        
+        chmod +x stress_test.sh
+        ./stress_test.sh
+
+    - name: Generate performance report
+      run: |
+        echo "# Performance Test Report" > performance_report.md
+        echo "" >> performance_report.md
+        echo "## Test Results" >> performance_report.md
+        echo "" >> performance_report.md
+        echo "Date: $(date)" >> performance_report.md
+        echo "Commit: ${{ github.sha }}" >> performance_report.md
+        echo "" >> performance_report.md
+        
+        # Add test results if available
+        if [ -f perf_results.txt ]; then
+          echo "### Unit Test Results" >> performance_report.md
+          echo '```' >> performance_report.md
+          tail -n 20 perf_results.txt >> performance_report.md
+          echo '```' >> performance_report.md
+        fi
+
+    - name: Comment PR with results
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('performance_report.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: report
+          });

@@ -1,0 +1,210 @@
+{
+  "title": "AI Model Usage Statistics",
+  "charts": [
+    {
+      "id": "model-requests",
+      "type": "line",
+      "title": "AI Model Request Volume",
+      "data": [
+        {
+          "name": "GPT-4",
+          "color": [0.12, 0.47, 0.71, 1.0],
+          "data": [
+            {"x": 0, "y": 150, "label": "Mon"},
+            {"x": 1, "y": 180, "label": "Tue"},
+            {"x": 2, "y": 220, "label": "Wed"},
+            {"x": 3, "y": 195, "label": "Thu"},
+            {"x": 4, "y": 250, "label": "Fri"},
+            {"x": 5, "y": 120, "label": "Sat"},
+            {"x": 6, "y": 100, "label": "Sun"}
+          ]
+        },
+        {
+          "name": "Claude-2",
+          "color": [1.0, 0.5, 0.05, 1.0],
+          "data": [
+            {"x": 0, "y": 120},
+            {"x": 1, "y": 140},
+            {"x": 2, "y": 170},
+            {"x": 3, "y": 155},
+            {"x": 4, "y": 190},
+            {"x": 5, "y": 95},
+            {"x": 6, "y": 80}
+          ]
+        },
+        {
+          "name": "LLaMA-2",
+          "color": [0.17, 0.63, 0.17, 1.0],
+          "data": [
+            {"x": 0, "y": 80},
+            {"x": 1, "y": 95},
+            {"x": 2, "y": 110},
+            {"x": 3, "y": 100},
+            {"x": 4, "y": 125},
+            {"x": 5, "y": 60},
+            {"x": 6, "y": 50}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Day of Week",
+        "y_label": "Request Count",
+        "show_grid": true,
+        "show_legend": true
+      }
+    },
+    {
+      "id": "cost-breakdown",
+      "type": "pie",
+      "title": "AI Model Cost Distribution",
+      "data": [
+        {
+          "name": "Monthly Costs",
+          "data": [
+            {"x": 0, "y": 450.75, "label": "GPT-4 ($450.75)"},
+            {"x": 1, "y": 320.50, "label": "Claude-2 ($320.50)"},
+            {"x": 2, "y": 180.25, "label": "LLaMA-2 ($180.25)"},
+            {"x": 3, "y": 95.00, "label": "Mistral ($95.00)"},
+            {"x": 4, "y": 53.50, "label": "Other ($53.50)"}
+          ]
+        }
+      ],
+      "options": {
+        "show_legend": true
+      }
+    },
+    {
+      "id": "response-quality",
+      "type": "scatter",
+      "title": "Response Time vs Quality Score",
+      "data": [
+        {
+          "name": "GPT-4",
+          "color": [0.12, 0.47, 0.71, 0.8],
+          "data": [
+            {"x": 2.1, "y": 9.5},
+            {"x": 2.3, "y": 9.3},
+            {"x": 1.9, "y": 9.6},
+            {"x": 2.5, "y": 9.2},
+            {"x": 2.2, "y": 9.4},
+            {"x": 2.0, "y": 9.5},
+            {"x": 2.4, "y": 9.1},
+            {"x": 2.1, "y": 9.4}
+          ]
+        },
+        {
+          "name": "Claude-2",
+          "color": [1.0, 0.5, 0.05, 0.8],
+          "data": [
+            {"x": 1.8, "y": 9.2},
+            {"x": 1.6, "y": 9.3},
+            {"x": 1.9, "y": 9.1},
+            {"x": 1.7, "y": 9.2},
+            {"x": 1.5, "y": 9.4},
+            {"x": 1.8, "y": 9.0},
+            {"x": 1.6, "y": 9.3},
+            {"x": 1.7, "y": 9.2}
+          ]
+        },
+        {
+          "name": "LLaMA-2",
+          "color": [0.17, 0.63, 0.17, 0.8],
+          "data": [
+            {"x": 3.2, "y": 8.5},
+            {"x": 3.5, "y": 8.3},
+            {"x": 3.0, "y": 8.7},
+            {"x": 3.3, "y": 8.4},
+            {"x": 3.1, "y": 8.6},
+            {"x": 3.4, "y": 8.2},
+            {"x": 3.2, "y": 8.5},
+            {"x": 3.3, "y": 8.4}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Response Time (seconds)",
+        "y_label": "Quality Score (0-10)",
+        "show_grid": true,
+        "show_legend": true
+      }
+    },
+    {
+      "id": "token-efficiency",
+      "type": "bar",
+      "title": "Token Efficiency by Task Type",
+      "data": [
+        {
+          "name": "Input Tokens",
+          "color": [0.12, 0.47, 0.71, 0.8],
+          "data": [
+            {"x": 0, "y": 500, "label": "Summarization"},
+            {"x": 1, "y": 1200, "label": "Translation"},
+            {"x": 2, "y": 800, "label": "Q&A"},
+            {"x": 3, "y": 300, "label": "Classification"},
+            {"x": 4, "y": 1500, "label": "Generation"}
+          ]
+        },
+        {
+          "name": "Output Tokens",
+          "color": [1.0, 0.5, 0.05, 0.8],
+          "data": [
+            {"x": 0, "y": 150},
+            {"x": 1, "y": 1100},
+            {"x": 2, "y": 200},
+            {"x": 3, "y": 50},
+            {"x": 4, "y": 2000}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Task Type",
+        "y_label": "Average Token Count",
+        "show_grid": true,
+        "show_legend": true
+      }
+    },
+    {
+      "id": "hourly-usage",
+      "type": "area",
+      "title": "24-Hour Usage Pattern",
+      "data": [
+        {
+          "name": "API Calls",
+          "color": [0.58, 0.4, 0.74, 0.6],
+          "data": [
+            {"x": 0, "y": 20},
+            {"x": 1, "y": 15},
+            {"x": 2, "y": 12},
+            {"x": 3, "y": 10},
+            {"x": 4, "y": 8},
+            {"x": 5, "y": 12},
+            {"x": 6, "y": 25},
+            {"x": 7, "y": 45},
+            {"x": 8, "y": 80},
+            {"x": 9, "y": 120},
+            {"x": 10, "y": 150},
+            {"x": 11, "y": 140},
+            {"x": 12, "y": 130},
+            {"x": 13, "y": 145},
+            {"x": 14, "y": 160},
+            {"x": 15, "y": 155},
+            {"x": 16, "y": 140},
+            {"x": 17, "y": 120},
+            {"x": 18, "y": 90},
+            {"x": 19, "y": 70},
+            {"x": 20, "y": 50},
+            {"x": 21, "y": 40},
+            {"x": 22, "y": 30},
+            {"x": 23, "y": 25}
+          ]
+        }
+      ],
+      "options": {
+        "x_label": "Hour of Day",
+        "y_label": "API Call Count",
+        "show_grid": true,
+        "show_legend": false
+      }
+    }
+  ]
+}

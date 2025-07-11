@@ -1,0 +1,60 @@
+[Unit]
+Description=Ollama AI Model Server for Alchemist
+Documentation=https://ollama.ai
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ollama
+Group=ollama
+WorkingDirectory=/var/lib/ollama
+
+# Environment
+Environment="OLLAMA_HOST=0.0.0.0:11434"
+Environment="OLLAMA_MODELS=/var/lib/ollama/models"
+Environment="OLLAMA_MAX_LOADED_MODELS=2"
+Environment="OLLAMA_NUM_PARALLEL=4"
+Environment="CUDA_VISIBLE_DEVICES=0"
+
+# Binary and arguments
+ExecStartPre=/usr/local/bin/ollama serve --check
+ExecStart=/usr/local/bin/ollama serve
+ExecStop=/bin/kill -TERM $MAINPID
+
+# Process management
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+TimeoutStartSec=300
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/ollama
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=16G
+CPUQuota=800%
+
+# GPU access
+DeviceAllow=/dev/nvidia0 rw
+DeviceAllow=/dev/nvidiactl rw
+DeviceAllow=/dev/nvidia-uvm rw
+DeviceAllow=/dev/nvidia-modeset rw
+SupplementaryGroups=video
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ollama
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,169 @@
+# Staging Configuration for Alchemist Agent
+# This configuration is optimized for staging/pre-production testing
+
+agent:
+  id: "${AGENT_ID:-alchemist-staging-001}"
+  name: "CIM Alchemist Staging"
+  description: "Staging AI agent for CIM architecture"
+  cluster_mode: true
+  instance_id: "${HOSTNAME:-staging-001}"
+
+model_provider:
+  type: "${AI_PROVIDER:-ollama}"
+  
+  # Ollama Configuration (Primary for staging)
+  ollama:
+    base_url: "http://ollama:11434"
+    model: "llama3:7b"
+    options:
+      temperature: 0.7
+      num_predict: 2048
+      num_ctx: 4096
+    health_check:
+      enabled: true
+      interval: 30
+      timeout: 10
+  
+  # Anthropic Configuration (Testing production provider)
+  anthropic:
+    base_url: "https://api.anthropic.com/v1"
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "claude-3-haiku-20240307"
+    options:
+      temperature: 0.7
+      max_tokens: 4096
+
+nats:
+  url: "${NATS_URL:-nats://nats:4222}"
+  jetstream:
+    enabled: true
+    store_dir: "/var/lib/alchemist/jetstream"
+    max_memory_store: 2GB
+    max_file_store: 50GB
+  subjects:
+    commands: "cim.agent.alchemist.staging.commands"
+    queries: "cim.agent.alchemist.staging.queries"
+    events: "cim.agent.alchemist.staging.events"
+    dialogs: "cim.dialog.alchemist.staging"
+    health: "cim.agent.alchemist.staging.health"
+    metrics: "cim.agent.alchemist.staging.metrics"
+
+service:
+  port: 8080
+  health_check_port: 8081
+  metrics_port: 9090
+  health_check_interval: 30
+  max_concurrent_requests: 50
+  request_timeout: 120
+  shutdown_timeout: 30
+  
+  # TLS optional for staging
+  tls:
+    enabled: false
+  
+  # Rate limiting (more permissive for testing)
+  rate_limit:
+    enabled: true
+    requests_per_minute: 500
+    burst_size: 50
+
+domains:
+  agent:
+    enabled: true
+    max_concurrent: 25
+    timeout: 60s
+  
+  dialog:
+    enabled: true
+    max_context_messages: 30
+    context_window: 4096
+    memory_type: "redis"
+    redis_url: "redis://redis:6379/0"
+  
+  identity:
+    enabled: true
+    jwt_secret: "${JWT_SECRET}"
+    token_expiry: 12h
+  
+  graph:
+    enabled: true
+    max_nodes: 100000
+    max_edges: 1000000
+  
+  conceptual_spaces:
+    enabled: true
+    dimensions: 64
+    similarity_threshold: 0.8
+    
+  workflow:
+    enabled: true
+    max_concurrent_workflows: 50
+    execution_timeout: 1800s
+
+database:
+  url: "${DATABASE_URL:-postgresql://alchemist:password@postgres:5432/alchemist_staging}"
+  max_connections: 25
+  min_connections: 5
+
+cache:
+  type: "redis"
+  redis:
+    url: "${REDIS_URL:-redis://redis:6379/2}"
+    pool_size: 10
+    
+storage:
+  type: "local"
+  local:
+    base_path: "/var/lib/alchemist/storage"
+    max_size: 50GB
+
+logging:
+  level: "${LOG_LEVEL:-info}"
+  format: "pretty"
+  output: "stdout"
+  
+  # More verbose logging for staging
+  sampling:
+    enabled: false
+
+monitoring:
+  prometheus:
+    enabled: true
+    path: "/metrics"
+    
+  tracing:
+    enabled: true
+    exporter: "otlp"
+    endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}"
+    sample_rate: 0.5
+    
+  health:
+    liveness:
+      path: "/health/live"
+      interval: 15s
+      
+    readiness:
+      path: "/health/ready"
+      interval: 15s
+
+security:
+  auth:
+    enabled: true
+    type: "jwt"
+    
+  api_key:
+    enabled: true
+    
+  cors:
+    enabled: true
+    allowed_origins:
+      - "*"  # Allow all origins in staging
+    
+  headers:
+    x_frame_options: "SAMEORIGIN"
+
+features:
+  experimental_features: true
+  beta_features: true
+  debug_endpoints: true
+  admin_api: true
