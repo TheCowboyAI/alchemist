@@ -2,6 +2,7 @@
 //!
 //! These tests verify that events are properly emitted, ordered, and contain
 //! the correct payloads throughout the UI interaction flow.
+#![cfg(feature = "bevy")]
 
 use bevy::prelude::*;
 use ia::{

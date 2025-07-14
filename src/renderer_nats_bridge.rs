@@ -7,7 +7,7 @@ use anyhow::Result;
 use async_nats::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
-use tracing::{info, warn, error};
+use tracing::{info, error};
 use std::sync::Arc;
 use dashmap::DashMap;
 use futures::StreamExt;

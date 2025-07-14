@@ -1,4 +1,5 @@
 //! Test fixtures and helpers for integration tests
+#![cfg(feature = "bevy")]
 
 use async_nats::jetstream;
 use cim_domain::{DomainError, DomainEvent, DomainResult, GraphId, NodeId, EdgeId};

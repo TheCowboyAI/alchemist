@@ -412,7 +412,7 @@ impl EventBuilder {
 
 /// For Iced TEA integration
 pub mod iced_integration {
-    use super::*;
+    
     
     /// Convert renderer events to Iced messages
     pub trait ToIcedMessage {

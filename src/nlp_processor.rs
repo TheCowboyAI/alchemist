@@ -3,10 +3,8 @@
 use anyhow::Result;
 use crate::ai::AiManager;
 use crate::rss_feed_manager::{ProcessedRssItem, Sentiment, Entity};
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use tracing::{info, debug, error};
-use std::collections::HashMap;
 
 /// NLP processor that uses real AI providers for text analysis
 pub struct NlpProcessor {

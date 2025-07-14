@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use crate::renderer::{RenderRequest, RenderData, RenderConfig, RendererType};
 use uuid::Uuid;
 use tokio::sync::mpsc;
-use std::sync::Arc;
 use async_nats::Client;
 
 use crate::dashboard_events::{DashboardEventProcessor, DashboardProjection, DomainHealth as EventDomainHealth};

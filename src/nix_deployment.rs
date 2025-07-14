@@ -3,18 +3,16 @@
 //! Provides functionality to generate and deploy Nix configurations for
 //! Alchemist services, agents, and CIM instances.
 
-use crate::config::{AgentConfig, ServiceConfig, DeploymentConfig};
+use crate::config::{AgentConfig, ServiceConfig};
 use crate::deployment::{DeploymentTarget, DeploymentStrategy};
 use crate::error::AlchemistError;
 use crate::nats_client::NatsClient;
-use async_nats::jetstream::consumer::PullConsumer;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
-use uuid::Uuid;
 use futures::StreamExt;
 
 /// Nix deployment manager

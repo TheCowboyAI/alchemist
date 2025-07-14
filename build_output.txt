@@ -1,1478 +1,378 @@
-warning: implicit autoref creates a reference to the dereference of a raw pointer
-   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:25
-    |
-759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
-    |                         ^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
-    = note: `#[warn(dangerous_implicit_autorefs)]` on by default
-help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
-    |
-759 |         bStillSame = if (&(*pg1).pTriMembers)[i] == (*pg2).pTriMembers[i] {
-    |                         ++                  +
-
-warning: implicit autoref creates a reference to the dereference of a raw pointer
-   --> bevy-patched/crates/bevy_mikktspace/src/generated.rs:759:50
-    |
-759 |         bStillSame = if (*pg1).pTriMembers[i] == (*pg2).pTriMembers[i] {
-    |                                                  ^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: creating a reference requires the pointer target to be valid and imposes aliasing requirements
-help: try using a raw pointer method instead; or if this reference is intentional, make it explicit
-    |
-759 |         bStillSame = if (*pg1).pTriMembers[i] == (&(*pg2).pTriMembers)[i] {
-    |                                                  ++                  +
-
-warning: `bevy_mikktspace` (lib) generated 2 warnings
-warning: unused import: `crate::infrastructure::event_store::EventStore`
-  --> src/application/command_handlers/mod.rs:10:5
-   |
-10 | use crate::infrastructure::event_store::EventStore;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(unused_imports)]` on by default
-
-warning: unused import: `std::sync::Arc`
-  --> src/application/command_handlers/mod.rs:11:5
-   |
-11 | use std::sync::Arc;
-   |     ^^^^^^^^^^^^^^
-
-warning: unused import: `tracing::warn`
-  --> src/application/command_handlers/graph_command_handler.rs:11:5
-   |
-11 | use tracing::warn;
-   |     ^^^^^^^^^^^^^
-
-warning: unused import: `MetricContext`
- --> src/domain/commands/metric_context_commands.rs:1:50
-  |
-1 | use crate::domain::conceptual_graph::{ConceptId, MetricContext, MetricContextId, MetricType};
-  |                                                  ^^^^^^^^^^^^^
-
-warning: unused imports: `ConceptRelationship`, `ConceptType`, `ConceptualPoint`, and `QualityDimension`
-  --> src/domain/conceptual_graph/composition.rs:13:15
-   |
-13 |     concept::{ConceptRelationship, ConceptId, ConceptType},
-   |               ^^^^^^^^^^^^^^^^^^^             ^^^^^^^^^^^
-14 |     quality_dimension::{QualityDimension, ConceptualPoint},
-   |                         ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
-
-warning: unused imports: `ConceptGraph` and `ConceptNode`
- --> src/domain/conceptual_graph/metric_context.rs:1:50
-  |
-1 | use crate::domain::conceptual_graph::{ConceptId, ConceptNode, ConceptGraph};
-  |                                                  ^^^^^^^^^^^  ^^^^^^^^^^^^
-
-warning: unused import: `uuid::Uuid`
- --> src/domain/conceptual_graph/morphism.rs:8:5
-  |
-8 | use uuid::Uuid;
-  |     ^^^^^^^^^^
-
-warning: unused import: `ConceptNode`
-  --> src/domain/conceptual_graph/morphism.rs:10:75
-   |
-10 | use crate::domain::conceptual_graph::concept::{ConceptId, NodeId, EdgeId, ConceptNode};
-   |                                                                           ^^^^^^^^^^^
-
-warning: unused import: `crate::domain::conceptual_graph::category::CategoryType`
-  --> src/domain/conceptual_graph/morphism.rs:11:5
-   |
-11 | use crate::domain::conceptual_graph::category::CategoryType;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `ConceptGraph`
- --> src/domain/conceptual_graph/rule_context.rs:1:50
-  |
-1 | use crate::domain::conceptual_graph::{ConceptId, ConceptGraph};
-  |                                                  ^^^^^^^^^^^^
-
-warning: unused imports: `alphanumeric1`, `is_not`, `many0`, `map`, `multispace1`, `preceded`, and `separated_list0`
-    --> src/domain/services/graph_import.rs:1979:61
-     |
-1979 |             bytes::complete::{tag, take_until, take_while1, is_not},
-     |                                                             ^^^^^^
-1980 |             character::complete::{char, multispace0, multispace1, alphanumeric1},
-     |                                                      ^^^^^^^^^^^  ^^^^^^^^^^^^^
-1981 |             combinator::{opt, map, recognize},
-     |                               ^^^
-1982 |             multi::{many0, separated_list0},
-     |                     ^^^^^  ^^^^^^^^^^^^^^^
-1983 |             sequence::{tuple, delimited, preceded, terminated},
-     |                                          ^^^^^^^^
-
-warning: unused import: `std::collections::HashMap`
- --> src/domain/value_objects.rs:7:5
-  |
-7 | use std::collections::HashMap;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `EventId`
-  --> src/infrastructure/event_bridge/subject_router.rs:13:49
-   |
-13 | use crate::domain::value_objects::{AggregateId, EventId};
-   |                                                 ^^^^^^^
-
-warning: unused imports: `Duration` and `Instant`
- --> src/infrastructure/event_bridge/event_sequencer.rs:6:17
-  |
-6 | use std::time::{Duration, Instant};
-  |                 ^^^^^^^^  ^^^^^^^
-
-warning: unused imports: `debug` and `info`
- --> src/infrastructure/event_bridge/event_sequencer.rs:7:15
-  |
-7 | use tracing::{debug, error, info, warn};
-  |               ^^^^^         ^^^^
-
-warning: unused import: `GraphEvent`
- --> src/infrastructure/event_store/distributed_impl.rs:5:18
-  |
-5 |     DomainEvent, GraphEvent, NodeEvent, EdgeEvent, WorkflowEvent, SubgraphEvent, ContextBridgeEvent, MetricContextEvent, RuleContextEvent
-  |                  ^^^^^^^^^^
-
-warning: unused imports: `AggregateId` and `EventId`
- --> src/infrastructure/event_store/distributed_impl.rs:7:36
-  |
-7 | use crate::domain::value_objects::{AggregateId, EventId};
-  |                                    ^^^^^^^^^^^  ^^^^^^^
-
-warning: unused import: `crate::infrastructure::event_bridge::subject_router::event_to_subject`
-  --> src/infrastructure/event_store/distributed_impl.rs:10:5
-   |
-10 | use crate::infrastructure::event_bridge::subject_router::event_to_subject;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused imports: `Deserialize` and `Serialize`
-  --> src/infrastructure/event_store/distributed_impl.rs:11:13
-   |
-11 | use serde::{Deserialize, Serialize};
-   |             ^^^^^^^^^^^  ^^^^^^^^^
-
-warning: unused import: `std::sync::Arc`
-  --> src/infrastructure/event_store/distributed_impl.rs:12:5
-   |
-12 | use std::sync::Arc;
-   |     ^^^^^^^^^^^^^^
-
-warning: unused imports: `error` and `info`
-  --> src/infrastructure/event_store/distributed_impl.rs:13:15
-   |
-13 | use tracing::{error, info};
-   |               ^^^^^  ^^^^
-
-warning: unused import: `GraphEdge`
- --> src/presentation/bevy_systems/subgraph_visualization.rs:8:50
-  |
-8 | use crate::presentation::components::{GraphNode, GraphEdge, NodeLabel};
-  |                                                  ^^^^^^^^^
-
-warning: unused import: `crate::application::command_handlers::process_commands`
- --> src/presentation/plugins/mod.rs:8:5
-  |
-8 | use crate::application::command_handlers::process_commands;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused imports: `ImportPlugin`, `create_subgraph_from_selection`, `display_camera_help`, `display_import_help`, `focus_camera_on_selection`, `forward_import_requests`, `forward_import_results`, `orbit_camera_mouse_rotation`, `orbit_camera_pan`, `orbit_camera_zoom`, `process_graph_import_requests`, `reset_camera_view`, `toggle_subgraph_boundary_type`, and `update_orbit_camera`
-  --> src/presentation/plugins/mod.rs:19:5
-   |
-19 |     forward_import_requests,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^
-20 |     process_graph_import_requests, forward_import_results,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
-21 |     update_orbit_camera, orbit_camera_mouse_rotation, orbit_camera_zoom,
-   |     ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^
-22 |     orbit_camera_pan, reset_camera_view, focus_camera_on_selection,
-   |     ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^
-23 |     update_subgraph_boundaries, create_subgraph_from_selection,
-   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-24 |     toggle_subgraph_boundary_type,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-25 |     ImportPlugin, display_import_help, display_camera_help,
-   |     ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `SubgraphSpatialMap`
-  --> src/presentation/plugins/mod.rs:34:57
-   |
-34 | use crate::presentation::bevy_systems::{SubgraphOrigin, SubgraphSpatialMap};
-   |                                                         ^^^^^^^^^^^^^^^^^^
-
-warning: unused imports: `SubgraphVisualizationPlugin` and `display_subgraph_help`
-  --> src/presentation/plugins/mod.rs:35:60
-   |
-35 | use crate::presentation::systems::subgraph_visualization::{SubgraphVisualizationPlugin, display_subgraph_help};
-   |                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin`
-  --> src/presentation/plugins/mod.rs:36:5
-   |
-36 | use crate::presentation::systems::voronoi_tessellation::VoronoiTessellationPlugin;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `GraphEdge`
- --> src/presentation/plugins/conceptual_graph_plugin.rs:9:50
-  |
-9 | use crate::presentation::components::{GraphNode, GraphEdge};
-  |                                                  ^^^^^^^^^
-
-warning: unused import: `RoutedEvent`
- --> src/presentation/systems/event_consumer_example.rs:4:75
-  |
-4 | use crate::infrastructure::event_bridge::{SubjectRouter, SubjectConsumer, RoutedEvent};
-  |                                                                           ^^^^^^^^^^^
-
-warning: unused imports: `GraphEdge` and `SubgraphRegion`
- --> src/presentation/systems/event_consumer_example.rs:6:50
-  |
-6 | use crate::presentation::components::{GraphNode, GraphEdge, SubgraphRegion};
-  |                                                  ^^^^^^^^^  ^^^^^^^^^^^^^^
-
-warning: unused imports: `EdgeId`, `NodeContent`, and `NodeType`
- --> src/presentation/systems/graph_events.rs:2:44
-  |
-2 | use crate::domain::value_objects::{NodeId, EdgeId, Position3D, NodeContent, NodeType, GraphId};
-  |                                            ^^^^^^              ^^^^^^^^^^^  ^^^^^^^^
-
-warning: unused import: `graph_import::ImportMapping`
-  --> src/presentation/systems/graph_import_processor.rs:14:5
-   |
-14 |     graph_import::ImportMapping,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused import: `SubgraphMember`
-  --> src/presentation/systems/graph_import_processor.rs:19:81
-   |
-19 | use crate::presentation::components::{SubgraphRegion, SubgraphId, BoundaryType, SubgraphMember};
-   |                                                                                 ^^^^^^^^^^^^^^
-
-warning: unused import: `HashMap`
-  --> src/presentation/systems/subgraph_visualization.rs:11:24
-   |
-11 | use std::collections::{HashMap, HashSet};
-   |                        ^^^^^^^
-
-warning: unused imports: `MouseMotion` and `MouseWheel`
-  --> src/presentation/systems/subgraph_visualization.rs:12:26
-   |
-12 | use bevy::input::mouse::{MouseMotion, MouseWheel};
-   |                          ^^^^^^^^^^^  ^^^^^^^^^^
-
-warning: unused imports: `Indices` and `PrimitiveTopology`
- --> src/presentation/systems/voronoi_tessellation.rs:4:26
-  |
-4 | use bevy::render::mesh::{Indices, PrimitiveTopology};
-  |                          ^^^^^^^  ^^^^^^^^^^^^^^^^^
-
-warning: use of deprecated function `rand::thread_rng`: Renamed to `rng`
-    --> src/domain/services/graph_import.rs:2748:29
-     |
-2748 |         let mut rng = rand::thread_rng();
-     |                             ^^^^^^^^^^
-     |
-     = note: `#[warn(deprecated)]` on by default
-
-warning: unused variable: `url`
-  --> src/application/command_handlers/graph_import_handler.rs:33:33
-   |
-33 |             ImportSource::Url { url } => {
-   |                                 ^^^ help: try ignoring the field: `url: _`
-   |
-   = note: `#[warn(unused_variables)]` on by default
-
-warning: unused variable: `prefix`
-  --> src/application/command_handlers/graph_import_handler.rs:53:43
-   |
-53 |                 let node_id = if let Some(prefix) = &options.id_prefix {
-   |                                           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_prefix`
-
-warning: unused variable: `options`
-   --> src/application/command_handlers/graph_import_handler.rs:108:9
-    |
-108 |         options: &ImportOptions,
-    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_options`
-
-warning: unused variable: `options`
-   --> src/application/command_handlers/graph_import_handler.rs:120:9
-    |
-120 |         options: &ImportOptions,
-    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_options`
-
-warning: unused variable: `context`
-   --> src/application/command_handlers/rule_context_handler.rs:250:21
-    |
-250 |                 let context = contexts.get(&context_id)
-    |                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_context`
-
-warning: unused variable: `url`
-   --> src/domain/services/graph_import.rs:615:39
-    |
-615 |     async fn fetch_url_content(&self, url: &str) -> Result<String, DomainError> {
-    |                                       ^^^ help: if this is intentional, prefix it with an underscore: `_url`
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> src/application/command_handlers/mod.rs:55:32
-   |
-55 |                         events.send(EventNotification {
-   |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> src/application/command_handlers/mod.rs:70:32
-   |
-70 |                         events.send(EventNotification {
-   |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> src/application/command_handlers/mod.rs:84:32
-   |
-84 |                         events.send(EventNotification {
-   |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> src/application/command_handlers/mod.rs:98:32
-   |
-98 |                         events.send(EventNotification {
-   |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/application/command_handlers/mod.rs:109:32
-    |
-109 |                         events.send(EventNotification {
-    |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/application/command_handlers/mod.rs:124:32
-    |
-124 |                         events.send(EventNotification {
-    |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/application/command_handlers/mod.rs:145:32
-    |
-145 |                         events.send(EventNotification {
-    |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/application/command_handlers/mod.rs:164:32
-    |
-164 |                         events.send(EventNotification {
-    |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/application/command_handlers/mod.rs:183:32
-    |
-183 |                         events.send(EventNotification {
-    |                                ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/application/command_handlers/mod.rs:210:28
-    |
-210 |                     events.send(EventNotification { event });
-    |                            ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/application/command_handlers/mod.rs:219:28
-    |
-219 |                     events.send(EventNotification { event });
-    |                            ^^^^
-
-warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
-    --> src/domain/services/graph_import.rs:2754:24
-     |
-2754 |                 x: rng.gen_range(-range..range),
-     |                        ^^^^^^^^^
-
-warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
-    --> src/domain/services/graph_import.rs:2755:24
-     |
-2755 |                 y: rng.gen_range(-range..range),
-     |                        ^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/plugins/conceptual_graph_plugin.rs:164:35
-    |
-164 |                 conceptual_events.send(ConceptualGraphEvent::GraphCreated {
-    |                                   ^^^^
-
-warning: use of deprecated method `bevy::prelude::EntityCommands::<'a>::despawn_recursive`: Use entity.despawn(), which now automatically despawns recursively.
-   --> src/presentation/plugins/mod.rs:231:49
-    |
-231 |                         commands.entity(entity).despawn_recursive();
-    |                                                 ^^^^^^^^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::EntityCommands::<'a>::despawn_recursive`: Use entity.despawn(), which now automatically despawns recursively.
-   --> src/presentation/plugins/mod.rs:241:49
-    |
-241 |                         commands.entity(entity).despawn_recursive();
-    |                                                 ^^^^^^^^^^^^^^^^^
-
-warning: use of deprecated method `bevy::bevy_ecs::hierarchy::<impl bevy::prelude::EntityCommands<'a>>::remove_parent`: Use entity_commands.remove::<ChildOf>()
-   --> src/presentation/plugins/mod.rs:305:49
-    |
-305 |                         commands.entity(entity).remove_parent();
-    |                                                 ^^^^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
-    --> src/presentation/plugins/mod.rs:1069:55
-     |
-1069 |     let Ok((camera, camera_transform)) = camera_query.get_single() else {
-     |                                                       ^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-    --> src/presentation/plugins/mod.rs:1145:24
-     |
-1145 |         import_results.send(ImportResultEvent {
-     |                        ^^^^
-
-warning: use of deprecated method `bevy::prelude::EntityCommands::<'a>::despawn_recursive`: Use entity.despawn(), which now automatically despawns recursively.
-  --> src/presentation/systems/graph_events.rs:40:45
-   |
-40 |                     commands.entity(entity).despawn_recursive();
-   |                                             ^^^^^^^^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::EntityCommands::<'a>::despawn_recursive`: Use entity.despawn(), which now automatically despawns recursively.
-  --> src/presentation/systems/graph_events.rs:99:45
-   |
-99 |                     commands.entity(entity).despawn_recursive();
-   |                                             ^^^^^^^^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-  --> src/presentation/systems/graph_import_processor.rs:68:44
-   |
-68 | ...                   import_results.send(ImportResultEvent {
-   |                                      ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:223:48
-    |
-223 | ...                   command_events.send(CommandEvent {
-    |                                      ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:265:52
-    |
-265 | ...                   command_events.send(CommandEvent {
-    |                                      ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:274:44
-    |
-274 | ...                   import_results.send(ImportResultEvent {
-    |                                      ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:286:44
-    |
-286 | ...                   import_results.send(ImportResultEvent {
-    |                                      ^^^^
-
-warning: use of deprecated method `bevy::prelude::EventWriter::<'w, E>::send`: Use `EventWriter::write` instead.
-   --> src/presentation/systems/graph_import_processor.rs:299:36
-    |
-299 |                     import_results.send(ImportResultEvent {
-    |                                    ^^^^
-
-warning: use of deprecated method `bevy::prelude::EntityCommands::<'a>::despawn_recursive`: Use entity.despawn(), which now automatically despawns recursively.
-  --> src/presentation/systems/voronoi_tessellation.rs:56:41
-   |
-56 |                 commands.entity(entity).despawn_recursive();
-   |                                         ^^^^^^^^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single_mut`: Please use `single_mut` instead
-   --> src/presentation/systems/voronoi_tessellation.rs:144:48
-    |
-144 |     if let Ok(mut partition) = partition_query.get_single_mut() {
-    |                                                ^^^^^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
-   --> src/presentation/systems/voronoi_tessellation.rs:257:35
-    |
-257 |     let Ok(partition) = partition.get_single() else {
-    |                                   ^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
-   --> src/presentation/systems/voronoi_tessellation.rs:328:35
-    |
-328 |     let Ok(partition) = partition.get_single() else {
-    |                                   ^^^^^^^^^^
-
-warning: use of deprecated method `bevy::prelude::EntityCommands::<'a>::despawn_recursive`: Use entity.despawn(), which now automatically despawns recursively.
-   --> src/presentation/systems/voronoi_tessellation.rs:334:33
-    |
-334 |         commands.entity(entity).despawn_recursive();
-    |                                 ^^^^^^^^^^^^^^^^^
-
-warning: unused import: `Hasher`
- --> src/domain/value_objects.rs:8:23
-  |
-8 | use std::hash::{Hash, Hasher};
-  |                       ^^^^^^
-
-warning: unused variable: `id`
-  --> src/application/command_handlers/mod.rs:42:49
-   |
-42 |                     GraphCommand::CreateGraph { id, name, metadata: _ } => {
-   |                                                 ^^ help: try ignoring the field: `id: _`
-
-warning: unused variable: `metadata`
-   --> src/domain/aggregates/graph.rs:218:51
-    |
-218 |             GraphCommand::CreateGraph { id, name, metadata } => {
-    |                                                   ^^^^^^^^ help: try ignoring the field: `metadata: _`
-
-warning: unused variable: `node_type`
-   --> src/domain/aggregates/graph.rs:287:56
-    |
-287 |             GraphCommand::AddNode { graph_id, node_id, node_type, position, content } => {
-    |                                                        ^^^^^^^^^ help: try ignoring the field: `node_type: _`
-
-warning: unused variable: `graph_id`
-   --> src/domain/aggregates/graph.rs:940:40
-    |
-940 |             GraphEvent::GraphUpdated { graph_id, name, description } => {
-    |                                        ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-   --> src/domain/aggregates/graph.rs:962:36
-    |
-962 |             NodeEvent::NodeAdded { graph_id, node_id, metadata, position } => {
-    |                                    ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-   --> src/domain/aggregates/graph.rs:969:38
-    |
-969 |             NodeEvent::NodeRemoved { graph_id, node_id } => {
-    |                                      ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-   --> src/domain/aggregates/graph.rs:980:38
-    |
-980 |             NodeEvent::NodeUpdated { graph_id, node_id, new_position, new_content } => {
-    |                                      ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-   --> src/domain/aggregates/graph.rs:990:36
-    |
-990 |             NodeEvent::NodeMoved { graph_id, node_id, old_position, new_position } => {
-    |                                    ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `old_position`
-   --> src/domain/aggregates/graph.rs:990:55
-    |
-990 |             NodeEvent::NodeMoved { graph_id, node_id, old_position, new_position } => {
-    |                                                       ^^^^^^^^^^^^ help: try ignoring the field: `old_position: _`
-
-warning: unused variable: `graph_id`
-   --> src/domain/aggregates/graph.rs:995:45
-    |
-995 |             NodeEvent::NodeContentChanged { graph_id, node_id, old_content, new_content } => {
-    |                                             ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `old_content`
-   --> src/domain/aggregates/graph.rs:995:64
-    |
-995 |             NodeEvent::NodeContentChanged { graph_id, node_id, old_content, new_content } => {
-    |                                                                ^^^^^^^^^^^ help: try ignoring the field: `old_content: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1005:40
-     |
-1005 |             EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, relationship } => {
-     |                                        ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1036:38
-     |
-1036 |             EdgeEvent::EdgeRemoved { graph_id, edge_id } => {
-     |                                      ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1039:38
-     |
-1039 |             EdgeEvent::EdgeUpdated { graph_id, edge_id, new_properties } => {
-     |                                      ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1044:39
-     |
-1044 |             EdgeEvent::EdgeReversed { graph_id, edge_id, old_source, old_target, new_source, new_target } => {
-     |                                       ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `old_source`
-    --> src/domain/aggregates/graph.rs:1044:58
-     |
-1044 |             EdgeEvent::EdgeReversed { graph_id, edge_id, old_source, old_target, new_source, new_target } => {
-     |                                                          ^^^^^^^^^^ help: try ignoring the field: `old_source: _`
-
-warning: unused variable: `old_target`
-    --> src/domain/aggregates/graph.rs:1044:70
-     |
-1044 |             EdgeEvent::EdgeReversed { graph_id, edge_id, old_source, old_target, new_source, new_target } => {
-     |                                                                      ^^^^^^^^^^ help: try ignoring the field: `old_target: _`
-
-warning: unused variable: `event`
-    --> src/domain/aggregates/graph.rs:1053:40
-     |
-1053 |     fn apply_workflow_event(&mut self, event: &WorkflowEvent) {
-     |                                        ^^^^^ help: if this is intentional, prefix it with an underscore: `_event`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1060:46
-     |
-1060 |             SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, name, base_position, metadata } => {
-     |                                              ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1069:46
-     |
-1069 |             SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id } => {
-     |                                              ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1077:44
-     |
-1077 |             SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, old_position, new_position } => {
-     |                                            ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `old_position`
-    --> src/domain/aggregates/graph.rs:1077:67
-     |
-1077 |             SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, old_position, new_position } => {
-     |                                                                   ^^^^^^^^^^^^ help: try ignoring the field: `old_position: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1082:50
-     |
-1082 |             SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, node_id, relative_position } => {
-     |                                                  ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `relative_position`
-    --> src/domain/aggregates/graph.rs:1082:82
-     |
-1082 |             SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, node_id, relative_position } => {
-     |                                                                                  ^^^^^^^^^^^^^^^^^ help: try ignoring the field: `relative_position: _`
-
-warning: unused variable: `graph_id`
-    --> src/domain/aggregates/graph.rs:1088:54
-     |
-1088 |             SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, node_id } => {
-     |                                                      ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `left`
-   --> src/domain/conceptual_graph/composition.rs:252:28
-    |
-252 |     fn create_product_node(left: &ConceptNode, right: &ConceptNode) -> Result<ConceptNode, String> {
-    |                            ^^^^ help: if this is intentional, prefix it with an underscore: `_left`
-
-warning: unused variable: `right`
-   --> src/domain/conceptual_graph/composition.rs:252:48
-    |
-252 |     fn create_product_node(left: &ConceptNode, right: &ConceptNode) -> Result<ConceptNode, String> {
-    |                                                ^^^^^ help: if this is intentional, prefix it with an underscore: `_right`
-
-warning: unused variable: `right_idx`
-   --> src/domain/conceptual_graph/composition.rs:277:25
-    |
-277 |                     for right_idx in right.structure.node_indices() {
-    |                         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_right_idx`
-
-warning: unused variable: `right_map`
-   --> src/domain/conceptual_graph/composition.rs:267:9
-    |
-267 |         right_map: &HashMap<NodeIndex, NodeIndex>,
-    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_right_map`
-
-warning: unused variable: `left`
-   --> src/domain/conceptual_graph/composition.rs:293:9
-    |
-293 |         left: &ConceptGraph,
-    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_left`
-
-warning: unused variable: `right`
-   --> src/domain/conceptual_graph/composition.rs:294:9
-    |
-294 |         right: &ConceptGraph,
-    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_right`
-
-warning: unused variable: `result`
-   --> src/domain/conceptual_graph/composition.rs:295:9
-    |
-295 |         result: &mut ConceptGraph,
-    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_result`
-
-warning: unused variable: `left_map`
-   --> src/domain/conceptual_graph/composition.rs:296:9
-    |
-296 |         left_map: &HashMap<NodeIndex, NodeIndex>,
-    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_left_map`
-
-warning: unused variable: `right_map`
-   --> src/domain/conceptual_graph/composition.rs:297:9
-    |
-297 |         right_map: &HashMap<NodeIndex, NodeIndex>,
-    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_right_map`
-
-warning: unused variable: `downstream`
-   --> src/domain/conceptual_graph/context_bridge.rs:132:56
-    |
-132 |             ContextMappingType::Conformist { upstream, downstream } => {
-    |                                                        ^^^^^^^^^^ help: try ignoring the field: `downstream: _`
-
-warning: unused variable: `internal_context`
-   --> src/domain/conceptual_graph/context_bridge.rs:140:55
-    |
-140 |             ContextMappingType::AntiCorruptionLayer { internal_context, external_context } => {
-    |                                                       ^^^^^^^^^^^^^^^^ help: try ignoring the field: `internal_context: _`
-
-warning: unused variable: `external_context`
-   --> src/domain/conceptual_graph/context_bridge.rs:140:73
-    |
-140 |             ContextMappingType::AntiCorruptionLayer { internal_context, external_context } => {
-    |                                                                         ^^^^^^^^^^^^^^^^ help: try ignoring the field: `external_context: _`
-
-warning: unused variable: `host`
-   --> src/domain/conceptual_graph/context_bridge.rs:144:51
-    |
-144 |             ContextMappingType::OpenHostService { host, service_interface } => {
-    |                                                   ^^^^ help: try ignoring the field: `host: _`
-
-warning: unused variable: `service_interface`
-   --> src/domain/conceptual_graph/context_bridge.rs:144:57
-    |
-144 |             ContextMappingType::OpenHostService { host, service_interface } => {
-    |                                                         ^^^^^^^^^^^^^^^^^ help: try ignoring the field: `service_interface: _`
-
-warning: unused variable: `context_a`
-   --> src/domain/conceptual_graph/context_bridge.rs:148:47
-    |
-148 |             ContextMappingType::Partnership { context_a, context_b } => {
-    |                                               ^^^^^^^^^ help: try ignoring the field: `context_a: _`
-
-warning: unused variable: `context_b`
-   --> src/domain/conceptual_graph/context_bridge.rs:148:58
-    |
-148 |             ContextMappingType::Partnership { context_a, context_b } => {
-    |                                                          ^^^^^^^^^ help: try ignoring the field: `context_b: _`
-
-warning: unused variable: `publisher`
-   --> src/domain/conceptual_graph/context_bridge.rs:152:53
-    |
-152 |             ContextMappingType::PublishedLanguage { publisher, language_spec } => {
-    |                                                     ^^^^^^^^^ help: try ignoring the field: `publisher: _`
-
-warning: unused variable: `language_spec`
-   --> src/domain/conceptual_graph/context_bridge.rs:152:64
-    |
-152 |             ContextMappingType::PublishedLanguage { publisher, language_spec } => {
-    |                                                                ^^^^^^^^^^^^^ help: try ignoring the field: `language_spec: _`
-
-warning: unused variable: `mappings`
-   --> src/domain/conceptual_graph/context_bridge.rs:492:38
-    |
-492 |             Self::AttributeMapping { mappings } => {
-    |                                      ^^^^^^^^ help: try ignoring the field: `mappings: _`
-
-warning: unused variable: `keep`
-   --> src/domain/conceptual_graph/context_bridge.rs:499:38
-    |
-499 |             Self::FilterAttributes { keep } => {
-    |                                      ^^^^ help: try ignoring the field: `keep: _`
-
-warning: unused variable: `attributes`
-   --> src/domain/conceptual_graph/context_bridge.rs:506:35
-    |
-506 |             Self::AddAttributes { attributes } => {
-    |                                   ^^^^^^^^^^ help: try ignoring the field: `attributes: _`
-
-warning: unused variable: `parameters`
-   --> src/domain/conceptual_graph/context_bridge.rs:513:34
-    |
-513 |             Self::Custom { name, parameters } => {
-    |                                  ^^^^^^^^^^ help: try ignoring the field: `parameters: _`
-
-warning: variable does not need to be mutable
-   --> src/domain/conceptual_graph/context_bridge.rs:493:21
-    |
-493 |                 let mut result = concept.clone();
-    |                     ----^^^^^^
-    |                     |
-    |                     help: remove this `mut`
-    |
-    = note: `#[warn(unused_mut)]` on by default
-
-warning: variable does not need to be mutable
-   --> src/domain/conceptual_graph/context_bridge.rs:500:21
-    |
-500 |                 let mut result = concept.clone();
-    |                     ----^^^^^^
-    |                     |
-    |                     help: remove this `mut`
-
-warning: variable does not need to be mutable
-   --> src/domain/conceptual_graph/context_bridge.rs:507:21
-    |
-507 |                 let mut result = concept.clone();
-    |                     ----^^^^^^
-    |                     |
-    |                     help: remove this `mut`
-
-warning: unused variable: `parameters`
-   --> src/domain/conceptual_graph/rule_context.rs:276:49
-    |
-276 |             Condition::Custom { predicate_name, parameters } => {
-    |                                                 ^^^^^^^^^^ help: try ignoring the field: `parameters: _`
-
-warning: unused variable: `concept`
-   --> src/domain/conceptual_graph/rule_context.rs:283:36
-    |
-283 |     pub fn describe_failure(&self, concept: ConceptId, facts: &FactSet) -> String {
-    |                                    ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_concept`
-
-warning: unused variable: `facts`
-   --> src/domain/conceptual_graph/rule_context.rs:283:56
-    |
-283 |     pub fn describe_failure(&self, concept: ConceptId, facts: &FactSet) -> String {
-    |                                                        ^^^^^ help: if this is intentional, prefix it with an underscore: `_facts`
-
-warning: unused variable: `concept`
-   --> src/domain/conceptual_graph/rule_context.rs:431:27
-    |
-431 |     pub fn matches(&self, concept: ConceptId, facts: &FactSet) -> Result<bool, String> {
-    |                           ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_concept`
-
-warning: unused variable: `facts`
-   --> src/domain/conceptual_graph/rule_context.rs:431:47
-    |
-431 |     pub fn matches(&self, concept: ConceptId, facts: &FactSet) -> Result<bool, String> {
-    |                                               ^^^^^ help: if this is intentional, prefix it with an underscore: `_facts`
-
-warning: unused variable: `working_facts`
-   --> src/domain/conceptual_graph/rule_context.rs:563:17
-    |
-563 |         let mut working_facts = facts.clone();
-    |                 ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_working_facts`
-
-warning: unused variable: `rule_id`
-   --> src/domain/conceptual_graph/rule_context.rs:574:18
-    |
-574 |             for (rule_id, rule) in rules {
-    |                  ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_rule_id`
-
-warning: variable does not need to be mutable
-   --> src/domain/conceptual_graph/rule_context.rs:562:13
-    |
-562 |         let mut inferred = InferredFacts::new();
-    |             ----^^^^^^^^
-    |             |
-    |             help: remove this `mut`
-
-warning: variable does not need to be mutable
-   --> src/domain/conceptual_graph/rule_context.rs:563:13
-    |
-563 |         let mut working_facts = facts.clone();
-    |             ----^^^^^^^^^^^^^
-    |             |
-    |             help: remove this `mut`
-
-warning: variable does not need to be mutable
-   --> src/domain/conceptual_graph/rule_context.rs:572:17
-    |
-572 |             let mut new_facts_added = false;
-    |                 ----^^^^^^^^^^^^^^^
-    |                 |
-    |                 help: remove this `mut`
-
-warning: unused variable: `new_rule`
-   --> src/domain/conceptual_graph/rule_context.rs:674:38
-    |
-674 |     pub fn would_create_cycle(&self, new_rule: &BusinessRule) -> bool {
-    |                                      ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_new_rule`
-
-warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1151:51
-     |
-1151 |     fn import_progress_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
-     |                                                   ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
-
-warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1200:53
-     |
-1200 |     fn import_vocabulary_json(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
-     |                                                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
-
-warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:1334:44
-     |
-1334 |     fn import_cypher(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
-     |                                            ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
-
-warning: variable `heading_level` is assigned to, but never used
-    --> src/domain/services/graph_import.rs:1410:17
-     |
-1410 |         let mut heading_level = 0;
-     |                 ^^^^^^^^^^^^^
-     |
-     = note: consider using `_heading_level` instead
-
-warning: value assigned to `heading_level` is never read
-    --> src/domain/services/graph_import.rs:1416:21
-     |
-1416 |                     heading_level = level as usize;
-     |                     ^^^^^^^^^^^^^
-     |
-     = help: maybe it is overwritten before being read?
-     = note: `#[warn(unused_assignments)]` on by default
-
-warning: variable does not need to be mutable
-    --> src/domain/services/graph_import.rs:1586:21
-     |
-1586 |                 let mut imported = self.parse_flowchart_graph(&lines, diagram_type, direction)?;
-     |                     ----^^^^^^^^
-     |                     |
-     |                     help: remove this `mut`
-
-warning: unused variable: `i`
-    --> src/domain/services/graph_import.rs:1613:14
-     |
-1613 |         for (i, line) in lines.iter().skip(1).enumerate() {
-     |              ^ help: if this is intentional, prefix it with an underscore: `_i`
-
-warning: value assigned to `current_y` is never read
-    --> src/domain/services/graph_import.rs:1879:13
-     |
-1879 |             current_y -= card_height + group_spacing;
-     |             ^^^^^^^^^
-     |
-     = help: maybe it is overwritten before being read?
-
-warning: unused variable: `center_x`
-    --> src/domain/services/graph_import.rs:1963:13
-     |
-1963 |         let center_x = (min_x + max_x) / 2.0;
-     |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_center_x`
-
-warning: unused variable: `center_y`
-    --> src/domain/services/graph_import.rs:1964:13
-     |
-1964 |         let center_y = (min_y + max_y) / 2.0;
-     |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_center_y`
-
-warning: variable `node_counter` is assigned to, but never used
-    --> src/domain/services/graph_import.rs:2013:17
-     |
-2013 |         let mut node_counter = 0;
-     |                 ^^^^^^^^^^^^
-     |
-     = note: consider using `_node_counter` instead
-
-warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:2121:41
-     |
-2121 |     fn import_dot(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
-     |                                         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
-
-warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:2252:47
-     |
-2252 |     fn import_atom_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
-     |                                               ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
-
-warning: unused variable: `mapping`
-    --> src/domain/services/graph_import.rs:2391:46
-     |
-2391 |     fn import_rss_feed(&self, content: &str, mapping: &ImportMapping) -> Result<ImportedGraph, DomainError> {
-     |                                              ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mapping`
-
-warning: unused variable: `max_level`
-    --> src/domain/services/graph_import.rs:2696:13
-     |
-2696 |         let max_level = level_groups.keys().max().copied().unwrap_or(0);
-     |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_max_level`
-
-warning: unused variable: `line`
-    --> src/domain/services/graph_import.rs:2874:32
-     |
-2874 | fn extract_cypher_relationship(line: &str) -> Option<CypherRelationship> {
-     |                                ^^^^ help: if this is intentional, prefix it with an underscore: `_line`
-
-warning: unused variable: `graph_id`
-   --> src/presentation/bevy_systems/subgraph_visualization.rs:159:10
-    |
-159 |     for (graph_id, positions) in subgraph_nodes.iter() {
-    |          ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_graph_id`
-
-warning: unused variable: `spatial_map`
-   --> src/presentation/bevy_systems/subgraph_visualization.rs:145:5
-    |
-145 |     spatial_map: Res<SubgraphSpatialMap>,
-    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_spatial_map`
-
-warning: unused variable: `metadata`
-   --> src/presentation/plugins/mod.rs:246:112
-    |
-246 |             DomainEvent::Subgraph(SubgraphEvent::SubgraphCreated { graph_id, subgraph_id, name, base_position, metadata }) => {
-    |                                                                                                                ^^^^^^^^ help: try ignoring the field: `metadata: _`
-
-warning: unused variable: `origin_entity`
-   --> src/presentation/plugins/mod.rs:250:21
-    |
-250 |                 let origin_entity = commands.spawn((
-    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_origin_entity`
-
-warning: unused variable: `graph_id`
-   --> src/presentation/plugins/mod.rs:264:68
-    |
-264 |             DomainEvent::Subgraph(SubgraphEvent::SubgraphRemoved { graph_id, subgraph_id }) => {
-    |                                                                    ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-   --> src/presentation/plugins/mod.rs:270:66
-    |
-270 |             DomainEvent::Subgraph(SubgraphEvent::SubgraphMoved { graph_id, subgraph_id, old_position, new_position }) => {
-    |                                                                  ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-   --> src/presentation/plugins/mod.rs:275:72
-    |
-275 |             DomainEvent::Subgraph(SubgraphEvent::NodeAddedToSubgraph { graph_id, subgraph_id, node_id, relative_position }) => {
-    |                                                                        ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_id`
-   --> src/presentation/plugins/mod.rs:298:76
-    |
-298 |             DomainEvent::Subgraph(SubgraphEvent::NodeRemovedFromSubgraph { graph_id, subgraph_id, node_id }) => {
-    |                                                                            ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `graph_node`
-    --> src/presentation/plugins/mod.rs:1034:18
-     |
-1034 |     for (entity, graph_node, label, node_transform) in nodes.iter() {
-     |                  ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_graph_node`
-
-warning: unused variable: `node`
-    --> src/presentation/plugins/mod.rs:1107:22
-     |
-1107 |         for (entity, node, transform, visibility) in nodes.iter() {
-     |                      ^^^^ help: if this is intentional, prefix it with an underscore: `_node`
-
-warning: unused variable: `edges`
-    --> src/presentation/plugins/mod.rs:1178:5
-     |
-1178 |     edges: Query<(&GraphEdge,)>,
-     |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_edges`
-
-warning: unused variable: `settings`
-    --> src/presentation/plugins/mod.rs:1179:5
-     |
-1179 |     settings: Res<ForceLayoutSettings>,
-     |     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_settings`
-
-warning: unused variable: `graph_id`
-  --> src/presentation/systems/event_consumer_example.rs:40:85
-   |
-40 |                 DomainEvent::Edge(crate::domain::events::EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
-   |                                                                                     ^^^^^^^^ help: try ignoring the field: `graph_id: _`
-
-warning: unused variable: `edge_id`
-  --> src/presentation/systems/event_consumer_example.rs:40:95
-   |
-40 |                 DomainEvent::Edge(crate::domain::events::EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
-   |                                                                                               ^^^^^^^ help: try ignoring the field: `edge_id: _`
-
-warning: unused variable: `source`
-  --> src/presentation/systems/event_consumer_example.rs:40:104
-   |
-40 |                 DomainEvent::Edge(crate::domain::events::EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
-   |                                                                                                        ^^^^^^ help: try ignoring the field: `source: _`
-
-warning: unused variable: `target`
-  --> src/presentation/systems/event_consumer_example.rs:40:112
-   |
-40 |                 DomainEvent::Edge(crate::domain::events::EdgeEvent::EdgeConnected { graph_id, edge_id, source, target, .. }) => {
-   |                                                                                                                ^^^^^^ help: try ignoring the field: `target: _`
-
-warning: unused variable: `router`
-  --> src/presentation/systems/event_consumer_example.rs:11:5
-   |
-11 |     router: Res<SubjectRouter>,
-   |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_router`
-
-warning: unused variable: `subgraph_membership`
-   --> src/presentation/systems/graph_import_processor.rs:173:37
-    |
-173 | ...                   let subgraph_membership = if has_subgraphs {
-    |                           ^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_subgraph_membership`
-
-warning: unused variable: `transform`
-  --> src/presentation/systems/subgraph_spatial_map.rs:33:33
-   |
-33 |     for (entity, _node, member, transform) in nodes.iter() {
-   |                                 ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_transform`
-
-warning: unused variable: `color`
-   --> src/presentation/systems/subgraph_visualization.rs:145:48
-    |
-145 | fn create_convex_hull_mesh(positions: &[Vec3], color: Color) -> Mesh {
-    |                                                ^^^^^ help: if this is intentional, prefix it with an underscore: `_color`
-
-warning: unused variable: `color`
-   --> src/presentation/systems/subgraph_visualization.rs:203:49
-    |
-203 | fn create_bounding_box_mesh(positions: &[Vec3], color: Color) -> Mesh {
-    |                                                 ^^^^^ help: if this is intentional, prefix it with an underscore: `_color`
-
-warning: unused variable: `color`
-   --> src/presentation/systems/subgraph_visualization.rs:260:52
-    |
-260 | fn create_circle_boundary_mesh(positions: &[Vec3], color: Color) -> Mesh {
-    |                                                    ^^^^^ help: if this is intentional, prefix it with an underscore: `_color`
-
-warning: unused variable: `app`
-   --> src/presentation/systems/subgraph_visualization.rs:403:21
-    |
-403 |     fn build(&self, app: &mut App) {
-    |                     ^^^ help: if this is intentional, prefix it with an underscore: `_app`
-
-warning: unused variable: `node_query`
-  --> src/presentation/systems/voronoi_tessellation.rs:66:5
-   |
-66 |     node_query: Query<&Transform, With<GraphNode>>,
-   |     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_node_query`
-
-warning: unused variable: `midpoint`
-   --> src/presentation/systems/voronoi_tessellation.rs:173:21
-    |
-173 |                 let midpoint = (*proto + *other_proto) * 0.5;
-    |                     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_midpoint`
-
-warning: unused variable: `perpendicular`
-   --> src/presentation/systems/voronoi_tessellation.rs:177:21
-    |
-177 |                 let perpendicular = Vec3::new(-direction.z, 0.0, direction.x);
-    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_perpendicular`
-
-warning: unused variable: `to_other`
-   --> src/presentation/systems/voronoi_tessellation.rs:199:25
-    |
-199 |                     let to_other = *other_proto - *proto;
-    |                         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_to_other`
-
-warning: unused variable: `to_vertex`
-   --> src/presentation/systems/voronoi_tessellation.rs:200:25
-    |
-200 |                     let to_vertex = vertex - *proto;
-    |                         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_to_vertex`
-
-warning: unused variable: `distance_to_other`
-   --> src/presentation/systems/voronoi_tessellation.rs:201:25
-    |
-201 |                     let distance_to_other = proto.distance(*other_proto);
-    |                         ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_distance_to_other`
-
-warning: unused variable: `vertex_to_mid`
-   --> src/presentation/systems/voronoi_tessellation.rs:205:25
-    |
-205 |                     let vertex_to_mid = midpoint - vertex;
-    |                         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_vertex_to_mid`
-
-warning: function `handle_graph_command` is never used
-   --> src/application/command_handlers/mod.rs:248:4
-    |
-248 | fn handle_graph_command(command: &GraphCommand) -> Option<DomainEvent> {
-    |    ^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: `#[warn(dead_code)]` on by default
-
-warning: field `graph` is never read
-  --> src/domain/aggregates/graph.rs:89:5
-   |
-82 | pub struct Graph {
-   |            ----- field in this struct
-...
-89 |     graph: StableGraph<NodeId, EdgeId>,
-   |     ^^^^^
-   |
-   = note: `Graph` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
-
-warning: method `apply_class_diagram_layout` is never used
-    --> src/domain/services/graph_import.rs:1805:8
-     |
-539  | impl GraphImportService {
-     | ----------------------- method in this implementation
-...
-1805 |     fn apply_class_diagram_layout(&self, graph: &mut ImportedGraph) -> Result<(), DomainError> {
-     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: struct `MermaidNode` is never constructed
-    --> src/domain/services/graph_import.rs:2830:8
-     |
-2830 | struct MermaidNode {
-     |        ^^^^^^^^^^^
-
-warning: struct `MermaidEdge` is never constructed
-    --> src/domain/services/graph_import.rs:2835:8
-     |
-2835 | struct MermaidEdge {
-     |        ^^^^^^^^^^^
-
-warning: function `extract_mermaid_node` is never used
-    --> src/domain/services/graph_import.rs:2879:4
-     |
-2879 | fn extract_mermaid_node(line: &str) -> Option<MermaidNode> {
-     |    ^^^^^^^^^^^^^^^^^^^^
-
-warning: function `extract_mermaid_edge` is never used
-    --> src/domain/services/graph_import.rs:2898:4
-     |
-2898 | fn extract_mermaid_edge(line: &str) -> Option<MermaidEdge> {
-     |    ^^^^^^^^^^^^^^^^^^^^
-
-warning: function `apply_simple_layout` is never used
-    --> src/domain/services/graph_import.rs:2994:4
-     |
-2994 | fn apply_simple_layout(nodes: &mut [ImportedNode]) {
-     |    ^^^^^^^^^^^^^^^^^^^
-
-warning: fields `sequence` and `aggregate_sequence` are never read
-  --> src/infrastructure/event_bridge/event_sequencer.rs:74:5
-   |
-72 | struct BufferedEvent {
-   |        ------------- fields in this struct
-73 |     event: DomainEvent,
-74 |     sequence: u64,
-   |     ^^^^^^^^
-75 |     aggregate_sequence: u64,
-   |     ^^^^^^^^^^^^^^^^^^
-   |
-   = note: `BufferedEvent` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
-
-warning: function `setup_camera` is never used
-  --> src/presentation/plugins/mod.rs:75:4
-   |
-75 | fn setup_camera(mut commands: Commands) {
-   |    ^^^^^^^^^^^^
-
-warning: function `setup_lighting` is never used
-  --> src/presentation/plugins/mod.rs:88:4
-   |
-88 | fn setup_lighting(
-   |    ^^^^^^^^^^^^^^
-
-warning: function `handle_domain_events` is never used
-   --> src/presentation/plugins/mod.rs:155:4
-    |
-155 | fn handle_domain_events(
-    |    ^^^^^^^^^^^^^^^^^^^^
-
-warning: function `create_graph_visualization` is never used
-   --> src/presentation/plugins/mod.rs:318:4
-    |
-318 | fn create_graph_visualization(commands: &mut Commands, graph_id: GraphId, name: &str) {
-    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `schedule_demo_graph` is never used
-   --> src/presentation/plugins/mod.rs:332:4
-    |
-332 | fn schedule_demo_graph(commands: &mut Commands, graph_id: GraphId, time: &Time) {
-    |    ^^^^^^^^^^^^^^^^^^^
-
-warning: function `execute_scheduled_commands` is never used
-   --> src/presentation/plugins/mod.rs:407:4
-    |
-407 | fn execute_scheduled_commands(
-    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `spawn_node` is never used
-   --> src/presentation/plugins/mod.rs:430:4
-    |
-430 | fn spawn_node(
-    |    ^^^^^^^^^^
-
-warning: function `spawn_edge` is never used
-   --> src/presentation/plugins/mod.rs:580:4
-    |
-580 | fn spawn_edge(
-    |    ^^^^^^^^^^
-
-warning: function `process_pending_edges` is never used
-   --> src/presentation/plugins/mod.rs:654:4
-    |
-654 | fn process_pending_edges(
-    |    ^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `record_events` is never used
-   --> src/presentation/plugins/mod.rs:763:4
-    |
-763 | fn record_events(
-    |    ^^^^^^^^^^^^^
-
-warning: function `replay_events` is never used
-   --> src/presentation/plugins/mod.rs:817:4
-    |
-817 | fn replay_events(
-    |    ^^^^^^^^^^^^^
-
-warning: function `ease_out_cubic` is never used
-   --> src/presentation/plugins/mod.rs:876:4
-    |
-876 | fn ease_out_cubic(t: f32) -> f32 {
-    |    ^^^^^^^^^^^^^^
-
-warning: function `animate_node_appearance` is never used
-   --> src/presentation/plugins/mod.rs:881:4
-    |
-881 | fn animate_node_appearance(
-    |    ^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `animate_edge_drawing` is never used
-   --> src/presentation/plugins/mod.rs:900:4
-    |
-900 | fn animate_edge_drawing(mut query: Query<&mut EdgeDrawAnimation>, time: Res<Time>) {
-    |    ^^^^^^^^^^^^^^^^^^^^
-
-warning: function `apply_force_layout` is never used
-   --> src/presentation/plugins/mod.rs:909:4
-    |
-909 | fn apply_force_layout(
-    |    ^^^^^^^^^^^^^^^^^^
-
-warning: function `update_node_positions` is never used
-    --> src/presentation/plugins/mod.rs:1005:4
-     |
-1005 | fn update_node_positions(
-     |    ^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `create_node_labels` is never used
-    --> src/presentation/plugins/mod.rs:1021:4
-     |
-1021 | fn create_node_labels(
-     |    ^^^^^^^^^^^^^^^^^^
-
-warning: function `update_label_positions` is never used
-    --> src/presentation/plugins/mod.rs:1064:4
-     |
-1064 | fn update_label_positions(
-     |    ^^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `debug_node_visibility` is never used
-    --> src/presentation/plugins/mod.rs:1090:4
-     |
-1090 | fn debug_node_visibility(
-     |    ^^^^^^^^^^^^^^^^^^^^^
-
-warning: function `test_direct_import` is never used
-  --> src/presentation/systems/import_system.rs:66:4
-   |
-66 | fn test_direct_import(
-   |    ^^^^^^^^^^^^^^^^^^
-
-warning: function `import_from_clipboard` is never used
-   --> src/presentation/systems/import_system.rs:343:4
-    |
-343 | fn import_from_clipboard(commands: &mut EventWriter<CommandEvent>) {
-    |    ^^^^^^^^^^^^^^^^^^^^^
-
-warning: field `subgraph_id` is never read
-   --> src/presentation/systems/voronoi_tessellation.rs:372:5
-    |
-371 | struct VoronoiCellMesh {
-    |        --------------- field in this struct
-372 |     subgraph_id: SubgraphId,
-    |     ^^^^^^^^^^^
-
-warning: `ia` (lib) generated 214 warnings (run `cargo fix --lib -p ia` to apply 43 suggestions)
-   Compiling ia v0.1.0 (/git/thecowboyai/alchemist)
-warning: unused variable: `commands`
-  --> src/main.rs:49:10
-   |
-49 | fn setup(commands: EventWriter<CommandEvent>) {
-   |          ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_commands`
-   |
-   = note: `#[warn(unused_variables)]` on by default
-
-warning: `ia` (bin "ia") generated 1 warning
-warning: unused imports: `ConceptId`, `ConceptualPoint`, `EnrichmentType`, `GraphComposer`, and `ProductType`
-  --> src/bin/conceptual_graph_visual_demo.rs:12:26
-   |
-12 |     ConceptType, NodeId, ConceptId,
-   |                          ^^^^^^^^^
-13 |     QualityDimension, DimensionType, ConceptualPoint,
-   |                                      ^^^^^^^^^^^^^^^
-14 |     CategoryType, EnrichmentType,
-   |                   ^^^^^^^^^^^^^^
-15 |     GraphComposer, CompositionBuilder, ProductType,
-   |     ^^^^^^^^^^^^^                      ^^^^^^^^^^^
-   |
-   = note: `#[warn(unused_imports)]` on by default
-
-warning: use of deprecated method `bevy::prelude::Query::<'w, 's, D, F>::get_single`: Please use `single` instead
-  --> src/bin/test_import_existing.rs:56:44
-   |
-56 |         if let Ok(container) = graph_query.get_single() {
-   |                                            ^^^^^^^^^^
-   |
-   = note: `#[warn(deprecated)]` on by default
-
-warning: unused import: `EventNotification`
- --> src/bin/test_import_visibility.rs:4:37
-  |
-4 | use ia::application::{CommandEvent, EventNotification};
-  |                                     ^^^^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused imports: `ImportOptions`, `ImportSource`, `Position3D`, `events::DomainEvent`, and `graph_commands::MergeBehavior`
- --> src/bin/test_import_visibility.rs:6:39
-  |
-6 |     commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
-  |                                       ^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-7 |     events::DomainEvent,
-  |     ^^^^^^^^^^^^^^^^^^^
-8 |     value_objects::{GraphId, Position3D},
-  |                              ^^^^^^^^^^
-
-warning: unused import: `GraphContainer`
-  --> src/bin/test_import_visibility.rs:11:36
-   |
-11 | use ia::presentation::components::{GraphContainer, GraphNode};
-   |                                    ^^^^^^^^^^^^^^
-
-warning: unused imports: `Command`, `GraphCommand`, `ImportOptions`, and `ImportSource`
- --> src/bin/test_import_key.rs:6:28
-  |
-6 | use ia::domain::commands::{Command, GraphCommand, ImportSource, ImportOptions};
-  |                            ^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused import: `ia::domain::commands::graph_commands::MergeBehavior`
- --> src/bin/test_import_key.rs:7:5
-  |
-7 | use ia::domain::commands::graph_commands::MergeBehavior;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused imports: `ImportOptions`, `ImportSource`, `Position3D`, and `graph_commands::MergeBehavior`
- --> src/bin/test_import_flow.rs:6:39
-  |
-6 |     commands::{Command, GraphCommand, ImportSource, ImportOptions, graph_commands::MergeBehavior},
-  |                                       ^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-7 |     value_objects::{GraphId, Position3D},
-  |                              ^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused import: `graph_import::ImportedGraph`
- --> src/bin/test_import.rs:6:50
-  |
-6 |     services::{GraphImportService, ImportFormat, graph_import::ImportedGraph},
-  |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: `ia` (bin "test_import_key") generated 2 warnings (run `cargo fix --bin "test_import_key"` to apply 2 suggestions)
-warning: `ia` (bin "test_import") generated 1 warning (run `cargo fix --bin "test_import"` to apply 1 suggestion)
-warning: `ia` (bin "test_import_flow") generated 1 warning (run `cargo fix --bin "test_import_flow"` to apply 1 suggestion)
-warning: `ia` (bin "test_import_visibility") generated 3 warnings (run `cargo fix --bin "test_import_visibility"` to apply 3 suggestions)
-warning: `ia` (bin "test_import_existing") generated 1 warning
-warning: `ia` (bin "conceptual_graph_visual_demo") generated 1 warning (run `cargo fix --bin "conceptual_graph_visual_demo"` to apply 1 suggestion)
-    Finished `dev` profile [optimized + debuginfo] target(s) in 18.49s
+   Compiling proc-macro2 v1.0.95
+   Compiling unicode-ident v1.0.18
+   Compiling serde v1.0.219
+   Compiling libc v0.2.174
+   Compiling autocfg v1.5.0
+   Compiling shlex v1.3.0
+   Compiling version_check v0.9.5
+   Compiling libm v0.2.15
+   Compiling cfg-if v1.0.1
+   Compiling parking_lot_core v0.9.11
+   Compiling zerocopy v0.8.26
+   Compiling pkg-config v0.3.32
+   Compiling foldhash v0.1.5
+   Compiling equivalent v1.0.2
+   Compiling allocator-api2 v0.2.21
+   Compiling getrandom v0.3.3
+   Compiling crossbeam-utils v0.8.21
+   Compiling winnow v0.7.11
+   Compiling thiserror v1.0.69
+   Compiling cfg_aliases v0.2.1
+   Compiling hashbrown v0.15.4
+   Compiling once_cell v1.21.3
+   Compiling typenum v1.18.0
+   Compiling crunchy v0.2.4
+   Compiling tiny-keccak v2.0.2
+   Compiling indexmap v2.10.0
+   Compiling thiserror v2.0.12
+   Compiling smallvec v1.15.1
+   Compiling quote v1.0.40
+   Compiling concurrent-queue v2.5.0
+   Compiling syn v2.0.104
+   Compiling generic-array v0.14.7
+   Compiling ahash v0.8.12
+   Compiling async-executor v1.13.2
+   Compiling event-listener v5.4.0
+   Compiling unicode-xid v0.2.6
+   Compiling lock_api v0.4.13
+   Compiling jobserver v0.1.33
+   Compiling num-traits v0.2.19
+   Compiling getrandom v0.2.16
+   Compiling cc v1.2.29
+   Compiling const-random-macro v0.1.16
+   Compiling event-listener-strategy v0.5.4
+   Compiling scopeguard v1.2.0
+   Compiling typeid v1.0.3
+   Compiling uuid v1.17.0
+   Compiling memchr v2.7.5
+   Compiling spin v0.9.8
+   Compiling rand_core v0.6.4
+   Compiling lazy_static v1.5.0
+   Compiling signal-hook-registry v1.4.5
+   Compiling mio v1.0.4
+   Compiling parking_lot v0.12.4
+   Compiling ppv-lite86 v0.2.21
+   Compiling async-channel v2.5.0
+   Compiling const-random v0.1.18
+   Compiling socket2 v0.5.10
+   Compiling nix v0.30.1
+   Compiling icu_normalizer_data v2.0.0
+   Compiling icu_properties_data v2.0.1
+   Compiling rustix v0.38.44
+   Compiling rand_chacha v0.3.1
+   Compiling serde_json v1.0.140
+   Compiling vcpkg v0.2.15
+   Compiling async-lock v3.4.0
+   Compiling heck v0.5.0
+   Compiling rand v0.8.5
+   Compiling blocking v1.6.2
+   Compiling rustix v1.0.7
+   Compiling async-fs v2.1.2
+   Compiling khronos-egl v6.0.0
+   Compiling crossbeam-queue v0.3.12
+   Compiling cfg_aliases v0.1.1
+   Compiling wayland-sys v0.31.6
+   Compiling euclid v0.22.11
+   Compiling rand_distr v0.4.3
+   Compiling num_cpus v1.17.0
+   Compiling cmake v0.1.54
+   Compiling memmap2 v0.9.5
+   Compiling async-broadcast v0.7.2
+   Compiling dunce v1.0.5
+   Compiling fs_extra v1.3.0
+   Compiling quick-xml v0.37.5
+   Compiling semver v1.0.26
+   Compiling wayland-client v0.31.10
+   Compiling crossbeam-channel v0.5.15
+   Compiling approx v0.5.1
+   Compiling aws-lc-rs v1.13.2
+   Compiling time-core v0.1.4
+   Compiling ash v0.38.0+1.3.281
+   Compiling num-conv v0.1.0
+   Compiling rustversion v1.0.21
+   Compiling rustls v0.23.29
+   Compiling litrs v0.4.1
+   Compiling time-macros v0.2.22
+   Compiling sharded-slab v0.1.7
+   Compiling synstructure v0.13.2
+   Compiling encase_derive_impl v0.10.0
+   Compiling rustc_version v0.4.1
+   Compiling slotmap v1.0.7
+   Compiling guillotiere v0.6.2
+   Compiling portable-atomic v1.11.1
+   Compiling siphasher v1.0.1
+   Compiling phf_shared v0.11.3
+   Compiling crossbeam-epoch v0.9.18
+   Compiling naga v24.0.0
+   Compiling curve25519-dalek v4.2.0
+   Compiling document-features v0.2.11
+   Compiling wayland-scanner v0.31.6
+   Compiling openssl v0.10.73
+   Compiling smithay-client-toolkit v0.19.2
+   Compiling crossbeam-deque v0.8.6
+   Compiling num-integer v0.1.46
+   Compiling anyhow v1.0.98
+   Compiling fontdb v0.16.2
+   Compiling nuid v0.5.0
+   Compiling bevy_tasks v0.15.3
+   Compiling wgpu-hal v24.0.4
+   Compiling httparse v1.10.1
+   Compiling native-tls v0.2.14
+   Compiling data-encoding v2.9.0
+   Compiling ordered-float v4.6.0
+   Compiling wgpu-core v24.0.5
+   Compiling zstd-safe v7.2.4
+   Compiling zvariant_utils v2.1.0
+   Compiling x11-dl v2.21.0
+   Compiling ahash v0.7.8
+   Compiling wgpu v24.0.5
+   Compiling pulldown-cmark v0.13.0
+   Compiling stable_deref_trait v1.2.0
+   Compiling memoffset v0.9.1
+   Compiling winit v0.30.11
+   Compiling nix v0.29.0
+   Compiling bitflags v2.9.1
+   Compiling hashbrown v0.12.3
+   Compiling rayon-core v1.12.1
+   Compiling phf_generator v0.11.3
+   Compiling paste v1.0.15
+   Compiling ordered-multimap v0.4.3
+   Compiling naga v23.1.0
+   Compiling dirs-sys v0.3.7
+   Compiling xdg-home v1.3.0
+   Compiling dark-light v1.1.1
+   Compiling by_address v1.2.1
+   Compiling palette v0.7.6
+   Compiling dirs v4.0.0
+   Compiling rust-ini v0.18.0
+   Compiling matrixmultiply v0.3.10
+   Compiling log v0.4.27
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling fnv v1.0.7
+   Compiling target-lexicon v0.12.16
+   Compiling darling_core v0.20.11
+   Compiling lyon_geom v1.0.6
+   Compiling wgpu-hal v23.0.1
+   Compiling litemap v0.8.0
+   Compiling writeable v0.6.1
+   Compiling regex-syntax v0.8.5
+   Compiling blake3 v1.8.2
+   Compiling wayland-backend v0.3.10
+   Compiling ring v0.17.14
+   Compiling openssl-sys v0.9.109
+   Compiling aws-lc-sys v0.30.0
+   Compiling zstd-sys v2.0.15+zstd.1.5.7
+   Compiling lyon_path v1.0.7
+   Compiling regex-automata v0.4.9
+   Compiling num-rational v0.4.2
+   Compiling wgpu-core v23.0.1
+   Compiling futures-core v0.3.31
+   Compiling ash v0.37.3+1.3.251
+   Compiling glob v0.3.2
+   Compiling inflections v1.1.1
+   Compiling pin-project-lite v0.2.16
+   Compiling regex v1.11.1
+   Compiling cfg-expr v0.15.8
+   Compiling wgpu-hal v0.19.5
+   Compiling wgpu v23.0.1
+   Compiling clang-sys v1.8.1
+   Compiling version-compare v0.2.0
+   Compiling drm-sys v0.7.0
+   Compiling libsqlite3-sys v0.30.1
+   Compiling libz-sys v1.1.22
+   Compiling wgpu-core v0.19.4
+   Compiling drm-fourcc v2.2.0
+   Compiling futures-sink v0.3.31
+   Compiling minimal-lexical v0.2.1
+   Compiling taffy v0.7.7
+   Compiling nom v7.1.3
+   Compiling wgpu v0.19.4
+   Compiling ff v0.13.1
+   Compiling tiny-xlib v0.2.4
+   Compiling dirs-sys-next v0.1.2
+   Compiling libloading v0.8.8
+   Compiling linux-raw-sys v0.9.4
+   Compiling foreign-types-shared v0.1.1
+   Compiling percent-encoding v2.3.1
+   Compiling build-rs v0.1.2
+   Compiling bindgen v0.70.1
+   Compiling signal-hook v0.3.18
+   Compiling cexpr v0.6.0
+   Compiling form_urlencoded v1.2.1
+   Compiling foreign-types v0.3.2
+   Compiling dirs-next v2.0.0
+   Compiling group v0.13.0
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.6
+   Compiling libssh2-sys v0.3.1
+   Compiling memoffset v0.6.5
+   Compiling softbuffer v0.4.6
+   Compiling fastrand v2.3.0
+   Compiling rustc-hash v1.1.0
+   Compiling ucd-trie v0.1.7
+   Compiling itoa v1.0.15
+   Compiling utf8_iter v1.0.4
+   Compiling heapless v0.8.0
+   Compiling bytes v1.10.1
+   Compiling ryu v1.0.20
+   Compiling futures-task v0.3.31
+   Compiling futures-io v0.3.31
+   Compiling slab v0.4.10
+   Compiling pin-utils v0.1.0
+   Compiling tokio v1.46.1
+   Compiling futures-util v0.3.31
+   Compiling tempfile v3.20.0
+   Compiling lyon_tessellation v1.0.15
+   Compiling digest v0.10.7
+   Compiling term v0.7.0
+   Compiling lyon_algorithms v1.0.5
+   Compiling bzip2-sys v0.1.13+1.0.8
+   Compiling etagere v0.2.15
+   Compiling crossbeam-utils v0.7.2
+   Compiling tracing-core v0.1.34
+   Compiling maybe-uninit v2.0.0
+   Compiling same-file v1.0.6
+   Compiling crc-catalog v2.4.0
+   Compiling parking v2.2.1
+   Compiling num-bigint-dig v0.8.4
+   Compiling fixedbitset v0.4.2
+   Compiling new_debug_unreachable v1.0.6
+   Compiling cpufeatures v0.2.17
+   Compiling precomputed-hash v0.1.1
+   Compiling openssl-probe v0.1.6
+   Compiling bit-vec v0.6.3
+   Compiling string_cache v0.8.9
+   Compiling sha2 v0.10.9
+   Compiling bit-set v0.5.3
+   Compiling petgraph v0.6.5
+   Compiling crc v3.3.0
+   Compiling walkdir v2.5.0
+   Compiling lyon v1.0.1
+   Compiling signal-hook-mio v0.2.4
+   Compiling ascii-canvas v3.0.0
+   Compiling tokio-stream v0.1.17
+   Compiling futures-intrusive v0.5.0
+   Compiling libgit2-sys v0.17.0+1.8.1
+   Compiling ena v0.14.3
+   Compiling castaway v0.2.3
+   Compiling num-iter v0.1.45
+   Compiling pcsc-sys v1.3.0
+   Compiling hashlink v0.10.0
+   Compiling bevy_egui v0.31.1
+   Compiling indoc v2.0.6
+   Compiling lalrpop-util v0.20.2
+   Compiling base64 v0.22.1
+   Compiling flume v0.11.1
+   Compiling compact_str v0.8.1
+   Compiling atoi v2.0.0
+   Compiling rstar v0.12.2
+   Compiling futures-executor v0.3.31
+   Compiling futures-channel v0.3.31
+   Compiling crossbeam v0.8.4
+   Compiling cbitset v0.2.0
+   Compiling atty v0.2.14
+   Compiling memoffset v0.7.1
+   Compiling sha1collisiondetection v0.3.4
+   Compiling oid-registry v0.7.1
+   Compiling clap v2.34.0
+   Compiling crossbeam-channel v0.4.4
+   Compiling bzip2 v0.5.2
+   Compiling ignore v0.4.23
+   Compiling num-bigint v0.4.6
+   Compiling dlv-list v0.5.2
+   Compiling colored v2.2.0
+   Compiling generic-array v1.2.0
+   Compiling dotenvy v0.15.7
+   Compiling hex v0.4.3
+   Compiling buffered-reader v1.4.0
+   Compiling dirs-sys v0.5.0
+   Compiling dirs-sys v0.4.1
+   Compiling console v0.15.11
+   Compiling rand_core v0.9.3
+   Compiling inotify-sys v0.1.5
+   Compiling inotify v0.10.2
+   Compiling rand_chacha v0.9.0
+   Compiling dirs v6.0.0
+   Compiling webpki v0.22.4
+   Compiling filetime v0.2.25
+   Compiling indicatif v0.17.11
+   Compiling notify v7.0.0
+   Compiling rand v0.9.1
+   Compiling shellexpand v3.1.1
+   Compiling directories v5.0.1
+   Compiling dirs v5.0.1
+   Compiling serde_derive v1.0.219
+   Compiling bytemuck_derive v1.9.3
+   Compiling tracing-attributes v0.1.30
+   Compiling zeroize_derive v1.4.2
+   Compiling thiserror-impl v1.0.69
+   Compiling thiserror-impl v2.0.12
+   Compiling zerofrom-derive v0.1.6
+   Compiling yoke-derive v0.8.0
+   Compiling displaydoc v0.2.5
+   Compiling zerovec-derive v0.11.1
+   Compiling zeroize v1.8.1
+   Compiling derive_more-impl v1.0.0
+   Compiling bytemuck v1.23.1
+   Compiling assert_type_match v0.1.1
+   Compiling tokio-macros v2.5.0
+   Compiling tracing v0.1.41
+   Compiling futures-macro v0.3.31
+   Compiling der_derive v0.7.3
+   Compiling image v0.25.6
+   Compiling zerofrom v0.1.6
+   Compiling variadics_please v1.1.0
+   Compiling serde_repr v0.1.20
+   Compiling yoke v0.8.0
+   Compiling zerovec v0.11.2
+   Compiling tinystr v0.8.1
+   Compiling icu_locale_core v2.0.0
+   Compiling potential_utf v0.1.2
+   Compiling zerotrie v0.2.2
+   Compiling icu_collections v2.0.0
+   Compiling icu_provider v2.0.0
+   Compiling icu_properties v2.0.1
+   Compiling icu_normalizer v2.0.0
+   Compiling rustls-pki-types v1.12.0
+   Compiling idna_adapter v1.2.1
+   Compiling signature v2.2.0
+   Compiling idna v1.0.3
+   Compiling async-trait v0.1.88
+   Compiling symphonia-core v0.5.4
+   Compiling url v2.5.4
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling smol_str v0.2.2
+   Compiling toml_edit v0.22.27
+   Compiling glam v0.29.3
+   Compiling either v1.15.0
+   Compiling hashbrown v0.14.5
+   Compiling erased-serde v0.4.6
+   Compiling bevy_macro_utils v0.16.1
+   Compiling spirv v0.3.0+sdk-1.3.268.0
+   Compiling gpu-alloc-types v0.3.0
+   Compiling ctrlc v3.4.7
+   Compiling gpu-alloc v0.6.0
+   Compiling der v0.7.10
+   Compiling bevy_platform v0.16.1
+   Compiling bevy_utils v0.16.1
+   Compiling bevy_macro_utils v0.15.3
+   Compiling polling v3.8.0
+   Compiling spki v0.7.3
+   Compiling pkcs8 v0.10.2
+   Compiling tokio-util v0.7.15
+   Compiling futures v0.3.31
+   Compiling gpu-descriptor-types v0.2.0
+   Compiling deranged v0.4.0
+   Compiling gpu-descriptor v0.3.2
+   Compiling time v0.3.41
+   Compiling itertools v0.14.0
+   Compiling ron v0.8.1
+   Compiling encase_derive v0.10.0
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling symphonia-metadata v0.5.4
+   Compiling ed25519 v2.2.3
+   Compiling tracing-subscriber v0.3.19
+   Compiling bevy_utils_proc_macros v0.15.3
+   Compiling bevy_reflect_derive v0.16.1

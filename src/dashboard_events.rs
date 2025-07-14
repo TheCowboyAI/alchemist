@@ -4,7 +4,6 @@ use anyhow::Result;
 use async_nats::jetstream::{self, consumer::PullConsumer, stream::Stream};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tokio::sync::mpsc;
 use tracing::{info, error};
 use futures::StreamExt;

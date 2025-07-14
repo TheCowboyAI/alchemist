@@ -3,22 +3,19 @@
 //! Provides automated deployment pipelines, GitOps integration, canary deployments,
 //! and multi-environment promotion workflows.
 
-use anyhow::{Result, Context};
-use async_trait::async_trait;
+use anyhow::Result;
 use chrono::{DateTime, Utc, Timelike, Weekday, Datelike};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{info, warn, error, debug};
+use tracing::{info, warn, error};
 use uuid::Uuid;
 
 use crate::{
-    deployment::{Deployment, DeploymentStatus, DeploymentTarget, DeploymentStrategy, DeploymentManager},
-    nix_deployment::{NixDeployer, NixDeploymentSpec, DeploymentEvent, HealthEvent},
+    deployment::DeploymentManager,
+    nix_deployment::NixDeployer,
     nats_client::NatsClient,
-    error::AlchemistError,
 };
 
 /// Deployment automation configuration

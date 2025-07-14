@@ -6,9 +6,8 @@
 use anyhow::Result;
 use iced::{Task, Element, Theme, window, Length, Alignment, Color, Point, Vector, Size, Rectangle};
 use iced::widget::{column, container, row, text, button, text_input, scrollable, Space, Canvas};
-use iced::widget::canvas::{self, Cache, Frame, Geometry, Path, Stroke, Fill, Text as CanvasText};
+use iced::widget::canvas::{self, Cache, Frame, Geometry, Path, Stroke, Text as CanvasText};
 use iced::mouse;
-use tokio::sync::mpsc;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

@@ -1,13 +1,12 @@
 //! Domain hierarchy management and visualization
 
-use anyhow::{Result, Context};
+use anyhow::Result;
 use dashmap::DashMap;
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use tracing::{info, warn, debug};
+use serde::Serialize;
+use std::collections::HashSet;
 
 use crate::{
-    config::{AlchemistConfig, DomainConfig, DomainRelationship},
+    config::{AlchemistConfig, DomainRelationship},
     shell_commands::DomainCommands,
 };
 
@@ -32,7 +31,7 @@ impl DomainManager {
         
         // Load domains from config
         for domain_config in &config.domains.available {
-            let mut domain = Domain {
+            let domain = Domain {
                 name: domain_config.name.clone(),
                 description: domain_config.description.clone(),
                 module_path: domain_config.module_path.clone(),

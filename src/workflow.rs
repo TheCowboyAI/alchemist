@@ -8,14 +8,14 @@
 
 use anyhow::{Result, anyhow, bail};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::path::PathBuf;
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::RwLock;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use async_nats::Client as NatsClient;
-use tracing::{info, warn, error, debug};
+use tracing::{info, warn, error};
 
 /// Workflow definition
 #[derive(Debug, Clone, Serialize, Deserialize)]

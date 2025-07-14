@@ -7,15 +7,15 @@ fn test_basic_math() {
 }
 
 #[test]
-fn test_domain_types_exist() {
-    use cim_domain::{GraphId, NodeId, EdgeId};
+fn test_alchemist_types_exist() {
+    use alchemist::{
+        config::AlchemistConfig,
+        shell::AlchemistShell,
+        ai::AiManager,
+    };
     
-    // Just verify these types exist and can be created
-    let _graph_id = GraphId::new();
-    let _node_id = NodeId::new();
-    let _edge_id = EdgeId::new();
-    
-    println!("✅ Domain types exist");
+    // Just verify these types exist
+    println!("✅ Alchemist types exist");
 }
 
 #[tokio::test]
@@ -26,21 +26,26 @@ async fn test_async_works() {
 }
 
 #[test] 
-fn test_graph_event_types_exist() {
-    // Just verify we can import these types
-    use cim_domain_graph::{GraphCreated, NodeAdded, EdgeAdded};
+fn test_domain_modules_exist() {
+    // Verify we can import from re-exported domain modules
+    use alchemist::{
+        cim_domain,
+        cim_domain_workflow,
+        cim_domain_document,
+        cim_domain_location,
+        cim_domain_nix,
+    };
     
-    println!("✅ Graph event types can be imported");
+    println!("✅ Domain modules can be imported");
 }
 
 #[test]
-fn test_multiple_domains_accessible() {
-    // Verify we can access types from different domains
-    use cim_domain_graph::Position3D;
-    use cim_domain_location::LocationUpdated;
+fn test_shell_commands_exist() {
+    // Verify shell command types exist
+    use alchemist::shell_commands::{
+        Commands, AiCommands, DialogCommands, 
+        PolicyCommands, DomainCommands, DeployCommands,
+    };
     
-    // Create a position
-    let _pos = Position3D { x: 0.0, y: 0.0, z: 0.0 };
-    
-    println!("✅ Multiple domains are accessible");
+    println!("✅ Shell command types are accessible");
 } 

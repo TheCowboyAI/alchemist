@@ -1,6 +1,6 @@
 //! System monitoring utilities for dashboard
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 /// Get current memory usage in MB
 pub fn get_memory_usage_mb() -> f32 {

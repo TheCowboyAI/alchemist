@@ -1,8 +1,11 @@
 //! Tests for JetStream persistence functionality
 
+#[cfg(feature = "bevy")]
 use alchemist::jetstream_persistence::*;
+#[cfg(feature = "bevy")]
 use uuid::Uuid;
 
+#[cfg(feature = "bevy")]
 #[tokio::test]
 async fn test_graph_persistence_event_creation() {
     // Test event creation
@@ -27,6 +30,7 @@ async fn test_graph_persistence_event_creation() {
     }
 }
 
+#[cfg(feature = "bevy")]
 #[test]
 fn test_persistence_event_types() {
     let graph_id = Uuid::new_v4();
@@ -73,6 +77,7 @@ fn test_persistence_event_types() {
     }
 }
 
+#[cfg(feature = "bevy")]
 #[test] 
 fn test_graph_snapshot() {
     let mut snapshot = GraphSnapshot {

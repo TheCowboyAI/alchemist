@@ -6,10 +6,9 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::path::Path;
 use std::collections::HashMap;
 use tracing::{info, warn, error};
-use uuid::Uuid;
 
 // Import command types
-use crate::shell_commands::{AiCommands, DialogCommands, PolicyCommands, ClaimsCommands, DomainCommands, DeployCommands, WorkflowCommands, EventCommands, AlertCommands, GraphCommands};
+use crate::shell_commands::{AiCommands, DialogCommands, PolicyCommands, DomainCommands, DeployCommands, WorkflowCommands, EventCommands, AlertCommands, GraphCommands};
 use crate::render_commands::RenderCommands;
 use std::sync::Arc;
 
@@ -23,7 +22,7 @@ use crate::{
     deployment::DeploymentManager,
     renderer::RendererManager,
     workflow::WorkflowManager,
-    event_monitor::{EventMonitor, EventFilter, EventSeverity, ExportFormat, AlertRule, AlertAction, FilterExpression, parse_filter_dsl},
+    event_monitor::{EventMonitor, EventFilter, EventSeverity, ExportFormat, parse_filter_dsl},
 };
 
 pub struct AlchemistShell {
@@ -311,7 +310,7 @@ impl AlchemistShell {
     
     /// Handle workflow commands
     pub async fn handle_workflow_command(&mut self, command: WorkflowCommands) -> Result<()> {
-        use crate::workflow::{Workflow, WorkflowStep, WorkflowAction, load_workflow_from_yaml, load_workflow_from_json};
+        use crate::workflow::{Workflow, WorkflowAction, load_workflow_from_yaml, load_workflow_from_json};
         use std::collections::HashMap;
         use console::style;
         
@@ -488,7 +487,7 @@ impl AlchemistShell {
     /// Handle render commands
     pub async fn handle_render_command(&mut self, command: RenderCommands) -> Result<()> {
         use crate::render_commands::{RenderCommands, DemoType};
-        use crate::renderer::{RenderData, GraphNode, GraphEdge};
+        use crate::renderer::{GraphNode, GraphEdge};
         
         match command {
             RenderCommands::Graph { title, file, iced } => {
@@ -1083,7 +1082,7 @@ fn main() {
             match command {
                 EventCommands::List { count, domain, event_type, severity } => {
                     // Build filter
-                    let mut filter = EventFilter {
+                    let filter = EventFilter {
                         domains: domain.map(|d| vec![d]),
                         event_types: event_type.map(|t| vec![t]),
                         min_severity: severity.and_then(|s| parse_severity(&s)),

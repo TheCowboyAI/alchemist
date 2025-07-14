@@ -4,7 +4,7 @@
 
 use anyhow::Result;
 use iced::{Task, Element, Theme, window, Length, Alignment};
-use iced::widget::{column, container, row, text, button, Space};
+use iced::widget::{column, container, text, button, Space};
 
 #[derive(Debug, Clone)]
 pub enum Message {

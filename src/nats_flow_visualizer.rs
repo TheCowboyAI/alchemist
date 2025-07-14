@@ -4,9 +4,9 @@
 //! showing publishers, subscribers, and message routing.
 
 use anyhow::Result;
-use iced::{Task, Element, Theme, window, Length, Alignment, Color, Point, Vector, Size, Rectangle};
+use iced::{Task, Element, Theme, window, Length, Alignment, Color, Point, Vector, Rectangle};
 use iced::widget::{column, container, row, text, button, scrollable, Space, Canvas, pick_list};
-use iced::widget::canvas::{self, Cache, Frame, Geometry, Path, Stroke, Fill};
+use iced::widget::canvas::{self, Cache, Frame, Geometry, Path, Stroke};
 use tokio::sync::mpsc;
 use std::collections::{HashMap, VecDeque};
 use serde::{Deserialize, Serialize};

@@ -1,6 +1,6 @@
 //! Policy and claims management
 
-use anyhow::{Result, Context};
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};

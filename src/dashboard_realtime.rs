@@ -7,17 +7,16 @@ use anyhow::{Result, Context};
 use async_nats::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
-use tracing::{info, error, debug};
+use tracing::{info, error};
 use std::sync::Arc;
 use futures::StreamExt;
 use dashmap::DashMap;
 use chrono::{DateTime, Utc};
 
 use crate::{
-    dashboard::{DashboardData, DomainInfo, DialogInfo, EventInfo, SystemStatus, PolicyInfo, DomainHealth},
+    dashboard::{DashboardData, DomainInfo, DialogInfo, EventInfo, PolicyInfo},
     dashboard_events::{DashboardEvent, DashboardProjection},
     renderer_api::{RendererCommand, RendererApi},
-    renderer_events::{ShellToRendererEvent, EventBuilder},
 };
 
 /// Dashboard update message

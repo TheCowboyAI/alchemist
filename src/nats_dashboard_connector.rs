@@ -6,7 +6,6 @@ use tokio::sync::mpsc;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tracing::{info, error, debug};
-use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 
 use crate::dashboard::{DashboardData, DomainInfo, DialogInfo, EventInfo, DomainHealth};

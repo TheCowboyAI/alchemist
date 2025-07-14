@@ -99,6 +99,9 @@ pub enum RenderCommands {
         output: Option<String>,
     },
     
+    /// Get renderer status
+    Status,
+    
     /// List active renderer windows
     List,
     

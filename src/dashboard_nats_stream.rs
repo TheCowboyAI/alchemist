@@ -4,9 +4,9 @@ use anyhow::Result;
 use async_nats::Client;
 use futures::stream::StreamExt;
 use tokio::sync::mpsc;
-use tracing::{info, warn, error};
+use tracing::{info, error};
 
-use crate::dashboard::{DashboardData, DomainInfo, DialogInfo, EventInfo, DomainHealth};
+use crate::dashboard::{DashboardData, DialogInfo, EventInfo, DomainHealth};
 use crate::dashboard_events::DashboardEvent;
 
 /// Streams real-time NATS events to the dashboard

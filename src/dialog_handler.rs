@@ -2,11 +2,11 @@
 
 use anyhow::Result;
 use tokio::sync::mpsc;
-use tracing::{info, error, warn};
+use tracing::{info, error};
 use futures::StreamExt;
 
 use crate::{
-    dialog::{DialogManager, DialogMessage, MessageRole},
+    dialog::{DialogManager, MessageRole},
     dialog_window::{DialogCommand, DialogEvent, ExportFormat},
     ai::AiManager,
 };

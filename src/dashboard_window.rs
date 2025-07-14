@@ -4,10 +4,9 @@
 use anyhow::Result;
 use iced::{Task, Element, Theme, window, Length, Alignment};
 use iced::widget::{column, container, row, text, scrollable, button, Space};
-use std::sync::Arc;
 use tokio::sync::mpsc;
 
-use crate::dashboard::{DashboardData, DomainInfo, DialogInfo, EventInfo, PolicyInfo};
+use crate::dashboard::DashboardData;
 
 #[derive(Debug, Clone)]
 pub enum Message {

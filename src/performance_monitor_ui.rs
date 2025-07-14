@@ -7,7 +7,6 @@ use anyhow::Result;
 use iced::{Task, Element, Theme, window, Length, Alignment, Color};
 use iced::widget::{column, container, row, text, button, scrollable, Space, progress_bar, Canvas};
 use iced::widget::canvas::{self, Cache, Frame, Geometry, Path, Stroke};
-use tokio::sync::mpsc;
 use std::collections::VecDeque;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};

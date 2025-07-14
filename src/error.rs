@@ -1,6 +1,5 @@
 //! Error types for Alchemist
 
-use std::fmt;
 use thiserror::Error;
 
 /// Main error type for Alchemist

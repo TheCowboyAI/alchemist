@@ -4,18 +4,16 @@
 
 use anyhow::Result;
 use iced::{Task, Element, Theme, window, Length, Alignment};
-use iced::widget::{column, container, row, text, button, text_input, scrollable, Space, pick_list};
+use iced::widget::{column, container, row, text, button, Space};
 use tokio::sync::mpsc;
-use std::collections::VecDeque;
-use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use uuid::Uuid;
 use async_nats::Client;
 use std::sync::Arc;
-use tracing::{info, warn, error};
+use tracing::{info, error};
 
 use crate::launcher::{Message, Panel, Conversation, ChatMessage, Document, DocumentType};
-use crate::renderer_nats_bridge::{RendererNatsBridge, NatsRendererEvent, ComponentType};
+use crate::renderer_nats_bridge::{RendererNatsBridge, NatsRendererEvent};
 
 pub struct EnhancedLauncher {
     // Core launcher state (reuse from launcher.rs)

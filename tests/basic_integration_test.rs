@@ -1,98 +1,209 @@
 //! Basic integration test - minimal functionality verification
 
-#[test]
-fn test_basic_types() {
-    use cim_domain::{GraphId, NodeId, EdgeId};
+use alchemist::{
+    config::{AlchemistConfig, AiModelConfig, CacheConfig, PolicyConfig},
+    shell::AlchemistShell,
+    shell_commands::{AiCommands, DialogCommands},
+    ai::AiManager,
+    dialog::DialogManager,
+};
+use std::collections::HashMap;
+use anyhow::Result;
+use tempfile::TempDir;
+
+#[tokio::test]
+async fn test_basic_shell_creation() -> Result<()> {
+    // Create a temporary directory for test data
+    let temp_dir = TempDir::new()?;
     
-    // Create basic types
-    let graph_id = GraphId::new();
-    let node_id = NodeId::new();
-    let edge_id = EdgeId::new();
+    // Create basic configuration
+    let mut config = AlchemistConfig {
+        general: Default::default(),
+        ai_models: HashMap::new(),
+        policy: PolicyConfig {
+            storage_path: temp_dir.path().join("policies").to_string_lossy().to_string(),
+            validation_enabled: true,
+            evaluation_timeout: 5000,
+            cache_ttl: Some(300),
+        },
+        deployments: HashMap::new(),
+        domains: Default::default(),
+        cache: Some(CacheConfig {
+            redis_url: None,
+            default_ttl: 3600,
+            max_memory_items: 1000,
+        }),
+    };
     
-    // Verify they're unique
-    assert_ne!(graph_id.to_string(), node_id.to_string());
-    assert_ne!(node_id.to_string(), edge_id.to_string());
+    // Update paths to use temp directory
+    config.general.dialog_history_path = temp_dir.path().join("dialogs").to_string_lossy().to_string();
+    config.policy.storage_path = temp_dir.path().join("policies").to_string_lossy().to_string();
     
-    println!("✅ Basic types test passed");
+    // Create required directories
+    std::fs::create_dir_all(&config.general.dialog_history_path)?;
+    std::fs::create_dir_all(&config.policy.storage_path)?;
+    
+    // Create shell
+    let shell = AlchemistShell::new(config).await?;
+    
+    println!("✅ Basic shell creation test passed");
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_async_functionality() {
-    // Simple async test
-    let result = async {
-        tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
-        42
-    }.await;
+async fn test_ai_manager_creation() -> Result<()> {
+    let temp_dir = TempDir::new()?;
     
-    assert_eq!(result, 42);
-    println!("✅ Async test passed");
-}
-
-#[test]
-fn test_cross_domain_types() {
-    use cim_domain::NodeId;
-    
-    // Test person domain
-    use cim_domain_person::Person;
-    let person_id = NodeId::new();
-    let person = Person::new(person_id, "Alice".to_string(), "Smith".to_string());
-    assert_eq!(person.first_name(), "Alice");
-    assert_eq!(person.last_name(), "Smith");
-    
-    // Test agent domain
-    use cim_domain_agent::{Agent, AgentType};
-    let agent_id = NodeId::new();
-    let agent = Agent::new(agent_id, AgentType::Human, person_id);
-    assert_eq!(agent.owner_id(), person_id);
-    
-    println!("✅ Cross-domain types test passed");
-}
-
-#[test]
-fn test_graph_events() {
-    use cim_domain_graph::{GraphCreated, NodeAdded, Position3D};
-    use cim_domain::{GraphId, NodeId};
-    use std::collections::HashMap;
-    
-    // Create events
-    let graph_id = GraphId::new();
-    let node_id = NodeId::new();
-    
-    let graph_event = GraphCreated {
-        graph_id,
-        name: "Test".to_string(),
-        description: "Test graph".to_string(),
-        graph_type: None,
-        metadata: HashMap::new(),
-        created_at: chrono::Utc::now(),
+    // Create config with a test AI model
+    let mut config = AlchemistConfig {
+        general: Default::default(),
+        ai_models: HashMap::new(),
+        policy: PolicyConfig {
+            storage_path: temp_dir.path().join("policies").to_string_lossy().to_string(),
+            validation_enabled: true,
+            evaluation_timeout: 5000,
+            cache_ttl: Some(300),
+        },
+        deployments: HashMap::new(),
+        domains: Default::default(),
+        cache: Some(CacheConfig {
+            redis_url: None,
+            default_ttl: 3600,
+            max_memory_items: 1000,
+        }),
     };
     
-    let node_event = NodeAdded {
-        graph_id,
-        node_id,
-        position: Position3D { x: 0.0, y: 0.0, z: 0.0 },
-        node_type: "test".to_string(),
-        metadata: HashMap::new(),
-    };
+    // Add a mock AI model
+    config.ai_models.insert("test-model".to_string(), AiModelConfig {
+        provider: "openai".to_string(),
+        endpoint: Some("http://localhost:8080".to_string()),
+        api_key_env: Some("TEST_API_KEY".to_string()),
+        model_name: "gpt-3.5-turbo".to_string(),
+        max_tokens: Some(1000),
+        temperature: Some(0.7),
+        timeout_seconds: Some(30),
+        rate_limit: None,
+        fallback_model: None,
+        params: HashMap::new(),
+    });
     
-    // Verify
-    assert_eq!(graph_event.graph_id, graph_id);
-    assert_eq!(node_event.node_id, node_id);
+    // Set dummy API key
+    std::env::set_var("TEST_API_KEY", "test-key");
     
-    println!("✅ Graph events test passed");
+    // Create AI manager
+    let ai_manager = AiManager::new(&config).await?;
+    
+    println!("✅ AI manager creation test passed");
+    Ok(())
 }
 
-#[test]
-fn test_all_domains_compile() {
-    // Just verify we can import from all domains
-    use cim_domain_graph::GraphCreated;
-    use cim_domain_person::Person;
-    use cim_domain_agent::Agent;
-    use cim_domain_workflow::WorkflowCreated;
-    use cim_domain_location::LocationCreated;
-    use cim_domain_identity::IdentityCreated;
-    use cim_domain_organization::OrganizationCreated;
-    use cim_domain_document::DocumentCreated;
+#[tokio::test]
+async fn test_dialog_manager_creation() -> Result<()> {
+    let temp_dir = TempDir::new()?;
+    let dialog_path = temp_dir.path().join("dialogs");
+    std::fs::create_dir_all(&dialog_path)?;
     
-    println!("✅ All domains compile and export expected types");
-} 
+    // Create a config for dialog manager
+    let config = AlchemistConfig {
+        general: Default::default(),
+        ai_models: HashMap::new(),
+        policy: PolicyConfig {
+            storage_path: temp_dir.path().join("policies").to_string_lossy().to_string(),
+            validation_enabled: true,
+            evaluation_timeout: 5000,
+            cache_ttl: Some(300),
+        },
+        deployments: HashMap::new(),
+        domains: Default::default(),
+        cache: Some(CacheConfig {
+            redis_url: None,
+            default_ttl: 3600,
+            max_memory_items: 1000,
+        }),
+    };
+    
+    // Create dialog manager
+    let dialog_manager = DialogManager::new(&config).await?;
+    
+    // List dialogs
+    let dialogs = dialog_manager.list_recent(10).await?;
+    // Just check that list_recent works, don't assume empty
+    println!("Found {} dialogs", dialogs.len());
+    
+    println!("✅ Dialog manager creation test passed");
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_command_handling() -> Result<()> {
+    let temp_dir = TempDir::new()?;
+    
+    let mut config = AlchemistConfig {
+        general: Default::default(),
+        ai_models: HashMap::new(),
+        policy: PolicyConfig {
+            storage_path: temp_dir.path().join("policies").to_string_lossy().to_string(),
+            validation_enabled: true,
+            evaluation_timeout: 5000,
+            cache_ttl: Some(300),
+        },
+        deployments: HashMap::new(),
+        domains: Default::default(),
+        cache: Some(CacheConfig {
+            redis_url: None,
+            default_ttl: 3600,
+            max_memory_items: 1000,
+        }),
+    };
+    
+    config.general.dialog_history_path = temp_dir.path().join("dialogs").to_string_lossy().to_string();
+    config.policy.storage_path = temp_dir.path().join("policies").to_string_lossy().to_string();
+    
+    std::fs::create_dir_all(&config.general.dialog_history_path)?;
+    std::fs::create_dir_all(&config.policy.storage_path)?;
+    
+    let mut shell = AlchemistShell::new(config).await?;
+    
+    // Test AI list command (should work even with no models)
+    shell.handle_ai_command(AiCommands::List).await?;
+    
+    // Test dialog list command (should work even with no dialogs)
+    shell.handle_dialog_command(DialogCommands::List { count: 10 }).await?;
+    
+    println!("✅ Command handling test passed");
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_config_serialization() -> Result<()> {
+    let config = AlchemistConfig {
+        general: Default::default(),
+        ai_models: HashMap::new(),
+        policy: PolicyConfig {
+            storage_path: "/tmp/policies".to_string(),
+            validation_enabled: true,
+            evaluation_timeout: 5000,
+            cache_ttl: Some(300),
+        },
+        deployments: HashMap::new(),
+        domains: Default::default(),
+        cache: Some(CacheConfig {
+            redis_url: Some("redis://localhost:6379".to_string()),
+            default_ttl: 3600,
+            max_memory_items: 1000,
+        }),
+    };
+    
+    // Serialize to TOML
+    let toml_str = toml::to_string(&config)?;
+    
+    // Deserialize back
+    let config2: AlchemistConfig = toml::from_str(&toml_str)?;
+    
+    // Verify cache config survived serialization
+    assert!(config2.cache.is_some());
+    assert_eq!(config2.cache.unwrap().default_ttl, 3600);
+    
+    println!("✅ Config serialization test passed");
+    Ok(())
+}

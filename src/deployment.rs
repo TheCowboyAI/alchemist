@@ -1,7 +1,6 @@
 //! CIM deployment management
 
 use anyhow::Result;
-use crate::error::Result as AlchemistResult;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
@@ -15,14 +14,10 @@ use crate::{
     shell_commands::DeployCommands,
     nats_client::NatsClient,
     nix_deployment::{
-        NixDeployer, NixDeploymentSpec, NixServiceSpec, NixAgentSpec,
-        NatsMeshConfig, NatsNode, LeafNode, JetStreamConfig,
-        ResourceLimits, HealthCheckConfig, SecretsConfig, SecretsProvider,
-        DeploymentStatus as NixDeploymentStatus,
+        NixDeployer, NixDeploymentSpec,
     },
     deployment_automation::{
-        DeploymentAutomation, AutomationConfig, DeploymentWindow, PromotionPolicy,
-        SuccessCriteria, PipelineTrigger,
+        DeploymentAutomation, AutomationConfig, DeploymentWindow, PipelineTrigger,
     },
 };
 

@@ -5,7 +5,7 @@
 
 use anyhow::Result;
 use iced::{Task, Element, Theme, window, Length, Alignment, Color};
-use iced::widget::{column, container, row, text, button, scrollable, Space, canvas, Canvas};
+use iced::widget::{column, container, row, text, button, scrollable, Space};
 use tokio::sync::mpsc;
 use std::collections::{VecDeque, HashMap};
 use serde::{Deserialize, Serialize};

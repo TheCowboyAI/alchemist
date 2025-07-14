@@ -7,13 +7,13 @@ use anyhow::{Result, Context};
 use async_nats::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
-use tracing::{info, debug, warn, error};
+use tracing::{info, debug, error};
 use std::sync::Arc;
 use dashmap::DashMap;
 use futures::StreamExt;
 
 use crate::renderer_api::{RendererCommand, RendererEvent};
-use crate::renderer_events::{EventBuilder, ShellToRendererEvent, RendererToShellEvent};
+use crate::renderer_events::EventBuilder;
 
 /// NATS subjects for renderer communication
 pub mod subjects {
@@ -235,12 +235,14 @@ impl RendererComm {
             }
         }
         
+        let disconnected_count = disconnected.len();
+        
         for id in disconnected {
             self.remove_subscription(&id).await?;
         }
         
-        if !disconnected.is_empty() {
-            info!("Cleaned up {} disconnected renderers", disconnected.len());
+        if disconnected_count > 0 {
+            info!("Cleaned up {} disconnected renderers", disconnected_count);
         }
         
         Ok(())
@@ -306,7 +308,7 @@ impl RendererClient {
     }
     
     /// Start the renderer client
-    pub async fn start(mut self) -> Result<(mpsc::Receiver<RendererCommand>, mpsc::Sender<RendererEvent>)> {
+    pub async fn start(self) -> Result<(mpsc::Receiver<RendererCommand>, mpsc::Sender<RendererEvent>)> {
         // Create channels for external use
         let (cmd_tx, cmd_rx) = mpsc::channel(100);
         let (event_tx, event_rx) = mpsc::channel(100);

@@ -2,12 +2,14 @@
 
 use async_nats::{Client, Message, Subscriber};
 use bytes::Bytes;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::time::Duration;
+#[cfg(feature = "bevy")]
 use bevy::prelude::*;
 
 /// NATS client wrapper
-#[derive(Clone, Resource)]
+#[derive(Clone)]
+#[cfg_attr(feature = "bevy", derive(Resource))]
 pub struct NatsClient {
     client: Client,
 }

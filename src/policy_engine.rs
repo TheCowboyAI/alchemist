@@ -3,16 +3,16 @@
 //! This module provides the core policy evaluation functionality,
 //! supporting event-based policy decisions with claims-based authorization.
 
-use anyhow::{Result, Context};
+use anyhow::Result;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc, Timelike, Datelike};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 
-use crate::policy::{Policy, Rule, RuleCondition, RuleAction, Claim};
+use crate::policy::{Policy, RuleCondition, RuleAction};
 
 /// Context for policy evaluation
 #[derive(Debug, Clone)]

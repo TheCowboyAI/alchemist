@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 use std::sync::Arc;
 use dashmap::DashMap;
-use uuid::Uuid;
 
 /// Messages that can be sent from the main process to a renderer
 #[derive(Debug, Clone, Serialize, Deserialize)]

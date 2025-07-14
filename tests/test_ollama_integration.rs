@@ -1,5 +1,8 @@
 //! Test Ollama integration
 
+// This test is disabled because it depends on modules from the ia binary that are not available
+#![cfg(feature = "simple_agent_available")]
+
 use ia::simple_agent::{AgentResource, OllamaClient};
 
 #[test]

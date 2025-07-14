@@ -2,6 +2,7 @@
 //!
 //! Tests that validate the proper event streams are created and processed
 //! for the agent UI and integration modules.
+#![cfg(feature = "bevy")]
 
 use bevy::input::InputPlugin;
 use bevy::prelude::*;

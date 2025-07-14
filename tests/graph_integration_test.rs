@@ -2,10 +2,14 @@
 
 use alchemist::{
     graph_parser,
+    nats_client::NatsClient,
+};
+
+#[cfg(feature = "bevy")]
+use alchemist::{
     graph_components::*,
     graph_algorithms::*,
     jetstream_persistence::*,
-    nats_client::NatsClient,
 };
 use anyhow::Result;
 
@@ -86,12 +90,13 @@ async fn test_cytoscape_format_parsing() -> Result<()> {
     
     assert_eq!(nodes.len(), 2);
     assert_eq!(edges.len(), 1);
-    assert_eq!(edges[0].source, "n1");
-    assert_eq!(edges[0].target, "n2");
+    assert_eq!(edges[0].source_id, "n1");
+    assert_eq!(edges[0].target_id, "n2");
     
     Ok(())
 }
 
+#[cfg(feature = "bevy")]
 #[tokio::test]
 async fn test_graph_persistence_events() -> Result<()> {
     use chrono::Utc;
@@ -120,6 +125,7 @@ async fn test_graph_persistence_events() -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "bevy")]
 #[tokio::test]
 async fn test_replayed_graph_construction() -> Result<()> {
     use chrono::Utc;
@@ -200,8 +206,8 @@ async fn test_graph_structure_analysis() -> Result<()> {
         adjacency.insert(node.id.clone(), Vec::new());
     }
     for edge in &edges {
-        adjacency.get_mut(&edge.source).unwrap().push(edge.target.clone());
-        adjacency.get_mut(&edge.target).unwrap().push(edge.source.clone());
+        adjacency.get_mut(&edge.source_id).unwrap().push(edge.target_id.clone());
+        adjacency.get_mut(&edge.target_id).unwrap().push(edge.source_id.clone());
     }
     
     // Count components

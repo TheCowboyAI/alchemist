@@ -51,7 +51,12 @@ async fn main() -> Result<()> {
     info!("Starting RSS Feed Processor Service");
 
     // Load configuration
-    let mut config = AlchemistConfig::load()?;
+    let config_path = dirs::config_dir()
+        .ok_or_else(|| anyhow::anyhow!("Could not determine config directory"))?
+        .join("alchemist")
+        .join("config.toml");
+    
+    let mut config = alchemist::config::load_or_create(config_path.to_str().unwrap()).await?;
     
     // Override NATS URL if provided
     if let Some(nats_url) = args.nats_url {
@@ -84,7 +89,7 @@ async fn main() -> Result<()> {
     info!("Connected to NATS");
     
     // Initialize AI manager
-    let ai_manager = AiManager::new(&config).await?;
+    let mut ai_manager = AiManager::new(&config).await?;
     
     // Test AI model
     info!("Testing AI model: {}", args.ai_model);

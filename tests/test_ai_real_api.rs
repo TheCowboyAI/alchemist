@@ -16,40 +16,59 @@ mod ai_integration_tests {
         let mut config = AlchemistConfig::default();
         
         // Add Anthropic models
-        if let Ok(api_key) = env::var("ANTHROPIC_API_KEY") {
-            config.ai_models.push(AiModelConfig {
-                name: "claude-3-sonnet".to_string(),
+        if env::var("ANTHROPIC_API_KEY").is_ok() {
+            config.ai_models.insert("claude-3-sonnet".to_string(), AiModelConfig {
                 provider: "anthropic".to_string(),
-                api_key: Some(api_key.clone()),
                 endpoint: None,
-                parameters: None,
+                api_key_env: Some("ANTHROPIC_API_KEY".to_string()),
+                model_name: "claude-3-sonnet-20240229".to_string(),
+                max_tokens: Some(4096),
+                temperature: Some(0.7),
+                timeout_seconds: Some(30),
+                rate_limit: None,
+                fallback_model: None,
+                params: std::collections::HashMap::new(),
             });
             
-            config.ai_models.push(AiModelConfig {
-                name: "claude-3-opus".to_string(),
+            config.ai_models.insert("claude-3-opus".to_string(), AiModelConfig {
                 provider: "anthropic".to_string(),
-                api_key: Some(api_key),
                 endpoint: None,
-                parameters: None,
+                api_key_env: Some("ANTHROPIC_API_KEY".to_string()),
+                model_name: "claude-3-opus-20240229".to_string(),
+                max_tokens: Some(4096),
+                temperature: Some(0.7),
+                timeout_seconds: Some(30),
+                rate_limit: None,
+                fallback_model: None,
+                params: std::collections::HashMap::new(),
             });
         }
         
         // Add OpenAI models
-        if let Ok(api_key) = env::var("OPENAI_API_KEY") {
-            config.ai_models.push(AiModelConfig {
-                name: "gpt-4".to_string(),
+        if env::var("OPENAI_API_KEY").is_ok() {
+            config.ai_models.insert("gpt-4".to_string(), AiModelConfig {
                 provider: "openai".to_string(),
-                api_key: Some(api_key.clone()),
                 endpoint: None,
-                parameters: None,
+                api_key_env: Some("OPENAI_API_KEY".to_string()),
+                model_name: "gpt-4-turbo-preview".to_string(),
+                max_tokens: Some(4096),
+                temperature: Some(0.7),
+                timeout_seconds: Some(30),
+                rate_limit: None,
+                fallback_model: None,
+                params: std::collections::HashMap::new(),
             });
             
-            config.ai_models.push(AiModelConfig {
-                name: "gpt-3.5-turbo".to_string(),
+            config.ai_models.insert("gpt-3.5-turbo".to_string(), AiModelConfig {
                 provider: "openai".to_string(),
-                api_key: Some(api_key),
                 endpoint: None,
-                parameters: None,
+                api_key_env: Some("OPENAI_API_KEY".to_string()),
+                model_name: "gpt-3.5-turbo".to_string(),
+                max_tokens: Some(4096),
+                temperature: Some(0.7),
+                timeout_seconds: Some(30),
+                rate_limit: None,
+                fallback_model: None,
             });
         }
         

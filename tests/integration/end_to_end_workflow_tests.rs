@@ -15,6 +15,7 @@
 //!     E --> F[UI Update]
 //!     F --> G[User Sees Result]
 //! ```
+#![cfg(feature = "bevy")]
 
 use crate::fixtures::{TestEventStore, TestNatsServer, assertions::*, create_test_app};
 use bevy::prelude::*;

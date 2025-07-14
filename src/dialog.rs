@@ -4,16 +4,15 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs;
 use tokio::sync::RwLock;
-use tracing::{info, warn, debug};
+use tracing::warn;
 use uuid::Uuid;
 
 use crate::{
     config::AlchemistConfig,
-    ai::AiManager,
     shell_commands::DialogCommands,
 };
 

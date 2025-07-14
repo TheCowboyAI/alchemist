@@ -1,12 +1,12 @@
 //! Minimal main entry point to test UI
 
-mod dashboard_minimal;
-mod dashboard;
-mod nats_dashboard_connector;
-mod nats_client;
-mod system_monitor;
-
-use dashboard::DashboardData;
+use alchemist::{
+    dashboard_minimal,
+    dashboard::{self, DashboardData},
+    nats_dashboard_connector,
+    nats_client,
+    system_monitor,
+};
 use std::env;
 
 fn main() -> anyhow::Result<()> {

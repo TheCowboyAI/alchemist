@@ -4,7 +4,6 @@ use anyhow::Result;
 use iced::{Task, Element, Theme, window, Length, Alignment};
 use iced::widget::{column, container, row, text, button, text_input, scrollable, Space, pick_list};
 use tokio::sync::mpsc;
-use std::collections::VecDeque;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 use uuid::Uuid;

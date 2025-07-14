@@ -9,41 +9,38 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use tracing::info;
 
-// Import shell modules
-mod config;
-mod ai;
-mod dialog;
-mod policy;
-mod domain;
-mod deployment;
-mod progress;
-mod shell;
-mod shell_commands;
-mod renderer;
-mod render_commands;
-mod dashboard;
-mod dashboard_events;
-mod dashboard_realtime;
-mod dashboard_nats_stream;
-mod rss_feed_manager;
-mod renderer_api;
-mod renderer_events;
-mod renderer_comm;
-mod nix_deployment;
-mod nats_client;
-mod policy_engine;
-mod workflow;
-mod event_monitor;
-mod shell_enhanced;
-mod error;
-mod dashboard_window;
-mod dialog_window;
-mod dialog_handler;
-mod system_monitor;
-
-use crate::{
-    shell::AlchemistShell,
-    shell_commands::Commands,
+// Use modules from the library crate
+use alchemist::{
+    config::{self, AlchemistConfig},
+    ai,
+    dialog,
+    policy,
+    domain,
+    deployment,
+    progress,
+    shell::{self, AlchemistShell},
+    shell_commands::{self, Commands},
+    renderer,
+    render_commands,
+    dashboard,
+    dashboard_events,
+    dashboard_realtime,
+    dashboard_nats_stream,
+    rss_feed_manager,
+    renderer_api,
+    renderer_events,
+    renderer_comm,
+    nix_deployment,
+    nats_client,
+    policy_engine,
+    workflow,
+    event_monitor,
+    shell_enhanced,
+    error,
+    dashboard_window,
+    dialog_window,
+    dialog_handler,
+    system_monitor,
 };
 
 

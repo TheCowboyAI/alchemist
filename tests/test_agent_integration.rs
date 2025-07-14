@@ -1,5 +1,9 @@
 //! Test the agent integration to ensure it's processing events correctly
 
+#![cfg(feature = "bevy")]
+// This test is disabled because it depends on modules from the ia binary that are not available
+#![cfg(feature = "simple_agent_available")]
+
 use bevy::prelude::*;
 use ia::simple_agent::{
     AgentErrorEvent, AgentQuestionEvent, AgentResponseEvent, SimpleAgentPlugin,

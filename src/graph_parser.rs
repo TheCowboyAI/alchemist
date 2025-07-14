@@ -707,7 +707,7 @@ mod tests {
         assert_eq!(nodes.len(), 2);
         assert_eq!(edges.len(), 1);
         assert_eq!(nodes[0].label, "Node 1");
-        assert_eq!(edges[0].source, "1");
+        assert_eq!(edges[0].source_id, "1");
     }
     
     #[test]

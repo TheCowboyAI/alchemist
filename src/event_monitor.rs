@@ -4,7 +4,6 @@
 //! for events flowing through the Alchemist system via NATS.
 
 use anyhow::{Result, Context};
-use async_trait::async_trait;
 use chrono::{DateTime, Utc, Duration};
 use futures::StreamExt;
 use regex::Regex;

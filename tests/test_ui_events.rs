@@ -3,6 +3,8 @@
 //! This test validates that the UI components are properly emitting events
 //! in the correct order with the correct payloads.
 
+#![cfg(feature = "bevy")]
+
 use bevy::prelude::*;
 
 /// Event sent when user asks a question
