@@ -40,6 +40,10 @@ members = [
 ]
 resolver = "2"
 
+[[bin]]
+name = "alchemist_ui"
+path = "src/bin/alchemist_ui.rs"
+
 [features]
 default = []
 integration-tests = []
