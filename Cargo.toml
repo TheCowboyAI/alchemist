@@ -21,6 +21,7 @@ members = [
   "cim-conceptgraph",
   "cim-contextgraph",
   "cim-domain",
+  "cim-domain-collaboration",
   "cim-domain-conceptualspaces",
   "cim-domain-dialog",
   "cim-domain-document",
@@ -188,7 +189,15 @@ path = "src/main_minimal.rs"
 name = "rss-processor"
 path = "src/bin/rss_processor_service.rs"
 
+[[bin]]
+name = "alchemist-demo"
+path = "src/bin/alchemist_demo.rs"
+
 # Shell/CLI demos only
+[[example]]
+name = "alchemist_api_demo"
+path = "examples/alchemist_api_demo.rs"
+
 [[example]]
 name = "show_event_flow"
 path = "examples/show_event_flow.rs"

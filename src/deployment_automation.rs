@@ -619,7 +619,7 @@ impl DeploymentAutomation {
         
         // Get deployment configuration
         let deployment_manager = self.deployment_manager.read().await;
-        let deployment_config = deployment_manager.get_config(environment)
+        let _deployment_config = deployment_manager.get_config(environment)
             .ok_or_else(|| anyhow::anyhow!("Deployment config not found for: {}", environment))?;
         
         // Check if canary deployment is enabled
@@ -748,7 +748,7 @@ impl DeploymentAutomation {
     }
 
     /// Start canary deployment
-    async fn start_canary_deployment(&self, pipeline_id: &str, environment: &str) -> Result<()> {
+    async fn start_canary_deployment(&self, pipeline_id: &str, _environment: &str) -> Result<()> {
         let canary_id = Uuid::new_v4().to_string();
         
         let canary = CanaryDeployment {
@@ -904,8 +904,8 @@ impl DeploymentAutomation {
     /// Check success criteria
     async fn check_success_criteria(
         &self,
-        criteria: &SuccessCriteria,
-        environment: &str,
+        _criteria: &SuccessCriteria,
+        _environment: &str,
     ) -> Result<bool> {
         // In real implementation, this would check actual metrics
         // For now, return true
@@ -944,7 +944,7 @@ impl DeploymentAutomation {
             // 2. Watch for changes
             // 3. Trigger deployments on changes
             
-            let automation = self.clone();
+            let _automation = self.clone();
             tokio::spawn(async move {
                 loop {
                     // Check for git changes
@@ -961,7 +961,7 @@ impl DeploymentAutomation {
 
     /// Start deployment window enforcer
     async fn start_window_enforcer(&self) -> Result<()> {
-        let automation = self.clone();
+        let _automation = self.clone();
         
         tokio::spawn(async move {
             loop {
@@ -984,7 +984,7 @@ impl DeploymentAutomation {
 
     /// Start canary monitor
     async fn start_canary_monitor(&self) -> Result<()> {
-        let automation = self.clone();
+        let _automation = self.clone();
         
         tokio::spawn(async move {
             loop {
@@ -1080,7 +1080,7 @@ impl DeploymentAutomation {
 
     /// Start health monitor for auto-rollback
     async fn start_health_monitor(&self) -> Result<()> {
-        let automation = self.clone();
+        let _automation = self.clone();
         
         tokio::spawn(async move {
             loop {
@@ -1097,7 +1097,7 @@ impl DeploymentAutomation {
 
     /// Start promotion monitor
     async fn start_promotion_monitor(&self) -> Result<()> {
-        let automation = self.clone();
+        let _automation = self.clone();
         
         tokio::spawn(async move {
             loop {

@@ -275,7 +275,7 @@ impl AlchemistShell {
     /// Handle dialog commands
     pub async fn handle_dialog_command(&mut self, command: DialogCommands) -> Result<()> {
         // Check if this is a new dialog command
-        let is_new = matches!(&command, DialogCommands::New { .. });
+        let _is_new = matches!(&command, DialogCommands::New { .. });
         
         // Execute the command
         self.dialog_manager.handle_command(command).await?;
@@ -576,7 +576,7 @@ impl AlchemistShell {
                 let id = self.renderer_manager.spawn_document(&file, content, &format).await?;
                 println!("Launched document viewer: {}", id);
             }
-            RenderCommands::Edit { file, language } => {
+            RenderCommands::Edit { file, language: _ } => {
                 let (content, path) = if let Some(file_path) = file {
                     let content = std::fs::read_to_string(&file_path).ok();
                     (content, Some(file_path))
@@ -1113,11 +1113,11 @@ fn main() {
                     }
                 }
                 
-                EventCommands::Watch { filter, interval } => {
+                EventCommands::Watch { filter, interval: _ } => {
                     println!("Starting real-time event monitoring (Ctrl+C to stop)...");
                     
                     // Parse filter if provided
-                    let filter_expr = filter.map(|f| parse_filter_dsl(&f)).transpose()?;
+                    let _filter_expr = filter.map(|f| parse_filter_dsl(&f)).transpose()?;
                     
                     // TODO: Implement real-time watching
                     println!("Real-time monitoring not yet implemented");
@@ -1125,7 +1125,7 @@ fn main() {
                 
                 EventCommands::Query { criteria, limit, format } => {
                     // Parse filter DSL
-                    let filter_expr = parse_filter_dsl(&criteria)?;
+                    let _filter_expr = parse_filter_dsl(&criteria)?;
                     
                     // TODO: Convert filter expression to EventFilter
                     println!("Querying events with: {}", criteria);
@@ -1165,7 +1165,7 @@ fn main() {
                     }
                 }
                 
-                EventCommands::Stats { window, group_by } => {
+                EventCommands::Stats { window: _, group_by } => {
                     let stats = monitor.get_statistics().await;
                     
                     println!("Event Statistics");
@@ -1260,7 +1260,7 @@ fn main() {
     
     /// Handle alert subcommands
     async fn handle_alert_command(&self, command: AlertCommands) -> Result<()> {
-        if let Some(monitor) = &self.event_monitor {
+        if let Some(_monitor) = &self.event_monitor {
             match command {
                 AlertCommands::List => {
                     println!("Alert rules not yet implemented");
@@ -1379,7 +1379,7 @@ fn main() {
     /// Handle graph commands
     pub async fn handle_graph_command(&self, command: GraphCommands) -> Result<()> {
         match command {
-            GraphCommands::Load { path, id } => {
+            GraphCommands::Load { path, id: _ } => {
                 println!("Loading graph from: {}", path);
                 
                 #[cfg(feature = "bevy")]
@@ -1399,7 +1399,7 @@ fn main() {
                     println!("Rebuild with: cargo build --features bevy");
                 }
             }
-            GraphCommands::Save { id, output, format } => {
+            GraphCommands::Save { id, output, format: _ } => {
                 println!("Saving graph {} to: {}", id, output);
                 
                 #[cfg(feature = "bevy")]

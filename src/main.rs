@@ -173,7 +173,7 @@ async fn handle_command(shell: &mut AlchemistShell, command: Commands) -> Result
                 
                 println!("Real-time dashboard launched with ID: {}", id);
             } else {
-                let id = crate::dashboard::launch_dashboard(&shell.renderer_manager).await?;
+                let id = alchemist::dashboard::launch_dashboard(&shell.renderer_manager).await?;
                 println!("Dashboard launched with ID: {} (no real-time updates)", id);
             }
         }
@@ -184,17 +184,17 @@ async fn handle_command(shell: &mut AlchemistShell, command: Commands) -> Result
             let (tx, rx) = tokio::sync::mpsc::channel(100);
             
             // Create initial data with actual system info
-            let mut initial_data = crate::dashboard::DashboardData::example();
+            let mut initial_data = alchemist::dashboard::DashboardData::example();
             initial_data.system_status.nats_connected = shell.nats_client.is_some();
-            initial_data.system_status.memory_usage_mb = crate::system_monitor::get_memory_usage_mb();
+            initial_data.system_status.memory_usage_mb = alchemist::system_monitor::get_memory_usage_mb();
             
             // Create uptime tracker
-            let uptime_tracker = std::sync::Arc::new(crate::system_monitor::UptimeTracker::new());
+            let uptime_tracker = std::sync::Arc::new(alchemist::system_monitor::UptimeTracker::new());
             
             // If NATS is connected, use real event streaming
             if let Some(ref nats_client) = shell.nats_client {
                 println!("✅ Connecting dashboard to live NATS events...");
-                let (event_rx, _stream_handle) = crate::dashboard_nats_stream::create_dashboard_stream(
+                let (event_rx, _stream_handle) = alchemist::dashboard_nats_stream::create_dashboard_stream(
                     nats_client.clone(),
                     initial_data.clone(),
                 ).await;
@@ -220,9 +220,9 @@ async fn handle_command(shell: &mut AlchemistShell, command: Commands) -> Result
                     loop {
                         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
                         
-                        let mut data = crate::dashboard::DashboardData::example();
+                        let mut data = alchemist::dashboard::DashboardData::example();
                         data.system_status.nats_connected = nats_connected;
-                        data.system_status.memory_usage_mb = crate::system_monitor::get_memory_usage_mb();
+                        data.system_status.memory_usage_mb = alchemist::system_monitor::get_memory_usage_mb();
                         data.system_status.uptime_seconds = uptime_clone.get_uptime_seconds();
                         data.system_status.total_events += event_counter;
                         event_counter += 1;
@@ -235,7 +235,7 @@ async fn handle_command(shell: &mut AlchemistShell, command: Commands) -> Result
             }
             
             // Run the window (this blocks until window closes)
-            crate::dashboard::launch_dashboard_inprocess(initial_data, rx).await?;
+            alchemist::dashboard::launch_dashboard_inprocess(initial_data, rx).await?;
         }
         Commands::Workflow { command } => {
             shell.handle_workflow_command(command).await?;
