@@ -21,7 +21,7 @@ impl std::fmt::Display for UserId {
     }
 }
 
-use crate::events::{CollaborationEvent, UserPresence, ElementType};
+use crate::events::{CollaborationEvent, UserPresence};
 
 /// A collaborative editing session for a graph
 #[derive(Debug, Clone)]

@@ -3,7 +3,7 @@
 #[cfg(test)]
 mod workflow_integration_tests {
     use alchemist::{
-        workflow::{WorkflowManager, Workflow, WorkflowStep, WorkflowAction},
+        workflow::{WorkflowManager, Workflow, WorkflowStep, WorkflowAction, WorkflowCondition, RetryConfig},
         config::AlchemistConfig,
     };
     use std::collections::HashMap;
@@ -14,50 +14,53 @@ mod workflow_integration_tests {
             id: "test-workflow".to_string(),
             name: "Test Workflow".to_string(),
             description: Some("Integration test workflow".to_string()),
-            version: "1.0.0".to_string(),
             steps: vec![
                 WorkflowStep {
                     id: "create-dir".to_string(),
                     name: "Create Directory".to_string(),
-                    action: WorkflowAction::Execute {
+                    description: None,
+                    action: WorkflowAction::Command {
                         command: "mkdir".to_string(),
                         args: vec!["-p".to_string(), "test-output".to_string()],
+                        env: HashMap::new(),
                     },
-                    depends_on: vec![],
-                    retry: None,
-                    timeout: None,
-                    condition: None,
+                    dependencies: vec![],
+                    conditions: vec![],
+                    retry_config: None,
+                    timeout_seconds: None,
                 },
                 WorkflowStep {
                     id: "write-file".to_string(),
                     name: "Write Test File".to_string(),
-                    action: WorkflowAction::Execute {
+                    description: None,
+                    action: WorkflowAction::Command {
                         command: "sh".to_string(),
                         args: vec![
                             "-c".to_string(),
                             "echo 'Hello from workflow!' > test-output/hello.txt".to_string()
                         ],
+                        env: HashMap::new(),
                     },
-                    depends_on: vec!["create-dir".to_string()],
-                    retry: None,
-                    timeout: None,
-                    condition: None,
+                    dependencies: vec!["create-dir".to_string()],
+                    conditions: vec![],
+                    retry_config: None,
+                    timeout_seconds: None,
                 },
                 WorkflowStep {
                     id: "list-files".to_string(),
                     name: "List Files".to_string(),
-                    action: WorkflowAction::Execute {
+                    description: None,
+                    action: WorkflowAction::Command {
                         command: "ls".to_string(),
                         args: vec!["-la".to_string(), "test-output".to_string()],
+                        env: HashMap::new(),
                     },
-                    depends_on: vec!["write-file".to_string()],
-                    retry: None,
-                    timeout: None,
-                    condition: None,
+                    dependencies: vec!["write-file".to_string()],
+                    conditions: vec![],
+                    retry_config: None,
+                    timeout_seconds: None,
                 },
             ],
-            inputs: HashMap::new(),
-            outputs: HashMap::new(),
             metadata: HashMap::new(),
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
@@ -120,35 +123,44 @@ mod workflow_integration_tests {
             id: "conditional-workflow".to_string(),
             name: "Conditional Workflow".to_string(),
             description: Some("Test workflow with conditions".to_string()),
-            version: "1.0.0".to_string(),
             steps: vec![
                 WorkflowStep {
                     id: "check-os".to_string(),
                     name: "Check OS".to_string(),
-                    action: WorkflowAction::Execute {
+                    description: None,
+                    action: WorkflowAction::Command {
                         command: "uname".to_string(),
                         args: vec![],
+                        env: HashMap::new(),
                     },
-                    depends_on: vec![],
-                    retry: None,
-                    timeout: None,
-                    condition: None,
+                    dependencies: vec![],
+                    conditions: vec![],
+                    retry_config: None,
+                    timeout_seconds: None,
                 },
                 WorkflowStep {
                     id: "linux-step".to_string(),
                     name: "Linux Step".to_string(),
-                    action: WorkflowAction::Execute {
+                    description: None,
+                    action: WorkflowAction::Command {
                         command: "echo".to_string(),
                         args: vec!["Running on Linux".to_string()],
+                        env: HashMap::new(),
                     },
-                    depends_on: vec!["check-os".to_string()],
-                    retry: None,
-                    timeout: None,
-                    condition: Some("outputs.check-os.stdout contains 'Linux'".to_string()),
+                    dependencies: vec!["check-os".to_string()],
+                    conditions: vec![
+                        WorkflowCondition::Custom {
+                            evaluator: "contains".to_string(),
+                            params: serde_json::json!({
+                                "field": "outputs.check-os.stdout",
+                                "value": "Linux"
+                            }),
+                        }
+                    ],
+                    retry_config: None,
+                    timeout_seconds: None,
                 },
             ],
-            inputs: HashMap::new(),
-            outputs: HashMap::new(),
             metadata: HashMap::new(),
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
@@ -175,27 +187,26 @@ mod workflow_integration_tests {
             id: "error-workflow".to_string(),
             name: "Error Workflow".to_string(),
             description: Some("Test workflow error handling".to_string()),
-            version: "1.0.0".to_string(),
             steps: vec![
                 WorkflowStep {
                     id: "failing-step".to_string(),
                     name: "Failing Step".to_string(),
-                    action: WorkflowAction::Execute {
+                    description: None,
+                    action: WorkflowAction::Command {
                         command: "false".to_string(), // This command always fails
                         args: vec![],
+                        env: HashMap::new(),
                     },
-                    depends_on: vec![],
-                    retry: Some(alchemist::workflow::RetryConfig {
+                    dependencies: vec![],
+                    conditions: vec![],
+                    retry_config: Some(RetryConfig {
                         max_attempts: 3,
                         delay_seconds: 1,
                         backoff_multiplier: 2.0,
                     }),
-                    timeout: None,
-                    condition: None,
+                    timeout_seconds: None,
                 },
             ],
-            inputs: HashMap::new(),
-            outputs: HashMap::new(),
             metadata: HashMap::new(),
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),

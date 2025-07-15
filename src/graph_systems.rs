@@ -614,7 +614,7 @@ pub fn load_graph_from_file(
     for node in nodes {
         let position = Vec3::new(node.position[0], node.position[1], node.position[2]);
         
-        graph_ops.send(GraphOperationEvent {
+        graph_ops.write(GraphOperationEvent {
             operation: GraphOperation::CreateNode {
                 id: node.id.clone(),
                 label: node.label,

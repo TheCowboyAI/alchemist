@@ -174,7 +174,7 @@ fn handle_graph_load_requests(
                         info!("Parsed {} nodes and {} edges", nodes.len(), edges.len());
                         
                         // Clear existing graph if needed
-                        graph_ops.send(GraphOperationEvent {
+                        graph_ops.write(GraphOperationEvent {
                             graph_id: graph_id.clone(),
                             operation: GraphOperation::Clear,
                             entities: vec![],
@@ -182,7 +182,7 @@ fn handle_graph_load_requests(
                         
                         // Add nodes
                         for node in nodes {
-                            graph_ops.send(GraphOperationEvent {
+                            graph_ops.write(GraphOperationEvent {
                                 graph_id: graph_id.clone(),
                                 operation: GraphOperation::CreateNode {
                                     id: node.id,
@@ -200,7 +200,7 @@ fn handle_graph_load_requests(
                         }
                         
                         // Request layout
-                        graph_ops.send(GraphOperationEvent {
+                        graph_ops.write(GraphOperationEvent {
                             graph_id: graph_id.clone(),
                             operation: GraphOperation::ApplyLayout {
                                 layout_type: LayoutType::ForceDirected,

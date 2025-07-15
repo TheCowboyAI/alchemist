@@ -39,7 +39,7 @@ pub struct DataPoint {
     pub label: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ChartView {
     title: String,
     data: ChartData,
@@ -123,13 +123,13 @@ impl ChartView {
         let header = row![
             text(&self.title).size(24),
             Space::with_width(Length::Fill),
-            button(format!("Type: {:?}", self.chart_type))
+            button(text(format!("Type: {:?}", self.chart_type)))
                 .on_press(Message::CycleChartType),
-            button(if self.show_grid { "Grid: On" } else { "Grid: Off" })
+            button(text(if self.show_grid { "Grid: On" } else { "Grid: Off" }))
                 .on_press(Message::ToggleGrid),
-            button(if self.show_legend { "Legend: On" } else { "Legend: Off" })
+            button(text(if self.show_legend { "Legend: On" } else { "Legend: Off" }))
                 .on_press(Message::ToggleLegend),
-            button("✕ Close").on_press(Message::CloseWindow),
+            button(text("✕ Close")).on_press(Message::CloseWindow),
         ]
         .spacing(10)
         .padding(10);
@@ -165,7 +165,10 @@ impl ChartView {
                     .height(Length::Fixed(20.0))
                     .style(move |_theme| container::Style {
                         background: Some(Color::from_rgb(color[0], color[1], color[2]).into()),
-                        border: iced::Border::default().with_width(1.0),
+                        border: iced::Border {
+                            width: 1.0,
+                            ..Default::default()
+                        },
                         ..Default::default()
                     });
                 
@@ -348,8 +351,8 @@ fn draw_axes(frame: &mut canvas::Frame, bounds: &Rectangle, data: &ChartData) {
             size: iced::Pixels(18.0),
             color: Color::WHITE,
             font: iced::Font::default(),
-            horizontal_alignment: canvas::text::Horizontal::Center,
-            vertical_alignment: canvas::text::Vertical::Center,
+            horizontal_alignment: iced::alignment::Horizontal::Center,
+            vertical_alignment: iced::alignment::Vertical::Center,
             line_height: iced::widget::text::LineHeight::default(),
             shaping: iced::widget::text::Shaping::Basic,
         });
@@ -535,10 +538,10 @@ fn draw_axis_labels(
             size: iced::Pixels(12.0),
             color: text_color,
             font: iced::Font::default(),
-            horizontal_alignment: canvas::text::Horizontal::Center,
-            vertical_alignment: canvas::text::Vertical::Top,
-            line_height: iced::font::LineHeight::default(),
-            shaping: canvas::text::Shaping::default(),
+            horizontal_alignment: iced::alignment::Horizontal::Center,
+            vertical_alignment: iced::alignment::Vertical::Top,
+            line_height: iced::widget::text::LineHeight::default(),
+            shaping: iced::widget::text::Shaping::default(),
         });
     }
     
@@ -553,10 +556,10 @@ fn draw_axis_labels(
             size: iced::Pixels(12.0),
             color: text_color,
             font: iced::Font::default(),
-            horizontal_alignment: canvas::text::Horizontal::Right,
-            vertical_alignment: canvas::text::Vertical::Center,
-            line_height: iced::font::LineHeight::default(),
-            shaping: canvas::text::Shaping::default(),
+            horizontal_alignment: iced::alignment::Horizontal::Right,
+            vertical_alignment: iced::alignment::Vertical::Center,
+            line_height: iced::widget::text::LineHeight::default(),
+            shaping: iced::widget::text::Shaping::default(),
         });
     }
     
@@ -568,10 +571,10 @@ fn draw_axis_labels(
             size: iced::Pixels(14.0),
             color: text_color,
             font: iced::Font::default(),
-            horizontal_alignment: canvas::text::Horizontal::Center,
-            vertical_alignment: canvas::text::Vertical::Top,
-            line_height: iced::font::LineHeight::default(),
-            shaping: canvas::text::Shaping::default(),
+            horizontal_alignment: iced::alignment::Horizontal::Center,
+            vertical_alignment: iced::alignment::Vertical::Top,
+            line_height: iced::widget::text::LineHeight::default(),
+            shaping: iced::widget::text::Shaping::default(),
         });
     }
     
@@ -583,10 +586,10 @@ fn draw_axis_labels(
             size: iced::Pixels(14.0),
             color: text_color,
             font: iced::Font::default(),
-            horizontal_alignment: canvas::text::Horizontal::Center,
-            vertical_alignment: canvas::text::Vertical::Center,
-            line_height: iced::font::LineHeight::default(),
-            shaping: canvas::text::Shaping::default(),
+            horizontal_alignment: iced::alignment::Horizontal::Center,
+            vertical_alignment: iced::alignment::Vertical::Center,
+            line_height: iced::widget::text::LineHeight::default(),
+            shaping: iced::widget::text::Shaping::default(),
         });
     }
 }

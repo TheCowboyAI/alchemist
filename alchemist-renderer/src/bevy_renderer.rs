@@ -113,7 +113,7 @@ fn setup_graph_visualization(
                 Mesh3d(meshes.add(Sphere::new(size * 0.2))),
                 MeshMaterial3d(materials.add(StandardMaterial {
                     base_color: color,
-                    emissive: color.as_linear() * 0.2,
+                    emissive: LinearRgba::from(color) * 0.2,
                     ..default()
                 })),
                 Transform::from_translation(position),
@@ -176,7 +176,7 @@ fn handle_input(
     mut app_exit: EventWriter<AppExit>,
 ) {
     if keyboard.just_pressed(KeyCode::Escape) {
-        app_exit.send(AppExit::Success);
+        app_exit.write(AppExit::Success);
     }
 }
 

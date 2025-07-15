@@ -111,7 +111,7 @@ impl MarkdownView {
                                 .size(size)
                                 .font(Font::with_name("Helvetica Bold"))
                         )
-                        .padding([10, 0])
+                        .padding(iced::Padding { top: 10.0, right: 0.0, bottom: 10.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::Paragraph(text) => {
@@ -120,7 +120,7 @@ impl MarkdownView {
                             iced::widget::text(text)
                                 .size(16)
                         )
-                        .padding([5, 0])
+                        .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::CodeBlock(code, lang) => {
@@ -162,7 +162,7 @@ impl MarkdownView {
                                 .size(16)
                                 .font(Font::MONOSPACE)
                         )
-                        .padding([5, 0])
+                        .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::List(items, ordered) => {
@@ -183,7 +183,7 @@ impl MarkdownView {
                     }
                     content_column.push(
                         container(list_column.spacing(3))
-                            .padding([5, 0, 5, 20])
+                            .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 20.0 })
                     )
                 }
                 MarkdownElement::Blockquote(text) => {
@@ -194,7 +194,7 @@ impl MarkdownView {
                                     .width(Length::Fixed(4.0))
                                     .height(Length::Fill)
                                     .style(container::rounded_box),
-                                text(text)
+                                iced::widget::text(text)
                                     .size(16)
                                     .color(if self.use_dark_theme {
                                         iced::Color::from_rgb(0.7, 0.7, 0.7)
@@ -204,7 +204,7 @@ impl MarkdownView {
                             ]
                             .spacing(10)
                         )
-                        .padding([5, 0])
+                        .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::HorizontalRule => {
@@ -213,17 +213,17 @@ impl MarkdownView {
                             .height(Length::Fixed(1.0))
                             .width(Length::Fill)
                             .style(container::rounded_box)
-                            .padding([10, 0])
+                            .padding(iced::Padding { top: 10.0, right: 0.0, bottom: 10.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::Link(text, url) => {
                     content_column.push(
                         container(
-                            button(text)
+                            button(iced::widget::text(text))
                                 .on_press(Message::CloseWindow) // TODO: Open URL
                                 .style(button::text)
                         )
-                        .padding([5, 0])
+                        .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::Image(alt, _url) => {
@@ -237,7 +237,7 @@ impl MarkdownView {
                                     iced::Color::from_rgb(0.4, 0.4, 0.4)
                                 })
                         )
-                        .padding([5, 0])
+                        .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::Bold(text) => {
@@ -247,7 +247,7 @@ impl MarkdownView {
                                 .size(16)
                                 .font(Font::with_name("Helvetica Bold"))
                         )
-                        .padding([5, 0])
+                        .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 0.0 })
                     )
                 }
                 MarkdownElement::Italic(text) => {
@@ -255,9 +255,8 @@ impl MarkdownView {
                         container(
                             iced::widget::text(format!("_{}_", text))
                                 .size(16)
-                                .style(text::italic)
                         )
-                        .padding([5, 0])
+                        .padding(iced::Padding { top: 5.0, right: 0.0, bottom: 5.0, left: 0.0 })
                     )
                 }
             };

@@ -1424,7 +1424,7 @@ fn main() {
                     println!("Rebuild with: cargo build --features bevy");
                 }
             }
-            GraphCommands::Save { id, output, format: _ } => {
+            GraphCommands::Save { id, output, format } => {
                 println!("Saving graph {} to: {}", id, output);
                 
                 #[cfg(feature = "bevy")]
