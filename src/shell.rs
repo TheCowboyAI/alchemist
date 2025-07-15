@@ -351,8 +351,13 @@ impl AlchemistShell {
                 } else {
                     println!("📋 Workflows:");
                     for workflow in workflows {
+                        let id_display = if workflow.id.len() >= 8 {
+                            &workflow.id[..8]
+                        } else {
+                            &workflow.id
+                        };
                         println!("  {} - {} ({} steps)", 
-                            style(&workflow.id[..8]).dim(),
+                            style(id_display).dim(),
                             style(&workflow.name).bold(),
                             workflow.steps.len()
                         );
@@ -594,7 +599,12 @@ impl AlchemistShell {
                 } else {
                     println!("Active renderer windows:");
                     for (id, renderer_type, title) in active {
-                        println!("  {} - {} ({})", &id[..8], title, 
+                        let id_display = if id.len() >= 8 {
+                            &id[..8]
+                        } else {
+                            &id
+                        };
+                        println!("  {} - {} ({})", id_display, title, 
                             match renderer_type {
                                 crate::renderer::RendererType::Bevy => "Bevy 3D",
                                 crate::renderer::RendererType::Iced => "Iced 2D",
@@ -941,8 +951,13 @@ fn main() {
                     println!("No workflows found");
                 } else {
                     for workflow in workflows {
+                        let id_display = if workflow.id.len() >= 8 {
+                            &workflow.id[..8]
+                        } else {
+                            &workflow.id
+                        };
                         println!("  {} - {} ({} steps)", 
-                            &workflow.id[..8], 
+                            id_display, 
                             workflow.name,
                             workflow.steps.len()
                         );
@@ -990,7 +1005,12 @@ fn main() {
                             crate::renderer::RendererType::Bevy => "Bevy",
                             crate::renderer::RendererType::Iced => "Iced",
                         };
-                        println!("  [{}] {} - {}", &id[..8], title, renderer_name);
+                        let id_display = if id.len() >= 8 {
+                            &id[..8]
+                        } else {
+                            &id
+                        };
+                        println!("  [{}] {} - {}", id_display, title, renderer_name);
                     }
                 }
             }
@@ -1108,7 +1128,12 @@ fn main() {
                             event.domain
                         );
                         if let Some(corr_id) = &event.correlation_id {
-                            println!("      Correlation: {}", &corr_id[..8]);
+                            let id_display = if corr_id.len() >= 8 {
+                                &corr_id[..8]
+                            } else {
+                                corr_id
+                            };
+                            println!("      Correlation: {}", id_display);
                         }
                     }
                 }
@@ -1528,6 +1553,7 @@ mod tests {
                 available: vec![],
                 relationships: vec![],
             },
+            cache: None,
         }
     }
     
@@ -1553,6 +1579,7 @@ mod tests {
                 available: vec![],
                 relationships: vec![],
             },
+            cache: None,
         }
     }
     

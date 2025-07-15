@@ -1,0 +1,51 @@
+[package]
+name = "cim-domain-collaboration"
+version = "0.1.0"
+edition = "2021"
+authors = ["The CowboyAI Team"]
+description = "Real-time collaboration domain for multi-user graph editing"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/thecowboyai/cim-domain-collaboration"
+keywords = ["collaboration", "real-time", "websocket", "graph", "cim"]
+categories = ["network-programming", "asynchronous"]
+
+[dependencies]
+# Core dependencies
+cim-domain = { path = "../cim-domain" }
+cim-infrastructure = { path = "../cim-infrastructure" }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+# WebSocket
+tokio-tungstenite = "0.26"
+tungstenite = "0.26"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Logging
+tracing = "0.1"
+
+# IDs and time
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Collections
+dashmap = "6"
+indexmap = "2"
+
+# Futures
+futures = "0.3"
+futures-util = "0.3"
+
+# We'll implement simple conflict resolution without external CRDT library
+
+[dev-dependencies]
+tokio-test = "0.4"

@@ -1,0 +1,14 @@
+{
+  "id": "b0a05454-7760-453f-a33e-2a8aa14bf296",
+  "title": "Command Test",
+  "model": "gpt-3.5",
+  "created_at": "2025-07-15T17:53:55.878433542Z",
+  "updated_at": "2025-07-15T17:53:55.878434159Z",
+  "messages": [],
+  "metadata": {
+    "domain": null,
+    "context": null,
+    "tags": [],
+    "total_tokens": 0
+  }
+}

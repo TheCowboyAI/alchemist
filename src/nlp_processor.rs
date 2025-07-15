@@ -5,6 +5,7 @@ use crate::ai::AiManager;
 use crate::rss_feed_manager::{ProcessedRssItem, Sentiment, Entity};
 use serde::{Deserialize, Serialize};
 use tracing::{info, debug, error};
+use chrono::Utc;
 
 /// NLP processor that uses real AI providers for text analysis
 pub struct NlpProcessor {
@@ -264,14 +265,44 @@ impl Default for NlpConfig {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_relevance_score_calculation() {
+    #[tokio::test]
+    async fn test_relevance_score_calculation() {
+        // Create a dummy processor just to test the calculate_relevance_score method
+        // which doesn't actually use the ai_manager
+        use std::sync::Arc;
+        use crate::config::{AlchemistConfig, GeneralConfig};
+        
+        let config = AlchemistConfig {
+            general: GeneralConfig {
+                default_ai_model: Some("test".to_string()),
+                dialog_history_path: "/tmp".to_string(),
+                progress_file_path: "/tmp".to_string(),
+                nats_url: None,
+                log_level: "info".to_string(),
+            },
+            ai_models: std::collections::HashMap::new(),
+            policy: crate::config::PolicyConfig {
+                storage_path: "/tmp".to_string(),
+                validation_enabled: false,
+                evaluation_timeout: 5000,
+                cache_ttl: None,
+            },
+            deployments: std::collections::HashMap::new(),
+            domains: crate::config::DomainRegistryConfig {
+                available: vec![],
+                relationships: vec![],
+            },
+            cache: None,
+        };
+        
+        let config_arc = Arc::new(config);
+        let ai_manager = AiManager::new(&config_arc).await.unwrap();
         let processor = NlpProcessor {
-            ai_manager: todo!(), // Would be mocked in real tests
+            ai_manager,
             default_model: "test-model".to_string(),
         };
 
-        let mut item = ProcessedRssItem {
+        let item = ProcessedRssItem {
             id: "test".to_string(),
             feed_id: "test-feed".to_string(),
             feed_name: "Test Feed".to_string(),

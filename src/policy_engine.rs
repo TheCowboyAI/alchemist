@@ -485,6 +485,7 @@ impl ConditionEvaluator for TimeBasedEvaluator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::policy::Rule;
     use std::sync::atomic::{AtomicBool, Ordering};
     use tokio::sync::Mutex;
     use std::time::Duration;
@@ -892,7 +893,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -923,7 +924,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -956,7 +957,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1113,7 +1114,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1131,7 +1132,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1264,7 +1265,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1290,7 +1291,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1305,7 +1306,7 @@ mod tests {
         let engine = PolicyEngine::new(60);
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1347,7 +1348,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1380,7 +1381,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1424,7 +1425,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );
@@ -1483,7 +1484,7 @@ mod tests {
         engine.load_policy(policy).unwrap();
         
         let context = create_test_context(
-            create_test_subject("user1", vec![], vec!["test".to_string()]),
+            create_test_subject("user1", vec!["read".to_string()], vec!["test".to_string()]),
             create_test_resource("resource1", "test"),
             create_test_action("read"),
         );

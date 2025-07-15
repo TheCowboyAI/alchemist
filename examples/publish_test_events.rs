@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         });
         
-        client.publish(&subject, payload.to_string().into()).await?;
+        client.publish(subject.clone(), payload.to_string().into()).await?;
         println!("📤 Published: {} (event #{})", subject, count);
         
         count += 1;

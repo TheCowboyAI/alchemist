@@ -481,7 +481,7 @@ mod tests {
         let manager = DialogManager::new(&config).await.unwrap();
         
         assert_eq!(manager.dialogs.len(), 0);
-        assert!(manager.current_dialog.is_none());
+        assert!(manager.current_dialog.read().await.is_none());
         assert!(temp_dir.path().exists());
     }
     
@@ -494,13 +494,13 @@ mod tests {
         manager.new_dialog_cli(None, None).await.unwrap();
         
         assert_eq!(manager.dialogs.len(), 1);
-        assert!(manager.current_dialog.is_some());
+        assert!(manager.current_dialog.read().await.is_some());
         
         let dialog_id = manager.current_dialog.read().await.as_ref().unwrap().clone();
-        let dialog = manager.dialogs.get(dialog_id).unwrap();
+        let dialog = manager.dialogs.get(&dialog_id).unwrap();
         
         assert!(dialog.title.starts_with("Dialog "));
-        assert_eq!(dialog.model, "default");
+        assert_eq!(dialog.model, "claude-3-sonnet");
         assert_eq!(dialog.messages.len(), 0);
         assert_eq!(dialog.metadata.total_tokens, 0);
         
@@ -521,7 +521,7 @@ mod tests {
         manager.new_dialog_cli(Some(title.clone()), Some(model.clone())).await.unwrap();
         
         let dialog_id = manager.current_dialog.read().await.as_ref().unwrap().clone();
-        let dialog = manager.dialogs.get(dialog_id).unwrap();
+        let dialog = manager.dialogs.get(&dialog_id).unwrap();
         
         assert_eq!(dialog.title, title);
         assert_eq!(dialog.model, model);
@@ -605,12 +605,12 @@ mod tests {
         manager.add_message(&dialog_id, MessageRole::User, "First message".to_string(), None).await.unwrap();
         
         // Change current dialog
-        manager.current_dialog = None;
+        *manager.current_dialog.write().await = None;
         
         // Continue the dialog
         manager.continue_dialog_cli(dialog_id.clone()).await.unwrap();
         
-        assert_eq!(manager.current_dialog, Some(dialog_id.clone()));
+        assert_eq!(*manager.current_dialog.read().await, Some(dialog_id.clone()));
         
         // Verify dialog state
         let dialog = manager.dialogs.get(&dialog_id).unwrap();
@@ -800,10 +800,13 @@ mod tests {
         let manager = Arc::new(Mutex::new(DialogManager::new(&config).await.unwrap()));
         
         // Create a dialog
-        let dialog_id = {
+        let dialog_id: String = {
             let mut m = manager.lock().await;
             m.new_dialog_cli(Some("Concurrent Test".to_string()), None).await.unwrap();
-            m.current_dialog.read().await.as_ref().unwrap().clone()
+            let current_dialog_arc = m.current_dialog.clone();
+            drop(m);
+            let guard = current_dialog_arc.read().await;
+            guard.as_ref().unwrap().clone()
         };
         
         // Spawn multiple tasks to add messages concurrently
@@ -818,7 +821,8 @@ mod tests {
                 m.add_message(
                     &dialog_id_clone, 
                     MessageRole::User, 
-                    format!("Concurrent message {}", i)
+                    format!("Concurrent message {}", i),
+                    None
                 ).await.unwrap();
             });
             
@@ -856,7 +860,8 @@ mod tests {
             manager.add_message(
                 &dialog_id, 
                 MessageRole::User, 
-                format!("Message {}", i)
+                format!("Message {}", i),
+                None
             ).await.unwrap();
             tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
         }
@@ -1000,11 +1005,11 @@ mod tests {
         
         // Test Continue command
         let dialog_id = manager.current_dialog.read().await.as_ref().unwrap().clone();
-        manager.current_dialog = None;
+        *manager.current_dialog.write().await = None;
         
         let continue_cmd = DialogCommands::Continue { id: dialog_id.clone() };
         let _ = manager.handle_command(continue_cmd).await.unwrap();
-        assert_eq!(manager.current_dialog, Some(dialog_id.clone()));
+        assert_eq!(*manager.current_dialog.read().await, Some(dialog_id.clone()));
         
         // Test Export command
         let export_cmd = DialogCommands::Export {

@@ -730,7 +730,7 @@ impl WorkflowExecutor {
                     "body": body,
                 }))
             }
-            WorkflowAction::NatsPublish { subject, payload } => {
+            WorkflowAction::NatsPublish { subject, payload: _ } => {
                 // Publish NATS message
                 // This would need the NATS client passed in
                 Ok(serde_json::json!({
@@ -897,6 +897,7 @@ pub async fn load_workflow_from_json(path: &str) -> Result<Workflow> {
 mod tests {
     use super::*;
     use std::sync::atomic::AtomicUsize;
+    use std::sync::Mutex;
     use std::time::Duration;
     use tokio::time::sleep;
     
