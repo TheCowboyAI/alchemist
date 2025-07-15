@@ -961,7 +961,7 @@ impl DeploymentAutomation {
 
     /// Start deployment window enforcer
     async fn start_window_enforcer(&self) -> Result<()> {
-        let _automation = self.clone();
+        let automation = self.clone();
         
         tokio::spawn(async move {
             loop {
@@ -984,7 +984,7 @@ impl DeploymentAutomation {
 
     /// Start canary monitor
     async fn start_canary_monitor(&self) -> Result<()> {
-        let _automation = self.clone();
+        let automation = self.clone();
         
         tokio::spawn(async move {
             loop {
