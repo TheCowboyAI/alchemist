@@ -5,7 +5,6 @@
 
 use alchemist::{
     ai::AiManager,
-    config::AlchemistConfig,
     nlp_processor::NlpConfig,
     rss_feed_processor::RssFeedProcessor,
 };

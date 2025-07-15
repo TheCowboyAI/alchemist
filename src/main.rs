@@ -6,41 +6,16 @@
 //! - Policy and deployment management
 
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use tracing::info;
 
 // Use modules from the library crate
 use alchemist::{
-    config::{self, AlchemistConfig},
-    ai,
-    dialog,
-    policy,
-    domain,
-    deployment,
-    progress,
-    shell::{self, AlchemistShell},
-    shell_commands::{self, Commands},
-    renderer,
-    render_commands,
-    dashboard,
-    dashboard_events,
+    config,
+    shell::AlchemistShell,
+    shell_commands::Commands,
     dashboard_realtime,
-    dashboard_nats_stream,
-    rss_feed_manager,
     renderer_api,
-    renderer_events,
-    renderer_comm,
-    nix_deployment,
-    nats_client,
-    policy_engine,
-    workflow,
-    event_monitor,
-    shell_enhanced,
-    error,
-    dashboard_window,
-    dialog_window,
-    dialog_handler,
-    system_monitor,
 };
 
 
@@ -109,7 +84,7 @@ async fn run_cli_mode(cli: Cli) -> Result<()> {
                 println!("Use --interactive for shell mode\n");
                 
                 // Launch dashboard with event sourcing
-                use crate::dashboard::launch_dashboard_with_events;
+                use alchemist::dashboard::launch_dashboard_with_events;
                 
                 // Try to connect to NATS for real-time events
                 let nats_client = if let Some(nats_url) = &shell.config.general.nats_url {
@@ -182,15 +157,15 @@ async fn handle_command(shell: &mut AlchemistShell, command: Commands) -> Result
             // Launch real-time dashboard
             if let Some(nats_client) = &shell.nats_client {
                 let realtime_manager = std::sync::Arc::new(
-                    crate::dashboard_realtime::DashboardRealtimeManager::new(
+                    dashboard_realtime::DashboardRealtimeManager::new(
                         nats_client.clone(),
-                        std::sync::Arc::new(crate::renderer_api::RendererApi::new()),
+                        std::sync::Arc::new(renderer_api::RendererApi::new()),
                     )
                 );
                 
                 realtime_manager.clone().start().await?;
                 
-                let id = crate::dashboard_realtime::launch_realtime_dashboard(
+                let id = dashboard_realtime::launch_realtime_dashboard(
                     &shell.renderer_manager,
                     nats_client.clone(),
                     realtime_manager,

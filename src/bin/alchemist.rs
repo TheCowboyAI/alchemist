@@ -1,7 +1,5 @@
 //! Main Alchemist launcher executable
 
-use alchemist::launcher;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     println!("═══════════════════════════════════════════");

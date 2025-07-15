@@ -2,10 +2,8 @@
 
 use alchemist::{
     dashboard_minimal,
-    dashboard::{self, DashboardData},
+    dashboard::DashboardData,
     nats_dashboard_connector,
-    nats_client,
-    system_monitor,
 };
 use std::env;
 
