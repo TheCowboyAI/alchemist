@@ -126,7 +126,7 @@ impl EnhancedLauncher {
         vec![
             Document {
                 id: "doc-1".to_string(),
-                title: "README.md".to_string(),
+                title: "readme.md".to_string(),
                 content: "# Alchemist\n\nCIM Control System with event-driven architecture".to_string(),
                 created: Utc::now() - chrono::Duration::days(7),
                 last_modified: Utc::now() - chrono::Duration::days(1),

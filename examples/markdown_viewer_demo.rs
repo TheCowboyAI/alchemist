@@ -24,8 +24,8 @@ async fn main() -> Result<()> {
     let renderer_manager = RendererManager::new()?;
     
     // Example 1: Display README
-    if let Ok(readme_content) = fs::read_to_string("README.md") {
-        info!("Displaying README.md");
+    if let Ok(readme_content) = fs::read_to_string("readme.md") {
+        info!("Displaying readme.md");
         let window_id = renderer_manager.spawn_markdown(
             "Project README",
             readme_content,

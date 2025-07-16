@@ -259,7 +259,7 @@ See the [advanced guide](docs/advanced.md) for more features.
 Details at [api.example.com](https://api.example.com).
 
 ## Contributing
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting PRs.
+Please read [contributing.md](contributing.md) before submitting PRs.
 
 ### Development Setup
 1. Clone the repository

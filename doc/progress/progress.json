@@ -16,6 +16,20 @@
   "recent_changes": [
     {
       "date": "2025-07-16",
+      "type": "FILE_RENAMING",
+      "description": "Renamed all uppercase filenames to lowercase project-wide",
+      "details": [
+        "Created rename_uppercase_files.sh script to automate renaming",
+        "Renamed hundreds of files from uppercase to lowercase",
+        "Key renames: README.md → readme.md, CHANGELOG.md → changelog.md",
+        "Updated all code references to use new lowercase filenames",
+        "Fixed references in Rust source files, tests, and examples",
+        "Ensured consistency across entire codebase",
+        "Complies with user requirement to never use uppercase filenames"
+      ]
+    },
+    {
+      "date": "2025-07-16",
       "type": "CATEGORY_THEORY_IMPLEMENTATION",
       "description": "Implemented Applied Category Theory (ACT) based inter-domain communication",
       "details": [
