@@ -15,12 +15,10 @@ all = { level = "warn", priority = -1 }
 all = { level = "warn", priority = -1 }
 
 [workspace]
-exclude = ["examples/", "cim-domain-agent", "cim-domain-bevy", "cim-agent-alchemist", "cim-domain-graph", "cim-domain-organization", "cim-domain-person", "cim-domain-policy", "cim-compose", "cim-domain-git"]
+exclude = ["examples/", "cim-domain", "cim-component", "cim-ipld", "cim-subject", "cim-domain-agent", "cim-domain-bevy", "cim-agent-alchemist", "cim-domain-graph", "cim-domain-organization", "cim-domain-person", "cim-domain-policy", "cim-compose", "cim-domain-git"]
 members = [
-  "cim-component",
   "cim-conceptgraph",
   "cim-contextgraph",
-  "cim-domain",
   "cim-domain-collaboration",
   "cim-domain-conceptualspaces",
   "cim-domain-dialog",
@@ -30,9 +28,7 @@ members = [
   "cim-domain-nix",
   "cim-domain-workflow",
   "cim-infrastructure",
-  "cim-ipld",
   "cim-ipld-graph",
-  "cim-subject",
   "cim-workflow-graph",
   "cim-keys",
   "cim-security",
@@ -103,16 +99,16 @@ sysinfo = "0.29"
 sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "sqlite"] }
 
 # Content addressing
-cim-ipld = { path = "cim-ipld" }
+cim-ipld = { path = "cim-domain/crates/cim-ipld" }
 cim-contextgraph = { path = "cim-contextgraph" }
 cim-workflow-graph = { path = "cim-workflow-graph" }
 cim-ipld-graph = { path = "cim-ipld-graph" }
-cim-domain = { path = "cim-domain" }
+cim-domain = { path = "cim-domain", version = "0.3.0" }
 cim-domain-workflow = { path = "cim-domain-workflow" }
 cim-domain-location = { path = "cim-domain-location" }
 cim-domain-document = { path = "cim-domain-document" }
 cim-domain-conceptualspaces = { path = "cim-domain-conceptualspaces" }
-cim-subject = { path = "cim-subject" }
+cim-subject = { path = "cim-domain/crates/cim-subject" }
 cim-domain-nix = { path = "cim-domain-nix" }
 cim-domain-dialog = { path = "cim-domain-dialog" }
 cim-keys = { path = "cim-keys" }
