@@ -63,17 +63,17 @@
     {
       "date": "2025-07-16",
       "type": "PRODUCTION_DEPLOYMENT",
-      "description": "Created comprehensive production deployment configuration",
+      "description": "Created NixOS-based production deployment configuration",
       "details": [
-        "Docker Compose production configuration with full stack",
-        "Kubernetes deployment manifests with HPA and PDB",
-        "ConfigMaps for production settings",
-        "Ingress configuration with TLS and rate limiting",
-        "Comprehensive production deployment guide",
-        "Security best practices and hardening",
-        "Monitoring setup with Prometheus and Grafana",
-        "Backup and disaster recovery procedures",
-        "Performance tuning recommendations"
+        "NixOS container configuration for Leaf Node deployment",
+        "Declarative nixos-containers for all services",
+        "Extra containers for distributed domain deployment",
+        "Complete Leaf Node configuration with networking",
+        "Comprehensive NixOS deployment guide",
+        "Security hardening with container isolation",
+        "Monitoring with Prometheus and Grafana in containers",
+        "BorgBackup configuration for disaster recovery",
+        "Performance tuning for NixOS containers"
       ]
     },
     {
