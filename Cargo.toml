@@ -260,6 +260,10 @@ name = "category_theory_demo"
 path = "examples/category_theory_demo.rs"
 
 [[example]]
+name = "cross_domain_search_demo"
+path = "examples/cross_domain_search_demo.rs"
+
+[[example]]
 name = "alchemist_gui_showcase"
 path = "examples/alchemist_gui_showcase.rs"
 
