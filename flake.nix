@@ -11,6 +11,13 @@
 
     # Dev tools
     treefmt-nix.url = "github:numtide/treefmt-nix";
+
+    # Core domain module
+    cim-domain = {
+      url = "github:TheCowboyAI/cim-domain";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-overlay.follows = "rust-overlay";
+    };
   };
 
   outputs = inputs:

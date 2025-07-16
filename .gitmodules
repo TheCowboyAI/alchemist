@@ -8,9 +8,6 @@
 [submodule "cim-component"]
 	path = cim-component
 	url = git@github.com:TheCowboyAI/cim-component.git
-[submodule "cim-domain"]
-	path = cim-domain
-	url = git@github.com:TheCowboyAI/cim-domain.git
 [submodule "cim-compose"]
 	path = cim-compose
 	url = git@github.com:TheCowboyAI/cim-compose.git

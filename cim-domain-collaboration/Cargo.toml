@@ -11,7 +11,7 @@ categories = ["network-programming", "asynchronous"]
 
 [dependencies]
 # Core dependencies
-cim-domain = { path = "../cim-domain" }
+cim-domain = { git = "https://github.com/TheCowboyAI/cim-domain.git", branch = "main" }
 cim-infrastructure = { path = "../cim-infrastructure" }
 
 # Async runtime
