@@ -68,9 +68,17 @@ impl AlchemistShell {
         
         // Create event monitor if NATS is available
         let event_monitor = if let Some(ref client) = nats_client {
+            // Create events database in the same directory as dialog history
+            let data_dir = std::path::Path::new(&config.general.dialog_history_path)
+                .parent()
+                .unwrap_or(std::path::Path::new("."))
+                .to_path_buf();
+            std::fs::create_dir_all(&data_dir).ok();
+            let db_path = data_dir.join("events.db");
+            
             match EventMonitor::new(
                 Arc::new(client.clone()),
-                "events.db",
+                db_path.to_str().unwrap_or("events.db"),
                 10000,
             ).await {
                 Ok(monitor) => {

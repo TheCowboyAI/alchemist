@@ -15,6 +15,23 @@
   
   "recent_changes": [
     {
+      "date": "2025-07-16",
+      "type": "CATEGORY_THEORY_IMPLEMENTATION",
+      "description": "Implemented Applied Category Theory (ACT) based inter-domain communication",
+      "details": [
+        "Created category/ module with domain categories, morphisms, functors, natural transformations",
+        "Implemented limits and colimits (products, coproducts, pullbacks, pushouts)",
+        "Built composition/ module with domain composition and saga orchestration",
+        "Integrated saga orchestration with existing state machine implementation",
+        "Created topos structures for categorical logic and internal consistency",
+        "Implemented domain/ module with cross-domain invariants and semantic analysis",
+        "Built integration/ module with dependency injection, domain bridges, service registry",
+        "Created event bridge for routing and transforming events between domains",
+        "Added comprehensive tests and example demonstrating inter-domain communication",
+        "Follows ACT principles from doc/research/act-application.md"
+      ]
+    },
+    {
       "date": "2025-07-15",
       "type": "BUILD_FIX",
       "description": "Fixed all compilation errors across codebase",

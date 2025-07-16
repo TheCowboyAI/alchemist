@@ -773,6 +773,42 @@ dependencies = [
 
 [[package]]
 name = "async-nats"
+version = "0.40.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e23419d455dc57d3ae60a2f4278cf561fc74fe866e548e14d2b0ad3e1b8ca0b2"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "futures",
+ "memchr",
+ "nkeys",
+ "nuid",
+ "once_cell",
+ "pin-project",
+ "portable-atomic",
+ "rand 0.8.5",
+ "regex",
+ "ring",
+ "rustls-native-certs 0.7.3",
+ "rustls-pemfile 2.2.0",
+ "rustls-webpki 0.102.8",
+ "serde",
+ "serde_json",
+ "serde_nanos",
+ "serde_repr",
+ "thiserror 1.0.69",
+ "time",
+ "tokio",
+ "tokio-rustls",
+ "tokio-util",
+ "tokio-websockets",
+ "tracing",
+ "tryhard",
+ "url",
+]
+
+[[package]]
+name = "async-nats"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2cf0ae68ffe9ef362127a2223b42f57104edb20a50429f8c6e058912212884f7"
@@ -3128,8 +3164,15 @@ dependencies = [
 name = "cim-component"
 version = "0.3.0"
 dependencies = [
+ "async-nats 0.40.0",
+ "async-trait",
+ "dashmap",
+ "futures",
  "serde",
+ "serde_json",
+ "thiserror 2.0.12",
  "tokio",
+ "tracing",
  "uuid",
 ]
 
@@ -3192,6 +3235,7 @@ dependencies = [
  "test-case",
  "thiserror 2.0.12",
  "tokio",
+ "tokio-stream",
  "tokio-test",
  "tracing",
  "uuid",
@@ -3207,7 +3251,6 @@ dependencies = [
  "chrono",
  "cim-domain",
  "cim-domain-conceptualspaces",
- "cim-domain-dialog",
  "cim-domain-graph",
  "cim-infrastructure",
  "colored 2.2.0",

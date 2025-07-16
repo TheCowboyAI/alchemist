@@ -41,6 +41,10 @@ members = [
 resolver = "2"
 
 [[bin]]
+name = "alchemist"
+path = "src/main.rs"
+
+[[bin]]
 name = "alchemist_ui"
 path = "src/bin/alchemist_ui.rs"
 
@@ -181,9 +185,6 @@ strip = true
 name = "alchemist"
 path = "src/lib.rs"
 
-[[bin]]
-name = "ia"
-path = "src/main.rs"
 
 [[bin]]
 name = "alchemist-minimal"
@@ -241,6 +242,38 @@ required-features = []
 name = "chart_viewer_demo"
 path = "examples/chart_viewer_demo.rs"
 required-features = []
+
+[[example]]
+name = "deployment_demo"
+path = "examples/deployment_demo.rs"
+
+[[example]]
+name = "graph_demo"
+path = "examples/graph_demo.rs"
+
+[[example]]
+name = "test_deployment_minimal"
+path = "examples/test_deployment_minimal.rs"
+
+[[example]]
+name = "category_theory_demo"
+path = "examples/category_theory_demo.rs"
+
+[[example]]
+name = "alchemist_gui_showcase"
+path = "examples/alchemist_gui_showcase.rs"
+
+[[example]]
+name = "bevy_3d_showcase"
+path = "examples/bevy_3d_showcase.rs"
+
+[[example]]
+name = "iced_ui_showcase"
+path = "examples/iced_ui_showcase.rs"
+
+[[example]]
+name = "test_deployment_graph"
+path = "examples/test_deployment_graph.rs"
 
 [[test]]
 name = "integration"

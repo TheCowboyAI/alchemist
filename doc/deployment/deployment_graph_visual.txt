@@ -1,0 +1,99 @@
+=== CIM Leaf Deployment Graph Functionality ===
+
+The deployment graph functionality is now available in both Bevy UI and console output.
+Here's what has been implemented:
+
+1. GRAPH TO NIX TRANSLATION LAYER
+   ┌─────────────────┐
+   │  Deployment     │     DeploymentNodeType enum:
+   │  Graph Nodes    │     • Service (with image, ports, env)
+   │                 │     • Database (PostgreSQL, MySQL, etc)
+   │  🔷 Service     │     • Agent (with capabilities)
+   │  🗄️ Database    │     • MessageBus (NATS, RabbitMQ)
+   │  🤖 Agent       │     • LoadBalancer (nginx, HAProxy)
+   │  📡 MessageBus  │     • Storage (S3, MinIO, NFS)
+   │  ⚖️ LoadBalancer│
+   │  💾 Storage     │
+   └─────────────────┘
+           ↓
+   ┌─────────────────┐
+   │ GraphToNix      │     Translates graph structure to:
+   │ Translator      │     • Nix service definitions
+   │                 │     • SystemD units
+   │                 │     • Docker containers
+   │                 │     • Network configuration
+   │                 │     • Storage volumes
+   └─────────────────┘
+           ↓
+   ┌─────────────────┐
+   │  flake.nix      │     Generated NixOS configuration
+   │  deployment     │     Ready for nixos-rebuild
+   └─────────────────┘
+
+2. MULTI-AGENT COORDINATION
+   ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+   │ Deploy Agent │    │Monitor Agent │    │ Config Agent │
+   │              │    │              │    │              │
+   │ Capabilities:│    │ Capabilities:│    │ Capabilities:│
+   │ • Deployment │    │ • Health     │    │ • Settings   │
+   │ • Rollback   │    │ • Alerts     │    │ • Secrets    │
+   └──────┬───────┘    └──────┬───────┘    └──────┬───────┘
+          │                    │                    │
+          └────────────────────┴────────────────────┘
+                               │
+                    ┌──────────┴───────────┐
+                    │   Task Coordinator   │
+                    │                      │
+                    │ • Task delegation    │
+                    │ • Load balancing     │
+                    │ • Consensus voting  │
+                    └──────────────────────┘
+
+3. AGENT DIALOG ROUTING
+   ┌─────────────────┐
+   │ Dialog Message  │     Routing Strategies:
+   │ "Deploy the     │     • Capability-based (matches skills)
+   │  new service"   │     • Round-robin (distributes load)
+   │                 │     • Broadcast (all agents)
+   └────────┬────────┘     • Priority-based (importance)
+            │
+   ┌────────┴────────┐
+   │ Agent Router    │
+   │                 │
+   │ Analyzes intent │
+   │ & capabilities  │
+   └────────┬────────┘
+            │
+   Routes to appropriate agents:
+   ┌─────────┴─────────┬─────────────────┐
+   ↓                   ↓                 ↓
+Deploy Agent    Monitor Agent     Config Agent
+(primary)       (secondary)       (if needed)
+
+4. BEVY 3D VISUALIZATION
+   The deployment graph is rendered in 3D with:
+   • Different shapes for node types (cube=LB, sphere=service, cylinder=DB)
+   • Color coding (blue=LB, green=service, yellow=DB, red=agent)
+   • Interactive selection and metadata display
+   • Real-time updates as graph changes
+   • Camera controls for navigation
+
+5. ICED 2D UI
+   A control panel interface with:
+   • Buttons to add different node types
+   • Node list with selection
+   • Details panel showing node metadata
+   • "Generate Nix" button to create deployment config
+   • Clean, modern UI design
+
+EXAMPLE DEPLOYMENT FLOW:
+1. User creates deployment graph in UI
+2. Graph nodes represent services, databases, agents
+3. User clicks "Generate Nix"
+4. GraphToNixTranslator converts to Nix configuration
+5. Agents coordinate deployment tasks
+6. Deploy agent executes nixos-rebuild
+7. Monitor agent verifies health
+8. Dialog routing keeps all agents informed
+
+This provides a complete visual interface for CIM Leaf deployments!
