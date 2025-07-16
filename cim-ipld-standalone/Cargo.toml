@@ -1,0 +1,70 @@
+[package]
+name = "cim-ipld"
+version = "0.3.0"
+edition = "2021"
+authors = ["The Cowboy AI Team"]
+description = "IPLD implementation for Composable Information Machines"
+repository = "https://github.com/thecowboyai/cim-ipld"
+license = "Apache-2.0 OR MIT"
+keywords = ["ipld", "cid", "content-addressing", "cim", "dag"]
+categories = ["data-structures", "encoding", "cryptography"]
+
+[dependencies]
+cid = "0.11"
+multihash = "0.19"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_cbor = "0.11"
+blake3 = "1.5"
+thiserror = "2.0"
+bytes = "1.5"
+
+# NATS Object Store dependencies
+async-nats = { version = "0.41", features = ["service"] }
+tokio = { version = "1.45", features = ["full"] }
+futures = "0.3"
+zstd = "0.13"
+lru = "0.12"
+tracing = "0.1"
+anyhow = "1.0"
+
+# Content transformation dependencies
+image = { version = "0.25", default-features = false, features = [
+    "jpeg",
+    "png",
+    "webp",
+] }
+pulldown-cmark = "0.13"
+symphonia = { version = "0.5", features = ["mp3", "wav", "flac", "ogg"] }
+regex = "1.11"
+
+[dev-dependencies]
+tokio-test = "0.4"
+uuid = { version = "1.10", features = ["v4"] }
+tempfile = "3.8"
+rand = "0.8"
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+
+[features]
+default = []
+
+[[bench]]
+name = "performance_bench"
+harness = false
+
+[[example]]
+name = "basic_usage"
+path = "examples/basic_usage.rs"
+
+[[example]]
+name = "event_cid_example"
+path = "examples/event_cid_example.rs"
+
+[[example]]
+name = "ipld_codecs_demo"
+path = "examples/ipld_codecs_demo.rs"
+
+[[example]]
+name = "transformation_demo"
+path = "examples/transformation_demo.rs"

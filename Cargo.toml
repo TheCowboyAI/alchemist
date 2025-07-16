@@ -99,7 +99,7 @@ sysinfo = "0.29"
 sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "sqlite"] }
 
 # Content addressing
-cim-ipld = { git = "https://github.com/TheCowboyAI/cim-domain.git", branch = "main" }
+cim-ipld = { git = "https://github.com/TheCowboyAI/cim-ipld.git", branch = "main" }
 cim-contextgraph = { path = "cim-contextgraph" }
 cim-workflow-graph = { path = "cim-workflow-graph" }
 cim-ipld-graph = { path = "cim-ipld-graph" }

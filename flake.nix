@@ -18,6 +18,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rust-overlay.follows = "rust-overlay";
     };
+
+    # IPLD content-addressed storage
+    cim-ipld = {
+      url = "github:TheCowboyAI/cim-ipld";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-overlay.follows = "rust-overlay";
+    };
   };
 
   outputs = inputs:
